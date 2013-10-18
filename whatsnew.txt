@@ -1,0 +1,97 @@
+Version 1.1
+------------
+
+### Server side integration 
+- all components can save data through REST API
+- offline and caching loading strategies
+- custom data saving and data loading transports
+
+### UI improvments
+
+- "disabled" configuration options for all views ( including all form controls )
+- webix.history can be used with multiview control
+- per-submenu configuration is possible ( "config" property of menu item )
+- improved visual filtering in treetable and tree
+
+### API
+- onViewResize event added
+- "disabled" option added for all views
+- ability to define XSS safe templates
+
+### Fixes
+
+- popup's visibility on iOS
+- incorrect sizing of multiview and accordion
+- incorrect behavior of drag-n-drop in datatable
+- setValue doesn't work for radio buttons
+
+
+
+Version 1.0.2
+--------------
+
+### New functionality
+
+- getText method for datatable	
+- lineMaxLimit parameter that cuts a line in "non-item" position
+- ui.fullScreen solution for FF
+- default size of resizer changed
+- xml parse can recognize arrays	
+- addView adds to the end of layout if index was not defined	
+- skin updates, important flags removed where possible
+- csrf key now sent through http headers
+
+### Fixes
+
+- IE ignores hotkeys
+- IE8 doesn't generated dblClick events	
+- IE8 sets invalid value after changing cell value with select editor
+- minWidth and maxWidth settings from xml
+- loading tree-like data from XML
+- datatable do not allow to define order of columns during export to pdf and excel
+- incorrect remove action for local and session storage
+- regression in layout rendering when views are added through addView
+- dataprocessor and id change during binding	
+- label align in segmented button 
+- incorrect in-layout positions after showBatch call
+- invalid animations in FF and Chrome
+
+
+
+Version 1.0.1
+--------------
+
+### New functionality
+
+- layouts are correctly shown when they are zoomed by a browser
+- selectFilter can show data from the attached collections
+- better strategy for x-layout rendering
+- API calls against hidden items in menu
+- init from html|xml markup improved
+- dataprocessor can have different urls for different action
+- value attribute for tabview
+- getTopParentView method added for all views 
+- getPopup method added to the datepicker
+- setHTML method added to the label
+- setValue and getValue methods added to the multiview
+
+
+### Fixes
+
+- invalid size and focus of popup editors
+- toggle button ignores inputWidth settings
+- regression in treetable checkbox behavior
+- regression in datatable markup parsing
+- conflict between data and content properties of template
+- row markers are not removed during clearAll
+- mulitiview with no animation
+- chart rendering in multiview (no animation case)
+- label position in pie chart
+- validation and htmlform control
+- incorrect column autosizing in case of hidden container
+- native selection during cell resize
+- hideItem throws an error for menu's item which was already hidden
+- incorrect handling of custom popups in editors
+- sizing of scrollview was broken
+- window ignores y parameter of show command
+- dnd in tree as child
