@@ -667,6 +667,7 @@ x\:ui {
   font-size: 12px;
   color: #1e2022;
   overflow: hidden;
+  z-index: 1;
 }
 .webix_chart canvas {
   position: absolute;
@@ -2167,7 +2168,7 @@ input.webixtype_next {
   padding-bottom: 0px;
 }
 .webix_label_right {
-  float: left;
+  display: inline-block;
   padding-left: 7.5px;
 }
 .webix_el_label {
@@ -2350,14 +2351,16 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
 .webix_el_richselect,
 .webix_el_datepicker,
 .webix_el_colorpicker,
-.webix_el_dbldatepicker {
+.webix_el_dbldatepicker,
+.webix_el_search {
   font-size: 13px;
 }
 .webix_el_combo .webix_el_box,
 .webix_el_richselect .webix_el_box,
 .webix_el_datepicker .webix_el_box,
 .webix_el_colorpicker .webix_el_box,
-.webix_el_dbldatepicker .webix_el_box {
+.webix_el_dbldatepicker .webix_el_box,
+.webix_el_search .webix_el_box {
   color: #1e2022;
   position: relative;
 }
@@ -2366,11 +2369,13 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
 .webix_el_datepicker input,
 .webix_el_colorpicker input,
 .webix_el_dbldatepicker input,
+.webix_el_search input,
 .webix_el_combo .webix_inp_static,
 .webix_el_richselect .webix_inp_static,
 .webix_el_datepicker .webix_inp_static,
 .webix_el_colorpicker .webix_inp_static,
-.webix_el_dbldatepicker .webix_inp_static {
+.webix_el_dbldatepicker .webix_inp_static,
+.webix_el_search .webix_inp_static {
   color: #1e2022;
   padding-right: 24px;
 }
@@ -2378,14 +2383,27 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
 .webix_el_richselect .webix_input_icon,
 .webix_el_datepicker .webix_input_icon,
 .webix_el_colorpicker .webix_input_icon,
-.webix_el_dbldatepicker .webix_input_icon {
+.webix_el_dbldatepicker .webix_input_icon,
+.webix_el_search .webix_input_icon {
   right: 5px;
   color: #1e2022;
   background: transparent;
   margin-right: 0px;
   z-index: 1;
   position: absolute;
-  margin-top: 6px;
+  margin-top: 0px;
+}
+.webix_el_combo .webix_input_icon,
+.webix_el_richselect .webix_input_icon {
+  padding-left: 7px;
+  width: 19px;
+}
+.webix_el_datepicker .webix_input_icon,
+.webix_el_colorpicker .webix_input_icon,
+.webix_el_dbldatepicker .webix_input_icon,
+.webix_el_search .webix_input_icon {
+  padding-left: 5px;
+  width: 21px;
 }
 .webix_inp_radio_border input,
 .webix_el_checkbox input {
@@ -2431,10 +2449,10 @@ textarea.webix_invalid {
   position: absolute;
   right: 17px;
   cursor: pointer;
-  padding-left: 5px;
+  padding-left: 7px;
 }
 .webix_view.webix_control > .webix_disabled {
-  background-color: transparent;
+  background-color: rgba(0, 0, 0, 0);
 }
 .webix_view.webix_control .webix_disabled_box label {
   color: #aaaaaa;

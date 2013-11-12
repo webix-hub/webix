@@ -48,7 +48,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="1.1";
+webix.version="1.2";
 webix.codebase="./";
 webix.name = "core";
 
@@ -235,6 +235,12 @@ webix.bind=function(functor, object){
 
 //loads module from external js file
 webix.require=function(module, callback, master){
+	if (webix.require.disabled){
+		if (callback)
+			callback.call(master||this);
+		return;
+	}
+
 	if (typeof module != "string"){
 		var count = module.length||0;
 		var callback_origin = callback;
@@ -1065,6 +1071,32 @@ webix.skin.light = {
 	calendarHeight: 70,
 	padding:0
 };
+webix.skin.xbs = {
+	topLayout:"space",
+	//bar in accordion
+	barHeight:39,			//!!!Set the same in skin.less!!!
+	tabbarHeight: 39,
+	rowHeight:32,
+	toolbarHeight:39,
+	listItemHeight:32,		//list, grouplist, dataview, etc.
+	inputHeight:34,
+	buttonHeight: 34,
+	inputPadding: 3,
+	menuHeight: 36,
+	labelTopHeight: 16,
+
+	//margin - distance between cells
+	layoutMargin:{ space:15, wide:15, clean:0, head:4, line:-1, toolbar:4, form:8, accordion: 10  },
+	//padding - distance insede cell between cell border and cell content
+	layoutPadding:{ space:15, wide:0, clean:0, head:0, line:0, toolbar:3, form:8, accordion: 0  },
+	//space between tabs in tabbar
+	tabMargin:1,
+	tabOffset:0,
+	tabBottomOffset: 1,
+
+	calendarHeight: 70,
+	padding:0
+};
 
 webix.skin.set = function(name){
 	webix.assert(webix.skin[name], "Incorrect skin name: "+name);
@@ -1100,6 +1132,8 @@ webix.Destruction = {
 	//will be called automatically on unload, can be called manually
 	//simplifies job of GC
 	destructor:function(){
+		if(this.callEvent)
+			this.callEvent("onDestruct",[]);
 		this.destructor=function(){}; //destructor can be called only once
 		if (this._cells)
 			for (var i=0; i < this._cells.length; i++)
@@ -1120,20 +1154,19 @@ webix.Destruction = {
 			document.body.appendChild(this._html);	//need to attach, for IE's GC
 
 		this._html = null;
-				
+
+
 		if (this._contentobj) {
 			this._contentobj.innerHTML="";
 			this._contentobj._htmlmap = null;
 		}
-		
-		this._contentobj = this._dataobj = null;
-
 		//removes view container
 		if (this._viewobj&&this._viewobj.parentNode){
 			this._viewobj.parentNode.removeChild(this._viewobj);
 		}
 
 		this.data = null;
+		this._viewobj = this.$view = this._contentobj = this._dataobj = null;
 		this._events = this._handlers = {};
 
 		//remove focus from destructed view
@@ -1728,10 +1761,9 @@ webix.AtomDataLoader={
 	_onLoad:function(text, response, loader){
 		var driver = this.data.driver;
 		var data = driver.toObject(text, response);
-		if (data){
-			var top = driver.getRecords(data)[0];
-			this.data=(driver?driver.getDetails(top):text);
-		} else 
+		if (data)
+			this.data = data;
+		else 
 			this._onLoadError(text,response,loader);
 
 		this.callEvent("onAfterLoad",[]);
@@ -2570,6 +2602,9 @@ webix.UIManager = {
 	setFocus: function(view, only_api){
 		//view can be empty
 		view = webix.$$(view);
+		//ignore command for invalid or not-rendered
+		if (!view || !view.$view) return;
+
 		this._focus_time = new Date();
 		
 		if (this._view === view) return true;
@@ -2899,7 +2934,7 @@ webix.IdSpace = {
 	_run_after_inner_init_logic:function(temp){
 		for (var name in this._elements){
 			var input = this._elements[name];
-			if (input.mapEvent && !input._evs_map.onitemclick)
+			if (this.callEvent && input.mapEvent && !input._evs_map.onitemclick)
 				input.mapEvent({
 					onitemclick:this
 				});
@@ -2982,7 +3017,7 @@ webix.ui._detectScrollSize = function(){
 
 	document.body.appendChild(div);
 	var width = div.offsetWidth-div.clientWidth;
-	var skin = { 110:"air", 120:"compact", 130:"clouds", 140:"web", 150:"terrace", 160:"metro", 170:"light" }[div.offsetHeight];
+	var skin = { 110:"air", 120:"compact", 130:"clouds", 140:"web", 150:"terrace", 160:"metro", 170:"light", 180:"xbs" }[div.offsetHeight];
 	document.body.removeChild(div);
 
 	if (!window.webix_skin && skin){
@@ -3407,10 +3442,15 @@ webix.protoUI({
 	$init:function(config){
 		this.$ready.push(this._parse_cells);
 		this._dataobj  = this._contentobj;
+		this._layout_sizes = [];
+
 		if (config.$topView){
 			config.borderless = true;
 			config._inner = { top:true, left:true, bottom:true, right:true };
 		}
+
+		if (config.isolate)
+			webix.extend(this, webix.IdSpace);
 	},
 	rows_setter:function(value){
 		this._vertical_orientation = 1;
@@ -3543,12 +3583,19 @@ webix.protoUI({
 	_show:function(obj, settings, silent){
 		if (!obj._settings.hidden) return;
 		obj._settings.hidden = false;
-		webix.html.insertBefore(obj._viewobj, (this._cells[this.index(obj)+1]||{})._viewobj, (this._dataobj||this._viewobj));
+
+		//index of sibling cell, next to which new item will appear
+		var index = this.index(obj)+1;
+		//locate nearest visible cell
+		while (this._cells[index] && this._cells[index]._settings.hidden) index++;
+		var view = this._cells[index] ? this._cells[index]._viewobj : null;
+		
+		webix.html.insertBefore(obj._viewobj, view, (this._dataobj||this._viewobj));
 		this._hiddencells--;
 		
 		if (!silent){
 			this.resizeChildren(true);
-			if (obj.refresh)
+			if (obj.refresh && !obj.touchable)
 				obj.refresh();
 		}
 	},
@@ -3590,8 +3637,7 @@ webix.protoUI({
 				(this._dataobj||this._contentobj).appendChild(this._cells[i]._viewobj);
 				if (this._cells[i].$nospace)
 					this._hiddencells++;
-			} else
-				this._hiddencells++;
+			}
 		}
 
 		if (this._parse_cells_ext_end)
@@ -4185,8 +4231,8 @@ webix.animate.start = function(node, animation){
 
 webix.MouseEvents={
 	$init: function(config){
-		//temporary fix, to add dynamic events enabling
-		//need to migrate this.on_click to config.onClick
+		config = config || {};
+
 		this._clickstamp = 0;
 		this._dbl_sensetive = 300;
 		this._item_clicked = null;
@@ -4205,12 +4251,20 @@ webix.MouseEvents={
 		if (this.on_context)
 			webix.event(this._contentobj,"contextmenu",this._onContext,this);
 
-		if (this.on_mouse_move){
+		if (this.on_mouse_move)
+			this._enable_mouse_move();
+	},
+
+	_enable_mouse_move:function(){
+		if (!this._mouse_move_enabled){
+			this.on_mouse_move = this.on_mouse_move || {};
 			webix.event(this._contentobj,"mousemove",this._onMouse,this);
 			webix.event(this._contentobj,(webix.env.isIE?"mouseleave":"mouseout"),this._onMouse,this);
+			this._mouse_move_enabled = 1;
 		}
 
 	},
+
 	_mouse_action_extend:function(config, key){
 		if (config){
 			var now = this[key];
@@ -4221,12 +4275,10 @@ webix.MouseEvents={
 
 	//inner onclick object handler
 	_onClick: function(e){
-		webix.UIManager._focus_action(this);
-
-		//webix.html.stopEvent(e);
 		if(!this.isEnabled())
 			return false;
 
+		webix.UIManager._focus_action(this);
 		if(this.on_dblclick){
 			// emulates double click
 			var stamp = (new Date()).valueOf();
@@ -4538,8 +4590,10 @@ webix.protoUI({
 			}
 			if(!this._settings.collapsed)
 				this._body_cell.$setSize(x,y);
-
-
+		} else if (!this._settings.collapsed){
+			var body = this._body_cell;
+			if (body._last_size)
+				body.$setSize(body._last_size[0],body._last_size[1]);
 		}
 	},
 	$skin:function(){
@@ -4716,7 +4770,7 @@ webix.DragControl={
 	_stopDrag:function(e){
 		webix.DragControl._clean_dom_after_drag();
 		webix.DragControl._saved_event = null;
-		
+
 		if (webix.DragControl._last){	//if some drop target was confirmed
 			webix.DragControl.$drop(webix.DragControl._active,webix.DragControl._last,this._landing,e);
 			webix.DragControl.$dragOut(webix.DragControl._active,webix.DragControl._last,null,e);
@@ -4739,7 +4793,7 @@ webix.DragControl={
 		//adjust drag marker position
 		webix.DragControl._html.style.top=pos.y+webix.DragControl.top +"px";
 		webix.DragControl._html.style.left=pos.x+webix.DragControl.left+"px";
-		
+
 		if (webix.DragControl._skip)
 			webix.DragControl._skip=false;
 		else
@@ -4790,7 +4844,7 @@ webix.DragControl={
 		webix.DragControl._drag_context = {};
 		var master = this._drag_masters[a.webix_drag];
         var drag_container;
-		
+
 		//if custom method is defined - use it
 		if (master.$dragCreate){
 			drag_container=master.$dragCreate(a,e);
@@ -4810,8 +4864,10 @@ webix.DragControl={
 			in some cases item already have z-index
 			so we will preserve it if possible
 		*/
-		drag_container.style.zIndex = Math.max(drag_container.style.zIndex,webix.ui.zIndex());		
-		drag_container.onmousemove=webix.DragControl._skip_mark;
+		drag_container.style.zIndex = Math.max(drag_container.style.zIndex,webix.ui.zIndex());
+
+		webix.DragControl._skipDropH = webix.event(drag_container,"mousemove",webix.DragControl._skip_mark);
+
 		if (!webix.DragControl._drag_context.from)
 			webix.DragControl._drag_context = {source:a, from:a};
 
@@ -4826,11 +4882,15 @@ webix.DragControl={
 	destroyDrag:function(){
 		var a=webix.DragControl._active;
 		var master = this._drag_masters[a.webix_drag];
-		
-		if (master && master.$dragDestroy)
-			master.$dragDestroy(a,webix.DragControl._html);
-		else webix.html.remove(webix.DragControl._html);
-		
+
+		if (master && master.$dragDestroy){
+			webix.DragControl._skipDropH = webix.eventRemove(webix.DragControl._skipDropH);
+			if(webix.DragControl._html)
+				master.$dragDestroy(a,webix.DragControl._html);
+		}
+		else{
+			webix.html.remove(webix.DragControl._html);
+		}
 		webix.DragControl._landing=webix.DragControl._active=webix.DragControl._last=webix.DragControl._html=null;
 	},
 	top:5,	 //relative position of drag marker to mouse cursor
@@ -5221,6 +5281,7 @@ webix.protoUI({
 			}
 		} else if (this._settings.position)
 			this._setPosition();
+
 		this._show_time = new Date();
 		this._viewobj.style.display = "block";
 		
@@ -5234,6 +5295,11 @@ webix.protoUI({
 		}
 		this.callEvent("onShow",[]);
 	}, 
+	_hide:function(){
+		if (this._settings.hidden || this._settings.modal) return;
+		if (new Date() - (this._show_time || 0) > 400 )
+			this.hide();
+	},
 	_render_hidden_views:function(){
 		if (this._hidden_render){
 			var temp = this._settings.hidden;
@@ -5258,10 +5324,9 @@ webix.protoUI({
 		return !!value;
 	},
 	hide:function(force){ 
-		if (!force){
+		if (!force)
 			if(this._settings.hidden) return;
-			if (new Date() - this._show_time < 400) return; //prevent self closing on opening click
-		}
+
 		if (this._settings.modal)
 			this._modal_set(false);
 			
@@ -5435,12 +5500,7 @@ webix.protoUI({
 		this.attachEvent("onHide", this._hide_point);
 	},
 	_clever_block:function(){
-		this._show_time_click = new Date();
-	},
-	_hide:function(){
-		if (this._settings.hidden || this._settings.modal) return;
-		if (new Date()-(this._show_time_click||0) > 250 )
-			this.hide();
+		this._show_time = new Date();
 	},
     close:function(){
         webix.html.remove(this._point_element);
@@ -5815,7 +5875,7 @@ webix.protoUI({
 	},
 	_inputTemplate:function(obj){
 		var css = "class='webixtype_"+(obj.type||"base")+"' ";
-		return "<input type='button' "+css+"value=\""+(obj.label||obj.value)+"\">";
+		return "<input type='button' "+css+" value=\""+(obj.label||obj.value)+"\">";
 	},
 	$init:function(config){
 		this._viewobj.className += " webix_control webix_el_"+(this._css_name||this.name);
@@ -5843,7 +5903,7 @@ webix.protoUI({
 		imageTop:"<div class='webix_img_btn_top' style='background-image:url(#image#);'><div class='webix_img_btn_text'>#label#</div></div>",
 
 		icon:"<div class='webix_img_btn' style='line-height:#cheight#px;'><span class='webix_icon_btn icon-#icon#'></span>#label#</div>",
-		iconButton:"<div class='webix_img_btn_abs' style='left:10px; width:100%; line-height:#aheight#px'><span class='webix_icon icon-#icon#'></span> #label#</div><input type='button' class='webixtype_base'>",
+		iconButton:"<div class='webix_img_btn_abs' style='left:10px; width:100%; line-height:#aheight#px'><span class='webix_icon icon-#icon#'></span> </div><input type='button' class='webixtype_base' value='#label#'>",
 		iconTop:"<div class='webix_img_btn_top' style='width:100%;top:4px;text-align:center;'><span class='webix_icon icon-#icon#'></span><div class='webix_img_btn_text'>#label#</div></div>",
 		iconButtonTop:"<div class='webix_img_btn_abs' style='width:100%;top:0px;text-align:center;'><span class='webix_icon icon-#icon#' style='padding-top:5px;'></span><div class='webix_img_btn_text'>#label#</div></div><input type='button' class='webixtype_base'>"
 
@@ -6151,6 +6211,7 @@ webix.protoUI({
 	},
 	$skin:function(){
 		this.defaults.height = webix.skin.$active.inputHeight;
+		this.defaults.inputPadding = webix.skin.$active.inputPadding;
 	},
 	$init:function(config){
 		if (config.labelPosition == "top")
@@ -6191,7 +6252,7 @@ webix.protoUI({
 		id = id || config.name || webix.uid();
 
 		var label = "";
-		var labelHeight = top?this._labelTopHeight-2:this._settings.cheight;
+		var labelHeight = top?this._labelTopHeight-2:( this._settings.aheight - 2*this._settings.inputPadding);
 		if (config.label)
 			label = "<label style='"+labelTop+"text-align: " + labelAlign + ";line-height:"+labelHeight+"px' onclick='' for='"+id+"' class='webix_inp_"+(top?"top_":"")+"label'>" + (config.label||"") + "</label>";
 
@@ -6346,7 +6407,13 @@ webix.protoUI({
 webix.protoUI({
 	name:"search",
 	_render_icon:function(){
-		return this._settings.icon?("<span style='margin-top:"+(this._settings.aheight/2-12)+"px' class='webix_input_icon icon-"+this._settings.icon+"'></span>"):"";
+		var config = this._settings,
+			height = config.aheight - 2*config.inputPadding,
+			padding = (height - 18)/2 -1;
+		return config.icon?("<span style=height:"+(height-padding)+"px;padding-top:"+padding+"px;' class='webix_input_icon icon-"+config.icon+"'></span>"):"";
+	},
+	$skin:function(){
+		this.defaults.inputPadding = webix.skin.$active.inputPadding;
 	},
 	on_click:{
 		"webix_input_icon":function(e){
@@ -6592,8 +6659,15 @@ webix.protoUI({
 		return this._settings.popup = this._settings.suggest = webix.ui.text.prototype.suggest_setter.call(this, value);
 	},
 	_render_icon:function(){
-		return this._settings.icon?("<span style='margin-top:"+(this._settings.aheight/2-12)+"px;' class='webix_input_icon icon-"+this._settings.icon+"'></span>"):"";
+		var config = this._settings,
+			height = config.aheight - 2*config.inputPadding,
+			padding = (height - 18)/2 -1;
+		return config.icon?("<span style=height:"+(height-padding)+"px;padding-top:"+padding+"px;' class='webix_input_icon icon-"+config.icon+"'></span>"):"";
 	},
+	$skin:function(){
+		this.defaults.inputPadding = webix.skin.$active.inputPadding;
+	},
+
 	_after_render:function(obj){
 		if (webix.isUndefined(obj.value)) return;
 		this.$setValue(obj.value);
@@ -6694,7 +6768,13 @@ webix.protoUI({
 		icon:"calendar-alt"
 	},
 	_render_icon:function(){
-		return this._settings.icon?("<span class='webix_input_icon icon-"+this._settings.icon+"'></span>"):"";
+		var config = this._settings,
+			height = config.aheight - 2*config.inputPadding,
+			padding = (height - 18)/2 -1;
+		return config.icon?("<span style=height:"+(height-padding)+"px;padding-top:"+padding+"px;' class='webix_input_icon icon-"+config.icon+"'></span>"):"";
+	},
+	$skin:function(){
+		this.defaults.inputPadding = webix.skin.$active.inputPadding;
 	},
 	getPopup: function(){
 	 	return webix.$$(this._settings.popup);
@@ -7583,46 +7663,19 @@ webix.DataStore.prototype={
 			webix.log("[sync] "+this.debug_bind_master.name+"@"+this.debug_bind_master._settings.id+" <= "+this.debug_sync_master.name+"@"+this.debug_sync_master._settings.id);
 		}
 
-		this._backbone_source = false;
 		if (source.name != "DataStore"){
 			if (source.data && source.data.name == "DataStore")
 				source = source.data;
 			else
-				this._backbone_source = true;
+				return webix.callEvent("onSyncUnknonw", [this, source, filter]);
 		}
 
-		
 		var	sync_logic = webix.bind(function(mode, record, data){
 			if (this._skip_next_sync) return;
-			if (this._backbone_source){
-				//ignore first call for backbone sync
-				if (!mode) return; 
-				//data changing
-				if (mode.indexOf("change") === 0){
-					if (mode == "change"){
-						this.pull[record.id] = record.attributes;
-						this.refresh(record.id);
-						return;
-					} else return;	//ignoring property change event
-				}
 
-				//we need to access global model, it has different position for different events
-				if (mode == "reset")
-					data = record;
-				//fill data collections from backbone model
-				this.order = []; this.pull = {};
-				this._filter_order = null;
-				for (var i=0; i<data.models.length; i++){
-					var id = data.models[i].id;
-					this.order.push(id);
-					this.pull[id] = data.models[i].attributes;
-				}
-			} else {
-				this._filter_order = null;
-				this.order = webix.toArray([].concat(source.order));
-				this.pull = source.pull;
-			}
-			
+			this._filter_order = null;
+			this.order = webix.toArray([].concat(source.order));
+			this.pull = source.pull;
 			
 			if (filter)
 				this.silent(filter);
@@ -7638,21 +7691,21 @@ webix.DataStore.prototype={
 				silent = false;
 		}, this);
 
-		if (this._backbone_source)
-			source.bind('all', sync_logic);
-		else
-			this._sync_events = [
-				source.attachEvent("onStoreUpdated", sync_logic),
-				source.attachEvent("onIdChange", webix.bind(function(old, nid){ this.changeId(old, nid); this.refresh(nid); }, this))
-			];
-			//backward data saving
-			this.attachEvent("onStoreUpdated", function(id, data, mode){
-				if (mode == "update"){
-					this._skip_next_sync = 1;
-					source.updateItem(id, data);
-					this._skip_next_sync = 0;
-				}
-			});
+
+
+		this._sync_events = [
+			source.attachEvent("onStoreUpdated", sync_logic),
+			source.attachEvent("onIdChange", webix.bind(function(old, nid){ this.changeId(old, nid); this.refresh(nid); }, this))
+		];
+		//backward data saving
+		this.attachEvent("onStoreUpdated", function(id, data, mode){
+			if (mode == "update"){
+				this._skip_next_sync = 1;
+				source.updateItem(id, data);
+				this._skip_next_sync = 0;
+			}
+		});
+
 		sync_logic();
 	},
 	//adds item to the store
@@ -8443,11 +8496,11 @@ webix.protoUI({
 		this.type = webix.extend({}, this.type);
 
 		//create  container for future tooltip
-		this._dataobj = this._contentobj = document.createElement("DIV");
-		this._contentobj.className="webix_tooltip";
+		this._viewobj = this._contentobj = this._dataobj = document.createElement("DIV");
+		this._contentobj.className = "webix_tooltip";
 		webix.html.insertBefore(this._contentobj,document.body.firstChild);
 	},
-
+	adjust:function(){  },
 	//show tooptip
 	//pos - object, pos.x - left, pox.y - top
     isVisible:function(){
@@ -8485,24 +8538,57 @@ webix.protoUI({
 	    templateEnd:webix.template.empty
 	}
 
-}, webix.SingleRender, webix.Settings, webix.ui.view);
+}, webix.SingleRender, webix.Settings, webix.EventSystem, webix.ui.view);
 		
 
 
 webix.AutoTooltip = {
+	$init: function(){
+		// call destructor for tooltips
+		// when parent component is destructed
+		this.attachEvent("onDestruct",function(){
+			if(this.config.tooltip)
+				this.config.tooltip.destructor();
+		})
+	},
 	tooltip_setter:function(value){
-		var t = new webix.ui.tooltip(value);
-		this.attachEvent("onMouseMove",function(id,e){	//show tooltip on mousemove
-			if (!webix.DragControl.active)
-				t.show(this.getItem(id),webix.html.pos(e));
-		});
-		this.attachEvent("onMouseOut",function(id,e){	//hide tooltip on mouseout
-			t.hide();
-		});
-		this.attachEvent("onMouseMoving",function(id,e){	//hide tooltip just after moving start
-			t.hide();
-		});
-		return t;
+		if (value){
+			var i,
+				handlers = [],
+				t = new webix.ui.tooltip(value);
+			this._enable_mouse_move();
+			handlers[0] = this.attachEvent("onMouseMove",function(id,e){	//show tooltip on mousemove
+				if (this.getColumnConfig){
+					var config = this.getColumnConfig(id.column);
+
+					//empty tooltip - ignoring
+					if (!config.tooltip && config.tooltip != webix.undefined)
+						return;
+					if (config.tooltip)
+						t.type.template = config.tooltip = webix.template(config.tooltip);
+					else {
+						var text = this.getText(id.row, id.column);
+						t.type.template = function(){ return text };
+					}
+				}
+
+				if (!webix.DragControl.active)
+					t.show(this.getItem(id),webix.html.pos(e));
+			});
+			handlers[1] = this.attachEvent("onMouseOut",function(id,e){	//hide tooltip on mouseout
+				t.hide();
+			});
+			handlers[2] = this.attachEvent("onMouseMoving",function(id,e){	//hide tooltip just after moving start
+				t.hide();
+			});
+			t.attachEvent("onDestruct", webix.bind(function(){
+				for(i = 0; i < handlers.length;i++){
+					this.detachEvent(handlers[i]);
+				}
+				handlers = null;
+			},this));
+			return t;
+		}
 	}
 };
 
@@ -8751,8 +8837,8 @@ webix.protoUI({
 	},
 	_probably_render_me:function(){
 		if (!this._not_render_me){
-			this.render();
 			this._not_render_me = true;
+			this.render();
 		}
 	},
 	src_setter:function(value){
@@ -8788,6 +8874,10 @@ webix.protoUI({
 	setHTML:function(html){
 		this._settings.template = function(){ return html; };
 		this.refresh();
+	},
+	setContent:function(content){
+		this._dataobj.innerHTML = "";
+		this.content_setter(content);
 	},
 	waitMessage_setter:function(value){
 		webix.extend(this, webix.OverlayBox);
@@ -10202,6 +10292,11 @@ webix.DragItem={
 		//unmark last target
 		this.$dragMark({}, e);
 
+
+		if( context.from && context.from != context.to && context.from.callEvent ){
+			context.from.callEvent("onBeforeDropOut", [context,e]);
+		}
+
 		if (!this.callEvent("onBeforeDrop",[context,e])) return;
 		//moving
 		this._context_to_move(context,e);
@@ -10677,6 +10772,7 @@ webix.KeysNavigation = {
 };
 
 
+
 webix.protoUI({
 	name:"tree",
 	$init:function(){
@@ -10782,7 +10878,7 @@ webix.protoUI({
         }
         return false;
     }
-}, webix.Group, webix.TreeAPI, webix.DragItem, webix.TreeDataMove, webix.SelectionModel, webix.KeysNavigation, webix.MouseEvents, webix.Scrollable, webix.ui.proto, webix.TreeRenderStack, webix.CopyPaste, webix.TreeDataLoader, webix.EventSystem);
+}, webix.AutoTooltip, webix.Group, webix.TreeAPI, webix.DragItem, webix.TreeDataMove, webix.SelectionModel, webix.KeysNavigation, webix.MouseEvents, webix.Scrollable, webix.ui.proto, webix.TreeRenderStack, webix.CopyPaste, webix.TreeDataLoader, webix.EventSystem);
 
 webix.TreeStateCheckbox = {
 	_init_render_tree_state: function(){
@@ -11605,12 +11701,15 @@ webix.protoUI({
 
 
 webix.EditAbility={
-	$init:function(){
+	$init:function(config){
 		this._editors = {};
 		this._in_edit_mode = 0;
 		this._edit_open_time = 0;
 		this.defaults.editaction = "click";
 		this._contentobj.style.position = "relative";
+
+		if (config)
+			config.onDblClick = config.onDblClick || {};
 	},
 	editable_setter:function(value){
 		if (value)
@@ -13097,6 +13196,7 @@ webix.i18n.locales["en-US"]={
     }
 };
 webix.i18n.setLocale("en-US");
+
 
 
 webix.protoUI({
@@ -14587,7 +14687,7 @@ webix.protoUI({
 		if (!this._settings.columns && driver.getConfig)
 			this.define("columns", driver.getConfig(data));
 	}
-}, webix.Group, webix.DataMarks, webix.DataLoader, webix.MouseEvents, webix.ui.view, webix.EventSystem, webix.Settings);
+}, webix.AutoTooltip, webix.Group, webix.DataMarks, webix.DataLoader, webix.MouseEvents, webix.ui.view, webix.EventSystem, webix.Settings);
 
 webix.ui.datafilter = {
 	textWaitDelay:500,
@@ -16657,7 +16757,7 @@ webix.extend(webix.ui.datatable, {
 		if (!cols) return;
 		var width = this._content_width - this._scrollSizeY;
 		for (var i=0; i<cols.length; i++)
-			if (i != ind) width -= cols[i].width;
+			if (i != ind) width -= (cols[i].width || this.config.columnWidth);
 
 		if (width>0)
 			this.setColumnWidth(ind, width);
@@ -17592,8 +17692,10 @@ webix.extend(webix.ui.datatable, {
 			};
 		}
 
-		webix.DragControl.addDrag(this._header, control);
-		webix.DragControl.addDrop(this._header, control, true);
+		if (value){
+			webix.DragControl.addDrag(this._header, control);
+			webix.DragControl.addDrop(this._header, control, true);
+		}
 	}
 });
 webix.extend(webix.ui.datatable,webix.DragItem);
@@ -18120,6 +18222,23 @@ webix.protoUI({
 			
 		return val;
 	},
+	removeAllSeries: function(){
+		this.clearCanvas();
+		if(this._legendObj){
+			this._legendObj.innerHTML = "";
+			this._legendObj.parentNode.removeChild(this._legendObj);
+			this._legendObj = null;
+		}
+		if(this.canvases){
+			this.canvases = {};
+		}
+		this._contentobj.innerHTML="";
+		for(var i = 0; i < this._series.length; i++){
+			if(this._series[i].tooltip)
+				this._series[i].tooltip.destructor();
+		}
+		this._series = [];
+	},
 	clearCanvas:function(){
 		if(this.canvases&&typeof this.canvases == "object")
 			for(var c in this.canvases){
@@ -18159,19 +18278,23 @@ webix.protoUI({
 		bounds = this._getChartBounds(this._content_width,this._content_height);
 		map = new webix.HtmlMap(this._id);
 		temp = this._settings;
-		data = this._getChartData();
-		for(i=0; i < this._series.length;i++){
-		 	this._settings = this._series[i];
-			if(!this.canvases[i])
-				this.canvases[i] = this._createCanvas(i,"z-index:"+(2+i));
-			this["$render_"+this._settings.type](
-				this.canvases[i].getCanvas(),
-				data,
-				bounds.start,
-				bounds.end,
-				i,
-				map
-			);
+
+		if(this._series){
+			data = this._getChartData();
+
+			for(i=0; i < this._series.length;i++){
+				this._settings = this._series[i];
+				if(!this.canvases[i])
+					this.canvases[i] = this._createCanvas(i,"z-index:"+(2+i));
+				this["$render_"+this._settings.type](
+					this.canvases[i].getCanvas(),
+					data,
+					bounds.start,
+					bounds.end,
+					i,
+					map
+				);
+			}
 		}
 		
 		map.render(this._contentobj);
@@ -18235,7 +18358,11 @@ webix.protoUI({
 			webix.assert(config,"Chart :: Series must be an array or object");	
 		}
 		else{
-			this._parseSettings((!config.length?config:config[0]),{});
+
+			this._parseSettings(!config.length?config:config[0]);
+			this._series = [this._settings];
+
+
 			for(var i=1;i< config.length;i++)
 				this.addSeries(config[i]);
 		}
@@ -18626,16 +18753,15 @@ webix.protoUI({
 	        return;
 
 	    this._active_serie = tag.getAttribute("userdata");
-
 	    if (!this._series[this._active_serie]) return;
 	    for (var i=0; i < this._series.length; i++) {
 		    tip = this._series[i].tooltip;
+
 		    if (tip)
 			    tip.disable();
 	    }
 	    if(!tag.getAttribute("disabled")){
 		    tip = this._series[this._active_serie].tooltip;
-
 		    if (tip)
 			    tip.enable();
 	    }
@@ -22290,6 +22416,7 @@ webix.protoUI({
 				for (var i = 0; i < 2; i++)
 					if (cells[i].callEvent)
 						cells[i].callEvent("onViewResize",[]);
+				webix.callEvent("onLayoutResize", [cells]);
 			}
 			this._rs_progress = false;
 		}
@@ -23530,9 +23657,16 @@ webix.jsonp = function(url, params, callback, master){
 	script.type = 'text/javascript';
 
 	var head = document.getElementsByTagName("head")[0];
-	
+
+	if (typeof params == "function"){
+		master = callback;
+		callback = params;
+		params = {};
+	}
+
 	if (!params)
 		params = {};
+
 	params.jsonp = "webix.jsonp."+id;
 	webix.jsonp[id]=function(){
 		callback.apply(master||window, arguments);
@@ -23552,10 +23686,16 @@ webix.jsonp = function(url, params, callback, master){
 
 webix.markup = {
 	namespace:"x",
+	attribute:"data-",
 	dataTag:"li",
 	_parse_int:{
 		width:true,
 		height:true,
+		gravity:true,
+		margin:true,
+		padding:true,
+		paddingX:true,
+		paddingY:true,
 		minWidth:true,
 		maxWidth:true,
 		minHeight:true,
@@ -23632,14 +23772,14 @@ webix.markup = {
 
 	//html conversion
 	_get_html_tops: function(node){
-		if (node.getAttribute && node.getAttribute("data-view"))
+		if (node.getAttribute && node.getAttribute(this.attribute+"view"))
 			return [node];
 
-		var els = node.querySelectorAll("[data-view]");
+		var els = node.querySelectorAll("["+this.attribute+"view]");
 
 		var tags = []; var marks = [];
 		for (var i = 0; i < els.length; i++)
-			if (!els[i].parentNode.getAttribute("data-view"))
+			if (!els[i].parentNode.getAttribute(this.attribute+"view"))
 				tags.push(els[i]);
 
 		return tags;
@@ -23667,6 +23807,8 @@ webix.markup = {
 			}
 		}
 
+		var is_layout = json.view == "cols" || json.view == "rows" || this._view_has_method(json.view, "addView");
+		
 		var subs = [];
 		var has_tags = 0; 
 		var allow_sub_tags = !(html || el.innerHTML); //only for xml documents
@@ -23689,7 +23831,7 @@ webix.markup = {
 
 					json.columns = json.columns || [];
 					json.columns.push(column);
-				} else if (name){
+				} else if (name || (is_layout && html)){
 					var obj = this._sub_markup(first , html , { view:name });
 					if (obj.view == "head")
 						json.head = obj.rows ? obj.rows[0] : obj.template;
@@ -23735,12 +23877,17 @@ webix.markup = {
 			else
 				json["rows"] = subs;
 		} else if (!htmltable && !has_tags){
-			var content = this._content(el);
-			if (content){
-				var target = "template";
-				if (this._view_has_method(json.view, "setValue"))
-					target = "value";
-				json[target] = json[target] || content;	
+			if (html && !json.template && (!json.view || json.view == "template")){
+				json.view = "template";
+				json.content = el;
+			} else {
+				var content = this._content(el);
+				if (content){
+					var target = "template";
+					if (this._view_has_method(json.view, "setValue"))
+						target = "value";
+					json[target] = json[target] || content;	
+				}
 			}
 		}
 
@@ -23766,7 +23913,7 @@ webix.markup = {
 
 	_get_name:function(tag, html){
 		if (html)
-			return tag.getAttribute("data-view");
+			return tag.getAttribute(this.attribute+"view");
 		var name = tag.tagName.toLowerCase();
 		if (this.namespace){
 			if (name.indexOf(this._full_prefix) === 0 || tag.scopeName == this.namespace)
@@ -23817,9 +23964,9 @@ webix.markup = {
 		for (var i=0; i<attrs.length; i++){
 			var name = attrs[i].name;
 			if (html){
-				if (name.indexOf("data-") !== 0)
+				if (name.indexOf(this.attribute) !== 0)
 					continue;
-				name = name.replace("data-","");
+				name = name.replace(this.attribute,"");
 			}
 
 			var value = attrs[i].value;
@@ -24465,6 +24612,9 @@ webix.type(webix.ui.list, {
 });
 
 webix.UploadDriver = {
+	flash: {
+
+	},
 	html5: {
 		_after_render: function(config) {
 			if (this._upload_area){
@@ -24766,13 +24916,14 @@ webix.ui.fullScreen = function(){
 	var size = document.body.offsetHeight||document.body.scrollHeight;
 	var iphone = navigator.userAgent.indexOf("iPhone")!=-1;
 	var ipad = navigator.userAgent.indexOf("iPad")!=-1;
+	var iOS7 = navigator.userAgent.indexOf("OS 7")!=-1;
 
     var iphone_safari = iphone && (size == 356 || size == 208 || size == 306 || size == 158 || size == 444);
     var iphone5 = (window.screen.height==568);
 
 	var fix = function(){
 		var x = 0; var y=0;
-		if (iphone){
+		if (iphone && !iOS7){
 			if (!webix.ui.orientation){
 				x = 320;
                 y = iphone5?(iphone_safari?504:548):(iphone_safari?416:460);
@@ -25213,3 +25364,309 @@ webix.proxy.cache = {
 	},
 	cache:true
 };
+
+if (window.angular)
+
+(function(){
+
+  function id_helper($element){
+    //we need uniq id as reference
+    var id = $element.attr("id");
+    if (!id){
+      id = webix.uid();
+      $element.attr("id", id);
+    }
+    return id;
+  }
+
+
+
+//creates webix ui components
+angular.module("webix", [])
+  .directive('webixUi', [ "$parse", function($parse) {
+    return {
+      restrict: 'A',
+      scope: false,
+      link:function ($scope, $element, $attrs, $controller){
+        var dataname = $attrs["webixUi"];
+        var callback = $attrs["webixReady"];
+        var wxRoot = null;
+
+        var id = id_helper($element);
+
+        if (callback)
+          callback = $parse(callback);
+
+        //destruct components
+        $element.bind('$destroy', function() {
+          wxRoot && wxRoot.destructor();
+        });
+
+        //webix-ui attribute has some value - will try to use it as configuration
+        if (dataname){
+          //configuration
+          $scope.$watch(dataname, function(data){
+            wxRoot && wxRoot.destructor();
+            if ($scope[dataname]){
+              var config = webix.copy($scope[dataname]);
+              wxRoot = webix.ui(config, $element[0]);
+              if (callback)
+                callback($scope, { root: wxRoot });
+            }
+          });
+
+        } else {
+        //if webix-ui is empty - init inner content as webix markup
+          if (!$attrs["view"])
+            $element.attr("view", "rows");
+          
+          var ui = webix.markup;
+          var tmp_a = ui.attribute; ui.attribute = "";
+          wxRoot = ui.init($element[0]);
+          ui.attribute = tmp_a;
+
+          if (callback)
+            callback($scope, { root: wxRoot });
+        }
+
+        //size of ui
+        $scope.$watch(function() {
+          return $element[0].offsetWidth + "." + $element[0].offsetHeight;
+        }, function() {
+          wxRoot && wxRoot.adjust();
+        });
+
+      }
+    };
+  }])
+
+  .directive('webixShow', [ "$parse", function($parse) {
+    return {
+      restrict: 'A',
+      scope: false,
+
+      link:function ($scope, $element, $attrs, $controller){
+        var attr = $parse($attrs["webixShow"]);
+        var id = id_helper($element);
+
+        if (!attr($scope))
+            $element.attr("hidden", "true");
+
+        $scope.$watch($attrs["webixShow"], function(){
+          var view = $$(id);
+          if (view){
+            if (attr($scope)){
+              $$(id).show();
+              $element[0].removeAttribute("hidden");
+            } else
+              $$(id).hide();
+          }
+        });
+
+      }
+    };
+  }])
+
+  .directive('webixEvent', [ "$parse", function($parse) {
+    var wrap_helper = function($scope, view, eventobj){
+      var ev = eventobj.split("=");
+      var action = $parse(ev[1]);
+      var name = ev[0].trim();
+      view.attachEvent(name, function(){              
+        action($scope, { id:arguments[0], details:arguments });
+      });
+    };
+
+    return {
+      restrict: 'A',
+      scope: false,
+      
+      link:function ($scope, $element, $attrs, $controller){
+        var events = $attrs["webixEvent"].split(";");
+        var id = id_helper($element);
+
+        setTimeout(function(){
+          var view = $$(id);
+
+          for (var i = 0; i < events.length; i++) {
+            wrap_helper($scope, view, events[i]);
+          }
+        });
+
+      }
+    };
+  }])
+
+  .directive('webixData', [ "$parse", function($parse) {
+    return {
+      restrict: 'A',
+      scope: false,
+
+      link:function ($scope, $element, $attrs, $controller){
+
+        var data = $attrs["webixData"];
+        var id = id_helper($element);
+        
+        if ($scope.$watchCollection)
+          $scope.$watchCollection(data, function(collection){
+            setTimeout(function(){
+              var view = $$(id);
+              if (view){
+                if (view.clearAll)
+                  view.clearAll();
+                view.parse(collection);
+              }
+            },1);
+          });
+      }
+
+    };
+  }]);
+})();
+if (window.Backbone)
+(function(){
+
+	var cfg = {
+		use_id : false
+	};
+
+	//remove private properties
+	function sanitize(ev){
+		if (cfg.use_id)
+			return ev;
+
+		var obj = {};
+		for (var key in ev)
+			if (key != "id")
+				obj[key] = ev[key];
+
+		return obj;
+	}
+
+	function _start_ext_load(cal){
+		cal._backbone_loading = true;
+		cal.callEvent("onBeforeLoad", []);
+		cal.blockEvent();
+	}
+	function _finish_ext_load(cal){
+		cal.unblockEvent();
+		cal._backbone_loading = false;
+		cal.refresh();
+	}
+
+	
+	function _get_id(model){
+		return cfg.use_id ? model.id : model.cid;
+	}
+
+
+
+webix.attachEvent("onSyncUnknonw", function(wData, bData, config){
+	if (config) cfg = config;
+
+	
+
+	bData.bind("change", function(model, info){
+		var cid = _get_id(model);
+		var ev = wData.pull[cid] = model.toJSON();
+		ev.id = cid;
+
+		if (wData._scheme_update)
+			wData._scheme_update(ev);
+		wData.refresh(ev.id);
+	});
+	bData.bind("remove", function(model, changes){
+		var cid = _get_id(model);
+		if (wData.pull[cid])
+			wData.remove(cid);
+	});
+	bData.bind("add", function(model, changes){
+		var cid = _get_id(model);
+		if (!wData.pull[cid]){
+			var ev =  model.toJSON();
+			ev.id = cid;
+			if (wData._scheme_init)
+				wData._scheme_init(ev); 
+			wData.add(ev);
+		}
+	});
+
+	bData.bind("request", function(obj){
+		if (obj instanceof Backbone.Collection)
+			_start_ext_load(wData);
+	});
+	bData.bind("sync", function(obj){
+		if (obj instanceof Backbone.Collection)
+			_finish_ext_load(wData);
+	});
+	bData.bind("error", function(obj){
+		if (obj instanceof Backbone.Collection)
+			_finish_ext_load(wData);
+	});
+
+
+	wData.attachEvent("onAfterAdd", function(id){
+		if (!bData.get(id)){
+			var data = sanitize(wData.getItem(id));
+			var model = new bData.model(data);
+
+			var cid = _get_id(model);
+			if (cid != id)
+				this.changeId(id, cid);
+
+			bData.add(model);
+			bData.trigger("webix:add", model);
+		}
+		return true;
+	});
+	wData.attachEvent("onDataUpdate", function(id){
+		var ev = bData.get(id);
+		var upd = sanitize(wData.getItem(id));
+
+		ev.set(upd);
+		bData.trigger("webix:change", ev);
+
+		return true;
+	});
+	wData.attachEvent("onAfterDelete", function(id){
+		var model = bData.get(id);
+		if (model){
+			bData.trigger("webix:remove", model);
+			bData.remove(id);
+		}
+		return true;
+	});
+
+	if (bData.length){
+	}
+});
+
+window.WebixView = Backbone.View.extend({
+	tagName:"div",
+
+	render:function(){
+		if (this.beforeRender) this.beforeRender.apply(this, arguments);
+
+		var config = this.config || this.options.config;
+		var el = this.el ? $(this.el)[0] : document.body;
+		//clear previous content if any
+		if (el && !el.config) el.innerHTML = "";
+		this.root = webix.ui(webix.copy(config), el);
+		
+		if (this.afterRender) this.afterRender.apply(this, arguments);
+	},
+	destroy:function(){
+		this.root && this.root.destructor();
+	},
+	getRoot:function(){
+		return this.root;
+	},
+	getChild:function(id){
+		webix.assert(this.root.$$, "You need to set isolate property for top view");
+		return this.root.$$(id);
+	}
+});
+
+})();
+
+

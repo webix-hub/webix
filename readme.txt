@@ -7,7 +7,8 @@ If you don't know where to start - check
 
 - http://webix.com/quick-start/#!/1
 - http://docs.webix.com/desktop__getting_started.html
-- http://forum.webix.com
+
+
 
 ### License terms
 
@@ -22,6 +23,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-3.0.html
 - You CAN use this lib for any private projects which you do not plan to share or sell
 - You CAN use this lib for public projects, BUT in such case you MUST share full source code of your project
 - If you do not want to share sources then you need to obtain commercial license
+
 
 
 ### Commercial license and Support
