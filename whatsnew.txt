@@ -1,3 +1,16 @@
+
+Version 1.3
+-----------
+### New skins
+- 6 new skins added
+
+### Others
+- video player component (ui.video) added
+- API and look of carousel control improved
+- charts can use logarithmic scale
+- small fixes
+
+
 Version 1.2
 -----------
 

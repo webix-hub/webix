@@ -48,7 +48,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="1.2";
+webix.version="1.3";
 webix.codebase="./";
 webix.name = "core";
 
@@ -1071,7 +1071,7 @@ webix.skin.light = {
 	calendarHeight: 70,
 	padding:0
 };
-webix.skin.xbs = {
+webix.skin.glamour = {
 	topLayout:"space",
 	//bar in accordion
 	barHeight:39,			//!!!Set the same in skin.less!!!
@@ -3017,7 +3017,7 @@ webix.ui._detectScrollSize = function(){
 
 	document.body.appendChild(div);
 	var width = div.offsetWidth-div.clientWidth;
-	var skin = { 110:"air", 120:"compact", 130:"clouds", 140:"web", 150:"terrace", 160:"metro", 170:"light", 180:"xbs" }[div.offsetHeight];
+	var skin = { 110:"air", 120:"compact", 130:"clouds", 140:"web", 150:"terrace", 160:"metro", 170:"light", 180:"glamour" }[div.offsetHeight];
 	document.body.removeChild(div);
 
 	if (!window.webix_skin && skin){
@@ -5690,20 +5690,21 @@ webix.protoUI({
 
 		if (webix.isUndefined(trg.value)) return;
 
-		this._key_timer = webix.delay(function(){
-			this._resolve_popup = true;
+		if(list.filter)
+			this._key_timer = webix.delay(function(){
+				this._resolve_popup = true;
 
-			// used to prevent showing popup when it was initialized
-			if (typeof(list.config.dataFeed) == "string")
-				list.filter("value", trg.value);
-			else{
-				var self = this;
-				list.filter(function(item){
-					return self._settings.filter.call(self,item,trg.value);
-				});
-				self = null;
-			}
-		},this, [], 200);
+				// used to prevent showing popup when it was initialized
+				if (typeof(list.config.dataFeed) == "string")
+					list.filter("value", trg.value);
+				else{
+					var self = this;
+					list.filter(function(item){
+						return self._settings.filter.call(self,item,trg.value);
+					});
+					self = null;
+				}
+			},this, [], 200);
 	},
 	_suggest_after_filter: function() {
 		if (!this._resolve_popup) return true;
@@ -5917,7 +5918,7 @@ webix.protoUI({
 				result.push(inputs[j]);
 			}
 		}
-		return result
+		return result;
 	},
 	disable: function(){
         var i,
@@ -5970,7 +5971,7 @@ webix.protoUI({
 		return this._rendered_input? this.$getValue() : this._settings.value;
 	},
 	$getValue:function(){
-		return this._settings.label||"";	
+		return this._settings.label||this._settings.value||"";	
 	},
 	
 
@@ -6240,7 +6241,7 @@ webix.protoUI({
 		var id = obj.id || webix.uid();
 		var width = common._get_input_width(obj);
 		var inputAlign = obj.inputAlign || "left";
-		var icon = this._render_icon?this._render_icon(obj):"";
+		var icon = this.$renderIcon?this.$renderIcon(obj):"";
 		var html = "<div class='webix_inp_static' tabindex='0' onclick='' style='width: " + width + "px; text-align: " + inputAlign + ";' >"+ (obj.text||obj.value||"") +"</div>";
 		return common.$renderInput(obj, html, id);
 	},
@@ -6268,7 +6269,7 @@ webix.protoUI({
 					html += " "+prop+"='"+attrs[prop]+"'";
 			html += " />";
 		}
-		var icon = this._render_icon?this._render_icon(config):"";
+		var icon = this.$renderIcon?this.$renderIcon(config):"";
 		html += icon;
 		html +=	"</div>";
 
@@ -6406,7 +6407,7 @@ webix.protoUI({
 
 webix.protoUI({
 	name:"search",
-	_render_icon:function(){
+	$renderIcon:function(){
 		var config = this._settings,
 			height = config.aheight - 2*config.inputPadding,
 			padding = (height - 18)/2 -1;
@@ -6658,7 +6659,7 @@ webix.protoUI({
 	options_setter:function(value){
 		return this._settings.popup = this._settings.suggest = webix.ui.text.prototype.suggest_setter.call(this, value);
 	},
-	_render_icon:function(){
+	$renderIcon:function(){
 		var config = this._settings,
 			height = config.aheight - 2*config.inputPadding,
 			padding = (height - 18)/2 -1;
@@ -6767,7 +6768,7 @@ webix.protoUI({
 		timepicker:false,
 		icon:"calendar-alt"
 	},
-	_render_icon:function(){
+	$renderIcon:function(){
 		var config = this._settings,
 			height = config.aheight - 2*config.inputPadding,
 			padding = (height - 18)/2 -1;
@@ -8152,6 +8153,7 @@ webix.Scrollable = {
 
 		style.overflowX = style.overflowY = mode?"auto":"hidden";
 		this._scroll_x = this._scroll_y = !!mode;
+		this._settings.scroll = !!mode;
 	},
 	getScrollState:function(){
 		if (webix.Touch && webix.Touch.$active){
@@ -9257,33 +9259,35 @@ webix.SelectionModel={
 		return true;
 	},
 	//select some item
-	select:function(id,non_modal,continue_old){
+	select:function(id,preserve){
+		var ctrlKey = arguments[2];
+		var shiftKey = arguments[3];
 		//if id not provide - works as selectAll
 		if (!id) return this.selectAll();
 
 		//allow an array of ids as parameter
 		if (webix.isArray(id)){
 			for (var i=0; i < id.length; i++)
-				this.select(id[i], non_modal, continue_old);
+				this.select(id[i], (i?1:preserve), ctrlKey, shiftKey);
 			return;
 		}
 
 		webix.assert(this.data.exists(id), "Incorrect id in select command: "+id);
 		
 		//block selection mode
-		if (continue_old && this._selected.length)
+		if (shiftKey && this._selected.length)
 			return this.selectAll(this._selected[this._selected.length-1],id);
 		//single selection mode
-		if (!non_modal && (this._selected.length!=1 || this._selected[0]!=id)){
+		if (!ctrlKey && !preserve && (this._selected.length!=1 || this._selected[0]!=id)){
 			this._silent_selection = true; //prevent unnecessary onSelectChange event
 			this.unselectAll();
 			this._silent_selection = false;
 		}
 		if (this.isSelected(id)){
-			if (non_modal) this.unselect(id);	//ctrl-selection of already selected item
+			if (ctrlKey) this.unselect(id);	//ctrl-selection of already selected item
 			return;
 		}
-		
+
 		if (this._select_mark(id,true)){	//if not blocked from event
 			this.callEvent("onAfterSelect",[id]);
 		}
@@ -10800,7 +10804,7 @@ webix.protoUI({
 						if (select && this.getParentId(id) != this.getParentId(select)) 
 							return;
 					}
-					this.select(id, e.ctrlKey, e.shiftKey); 	//multiselection
+					this.select(id, false, e.ctrlKey, e.shiftKey); 	//multiselection
 				} else
 					this.select(id);
 			}
@@ -11164,71 +11168,138 @@ webix.type(webix.ui.tree, {
 
 
 
-webix.CarouselPanel = {
-   _renderPanel:function(){
-		var panel, style, top, left;
-		panel = this._settings.panel;
-		webix.html.remove(this._carouselPanel);
-		
-		style = "z-index:"+webix.ui.zIndex()+";";
-		if (panel.align=="bottom"||panel.align=="top"){
-			style += "height:"+panel.size+"px; left:0px;";
-			top = 0;
-			if (panel.align=="bottom")
-				top = this._content_height-this._settings.panel.size;
-			style += "top:"+top+"px";
-		} else if(panel.align=="right"||panel.align=="left"){
-			style += "width:"+panel.size+"px;top:0px;";
-			left = 0; 
-			if (panel.align=="right")
-				left = this._content_width-this._settings.panel.size;
-			style += "left:"+left+"px";
-		}
-		this._carouselPanel = webix.html.create("DIV",{
-			"class":"webix_carousel_panel",
-			"style":style
-		},"");
-		this._viewobj.appendChild(this._carouselPanel);
-			this._renderPanelItems();
-	},
-	_renderPanelItems:function(){
-		var item, panel;
-		panel = this._settings.panel;
-		if(!this._carouselPanel)
-			this._renderPanel();
-		else 
-			this._clearPanel();
+/*
+    UI: navigation control
+*/
+webix.NavigationButtons = {
+	_renderPanel:function(){
+		webix.html.remove(this._navPanel);
 
-		var count = (this._cells?this._cells.length:this.data.order.length);
-		if(count>1){
-			for (var i=0; i < count; i++){
-				item = webix.html.create("DIV",{
-					"class":"webix_item webix_carousel_"+(i==this._active_cell?"active":"inactive"),
-					"style":(panel.align=="left"||panel.align=="right"?"float:none;":"")
-				},"");
-				this._carouselPanel.appendChild(item);
+
+		this._navPanel = webix.html.create("DIV",{
+			"class":"webix_nav_panel "+"webix_nav_panel_"+this._settings.navigation.type,
+			"style": "z-index:"+webix.ui.zIndex()+";"
+		},"");
+
+		this._viewobj.appendChild(this._navPanel);
+
+
+		this._renderNavItems();
+		this._renderNavButtons();
+	    this._setLinkEventHandler();
+	},
+	_setLinkEventHandler: function(){
+		var h = [];
+		if(this._navPanel)
+			h[0] = webix.event(this._navPanel,"click", webix.bind(function(e){
+				var elem = (e.srcElement || e.target);
+				var found = false;
+				while(elem != this._navPanel && !found){
+					var bindId = elem.getAttribute(this._linkAttr);
+					if(bindId){
+						found = true;
+						this._showPanelBind(bindId)
+					}
+					elem = elem.parentNode;
+				}
+			},this));
+		if(this._prevNavButton)
+			h[1] = webix.event(this._prevNavButton,"click", webix.bind(function(e){
+				this._showNavItem(-1);
+			},this));
+		if(this._nextNavButton)
+			h[1] = webix.event(this._nextNavButton,"click", webix.bind(function(e){
+				this._showNavItem(1);
+			},this));
+		this.attachEvent("onDestruct", function(){
+			for(var i=0;i< h.length; i++){
+				this.detachEvent(h[i]);
 			}
-			
-			var size =  count *this._settings.panel.itemSize;
-			
-			if(panel.align=="bottom"||panel.align=="top"){
-				if (this._content_width)
-					this._carouselPanel.style.left = (this._content_width-size)/2+this._viewobj.scrollLeft+"px";
-				this._carouselPanel.style.width = size+"px";
+			h = null;
+		})
+	},
+	_showNavItem: function(inc){
+		if(this._cells){
+			var index = this._active_cell + inc;
+			if(index >= this._cells.length || index < 0){
+				index = (index < 0?this._cells.length-1:0);
 			}
+			this.setActiveIndex(index);
+		}
+	},
+	_showPanelBind: function(id){
+		if(this._cells)
+			$$(id).show();
+	},
+	_renderNavItems:function(){
+		var item, config;
+		config = this._settings.navigation;
+		if(config.items){
+			this._linkAttr = config.linkAttr || "bind_id";
+
+			if(!this._navPanel)
+				this._renderPanel();
 			else
-				this._carouselPanel.style.top = (this._content_height-size)/2+this._viewobj.scrollTop+"px";
+				this._clearPanel();
+
+			var data = (this._cells?this._cells:this.data.order);
+			if(data.length>1){
+				for (var i=0; i < data.length; i++){
+
+					item = webix.html.create("DIV",{
+						"class":"webix_nav_item webix_nav_"+(i==this._active_cell?"active":"inactive")
+					},"<div></div>");
+					var id = this._cells?this._cells[i]._settings.id:data[i];
+					if(id)
+						item.setAttribute(this._linkAttr, id);
+					this._navPanel.appendChild(item);
+				}
+
+
+			}
 		}
 	},
 	_clearPanel:function(){
-		if (this._carouselPanel){
-			var coll = this._carouselPanel.childNodes;
+		if (this._navPanel){
+			var coll = this._navPanel.childNodes;
 			for (var i = coll.length - 1; i >= 0; i--)
 				webix.html.remove(coll[i]);
 		}
+	},
+	_renderNavButtons: function(){
+		var item, config;
+		config = this._settings.navigation;
+		if(config.buttons){
+
+			if(this._prevNavButton)
+				webix.html.remove(this._prevNavButton);
+			if(this._prevNavButton)
+				webix.html.remove(this._nextNavButton);
+
+			var zIndex = webix.ui.zIndex();
+			this._prevNavButton = webix.html.create(
+				"DIV",
+				{
+					"class":"webix_nav_button_"+config.type+" webix_nav_button_prev ",
+					"style":"z-index:"+zIndex+";"
+				},
+				"<div class=\"webix_nav_button_inner\"></div>"
+			);
+			this._viewobj.appendChild(this._prevNavButton);
+
+			this._nextNavButton = webix.html.create(
+				"DIV",
+				{
+					"class":"webix_nav_button_"+config.type+" webix_nav_button_next ",
+					"style":"z-index:"+zIndex+";"
+				},
+				"<div class=\"webix_nav_button_inner\"></div>"
+			);
+			this._viewobj.appendChild(this._nextNavButton);
+		}
 	}
 };
- 	
+
 
 webix.protoUI({
 	name:"list",
@@ -11253,7 +11324,7 @@ webix.protoUI({
 			if (this._settings.select){
                 this._no_animation = true;
 				if (this._settings.select=="multiselect")
-					this.select(id, e.ctrlKey, e.shiftKey); 	//multiselection
+					this.select(id, false, e.ctrlKey, e.shiftKey); 	//multiselection
 				else
 					this.select(id);
                 this._no_animation = false;
@@ -11392,7 +11463,7 @@ webix.protoUI({
 				if (this._settings.select){
                     this._no_animation = true;
 					if (this._settings.select=="multiselect")
-						this.select(id, e.ctrlKey, e.shiftKey); 	//multiselection
+						this.select(id, false, e.ctrlKey, e.shiftKey); 	//multiselection
 					else
 						this.select(id);
                     this._no_animation = false;
@@ -12620,7 +12691,7 @@ webix.protoUI({
 		webix_dataview_item:function(e,id){ 
 			if (this._settings.select){
 				if (this._settings.select=="multiselect")
-					this.select(id, e.ctrlKey, e.shiftKey); 	//multiselection
+					this.select(id, false, e.ctrlKey, e.shiftKey); 	//multiselection
 				else
 					this.select(id);
 			}
@@ -18167,7 +18238,8 @@ webix.protoUI({
 		gradient:false,
 		border:true,
 		labelOffset: 20,
-		origin:"auto"
+		origin:"auto",
+		scale: "linear"
     },
 	_id:"webix_area_id",
 	on_click:{
@@ -18601,6 +18673,9 @@ webix.protoUI({
 			this._settings.yAxis.end = end;
 			this._settings.yAxis.start = start;
 		}
+		else if(this.config.scale == "logarithmic")
+			this._logScaleCalc = true;
+
 		this._setYAxisTitle(point0,point1);
 		if(step===0) return;
 		if(end==start){
@@ -18609,21 +18684,21 @@ webix.protoUI({
 		var stepHeight = (y0-y1)*step/(end-start);
 		var c = 0;
 		for(var i = start; i<=end; i += step){
-			if(scaleParam.fixNum)  i = parseFloat((new Number(i)).toFixed(scaleParam.fixNum));
+			var value = this._logScaleCalc?Math.pow(10,i):i;
+			if(scaleParam.fixNum)  value = parseFloat((new Number(value)).toFixed(scaleParam.fixNum));
 			var yi = Math.floor(y0-c*stepHeight)+ 0.5;/*canvas line fix*/
 			if(!(i==start&&this._settings.origin=="auto") &&this._settings.yAxis.lines.call(this,i))
 				this._drawLine(ctx,x0,yi,point1.x,yi,this._settings.yAxis.lineColor.call(this,i),1);
 			if(i == this._settings.origin) lineX = yi;
 			/*correction for JS float calculation*/
-			var label = i;
-			if(step<1){
-				var power = Math.min(this._log10(step),(start<=0?0:this._log10(start)));
+			if(step<1 && !this._logScaleCalc){
+				var power = Math.min(Math.floor(this._log10(step)),(start<=0?0:Math.floor(this._log10(start))));
 				var corr = Math.pow(10,-power);
-				label = Math.round(i*corr)/corr;
-				i = label;
+				value = Math.round(value*corr)/corr;
+				i = value;
 			}
 			this.canvases["y"].renderText(0,yi-5,
-				this._settings.yAxis.template(label.toString()),
+				this._settings.yAxis.template(value.toString()),
 				"webix_axis_item_y",
 				point0.x-5
 			);
@@ -18632,13 +18707,29 @@ webix.protoUI({
 		this._drawLine(ctx,x0,y0+1,x0,y1,this._settings.yAxis.color,1);
 		return lineX;
 	},
+
 	_setYAxisTitle:function(point0,point1){
         var className = "webix_axis_title_y"+(webix._isIE&&webix._isIE !=9?" webix_ie_filter":"");
 		var text=this.canvases["y"].renderTextAt("middle",false,0,parseInt((point1.y-point0.y)/2+point0.y,10),this._settings.yAxis.title,className);
         if (text)
 			text.style.left = (webix.env.transform?(text.offsetHeight-text.offsetWidth)/2:0)+"px";
 	},
+	_calculateLogScale: function(nmin,nmax){
+		var startPower = Math.floor(this._log10(nmin));
+		var endPower = Math.ceil(this._log10(nmax));
+		return {start: startPower, step: 1, end: endPower};
+	},
 	_calculateScale:function(nmin,nmax){
+		this._logScaleCalc = false;
+		if(this._settings.scale == "logarithmic"){
+			var logMin = Math.floor(this._log10(nmin));
+			var logMax = Math.ceil(this._log10(nmax));
+			if(nmin>0 && nmax > 0 && (logMax-logMin>1) ){
+				this._logScaleCalc = true;
+				return this._calculateLogScale(nmin,nmax);
+			}
+
+		}
 	    if(this._settings.origin!="auto"&&this._settings.origin<nmin)
 			nmin = this._settings.origin;
 		var step,start,end;
@@ -18696,7 +18787,7 @@ webix.protoUI({
 	},
 	_log10:function(n){
         var method_name="log";
-        return Math.floor((Math[method_name](n)/Math.LN10));
+        return Math[method_name](n)/Math.LN10;
     },
 	_drawXAxisLabel:function(x,y,obj,center,top){
 		if (!this._settings.xAxis) return;
@@ -19583,6 +19674,8 @@ webix.extend(webix.ui.chart, {
 		for(i=0; i < data.length;i ++){
 
 			var value =  parseFloat(this._settings.value(data[i])||0);
+			if(this._logScaleCalc)
+				value = this._log10(value)
 
 			if(isNaN(value))
 				continue;
@@ -19929,6 +20022,9 @@ webix.extend(webix.ui.chart, {
 		var valueFactor = params.valueFactor;
 		/*the real value of an object*/
 		var value = this._settings.value(data);
+		if(this._logScaleCalc){
+			value = this._log10(value);
+		}
 		/*a relative value*/
 		var v = (parseFloat(value||0) - minValue)*valueFactor;
 		if(!this._settings.yAxis)
@@ -20075,6 +20171,9 @@ webix.extend(webix.ui.chart, {
 
 
 			value =  parseFloat(this._settings.value(data[i]||0));
+			if(this._logScaleCalc)
+				value = this._log10(value);
+
 			if(value>maxValue) value = maxValue;
 			value -= minValue;
 			value *= valueFactor;
@@ -20235,12 +20334,21 @@ webix.extend(webix.ui.chart, {
 		var stepHeight = (x1-x0)*step/(end-start);
 		var c = 0;
 		for(var i = start; i<=end; i += step){
-			if(scaleParam.fixNum)  i = parseFloat((new Number(i)).toFixed(scaleParam.fixNum));
+			var value = this._logScaleCalc?Math.pow(10,i):i;
+			if(scaleParam.fixNum)  value = parseFloat((new Number(value)).toFixed(scaleParam.fixNum));
 			var xi = Math.floor(x0+c*stepHeight)+ 0.5;/*canvas line fix*/
+
 			if(!(i==start&&this._settings.origin=="auto") &&axis.lines.call(this,i))
 				this._drawLine(ctx,xi,y0,xi,point0.y,this._settings.xAxis.lineColor.call(this,i),1);
 			if(i == this._settings.origin) yAxisStart = xi+1;
-			this.canvases["x"].renderTextAt(false, true,xi,y0+2,axis.template(i.toString()),"webix_axis_item_x");
+			/*correction for JS float calculation*/
+			if(step<1 && !this._logScaleCalc){
+				var power = Math.min(Math.floor(this._log10(step)),(start<=0?0:Math.floor(this._log10(start))));
+				var corr = Math.pow(10,-power);
+				value = Math.round(value*corr)/corr;
+				i = value;
+			}
+			this.canvases["x"].renderTextAt(false, true,xi,y0+2,axis.template(value.toString()),"webix_axis_item_x");
 			c++;
 		}
 		this.canvases["x"].renderTextAt(true, false, x0,point1.y+this._settings.padding.bottom-3,
@@ -20377,6 +20485,8 @@ webix.extend(webix.ui.chart, {
 
 		for(var i=0; i < data.length;i ++){
 			var value =  parseFloat(this._settings.value(data[i]||0));
+			if(this._logScaleCalc)
+				value = this._log10(value);
 
 			if(!value){
 				if(!sIndex||!data[i].$startY)
@@ -21003,6 +21113,8 @@ webix.extend(webix.ui.chart, {
 		for(i=0;i<data.length;i++){
 			if(!value1){
 				value = config.value(data[i]);
+				if(this._logScaleCalc)
+					value = this._log10(value);
 				/*a relative value*/
 				value0 = (parseFloat(value||0) - min)*valueFactor;
 			}
@@ -21011,6 +21123,9 @@ webix.extend(webix.ui.chart, {
 			r0 = Math.floor(unit*value0);
 
 			value = config.value((i!=(data.length-1))?data[i+1]:data[0]);
+			if(this._logScaleCalc)
+				value = this._log10(value);
+
 			value1 = (parseFloat(value||0) - min)*valueFactor;
 			r1 = Math.floor(unit*value1);
 			alpha0 = alpha1;
@@ -21025,9 +21140,9 @@ webix.extend(webix.ui.chart, {
 		}
 		if(config.fill)
 			this._fillRadarChart(ctx,posArr,data);
-		if(!config.disableLines)
+		if(!config.disableLines && data.length>2)
 			this._strokeRadarChart(ctx,posArr,data);
-		if(!config.disableItems)
+		if(!config.disableItems || data.length<3)
 			this._drawRadarItemMarkers(ctx,posArr,data,sIndex,map);
 		posArr = null;
 	},
@@ -21094,15 +21209,18 @@ webix.extend(webix.ui.chart, {
 			this.canvases["scale"] =  this._createCanvas("radar_scale");
 		var ctx = this.canvases["scale"].getCanvas();
 		for(i = end; i>=start; i -=step){
-			if(scaleParam.fixNum)  i = parseFloat((new Number(i)).toFixed(scaleParam.fixNum));
+			var value = this._logScaleCalc?Math.pow(10,i):i;
+			if(scaleParam.fixNum)  value = parseFloat((new Number(i)).toFixed(scaleParam.fixNum));
+
 			units.push(Math.floor(c*stepHeight)+ 0.5);
-			if(corr){
-				i = Math.round(i*corr)/corr;
+			if(corr && !this._logScaleCalc){
+				value = Math.round(value*corr)/corr;
+				i = value;
 			}
 			var unitY = y-radius+units[units.length-1];
 
 			this.canvases["scale"].renderTextAt("middle","left",x,unitY,
-				configY.template(i.toString()),
+				configY.template(value.toString()),
 				"webix_axis_item_y webix_radar"
 			);
 			if(ratios.length<2){
@@ -21112,11 +21230,12 @@ webix.extend(webix.ui.chart, {
 			var startAlpha = -Math.PI/2;/*possibly need  to moved in config*/
 			var alpha0 = startAlpha;
 			var alpha1;
+
 			for(j=0;j< ratios.length;j++){
 				if(i==end)
 					angles.push(alpha0);
 				alpha1 = startAlpha+ratios[j]-0.0001;
-				this._drawScaleSector(ctx,(config.lineShape||"line"),x,y,radius-units[units.length-1],alpha0,alpha1,i,j,data[i]);
+				this._drawScaleSector(ctx,(ratios.length>2?(config.lineShape||"line"):"arc"),x,y,radius-units[units.length-1],alpha0,alpha1,i,j,data[i]);
 				alpha0 = alpha1;
 			}
 			c++;
@@ -22098,6 +22217,8 @@ webix.protoUI({
 				left = cell.offsetLeft - parent.offsetLeft ;
 				top = - (this.$height - (cell.offsetTop -parent.parentNode.offsetTop )) ;
 			}else{
+				if (this._selectBox)
+					this._selectBox.style.left = "-100px";
 				return;
 			}
 
@@ -24455,7 +24576,8 @@ webix.protoUI({
 	name:"carousel",
 	defaults:{
 		scrollSpeed:"300ms",
-		panel: {}
+		type: "clean",
+		navigation: {}
 	},
 	$init:function(){
 		this._viewobj.className += " webix_carousel";
@@ -24483,10 +24605,10 @@ webix.protoUI({
 			matrix.e = correction*size;
 		}
 		
-		this._active_cell = -correction;
+		this._active_cell = - correction;
 
-		if(this._settings.panel)
-			this._renderPanelItems();
+		if(this._settings.navigation)
+			this._renderNavItems();
 			
 		return true;
 	},
@@ -24505,23 +24627,25 @@ webix.protoUI({
 		x = -(this._vertical_orientation?0:_next_cell*_size);
 		y = -(this._vertical_orientation?_next_cell*_size:0);
 
+
 		this.scrollTo(x,y);
-		if(this._settings.panel)
+		this.callEvent("onShow",[this._cells[this._active_cell]._settings.id]);
+		if(this._settings.navigation)
 			this._renderPanel();
 	},
 	scrollTo:function(x,y){
 		if (webix.Touch && webix.animate.isSupported())
 			webix.Touch._set_matrix(this._contentobj, x,y, this._settings.scrollSpeed||"100ms");
 		else{
-			this._viewobj.scrollLeft = -x;
-			this._viewobj.scrollTop = -y;
+			this._contentobj.style.marginLeft = x+"px";
+			this._contentobj.style.marginTop =  y+"px";
 		}
 	},
-	panel_setter:function(config){
+	navigation_setter:function(config){
 		this._mergeSettings(config,{
-			size: 16,
-			itemSize: 16,
-			align:"bottom"
+			type: "corner",
+			buttons: true,
+			items: true
 		});
 		return config;
 	},
@@ -24559,7 +24683,7 @@ webix.protoUI({
 			webix.ui.layout.prototype.$setSize.call(this, xc, yc);
 			webix.ui.view.prototype.$setSize.call(this, x, y);
 
-			if(this._settings.panel)
+			if(this._settings.navigation)
 				this._renderPanel();
 		}
 	},
@@ -24569,7 +24693,7 @@ webix.protoUI({
 	setActive:function(value){
 		webix.$$(value).show();
 	}
-},webix.CarouselPanel, webix.ui.layout, webix.EventSystem);
+},webix.NavigationButtons, webix.ui.layout, webix.EventSystem);
 
 /*
 	UI:Uploader
@@ -25242,12 +25366,14 @@ webix.protoUI({
             webix.event(document.body, "mousemove", webix.bind(this._handle_move_process, this)),
             webix.event(document.body, "mouseup", webix.bind(this._handle_move_stop, this))
         ];
+        webix.html.addCss(document.body,"webix_noselect");
     },
     _handle_move_stop:function(e){
         //detach event handlers
         webix.eventRemove(this._handle_drag_events[0]);
         webix.eventRemove(this._handle_drag_events[1]);
         this._handle_drag_events = [];
+        webix.html.removeCss(document.body,"webix_noselect");
 
         this.setValue(this._get_value_from_pos(e));
     },
@@ -25670,3 +25796,169 @@ window.WebixView = Backbone.View.extend({
 })();
 
 
+
+
+
+
+webix.ActiveContent = {
+	$init:function(config){  
+		if (config.activeContent){
+			this.$ready.push(this._init_active_content_list);
+			
+			this._active_holders = {};
+			this._active_holders_item = {};
+			this._active_holders_values = {};
+			this._active_references = {};
+			
+			for (var key in config.activeContent){
+				this[key] = this._bind_active_content(key);
+				if (config.activeContent[key].earlyInit){
+					var temp = webix._parent_cell; webix._parent_cell = null;
+					this[key].call(this,{},this, config.activeContent);
+					webix._parent_cell=temp;
+				}
+			}
+			
+		}
+	},
+	_init_active_content_list:function(){
+		if (this.filter){
+			for (var key in this._settings.activeContent){
+				this.type[key] = this[key];
+				this[key] = this._locate_active_content_by_id(key);
+			}
+			//really bad!	
+			this.type.masterUI = this;
+		}
+	},
+	_locate_active_content_by_id:function(key){
+		return function(id){
+			var button = this._active_references[key];
+			var button_id = button._settings.id;
+			var html = this._locateHTML(id).getElementsByTagName("DIV");
+			for (var i=0; i < html.length; i++) {
+				if (html[i].getAttribute("view_id") == button_id){
+					button._viewobj = button._dataobj = html[i];
+					break;
+				}
+			}
+			return button;
+		};
+	},
+	_get_active_node:function(el, key, master){
+		return function(e){
+			if (e){
+				var trg=e.target||e.srcElement;
+				while (trg){
+					if (trg.getAttribute && trg.getAttribute("view_id")){
+						el._dataobj = el._viewobj = el.$view = trg;
+						if (master.locate){
+							var id = master.locate(trg.parentNode);
+							var value = master._active_holders_values[key][id];
+							el._settings.value = el._current_value = value;
+							el._settings.$masterId = id;
+						}
+						return trg;
+					}
+					trg = trg.parentNode;
+				}				
+			}
+			return el._viewobj;
+		};
+	},
+	_set_new_active_value:function(key, master){
+		return function(value){
+			var data = master.data;
+			if (master.filter){
+				var id = master.locate(this._viewobj.parentNode);
+				data = master.getItem(id);
+				//XMLSerializer - FF "feature"
+				this.refresh();
+				master._active_holders_item[key][id]=this._viewobj.outerHTML||(new XMLSerializer().serializeToString(this._viewobj));
+				master._active_holders_values[key][id] = value;
+			}
+			data[key] = value;
+		};
+	},
+	_bind_active_content:function(key){ 
+		return function(obj, common, active){
+			var object = common._active_holders?common:common.masterUI;
+
+			if (!object._active_holders[key]){
+				var d = document.createElement("DIV");
+				
+				active = active || object._settings.activeContent;
+				var el = webix.ui(active[key], d);
+				d.firstChild.setAttribute("onclick", "webix.callEvent('onClick',[event]); event.cancelBubble = true;");
+
+				el.getNode = object._get_active_node(el, key, object);
+
+				el.attachEvent("onChange", object._set_new_active_value(key, object));
+				
+				object._active_references[key] = el;
+				object._active_holders[key] = d.innerHTML;
+				object._active_holders_item[key] = {};
+				object._active_holders_values[key] = {};
+			}
+			if (object.filter && obj[key] != object._active_holders_values[key] && !webix.isUndefined(obj[key])){
+				var el = object._active_references[key];
+				el.blockEvent();
+				el.setValue(obj[key]);
+				el.unblockEvent();
+				
+				object._active_holders_values[key][obj.id] = obj[key];
+				object._active_holders_item[key][obj.id] = el._viewobj.outerHTML||(new XMLSerializer().serializeToString(el._viewobj));
+			}
+			
+			return object._active_holders_item[key][obj.id]||object._active_holders[key];
+		};
+	}
+};
+
+/*
+	UI:Video
+*/
+
+webix.protoUI({
+	name:"video",
+	$init:function(config){
+		if (!config.id) config.id = webix.uid();
+		this.$ready.push(this._init_video);
+	},
+	_init_video:function(){
+		var c = this._settings;
+		this._contentobj  = webix.html.create("video",{
+			"class":"webix_view_video",
+			"style":"width:100%;height:100%;",
+			"autobuffer":"autobuffer"
+		},"");
+		if(c.poster)
+			this._contentobj.poster=c.poster;
+
+		if(c.src){
+			if(typeof c.src!= "object")
+				c.src = [c.src];
+			for(var i = 0; i < c.src.length;i++)
+				this._contentobj.innerHTML += ' <source src="'+ c.src[i]+'">';
+		}
+		/*if(this._contentobj.addEventListener)
+		this._contentobj.addEventListener('click', function(videoNode) { 
+          return function() { 
+            videoNode.play(); 
+          }; 
+        }(this._contentobj),false); */
+	
+		if(c.controls)
+			this._contentobj.controls=true;
+		if(c.autoplay)
+			this._contentobj.autoplay=true;
+		this._viewobj.appendChild(this._contentobj);
+	},
+	getVideo:function(){
+		return this._contentobj;
+	},
+	defaults:{
+		src:"",
+		controls: true
+	}
+}, webix.ui.view);

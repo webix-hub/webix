@@ -90,6 +90,10 @@ This software is allowed to use under GPL or you need to obtain Commercial or En
 .webix_item_tab {
   font-size: 13px;
 }
+.buttonStyle {
+  font-size: 13px;
+  font-family: Helvetica, Verdana;
+}
 .webixtype_base:active,
 .webixtype_prev:active,
 .webixtype_next:active {
@@ -451,54 +455,119 @@ x\:ui {
 .webix_carousel {
   position: relative;
 }
-.webix_carousel_panel {
-  position: absolute;
-  background-color: transparent;
-  border: 0;
-  width: auto;
+.webix_nav_panel {
+  bottom: 15px;
   height: auto;
-}
-.webix_carousel_panel {
+  line-height: 8px;
+  overflow: hidden;
   position: absolute;
-  background-color: transparent;
-  border: 0;
-  width: auto;
-  height: auto;
+  text-align: center;
 }
-.webix_carousel_panel .webix_carousel_active,
-.webix_carousel_panel .webix_carousel_inactive {
-  border-radius: 8px;
-  float: left;
+.webix_nav_item {
+  display: inline-block;
   height: 8px;
-  margin: 4px;
+  padding: 6px 5px 6px 4px;
   width: 8px;
 }
-.webix_carousel_active {
-  background: #ffae00;
-  background: -moz-radial-gradient(center 45deg, circle closest-corner, #ffae00 0%, #996900 100%);
-  background: -webkit-gradient(radial, center center, 1, center center, 4, from(#ffae00), to(#996900));
-  background: -webkit-radial-gradient(center 45deg, circle closest-corner, #ffae00 0%, #996900 100%);
-  background: -o-radial-gradient(center 45deg, circle closest-corner, #ffae00 0%, #996900 100%);
-  background: -ms-radial-gradient(center 45deg, circle closest-corner, #ffae00 0%, #996900 100%);
-  background: radial-gradient(center 45deg, circle closest-corner, #ffae00 0%, #996900 100%);
+.webix_nav_item div {
+  border-radius: 50%;
+  display: block;
+  height: 8px;
+  width: 8px;
 }
-.webix_carousel_inactive {
+.webix_nav_inactive div {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  filter: alpha(opacity=60);
+  opacity: 0.6;
   background: #ffffff;
-  background: -moz-radial-gradient(center 45deg, circle closest-corner, #ffffff 0%, #ffffff 100%);
-  background: -webkit-gradient(radial, center center, 1, center center, 4, from(#ffffff), to(#ffffff));
-  background: -webkit-radial-gradient(center 45deg, circle closest-corner, #ffffff 0%, #ffffff 100%);
-  background: -o-radial-gradient(center 45deg, circle closest-corner, #ffffff 0%, #ffffff 100%);
-  background: -ms-radial-gradient(center 45deg, circle closest-corner, #ffffff 0%, #ffffff 100%);
-  background: radial-gradient(center 45deg, circle closest-corner, #ffffff 0%, #ffffff 100%);
 }
-.webix_scroll_carousel {
-  position: relative;
+.webix_nav_active div {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #ffffff;
 }
-.webix_carousel .webix_scroll_x {
-  background-color: transparent !important;
+.webix_nav_button_prev,
+.webix_nav_button_next {
+  cursor: pointer;
+  display: block;
+  height: 24px;
+  position: absolute;
+  width: 24px;
 }
-.webix_carousel .webix_scroll_y {
-  background-color: transparent !important;
+.webix_nav_button_prev .webix_nav_button_inner,
+.webix_nav_button_next .webix_nav_button_inner {
+  height: 100%;
+  width: 100%;
+}
+.webix_nav_button_prev .webix_nav_button_inner {
+  opacity: 0.8;
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAkFBMVEX///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////9oY44IAAAAL3RSTlMA5gMYAUkXBucVVEocD8fDs9UOpxPMrJ/d0Zo9Vtuc2KHTqc8RBa7KtsUMwNoZ5NXTkv8AAAB+SURBVHhepZFFEsNADARnwY6zhiAzM/z/d9ED+mYd1aUakDL3g3GZbI9EhnHagl5ICJqhcgKTWp0+gMVYfgoag678CMTfH8UZuJpXikuyu5LWmGNjF1sMuMvl95j8YK6OWMnprMsVu7pZ8jt29XgqcLuvkFo8yjEoVBYEvuUf4K9fs/aQs0YAAAAASUVORK5CYII=);
+}
+.webix_nav_button_next .webix_nav_button_inner {
+  opacity: 0.8;
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAllBMVEX////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////MC6PrAAAAMXRSTlMA5gMBGA9JFecGSlXMrBPRwxfVn8ezp5oc3Fc8nBvboRbXqdOuBRHPtsoMxVTAGdrkjQ/x3gAAAHlJREFUeF6l0TUSxUAAAlDW4v7d3ZX7Xy4XoAvtKxgGRIYiJoIhpYA6HAC5bzS0CGMJkxShUMDSoqoVcGoRdwo4cvj+FHDmMF8o4BJYKVg7bLYCdhb7g+g4WsQnseN8wfUmdtxThAcFeDxfVPD2n6FHGQ0JskTBP+sBkWlj0yhGTYEAAAAASUVORK5CYII=);
+}
+.webix_nav_panel_corner {
+  right: 73px;
+}
+.webix_nav_button_corner.webix_nav_button_prev {
+  bottom: 13px;
+  right: 37px;
+}
+.webix_nav_button_corner.webix_nav_button_prev .webix_nav_button_inner:hover {
+  opacity: 1;
+}
+.webix_nav_button_corner.webix_nav_button_next {
+  bottom: 13px;
+  right: 7px;
+}
+.webix_nav_button_corner.webix_nav_button_next .webix_nav_button_inner:hover {
+  opacity: 1;
+}
+.webix_nav_panel_side {
+  margin: 0 auto;
+  left: 0;
+  width: 100%;
+  /*.webix_nav_item{
+		height: @sideNavItemHeight;
+		width: @sideNavItemWidth;
+	}
+	.webix_nav_inactive div{
+		border: 2px solid @sideNavItemColor;
+		background: transparent;
+	}
+	.webix_nav_active div{
+		border: 2px solid transparent;
+		background: @sideNavItemColor;
+	}*/
+
+}
+.webix_nav_button_side {
+  height: 34px;
+  width: 21px;
+  top: 50%;
+  margin-top: -17px;
+}
+.webix_nav_button_side.webix_nav_button_next {
+  left: auto;
+  right: 15px;
+}
+.webix_nav_button_side.webix_nav_button_next .webix_nav_button_inner {
+  opacity: 0.8;
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAiCAMAAACHtmKxAAAAY1BMVEX///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+Dm4mgAAAAIHRSTlMAeoGDeXuCgH94fHaE+Xdn/OXaWa6xVBPgqn4SpPffYIKC8HcAAABrSURBVHherchHDoAgEADAVbBh7135/yst2YOQjWJ0jgNtFRcl6Gq5C/XNJNW5PCXqppLsCDswanbf3KhdbOtL29jOqxZqe2RzXPZjWpiucdqP6bxO75qCygbTh6uOSoiphP7IATTjNC+rnhuwqx1LOFJshAAAAABJRU5ErkJggg==);
+}
+.webix_nav_button_side.webix_nav_button_next .webix_nav_button_inner:hover {
+  opacity: 1;
+}
+.webix_nav_button_side.webix_nav_button_prev {
+  left: 15px;
+  right: auto;
+}
+.webix_nav_button_side.webix_nav_button_prev .webix_nav_button_inner {
+  opacity: 0.8;
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAiCAMAAACHtmKxAAAARVBMVEX///////////////////////////////////////////////////////////////////////////////////////////+QFj7cAAAAFnRSTlMADxBTWV9ndXx9g4SlqKrZ29zh8vb3FGTUtQAAAEZJREFUeF7lyDcSgDAMBMBzIsqBYP3/qVBQaa6kYdhyYYXWi7c56S2z1JOlbiw1sZx/mFieHfF+rx/vSLuC9QHWAmvYu7gLhysVAAFZzegAAAAASUVORK5CYII=);
+}
+.webix_nav_button_side.webix_nav_button_prev .webix_nav_button_inner:hover {
+  opacity: 1;
 }
 .webix_list_item {
   -moz-box-sizing: border-box;
@@ -594,7 +663,7 @@ x\:ui {
   border-left: 1px solid #ffd47b;
   padding-left: 9px;
 }
-.webix_list-x {
+.webix_view.webix_list-x {
   white-space: nowrap;
 }
 /* Style for disabled items */
@@ -1935,6 +2004,8 @@ div.webix_invalid {
   background-image: -moz-linear-gradient(#ffffff, #e6e6e6);
   background-image: -ms-linear-gradient(top, #ffffff, #e6e6e6);
   background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);
+  font-size: 13px;
+  font-family: Helvetica, Verdana;
 }
 .webixtype_form {
   color: #1e2022 !important;
@@ -2088,6 +2159,8 @@ input.webixtype_next {
 }
 .webix_el_toggle {
   color: #1e2022;
+  font-size: 13px;
+  font-family: Helvetica, Verdana;
 }
 .webix_el_toggle .webix_pressed > input {
   background-color: rgba(232, 232, 232, 0.7);
@@ -2142,11 +2215,12 @@ input.webixtype_next {
 .webix_el_text input,
 .webix_el_search input,
 .webix_el_combo input {
-  font-size: 13px;
   height: 100%;
   padding: 0px 10px;
   border: 1px solid #a4bed4;
   color: #1e2022;
+  font-size: 13px;
+  font-family: Helvetica, Verdana;
   padding-top: 4px\0;
 }
 .webix_inp_label,
@@ -2319,6 +2393,8 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
   background-image: -moz-linear-gradient(#ffffff, #e6e6e6);
   background-image: -ms-linear-gradient(top, #ffffff, #e6e6e6);
   background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);
+  font-size: 13px;
+  font-family: Helvetica, Verdana;
 }
 .webix_segment_0.webix_selected,
 .webix_segment_1.webix_selected,
@@ -2378,6 +2454,7 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
 .webix_el_search .webix_inp_static {
   color: #1e2022;
   padding-right: 24px;
+  font-family: Helvetica, Verdana;
 }
 .webix_el_combo .webix_input_icon,
 .webix_el_richselect .webix_input_icon,
