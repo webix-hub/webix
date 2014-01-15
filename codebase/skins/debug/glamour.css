@@ -1878,7 +1878,8 @@ div.webix_invalid {
 }
 .webix_window {
   position: absolute;
-  box-shadow: 0px 0px 10px #dadada;
+  box-shadow: 2px 2px 6px #c8c8c8;
+  border-color: #c8c8c8;
 }
 .webix_win_body {
   overflow: hidden;
@@ -2056,6 +2057,11 @@ div.webix_invalid {
   position: relative;
   top: 0.5px;
   width: 13px;
+}
+.webix_indeterminate {
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAIAAAD9iXMrAAAABnRSTlMA/wD/AP83WBt9AAAAP0lEQVR4nGMsKChgIAKwMDAw9Pf341dUWFjIRIxhDAwMxKpjQeYoKSkhc+/du0eyeQOlDsUfyA6nsb2MRMYvAMa2C1nWaFgQAAAAAElFTkSuQmCC);
+  background-repeat: no-repeat;
+  background-position: 0px 4px;
 }
 .webix_measure_size div {
   display: inline-block !important;
@@ -2257,6 +2263,9 @@ div.webix_invalid {
 .webix_cal_body .webix_cal_inactive {
   background: #888;
 }
+.webix_cal_body .webix_cal_event {
+  color: #e42750;
+}
 .webix_cal_inactive {
   background: #888;
 }
@@ -2443,6 +2452,13 @@ div.webix_invalid {
   height: 13px;
   margin: 3px 10px 3px 0;
 }
+.webix_property_value {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.webix_property_check {
+  margin-top: 5px;
+}
 /*style used by tooltip's container*/
 .webix_tooltip {
   display: none;
@@ -2607,6 +2623,11 @@ input.webixtype_next {
 .webix_img_btn_top .webix_icon,
 .webix_img_btn_abs .webix_icon {
   color: #ffffff;
+}
+.webix_img_btn:hover,
+.webix_img_btn_top:hover {
+  background-color: #ddd;
+  background-color: rgba(250, 250, 250, 0.5);
 }
 .webix_img_btn:active,
 .webix_img_btn_top:active {
@@ -2890,33 +2911,29 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
   float: left;
 }
 .webix_el_combo,
-.webix_el_richselect,
+webix_el_richselect,
 .webix_el_datepicker,
 .webix_el_colorpicker,
-.webix_el_dbldatepicker,
 .webix_el_search {
   font-size: 15px;
 }
 .webix_el_combo .webix_el_box,
-.webix_el_richselect .webix_el_box,
+webix_el_richselect .webix_el_box,
 .webix_el_datepicker .webix_el_box,
 .webix_el_colorpicker .webix_el_box,
-.webix_el_dbldatepicker .webix_el_box,
 .webix_el_search .webix_el_box {
   color: #555555;
   position: relative;
 }
 .webix_el_combo input,
-.webix_el_richselect input,
+webix_el_richselect input,
 .webix_el_datepicker input,
 .webix_el_colorpicker input,
-.webix_el_dbldatepicker input,
 .webix_el_search input,
 .webix_el_combo .webix_inp_static,
-.webix_el_richselect .webix_inp_static,
+webix_el_richselect .webix_inp_static,
 .webix_el_datepicker .webix_inp_static,
 .webix_el_colorpicker .webix_inp_static,
-.webix_el_dbldatepicker .webix_inp_static,
 .webix_el_search .webix_inp_static {
   color: #555555;
   padding-right: 24px;
@@ -2925,10 +2942,9 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
   border-color: #bcbcbc !important;
 }
 .webix_el_combo .webix_input_icon,
-.webix_el_richselect .webix_input_icon,
+webix_el_richselect .webix_input_icon,
 .webix_el_datepicker .webix_input_icon,
 .webix_el_colorpicker .webix_input_icon,
-.webix_el_dbldatepicker .webix_input_icon,
 .webix_el_search .webix_input_icon {
   right: 5px;
   color: #555555;
@@ -2945,7 +2961,6 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
 }
 .webix_el_datepicker .webix_input_icon,
 .webix_el_colorpicker .webix_input_icon,
-.webix_el_dbldatepicker .webix_input_icon,
 .webix_el_search .webix_input_icon {
   padding-left: 5px;
   width: 21px;

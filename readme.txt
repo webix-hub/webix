@@ -1,4 +1,4 @@
-Webix UI v.1.2
+Webix UI v.1.4
 ==============
 
 http://webix.com
@@ -31,4 +31,4 @@ http://www.gnu.org/licenses/old-licenses/gpl-3.0.html
 You can buy commercial license and support subscription at http://webix.com
 
 
-(c) XB Software Ltd. 2013
+(c) XB Software Ltd. 2014
