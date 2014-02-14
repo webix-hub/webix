@@ -1,3 +1,31 @@
+Version 1.5
+-----------
+
+### Improved support for mobile devices
+- new skin for mobile UI
+- functionality of desktop UI adapted to touch events and gestures
+
+### Improvments in DataTable
+- adjustRowHeight method added to datatable
+- fillspace can be used for multiple columsn
+- richselect can be used as editor in the datatable
+- checkboxes can have checkValue and uncheckValue options
+ 
+### Improvments in Angular and Backbone 
+
+- [angular] webix-ui is compatible with ng-repeat
+- [angular] webix-data works for options in combo and select
+- [angular] init through angular directive links event handlers to the current scope
+
+- [backbone] handling of reset event
+- [backbone] handling of models with getters
+- [backbone] WebixView is compatible with backbone 1.1
+- [backbone] using sync with already loaded collection
+
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_1_5.html)
+	
+
 
 Version 1.4
 -----------
