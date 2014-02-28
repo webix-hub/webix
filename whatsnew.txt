@@ -1,3 +1,64 @@
+Version 1.5.1
+-------------
+
+[add] columns.optins accepts url of data feed
+[add] combo and richselect: setting value on list load
+[add] datastore importData
+[add] getDirtyValues and getCleanValues methods
+[add] getFormView
+[add] live edit functionality
+[add] locate method for chart (required for dblclick event handling)
+[add] math operations in treetable
+[add] onBeforeAjax event
+[add] onBeforeDateSelect/onAfterDateSelect events to calendarStaskova
+[add] onColumnResize and onRowResize events
+[add] relatedView and relatedAction attributes
+[add] required and validateEvent attributes for form elementsKozhukh
+[add] sort:"server" in datatable
+[add] unbind and unsync, correct destruction of synced and binded elements
+
+[update] all layout components can use events
+[update] destructor correctly removes the related views
+[update] function resolving can work with both "someMethod" and "someMethod()" notations
+[update] getColumnConfig returns config for hidden columns
+[update] setColumnWidth uses column id as parameter, not column index
+
+[fix] $scope not defined inside of window
+[fix] adding borderless element to layout through addView results in the incorrect sizing
+[fix] addView and removeView do not updated elements collection for rich formsPM
+[fix] after deleting view from the form its value still accessible throug getValues
+[fix] camelCase parameters while init from HTML
+[fix] checkbox react on empty space clicks, #75
+[fix] clock icon
+[fix] custom scroll and disabled areas
+[fix] custom scroll doesn't react on addview command
+[fix] custom scroll in suggest boxes
+[fix] datatable blocks whole page mouse-wheel scroll
+[fix] delete dataprocessor on master view destruction
+[fix] dynamic loading for deep sub levels
+[fix] elementsConfig doesn't work for nested fieldset
+[fix] empty text in combo input; 
+[fix] fieldset breaks parentView chain
+[fix] form with scroll ignores height
+[fix] getChildViews for fieldset
+[fix] getFormView throws an error for element outside of formKozhukh
+[fix] illegal comma removed
+[fix] invalid behavior for movable window and position:centerKozhukh
+[fix] invalid editor sizes after column or row resizing
+[fix] isDirty doesn't work for the fresh form
+[fix] isolate property and multiview, #79
+[fix] popup zIndex was not increased on show
+[fix] regression in popup editors
+[fix] regression in richselect related to after-loading valueKozhukh
+[fix] regression in xml-xhtml data parsing
+[fix] submenu that is not based on menu
+[fix] unnecessary custom scroll in datatable
+[fix] window sizing ignores min-width for the inner content
+
+
+
+
+
 Version 1.5
 -----------
 
