@@ -20,7 +20,7 @@
   background-position: 0px -78px;
 }
 #image .loadingImage {
-  background-image: url(../../imgs/loading.png);
+  background-image: url(imgs/loading.png);
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -2012,6 +2012,7 @@ div.webix_modal_cover {
 }
 .webix_c_scroll_y {
   position: absolute;
+  z-index: 1;
   width: 10px;
   right: 0px;
 }
@@ -2034,6 +2035,7 @@ div.webix_modal_cover {
 }
 .webix_c_scroll_x {
   position: absolute;
+  z-index: 1;
   height: 10px;
   bottom: 0px;
 }
@@ -2594,6 +2596,11 @@ textarea.webix_invalid {
   border: 1px solid #e6e6e6 !important;
   text-shadow: none !important;
 }
+label.webix_required:after {
+  padding-left: 4px;
+  content: "*";
+  color: red;
+}
 .webix_el_tabbar {
   background: transparent;
 }
@@ -2985,8 +2992,8 @@ textarea.webix_invalid {
  * -------------------------- */
 @font-face {
   font-family: 'FontAwesome';
-  src: url('../../imgs/fontawesome-webfont.eot?v=4.0.3');
-  src: url('../../imgs/fontawesome-webfont.eot?#iefix&v=4.0.3') format('embedded-opentype'), url('../../imgs/fontawesome-webfont.woff?v=4.0.3') format('woff'), url('../../imgs/fontawesome-webfont.svg?v=4.0.3#fontawesomeregular') format('svg');
+  src: url('imgs/fontawesome-webfont.eot?v=4.0.3');
+  src: url('imgs/fontawesome-webfont.eot?#iefix&v=4.0.3') format('embedded-opentype'), url('imgs/fontawesome-webfont.woff?v=4.0.3') format('woff'), url('imgs/fontawesome-webfont.svg?v=4.0.3#fontawesomeregular') format('svg');
   font-weight: normal;
   font-style: normal;
 }

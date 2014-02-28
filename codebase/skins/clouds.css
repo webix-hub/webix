@@ -4,7 +4,7 @@
 #image .pointRightImage{background-position:0 -22px}
 #image .pointLeftImage{background-position:0 -9px}
 #image .calendarImage{background-position:0 -78px}
-#image .loadingImage{background-image:url(../imgs/loading.png);background-repeat:no-repeat;background-position:center}
+#image .loadingImage{background-image:url(imgs/loading.png);background-repeat:no-repeat;background-position:center}
 #common .sharpblueline{background-color:#dae7f6;background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#dae7f6),color-stop(50%,#cddef3),color-stop(51%,#b8cffe),color-stop(100%,#c9dbf2));background-image:-webkit-linear-gradient(top,#dae7f6 0,#cddef3 50%,#b8cffe 51%,#c9dbf2 100%);background-image:-moz-linear-gradient(top,#dae7f6 0,#cddef3 50%,#b8cffe 51%,#c9dbf2 100%);background-image:-ms-linear-gradient(top,#dae7f6 0,#cddef3 50%,#b8cffe 51%,#c9dbf2 100%);background-image:-o-linear-gradient(top,#dae7f6 0,#cddef3 50%,#b8cffe 51%,#c9dbf2 100%);background-position:0 1px;background-repeat:no-repeat}
 .webix_accordionitem_button{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAKCAYAAABi8KSDAAAABGdBTUEAALGPC/xhBQAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wMFQsaIfsOOTwAAAAuSURBVBjTY2CgK/j///9/bOKM+BQyMjIy4lSMzURkDYyErEbWwEhIIS4nDSAAAPX3FAHp7wCoAAAAAElFTkSuQmCC);background-position:0 0;background-repeat:no-repeat;height:16px;width:16px}
 .webix_accordionitem_header.collapsed .webix_accordionitem_button{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAKCAYAAABi8KSDAAAABGdBTUEAALGPC/xhBQAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wMFQsWO6rZj0oAAAA3SURBVBjTY2AYFICRgYGB4f////8JKmRkZGSEcfBpgKljRBbEpgHZQEZ0SWQNyApxAmL8QF0AAHVOFAHvOUFbAAAAAElFTkSuQmCC);background-position:0 0}
@@ -342,10 +342,10 @@ div.webix_modal_cover{background-color:#000;cursor:default;filter:alpha(opacity=
 .webix_vscroll_body{width:16px;height:16px}
 .webix_scroll_x{width:50px;height:4px!important;left:1px;bottom:3px;background-color:silver;background:rgba(0,0,0,.4);position:absolute;border-radius:4px;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
 .webix_scroll_y{width:4px!important;height:50px;top:1px;right:3px;background-color:silver;background:rgba(0,0,0,.4);position:absolute;border-radius:4px;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
-.webix_c_scroll_y{position:absolute;width:10px;right:0}
+.webix_c_scroll_y{position:absolute;z-index:1;width:10px;right:0}
 .webix_c_scroll_y>div{-moz-transition:width .3s .2s,margin .3s .2s;-webkit-transition:width .3s .2s,margin .3s .2s;-o-transition:width .3s .2s,margin .3s .2s;-ms-transition:width .3s .2s,margin .3s .2s;width:4px;height:100%;background-color:silver;background:rgba(0,0,0,.4);border-radius:4px;margin:0 3px}
 .webix_c_scroll_y:hover>div,.webix_c_scroll_y.webix_scroll_active div{width:10px;margin:0}
-.webix_c_scroll_x{position:absolute;height:10px;bottom:0}
+.webix_c_scroll_x{position:absolute;z-index:1;height:10px;bottom:0}
 .webix_c_scroll_x>div{-moz-transition:height .3s .2s,margin .3s .2s;-webkit-transition:height .3s .2s,margin .3s .2s;-o-transition:height .3s .2s,margin .3s .2s;-ms-transition:height .3s .2s,margin .3s .2s;height:4px;width:100%;background-color:silver;background:rgba(0,0,0,.4);border-radius:4px;margin:3px 0}
 .webix_c_scroll_x:hover>div,.webix_c_scroll_x.webix_scroll_active div{height:10px;margin:0}
 .webix_scroll_cont{width:100%;height:auto;overflow:hidden;clear:both}
@@ -421,6 +421,7 @@ body:not(:-moz-handler-blocked) .webix_el_select select{padding:.2em}
 .webix_view.webix_control .webix_disabled_box label{color:#aaa}
 .webix_view.webix_control .webix_disabled_box input,.webix_view.webix_control .webix_disabled_box select,.webix_view.webix_control .webix_disabled_box textarea,.webix_view.webix_control .webix_disabled_box .webix_inp_static{color:#aaa;background:#eee}
 .webix_view.webix_control .webix_disabled_box .webix_inp_counter_prev,.webix_view.webix_control .webix_disabled_box .webix_inp_counter_next,.webix_view.webix_control .webix_disabled_box .webix_segment_0,.webix_view.webix_control .webix_disabled_box .webix_segment_1,.webix_view.webix_control .webix_disabled_box .webix_segment_N{color:#aaa!important;background-color:#e9e9e9;background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#fbfbfb),color-stop(100%,#e9e9e9));background-image:-webkit-linear-gradient(#fbfbfb,#e9e9e9);background-image:-moz-linear-gradient(#fbfbfb,#e9e9e9);background-image:-ms-linear-gradient(top,#fbfbfb,#e9e9e9);background-image:-o-linear-gradient(top,#fbfbfb,#e9e9e9);border-color:#d5d5d5!important}
+label.webix_required:after{padding-left:4px;content:"*";color:red}
 .webix_el_tabbar{background:transparent}
 .webix_all_tabs{height:100%;display:table}
 .webix_tab_filler{display:table-cell;background:transparent;border-bottom:1px solid #c8c8c8}
@@ -494,7 +495,7 @@ body:not(:-moz-handler-blocked) .webix_el_select select{padding:.2em}
  *  Font Awesome 4.0.3 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
  */
-@font-face{font-family:FontAwesome;src:url(../imgs/fontawesome-webfont.eot?v=4.0.3);src:url(../imgs/fontawesome-webfont.eot?#iefix&v=4.0.3) format('embedded-opentype'),url(../imgs/fontawesome-webfont.woff?v=4.0.3) format('woff'),url(../imgs/fontawesome-webfont.svg?v=4.0.3#fontawesomeregular) format('svg');font-weight:400;font-style:normal}
+@font-face{font-family:FontAwesome;src:url(imgs/fontawesome-webfont.eot?v=4.0.3);src:url(imgs/fontawesome-webfont.eot?#iefix&v=4.0.3) format('embedded-opentype'),url(imgs/fontawesome-webfont.woff?v=4.0.3) format('woff'),url(imgs/fontawesome-webfont.svg?v=4.0.3#fontawesomeregular) format('svg');font-weight:400;font-style:normal}
 .webix_icon,.webix_icon_button,.webix_icon_btn,.webix_input_icon,.fa{display:inline-block;font-family:FontAwesome;font-style:normal;font-weight:400;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 .fa-lg{font-size:1.3333333333333333em;line-height:.75em;vertical-align:-15%}
 .fa-2x{font-size:2em}
