@@ -10352,6 +10352,7 @@ webix.TreeStore = {
 		var obj = this.pull[id];
         if(obj.$count){
         	var branch = this.branch[id];
+          if(!branch) return;
             for(var i=0;i<branch.length;i++)
                 this._rec_remove(branch[i], true);
         }
@@ -10379,7 +10380,12 @@ webix.TreeStore = {
 		if (parent){
 			parent.$count--;
 			if (!parent.$count) {
-				parent.open = 0;
+
+        if(parent.webix_kids)
+          parent.$count=-1
+        else
+  				parent.open = 0;
+
 				this.refresh(parent.id);
 			}
 		}
