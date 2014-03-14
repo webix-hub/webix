@@ -1,3 +1,7 @@
+/*
+This software is allowed to use under GPL or you need to obtain Commercial or Enterise License 
+ to use it in non-GPL project. Please contact sales@dhtmlx.com for details
+*/
 #image .pointTopImage,
 #image .pointBottomImage,
 #image .pointRightImage,
@@ -711,6 +715,9 @@ div.webix_inp_static {
 		background-color: @backColor;
 	}*/
 }
+body {
+  -webkit-tap-highlight-color: transparent !important;
+}
 /*
 	webix_layout_{type}
 	known types are: line, clean, wide, space;
@@ -1285,28 +1292,6 @@ x\:ui {
 .webix_list_item.webix_disabled .webix_submenu_icon {
   visibility: hidden;
 }
-/*button of pager*/
-.webix_pager_item,
-.webix_pager_item_selected {
-  -moz-user-select: -moz-none;
-  -webkit-user-select: none;
-  -user-select: none;
-  float: left;
-  text-align: center;
-  height: 16px;
-  width: 25px;
-  border: 1px solid #dedede;
-  padding: 2px 4px;
-  margin-right: 5px;
-  cursor: pointer;
-  background-color: white;
-}
-/*selected  button of pager*/
-.webix_pager_item_selected {
-  cursor: default;
-  background-color: #f1f1f1;
-  border: 1px solid #e7e7e7;
-}
 /*helper for allowing selection*/
 .webix_allow_selection {
   -moz-user-select: text;
@@ -1427,6 +1412,28 @@ x\:ui {
 .webix_axis_item_y,
 .webix_axis_item_x {
   color: #333333;
+}
+/*button of pager*/
+.webix_pager_item,
+.webix_pager_item_selected {
+  -moz-user-select: -moz-none;
+  -webkit-user-select: none;
+  -user-select: none;
+  float: left;
+  text-align: center;
+  height: 16px;
+  width: 25px;
+  border: 1px solid #dedede;
+  padding: 2px 4px;
+  margin-right: 5px;
+  cursor: pointer;
+  background-color: white;
+}
+/*selected  button of pager*/
+.webix_pager_item_selected {
+  cursor: default;
+  background-color: #f1f1f1;
+  border: 1px solid #e7e7e7;
 }
 .webix_dt_editor {
   position: absolute;
@@ -1685,17 +1692,19 @@ x\:ui {
 }
 .webix_dd_drag {
   white-space: nowrap;
+  overflow: hidden;
   border-left: 1px solid #dedede;
-  height: 28px;
+  height: 42px;
 }
 .webix_dd_drag > div {
-  float: left;
+  display: inline-block;
   background: white;
   border-top: 1px solid #dedede;
   border-right: 1px solid #dedede;
   border-bottom: 1px solid #dedede;
   padding: 5px 10px;
-  height: 28px;
+  height: 42px;
+  line-height: 34px;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
@@ -3128,7 +3137,8 @@ textarea.webix_invalid {
   background-color: rgba(0, 0, 0, 0);
   filter: progid:DXImageTransform.Microsoft.Alpha(opacity=0);
 }
-.webix_view.webix_control .webix_disabled_box label {
+.webix_view.webix_control .webix_disabled_box label,
+.webix_view.webix_control .webix_disabled_box .webix_input_icon {
   color: #aaaaaa;
 }
 .webix_view.webix_control .webix_disabled_box input,
@@ -3147,6 +3157,9 @@ textarea.webix_invalid {
   background: #e9e9e9 !important;
   border: 1px solid #e6e6e6 !important;
   text-shadow: none !important;
+}
+.webix_disabled_top_label {
+  color: #aaaaaa;
 }
 label.webix_required:after {
   padding-left: 4px;
@@ -3657,8 +3670,8 @@ label.webix_required:after {
  * -------------------------- */
 @font-face {
   font-family: 'FontAwesome';
-  src: url('imgs/fontawesome-webfont.eot?v=4.0.3');
-  src: url('imgs/fontawesome-webfont.eot?#iefix&v=4.0.3') format('embedded-opentype'), url('imgs/fontawesome-webfont.woff?v=4.0.3') format('woff'), url('imgs/fontawesome-webfont.svg?v=4.0.3#fontawesomeregular') format('svg');
+  src: url('../../imgs/fontawesome-webfont.eot?v=4.0.3');
+  src: url('../../imgs/fontawesome-webfont.eot?#iefix&v=4.0.3') format('embedded-opentype'), url('../../imgs/fontawesome-webfont.woff?v=4.0.3') format('woff'), url('../../imgs/fontawesome-webfont.svg?v=4.0.3#fontawesomeregular') format('svg');
   font-weight: normal;
   font-style: normal;
 }

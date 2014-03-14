@@ -1,3 +1,7 @@
+/*
+This software is allowed to use under GPL or you need to obtain Commercial or Enterise License 
+ to use it in non-GPL project. Please contact sales@dhtmlx.com for details
+*/
 #image .pointTopImage,#image .pointBottomImage,#image .pointRightImage,#image .pointLeftImage{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAArCAIAAADHSy4DAAAABnRSTlMAAAAAAABupgeRAAAACXBIWXMAAABPAAAATwFjiv3XAAAAhElEQVR4nMXVQQoAIQhAUe9/FC/pLAYayUm/EeT6YWGmoqpWharKG7n+XK5nt9L/LurMeV27oZHrReN0M6Oupr5S1GU0vhN1J7L27hp1QYXX1WtE5UxnNXI0ep7+pEGRpr95ooWObbXUm1npXWkFaF3vTqj9c+h8pVOb7gK6Yeje4tvwARi4FgcAh2V/AAAAAElFTkSuQmCC)}
 #image .pointTopImage{background-position:0 -36px}
 #image .pointBottomImage{background-position:0 0}
@@ -24,6 +28,7 @@
 .webix_skin_mark{height:110px}
 .webix_view{font-family:Helvetica,Verdana;font-size:13px;color:#1e2022;cursor:default;overflow:hidden;border:0 solid #a4bed4;background-color:#fff;white-space:normal;-webkit-appearance:none}
 .webix_view.webix_form{background-color:#fff}
+body{-webkit-tap-highlight-color:transparent!important}
 .webix_layout_space{background-color:#ebebeb}
 .webix_layout_wide{background-color:#ebebeb}
 .webix_layout_line,.webix_multiview,.webix_layout_clean,.webix_layout_accordion{background:transparent}
@@ -173,8 +178,8 @@ x\:ui{display:none}
 .webix_column>div.webix_column_select{border-right:1px solid #ffd47b;border-left:1px solid #ffd47b;padding-left:9px}
 .webix_sel_hcell,.webix_dd_over_column{background-color:#c9eaf5}
 .webix_block_selection{background:rgba(0,0,0,.1);border:2px solid #ffd47b}
-.webix_dd_drag{white-space:nowrap;border-left:1px solid #ebebeb;height:28px}
-.webix_dd_drag>div{float:left;background:#fff;border-top:1px solid #ebebeb;border-right:1px solid #ebebeb;border-bottom:1px solid #ebebeb;padding:5px 10px;height:28px;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
+.webix_dd_drag{white-space:nowrap;overflow:hidden;border-left:1px solid #ebebeb;height:34px}
+.webix_dd_drag>div{display:inline-block;background:#fff;border-top:1px solid #ebebeb;border-right:1px solid #ebebeb;border-bottom:1px solid #ebebeb;padding:5px 10px;height:34px;line-height:26px;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
 .webix_dd_drag_column{padding:5px 10px}
 .webix_column>.webix_drag_over.webix_cell{background-color:#ffa}
 .webix_ss_header th,.webix_ss_header td,.webix_ss_header table{padding:0;margin:0}
@@ -388,9 +393,10 @@ body:not(:-moz-handler-blocked) .webix_el_select select{padding:.2em}
 .webix_el_search input{padding-right:30px}
 .webix_el_search span{position:absolute;right:17px;cursor:pointer;padding-left:7px}
 .webix_view.webix_control>.webix_disabled{background-color:rgba(0,0,0,0);filter:alpha(opacity=0)}
-.webix_view.webix_control .webix_disabled_box label{color:#aaa}
+.webix_view.webix_control .webix_disabled_box label,.webix_view.webix_control .webix_disabled_box .webix_input_icon{color:#aaa}
 .webix_view.webix_control .webix_disabled_box input,.webix_view.webix_control .webix_disabled_box select,.webix_view.webix_control .webix_disabled_box textarea,.webix_view.webix_control .webix_disabled_box .webix_inp_static{color:#aaa;background:#eee}
 .webix_view.webix_control .webix_disabled_box .webix_inp_counter_prev,.webix_view.webix_control .webix_disabled_box .webix_inp_counter_next,.webix_view.webix_control .webix_disabled_box .webix_segment_0,.webix_view.webix_control .webix_disabled_box .webix_segment_1,.webix_view.webix_control .webix_disabled_box .webix_segment_N{color:#aaa!important;background-color:#e9e9e9;background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#fbfbfb),color-stop(100%,#e9e9e9));background-image:-webkit-linear-gradient(#fbfbfb,#e9e9e9);background-image:-moz-linear-gradient(#fbfbfb,#e9e9e9);background-image:-ms-linear-gradient(top,#fbfbfb,#e9e9e9);background-image:-o-linear-gradient(top,#fbfbfb,#e9e9e9);border-color:#d5d5d5!important}
+.webix_disabled_top_label{color:#aaa}
 label.webix_required:after{padding-left:4px;content:"*";color:red}
 .webix_el_tabbar{background:transparent}
 .webix_all_tabs{height:100%;display:table}
@@ -454,7 +460,7 @@ label.webix_required:after{padding-left:4px;content:"*";color:red}
  *  Font Awesome 4.0.3 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
  */
-@font-face{font-family:FontAwesome;src:url(imgs/fontawesome-webfont.eot?v=4.0.3);src:url(imgs/fontawesome-webfont.eot?#iefix&v=4.0.3) format('embedded-opentype'),url(imgs/fontawesome-webfont.woff?v=4.0.3) format('woff'),url(imgs/fontawesome-webfont.svg?v=4.0.3#fontawesomeregular) format('svg');font-weight:400;font-style:normal}
+@font-face{font-family:FontAwesome;src:url(../imgs/fontawesome-webfont.eot?v=4.0.3);src:url(../imgs/fontawesome-webfont.eot?#iefix&v=4.0.3) format('embedded-opentype'),url(../imgs/fontawesome-webfont.woff?v=4.0.3) format('woff'),url(../imgs/fontawesome-webfont.svg?v=4.0.3#fontawesomeregular) format('svg');font-weight:400;font-style:normal}
 .webix_icon,.webix_icon_button,.webix_icon_btn,.webix_input_icon,.fa{display:inline-block;font-family:FontAwesome;font-style:normal;font-weight:400;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 .fa-lg{font-size:1.3333333333333333em;line-height:.75em;vertical-align:-15%}
 .fa-2x{font-size:2em}

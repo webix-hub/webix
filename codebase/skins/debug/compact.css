@@ -1,3 +1,7 @@
+/*
+This software is allowed to use under GPL or you need to obtain Commercial or Enterise License 
+ to use it in non-GPL project. Please contact sales@dhtmlx.com for details
+*/
 #image .pointTopImage,
 #image .pointBottomImage,
 #image .pointRightImage,
@@ -138,6 +142,9 @@
   /*.webix_view{
 		background-color: @backColor;
 	}*/
+}
+body {
+  -webkit-tap-highlight-color: transparent !important;
 }
 /*
 	webix_layout_{type}
@@ -1095,17 +1102,19 @@ x\:ui {
 }
 .webix_dd_drag {
   white-space: nowrap;
+  overflow: hidden;
   border-left: 1px solid #ebebeb;
-  height: 28px;
+  height: 26px;
 }
 .webix_dd_drag > div {
-  float: left;
+  display: inline-block;
   background: white;
   border-top: 1px solid #ebebeb;
   border-right: 1px solid #ebebeb;
   border-bottom: 1px solid #ebebeb;
   padding: 5px 4px;
-  height: 28px;
+  height: 26px;
+  line-height: 18px;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
@@ -2527,7 +2536,8 @@ textarea.webix_invalid {
   background-color: rgba(0, 0, 0, 0);
   filter: progid:DXImageTransform.Microsoft.Alpha(opacity=0);
 }
-.webix_view.webix_control .webix_disabled_box label {
+.webix_view.webix_control .webix_disabled_box label,
+.webix_view.webix_control .webix_disabled_box .webix_input_icon {
   color: #aaaaaa;
 }
 .webix_view.webix_control .webix_disabled_box input,
@@ -2551,6 +2561,9 @@ textarea.webix_invalid {
   background-image: -ms-linear-gradient(top, #fbfbfb, #e9e9e9);
   background-image: -o-linear-gradient(top, #fbfbfb, #e9e9e9);
   border-color: #d5d5d5 !important;
+}
+.webix_disabled_top_label {
+  color: #aaaaaa;
 }
 label.webix_required:after {
   padding-left: 4px;
@@ -2981,8 +2994,8 @@ label.webix_required:after {
  * -------------------------- */
 @font-face {
   font-family: 'FontAwesome';
-  src: url('imgs/fontawesome-webfont.eot?v=4.0.3');
-  src: url('imgs/fontawesome-webfont.eot?#iefix&v=4.0.3') format('embedded-opentype'), url('imgs/fontawesome-webfont.woff?v=4.0.3') format('woff'), url('imgs/fontawesome-webfont.svg?v=4.0.3#fontawesomeregular') format('svg');
+  src: url('../../imgs/fontawesome-webfont.eot?v=4.0.3');
+  src: url('../../imgs/fontawesome-webfont.eot?#iefix&v=4.0.3') format('embedded-opentype'), url('../../imgs/fontawesome-webfont.woff?v=4.0.3') format('woff'), url('../../imgs/fontawesome-webfont.svg?v=4.0.3#fontawesomeregular') format('svg');
   font-weight: normal;
   font-style: normal;
 }
