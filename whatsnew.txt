@@ -1,3 +1,27 @@
+Version 1.7
+==============
+
+### Breaking changes in API
+
+datatable.locate method returns object with "row" and "column" properties, in previous version result object has "row" and "col" properties respectfully.
+
+
+### Default skin
+
+Default skin changed to flat ( you still can use the old skin by using skins/air.css )  
+Compact skin changed to flat theme as well ( old one renamed to skins/aircompact.css )  
+
+
+### Improvments in API
+- text sorting mode for datatable
+- autoheight property for "property" view
+- ability to edit math formulas in the datatable
+- "touch" mode for multiselect
+
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_1_7.html)
+
+
 Version 1.6
 ==============
 

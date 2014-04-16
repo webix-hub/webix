@@ -6,4 +6,9 @@
    License:   SIL (http://scripts.sil.org/OFL)
    Homepage:  http://fortawesome.github.com/Font-Awesome/
 
- 
+
+
+## PT Sans Free
+
+	Copyright © 2009 ParaType Ltd.
+	License: Free Font License v1.00
