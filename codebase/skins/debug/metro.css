@@ -1,3 +1,7 @@
+/*
+This software is allowed to use under GPL or you need to obtain Commercial License 
+ to use it in non-GPL project. Please contact sales@webix.com for details
+*/
 #image .pointTopImage,
 #image .pointBottomImage,
 #image .pointRightImage,
@@ -418,6 +422,12 @@ body.webix_full_screen {
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
+.webix_clean {
+  background: transparent;
+}
+.webix_clean .webix_template {
+  padding: 0px;
+}
 .webix_section {
   padding-left: 30px;
   -moz-box-sizing: border-box;
@@ -561,6 +571,7 @@ x\:ui {
 .webix_accordionitem_header {
   border-bottom: 1px solid #c8c8c8;
   position: relative;
+  z-index: 2;
   font-size: 13px;
   background: #ffffff;
   line-height: 34px;
@@ -1348,7 +1359,7 @@ x\:ui {
 .webix_modal {
   width: 100%;
   height: 100%;
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   background-color: black;
@@ -1626,6 +1637,10 @@ x\:ui {
 }
 .webix_cal_inactive {
   background: #888;
+}
+.webix_cal_day_disabled {
+  color: #bbbbbb;
+  background: #f4f4f4 !important;
 }
 .webix_cal_month_name {
   cursor: pointer;
@@ -2090,7 +2105,8 @@ div.webix_modal_cover {
 .webix_el_button input,
 .webix_el_toggle input,
 .webix_el_button button,
-.webix_el_toggle button {
+.webix_el_toggle button,
+.webixbutton {
   border-radius: 0px;
   border: 1px solid #c8c8c8;
   height: 100%;
@@ -2123,7 +2139,8 @@ div.webix_modal_cover {
 }
 .webixtype_base,
 .webixtype_prev,
-.webixtype_next {
+.webixtype_next,
+.webixbutton {
   background: #3389ff;
   font-size: 15px !important;
   color: #ffffff;
@@ -2317,6 +2334,9 @@ input.webixtype_next {
   background: #e9e9e9 !important;
   border: 1px solid #e6e6e6 !important;
   text-shadow: none !important;
+}
+.webixbutton {
+  width: auto;
 }
 .webix_control {
   background: transparent;
@@ -2786,6 +2806,20 @@ label.webix_required:after {
   background-position: center 0;
   position: relative;
   height: 100%;
+}
+.webix_tab_more_icon {
+  cursor: pointer;
+  display: table-cell;
+  overflow: hidden;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 0 3px;
+}
+.webix_tab_more_icon .webix_icon {
+  width: 100%;
+}
+.webix_tab_list .webix_list_item:last-child {
+  border-bottom: none;
 }
 .webix_menu,
 .webix_menu-x {

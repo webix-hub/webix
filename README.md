@@ -1,4 +1,4 @@
-Webix UI v.1.7
+Webix UI v.1.8
 ==============
 
 http://webix.com
