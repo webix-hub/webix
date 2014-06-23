@@ -1,7 +1,3 @@
-/*
-This software is allowed to use under GPL or you need to obtain Commercial License 
- to use it in non-GPL project. Please contact sales@webix.com for details
-*/
 #image .pointTopImage,#image .pointBottomImage,#image .pointRightImage,#image .pointLeftImage{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAArCAIAAADHSy4DAAAABnRSTlMAAAAAAABupgeRAAAACXBIWXMAAABPAAAATwFjiv3XAAAAhElEQVR4nMXVQQoAIQhAUe9/FC/pLAYayUm/EeT6YWGmoqpWharKG7n+XK5nt9L/LurMeV27oZHrReN0M6Oupr5S1GU0vhN1J7L27hp1QYXX1WtE5UxnNXI0ep7+pEGRpr95ooWObbXUm1npXWkFaF3vTqj9c+h8pVOb7gK6Yeje4tvwARi4FgcAh2V/AAAAAElFTkSuQmCC)}
 #image .pointTopImage{background-position:0 -36px}
 #image .pointBottomImage{background-position:0 0}
@@ -228,7 +224,7 @@ x\:ui{display:none}
 .webix_tree_close,.webix_tree_open,.webix_tree_none{background-position:-3px 2px}
 .webix_cell .webix_tree_close,.webix_cell .webix_tree_open,.webix_cell .webix_tree_none{background-color:transparent}
 .webix_tree_folder,.webix_tree_file,.webix_tree_folder_open{background-position:0 2px}
-.webix_tree_file,.webix_tree_folder,.webix_tree_folder_open{margin:0 2px 0 0}
+.webix_tree_file,.webix_tree_folder,.webix_tree_folder_open{margin:0 2px}
 .webix_tree_leaves .webix_tree_leaves{margin-left:18px}
 .webixLineTree .webix_tree_leaves{margin-left:0}
 .webix_tree_close{background-image:url(data:image/gif;base64,R0lGODlhEgASAJEAAP///4SEhAAAAP///yH5BAUUAAMALAAAAAASABIAAAIqnI+py+0Powq01haA3iDgLWwek2mhNi6ZwLLdZ4owcL4kJ5OWJfX+DykAADs=)}
@@ -344,9 +340,8 @@ div.webix_modal_cover{background-color:#000;cursor:default;filter:alpha(opacity=
 .webixtype_form{color:#1e2022;background:#d8eaf6}
 .webixtype_form:active{background:#fff!important}
 .webixtype_danger{background:#FE5310;color:#fff}
-.webixtype_danger:active{background:#f44}
 .webix_el_button .webix_el_box,.webix_el_toggle .webix_el_box{position:relative}
-.webix_el_button .webix_el_arrow{position:absolute;z-index:1}
+.webix_el_button .webix_el_arrow,.webix_el_toggle .webix_el_arrow{position:absolute;z-index:1}
 .webixtype_prev,.webixtype_next{position:absolute;z-index:2;top:0}
 input.webixtype_prev{border-left-width:0!important;border-radius:0;-webkit-border-top-left-radius:0;-webkit-border-bottom-left-radius:0;-webkit-border-top-right-radius:0;-webkit-border-bottom-right-radius:0;-moz-border-radius-topleft:0;-moz-border-radius-bottomleft:0;-moz-border-radius-topright:0;-moz-border-radius-bottomright:0;border-top-left-radius:0;border-bottom-left-radius:0;border-top-right-radius:0;border-bottom-right-radius:0}
 input.webixtype_next{border-right-width:0!important;border-radius:0t;-webkit-border-top-left-radius:0;-webkit-border-bottom-left-radius:0;-webkit-border-top-right-radius:0;-webkit-border-bottom-right-radius:0;-moz-border-radius-topleft:0;-moz-border-radius-bottomleft:0;-moz-border-radius-topright:0;-moz-border-radius-bottomright:0;border-top-left-radius:0;border-bottom-left-radius:0;border-top-right-radius:0;border-bottom-right-radius:0}
@@ -409,7 +404,7 @@ body:not(:-moz-handler-blocked) .webix_el_select select{padding:.2em}
 .webix_inp_radio_border,.webix_el_radio .webix_el_group label{float:left}
 .webix_el_radio label{margin-top:2px;line-height:normal!important}
 .webix_el_radio label.webix_inp_top_label{margin-top:0}
-.webix_invalid .webix_el_box input,.webix_invalid .webix_el_box select,.webix_invalid .webix_el_box textarea,input.webix_invalid,select.webix_invalid,textarea.webix_invalid{background-color:#FEDEDF;border-color:#fea5a8}
+.webix_invalid .webix_el_box input,.webix_invalid .webix_el_box .webix_inp_static,.webix_invalid .webix_el_box select,.webix_invalid .webix_el_box textarea,input.webix_invalid,select.webix_invalid,textarea.webix_invalid{background-color:#FEDEDF;border-color:#fea5a8}
 .webix_el_colorpicker .webix_inp_static div{float:right;width:16px;height:16px;margin:2px -16px 0 -5px;border-radius:0}
 .webix_el_search .webix_el_box{position:relative}
 .webix_el_search input{padding-right:30px}
@@ -455,6 +450,7 @@ label.webix_required:after{padding-left:4px;content:"*";color:red}
 .webix_menu .webix_context_sep{height:3px;padding:1px 3px 0}
 .webix_menu .webix_context_sep .sep_line{height:1px;border-top:1px solid #9da8ad}
 .webix_menu .webix_submenu_icon{top:8px}
+.webix_menu_link{color:inherit;text-decoration:none;display:block;height:100%}
 .webix_layout_toolbar{color:#fff;font-size:14px;background:#6e95ad}
 .webix_toolbar.webix_layout_subbar{color:#fff;font-size:14px;background:#6e95ad}
 .webix_toolbar .webix_layout_toolbar,.webix_toolbar .webix_layout_line,.webix_toolbar .webix_layout_clean{background:transparent}

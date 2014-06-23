@@ -1,3 +1,16 @@
+Version 1.9
+================
+
+### Major new features
+
+- Hotkey for inputs
+- HTML links in menu
+
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_1_9.html)
+
+
+
 Version 1.8
 ================
 

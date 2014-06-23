@@ -1,7 +1,3 @@
-/*
-This software is allowed to use under GPL or you need to obtain Commercial License 
- to use it in non-GPL project. Please contact sales@webix.com for details
-*/
 #image .pointTopImage,#image .pointBottomImage,#image .pointRightImage,#image .pointLeftImage{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAArCAIAAADHSy4DAAAABnRSTlMAAAAAAABupgeRAAAACXBIWXMAAABPAAAATwFjiv3XAAAAhElEQVR4nMXVQQoAIQhAUe9/FC/pLAYayUm/EeT6YWGmoqpWharKG7n+XK5nt9L/LurMeV27oZHrReN0M6Oupr5S1GU0vhN1J7L27hp1QYXX1WtE5UxnNXI0ep7+pEGRpr95ooWObbXUm1npXWkFaF3vTqj9c+h8pVOb7gK6Yeje4tvwARi4FgcAh2V/AAAAAElFTkSuQmCC)}
 #image .pointTopImage{background-position:0 -36px}
 #image .pointBottomImage{background-position:0 0}
@@ -126,9 +122,6 @@ x\:ui{display:none}
 .webix_view.webix_list-x{white-space:nowrap}
 .webix_list_item.webix_disabled{color:#8b949e}
 .webix_list_item.webix_disabled .webix_submenu_icon{visibility:hidden}
-.webix_pager{padding:2px 0;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;background-color:transparent}
-.webix_pager_item,.webix_pager_item_selected{-moz-user-select:none;-webkit-user-select:none;user-select:none;text-align:center;height:100%;width:32px;border:1px solid #cecece;margin:0 2px;cursor:pointer;background-color:#fff;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
-.webix_pager_item_selected{cursor:default;background-color:#fff3a1;border:1px solid #e6e6e6}
 .webix_allow_selection{-moz-user-select:text;-webkit-user-select:text;user-select:text}
 .webix_dataview_item{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;padding:2px 10px;line-height:23px;cursor:pointer;border-bottom:1px solid #e6e6e6;text-align:left;border-right:1px solid #e6e6e6}
 .webix_dataview_item.webix_selected{color:#2f2f2f;background:#fff3a1;border-bottom:1px solid #e6e6e6;border-right:1px solid #e6e6e6}
@@ -147,6 +140,9 @@ x\:ui{display:none}
 .webix_axis_item_y.webix_radar{color:#555;font-size:11px;padding-right:3px;height:13px;line-height:13px;margin-top:0}
 .webix_canvas_text.webix_axis_radar_title{margin-top:0;padding-top:0;color:#787877;font-size:12px}
 .webix_axis_item_y,.webix_axis_item_x{color:#787877}
+.webix_pager{padding:2px 0;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;background-color:transparent}
+.webix_pager_item,.webix_pager_item_selected{-moz-user-select:none;-webkit-user-select:none;user-select:none;text-align:center;height:100%;width:32px;border:1px solid #cecece;margin:0 2px;cursor:pointer;background-color:#fff;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
+.webix_pager_item_selected{cursor:default;background-color:#fff3a1;border:1px solid #e6e6e6}
 .webix_dt_editor{position:absolute;z-index:2;overflow:visible;background:#fff}
 .webix_dt_editor input,.webix_dt_editor select{width:100%;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;padding:1px 8px 0 9px;margin:0;border:1px solid #ffd700;height:100%;font-family:Arial;font-size:13px;color:#454544}
 .webix_dt_editor input[type=checkbox]{margin:6px 8px 4px 14px;height:auto;width:auto}
@@ -229,7 +225,7 @@ x\:ui{display:none}
 .webix_tree_close,.webix_tree_open,.webix_tree_none{background-position:-3px 2px}
 .webix_cell .webix_tree_close,.webix_cell .webix_tree_open,.webix_cell .webix_tree_none{background-color:transparent}
 .webix_tree_folder,.webix_tree_file,.webix_tree_folder_open{background-position:0 2px}
-.webix_tree_file,.webix_tree_folder,.webix_tree_folder_open{margin:0 2px 0 0}
+.webix_tree_file,.webix_tree_folder,.webix_tree_folder_open{margin:0 2px}
 .webix_tree_leaves .webix_tree_leaves{margin-left:18px}
 .webixLineTree .webix_tree_leaves{margin-left:0}
 .webix_tree_close{background-image:url(data:image/gif;base64,R0lGODlhEgASAJEAAP///4SEhAAAAP///yH5BAUUAAMALAAAAAASABIAAAIqnI+py+0Powq01haA3iDgLWwek2mhNi6ZwLLdZ4owcL4kJ5OWJfX+DykAADs=)}
@@ -345,9 +341,8 @@ div.webix_modal_cover{background-color:#000;cursor:default;filter:alpha(opacity=
 .webixtype_base,.webixtype_prev,.webixtype_next,.webixbutton{color:#454544;background:#fff;font-weight:700;font-size:13px;font-family:Arial}
 .webixtype_form{background-color:#22A1BC;color:#fff!important;font-weight:700;text-shadow:0 -1px 0 #6f6f6f;border:0!important}
 .webixtype_danger{background:#FE5310;color:#fff;border:0!important;font-weight:700}
-.webixtype_danger:active{background:#f44}
 .webix_el_button .webix_el_box,.webix_el_toggle .webix_el_box{position:relative}
-.webix_el_button .webix_el_arrow{position:absolute;z-index:1}
+.webix_el_button .webix_el_arrow,.webix_el_toggle .webix_el_arrow{position:absolute;z-index:1}
 .webixtype_prev,.webixtype_next{position:absolute;z-index:2;top:0}
 input.webixtype_prev{border-left-width:0!important;border-radius:0;-webkit-border-top-left-radius:0;-webkit-border-bottom-left-radius:0;-webkit-border-top-right-radius:6px;-webkit-border-bottom-right-radius:6px;-moz-border-radius-topleft:0;-moz-border-radius-bottomleft:0;-moz-border-radius-topright:6px;-moz-border-radius-bottomright:6px;border-top-left-radius:0;border-bottom-left-radius:0;border-top-right-radius:6px;border-bottom-right-radius:6px}
 input.webixtype_next{border-right-width:0!important;border-radius:0t;-webkit-border-top-left-radius:6px;-webkit-border-bottom-left-radius:6px;-webkit-border-top-right-radius:0;-webkit-border-bottom-right-radius:0;-moz-border-radius-topleft:6px;-moz-border-radius-bottomleft:6px;-moz-border-radius-topright:0;-moz-border-radius-bottomright:0;border-top-left-radius:6px;border-bottom-left-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0}
@@ -410,7 +405,7 @@ body:not(:-moz-handler-blocked) .webix_el_select select{padding:.2em}
 .webix_inp_radio_border,.webix_el_radio .webix_el_group label{float:left}
 .webix_el_radio label{margin-top:3px;line-height:normal!important}
 .webix_el_radio label.webix_inp_top_label{margin-top:0}
-.webix_invalid .webix_el_box input,.webix_invalid .webix_el_box select,.webix_invalid .webix_el_box textarea,input.webix_invalid,select.webix_invalid,textarea.webix_invalid{background-color:#FEDEDF;border-color:#fea5a8}
+.webix_invalid .webix_el_box input,.webix_invalid .webix_el_box .webix_inp_static,.webix_invalid .webix_el_box select,.webix_invalid .webix_el_box textarea,input.webix_invalid,select.webix_invalid,textarea.webix_invalid{background-color:#FEDEDF;border-color:#fea5a8}
 .webix_el_colorpicker .webix_inp_static div{float:right;width:18px;height:18px;margin:2px -16px 0 -5px;border-radius:6px}
 .webix_el_search .webix_el_box{position:relative}
 .webix_el_search input{padding-right:30px}
@@ -458,6 +453,7 @@ label.webix_required:after{padding-left:4px;content:"*";color:red}
 .webix_menu .webix_context_sep{height:3px;padding:1px 3px 0}
 .webix_menu .webix_context_sep .sep_line{height:1px;border-top:1px solid #cecece}
 .webix_menu .webix_submenu_icon{top:10px}
+.webix_menu_link{color:inherit;text-decoration:none;display:block;height:100%}
 .webix_layout_toolbar{background:#fff}
 .webix_toolbar.webix_layout_subbar{background:#fff}
 .webix_toolbar .webix_layout_toolbar,.webix_toolbar .webix_layout_line,.webix_toolbar .webix_layout_clean{background:transparent}
