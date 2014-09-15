@@ -1,3 +1,36 @@
+Version 2.0
+================
+
+### Major features
+- Promises API for all ajax operations
+- Progress bars and overlays
+- Icons and close button in tabbar
+- Improved keyboard navigation
+- Extra locales added
+- Package includes source map files
+- [pro] PRO edition includes Pivot component
+- [pro] Multiselect and multitext inputs
+- [pro] Advanced editors for DataTable and Property views
+- [pro] Colspans and Rowspans in DataTable
+- [pro] Column menu in DataTable
+- [pro] Optional custom scrollbars
+- [pro] Grouped columns in DataTable
+- [pro] Advanced filters for DataTable
+
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2.html)
+
+
+Version 1.10
+================
+### Major new features
+
+- IE12 compatibility
+- Column Batches in the DataTable
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_1_10.html)
+
+
 Version 1.9
 ================
 
@@ -8,7 +41,6 @@ Version 1.9
 
 
 [Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_1_9.html)
-
 
 
 Version 1.8
@@ -30,7 +62,7 @@ Calendar dates can be disabled to prevent their selection. [Check details](deskt
  - adjustHeaders deprecated
 
 
-[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_1_5.html)
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_1_8.html)
 
 
 
