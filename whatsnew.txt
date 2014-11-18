@@ -1,7 +1,34 @@
+Version 2.1.1
+================
+- regression in addView fixed
+- issue with input focus in IE fixed
+
+
+
+Version 2.1
+================
+
+### Major features
+
+- better compatibility with Bootstrap and jQuery
+- Icon font contains 479 icons now ( Font Awesome updated to 4.2 )
+- "strict" mode for Webix
+- Datatable and treetable math can be extended with custom functions
+- Uploader can work in Internet Explorer 8-9
+- ability to send extra data with file upload
+- addView() and removeView() methods can be used to add and remove tabs in tabview
+- find API for datatable and treetable
+- addDropZone() method for uploader to allow file upload by drag-n-drop on html area
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2_1.html)
+
+
+
 Version 2.0
 ================
 
 ### Major features
+
 - Promises API for all ajax operations
 - Progress bars and overlays
 - Icons and close button in tabbar
@@ -21,8 +48,10 @@ Version 2.0
 [Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2.html)
 
 
+
 Version 1.10
 ================
+
 ### Major new features
 
 - IE12 compatibility
