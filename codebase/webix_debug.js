@@ -9682,8 +9682,7 @@ webix.DataStore.prototype={
 webix.DataCollection = webix.proto({
 	name:"DataCollection",
 	isVisible:function(){ 
-		if (!this.data.order.length && !this.data._filter_order && !this._settings.dataFeed) return false;
-		return true; 
+		return this.data.order.length || this.data._filter_order || this._settings.dataFeed;
 	},
 	$init:function(config){
 		this.data.provideApi(this, true);
@@ -9808,13 +9807,13 @@ webix.protoUI({
 		this._dataobj = this._viewobj;
 		this._viewobj.className += " webix_pager";
 
-        if(config.master===false||config.master === 0)
-             this.$ready.push(this._remove_master);
+		if(config.master===false||config.master === 0)
+			this.$ready.push(this._remove_master);
 	},
-    _remove_master:function(){
-        this.refresh();
-        this.$master = { refresh:function(){}, select:function(){} };
-    },
+	_remove_master:function(){
+		this.refresh();
+		this.$master = { refresh:function(){}, select:function(){} };
+	},
 	select:function(id){
 		if (this.$master && this.$master.name == "pager")
 			return this.$master.select(id);
@@ -9946,7 +9945,7 @@ webix.protoUI({
 		if (config.flip)
 			direction = "";
 
-		
+
 
 		//make copy of existing view
 		var top = 0;
@@ -10111,7 +10110,7 @@ webix.protoUI({
     },
 	show:function(data,pos){
 		if (this._disabled) return;
-		//render sefl only if new data was provided
+		//render self only if new data was provided
         if (this.data!=data){
 			this.data=webix.extend({},data);
 			this.render(data);
@@ -10126,7 +10125,7 @@ webix.protoUI({
 	},
 	//hide tooltip
 	hide:function(){
-		this.data=null; //nulify, to be sure that on next show it will be fresh-rendered
+		this.data=null; //nulify, to be sure that on next show it will be freshly rendered
 		this._contentobj.style.display="none";
 	},
 	disable:function(){
@@ -10142,7 +10141,7 @@ webix.protoUI({
 	}
 
 }, webix.SingleRender, webix.Settings, webix.EventSystem, webix.ui.view);
-		
+
 
 
 webix.AutoTooltip = {
@@ -11650,9 +11649,9 @@ webix.TreeType={
 	},
 	checkbox:function(obj, common){
 		if(obj.nocheckbox)
-		   return "";
+			return "";
         return "<input type='checkbox' class='webix_tree_checkbox' "+(obj.checked?"checked":"")+(obj.disabled?" disabled":"")+">";
-	},	
+	},
 	folder:function(obj, common){
 		if (obj.icon)
 			return "<div class='webix_tree_file webix_tree_"+obj.icon+"'></div>";
@@ -28242,7 +28241,7 @@ webix.protoUI({
 		item.percent = Math.round(percent);
 		this.files.updateItem(id);
 	},
-	setValue:function(value){
+	setValue: function(value){
 		if (typeof value == "string")
 			value = { value:value, status:"server" };
 
@@ -28252,7 +28251,7 @@ webix.protoUI({
 
 		this.callEvent("onChange", []);
 	},
-	getValue:function(){
+	getValue: function(){
 		var data = [];
 		this.files.data.each(function(obj){
 			if (obj.status == "server")
@@ -28268,7 +28267,7 @@ webix.html.addMeta = function(name, value){
 	document.getElementsByTagName('head').item(0).appendChild(webix.html.create("meta",{
 		name:name,
 		content:value
-	}));	
+	}));
 	
 };
 
@@ -28303,8 +28302,8 @@ webix.ui.fullScreen = function(){
 	var ipad = navigator.userAgent.indexOf("iPad")!=-1;
 	var iOS7 = navigator.userAgent.indexOf("OS 7")!=-1;
 
-    var iphone_safari = iphone && (size == 356 || size == 208 || size == 306 || size == 158 || size == 444);
-    var iphone5 = (window.screen.height==568);
+	var iphone_safari = iphone && (size == 356 || size == 208 || size == 306 || size == 158 || size == 444);
+	var iphone5 = (window.screen.height==568);
 
 	var fix = function(){
 		var x = 0; var y=0;
@@ -28318,7 +28317,7 @@ webix.ui.fullScreen = function(){
 			}
 		} else if (webix.env.isAndroid){
 
-			if(!webix.env.isFF){
+			if (!webix.env.isFF){
 				//ipad doesn't change orientation and zoom level, so just ignore those lines
 				document.body.style.width = document.body.style.height = "1px";
 				document.body.style.overflow="hidden";
@@ -28327,7 +28326,7 @@ webix.ui.fullScreen = function(){
 				x = window.outerWidth/dmod;
 				y = window.outerHeight/dmod;
 			}
-		} else if(!webix.env.isIEMobile){
+		} else if (!webix.env.isIEMobile){
 			x = window.innerWidth;
 			y = window.innerHeight;
 		}
@@ -28384,13 +28383,13 @@ if (window.jQuery){
 					var view;
 					var id;
 
-					//if target a webix component - return it
-					var id = get_id(this) || get_id(this.firstChild);
+					// if target is a webix component - return it
+					id = get_id(this) || get_id(this.firstChild);
 					if (id)
 						view = webix.$$(id);
 					
 					if (!view){
-						//do not include data in copy as it can be massive
+						// do not include data in copy as it can be massive
 						var temp_data = config?config.data:0;
 						if (temp_data) config.data = null;
 
