@@ -31,7 +31,7 @@ webix.assert_error = function(message){
 		debugger;
 };
 
-//entry point for analitic scripts
+//entry point for analytics scripts
 webix.assert_core_ready = function(){
 	if (window.webix_on_core_ready)	
 		window.webix_on_core_ready();
@@ -28798,219 +28798,215 @@ webix.proxy.local = {
 };
 
 if (window.angular)
+	(function(){
 
-(function(){
+		function id_helper($element){
+			// we need unique id as reference
+			var id = $element.attr("id");
+			if (!id){
+				id = webix.uid();
+				$element.attr("id", id);
+			}
+			return id;
+		}
 
-  function id_helper($element){
-    //we need uniq id as reference
-    var id = $element.attr("id");
-    if (!id){
-      id = webix.uid();
-      $element.attr("id", id);
-    }
-    return id;
-  }
-
-  function locate_view_id($element){
-    if (typeof $element.attr("webix-ui") != "undefined")
-      return $element.attr("id");
-    return locate_view_id($element.parent());
-  }
-
+		function locate_view_id($element){
+			if (typeof $element.attr("webix-ui") != "undefined")
+				return $element.attr("id");
+			return locate_view_id($element.parent());
+		}
 
 
 
-//creates webix ui components
-angular.module("webix", [])
-  .directive('webixUi', [ "$parse", function($parse) {
-    return {
-      restrict: 'A',
-      scope: false,
-      link:function ($scope, $element, $attrs, $controller){
-        var dataname = $attrs["webixUi"];
-        var callback = $attrs["webixReady"];
-        var wxRoot = null;
-        var id = id_helper($element);
+	// creates webix UI components
+	angular.module("webix", [])
+	.directive('webixUi', [ "$parse", function($parse) {
+		return {
+			restrict: 'A',
+			scope: false,
+			link: function ($scope, $element, $attrs, $controller) {
+				var dataname = $attrs["webixUi"];
+				var callback = $attrs["webixReady"];
+				var wxRoot = null;
+				var id = id_helper($element);
 
-        $element.ready(function(){  
-          if (wxRoot) return;
+			$element.ready(function (){
+				if (wxRoot) return;
 
-          if (callback)
-            callback = $parse(callback);
+				if (callback)
+					callback = $parse(callback);
 
-          //destruct components
-          $element.bind('$destroy', function() {
-            if(wxRoot) wxRoot.destructor();
-          });
+			 	//destruct components
+				$element.bind('$destroy', function() {
+					if(wxRoot) wxRoot.destructor();
+				});
 
-          //webix-ui attribute has some value - will try to use it as configuration
-          if (dataname){
-            //configuration
-            var watcher = function(data){
-              if (wxRoot) wxRoot.destructor();
-              if ($scope[dataname]){
-                var config = webix.copy($scope[dataname]);
-                config.$scope =$scope;
-                wxRoot = webix.ui(config, $element[0]);
-                if (callback)
-                  callback($scope, { root: wxRoot });
-              }
-            };
-            $scope.$watch(dataname, watcher);
-            watcher();
-          } else {
-          //if webix-ui is empty - init inner content as webix markup
-            if (!$attrs["view"])
-              $element.attr("view", "rows");
-            
-            var ui = webix.markup;
-            var tmp_a = ui.attribute; ui.attribute = "";
-            //FIXME - memory leaking, need to detect the moment of dom element removing and destroy UI
-            if (typeof $attrs["webixRefresh"] != "undefined")
-              wxRoot = ui.init($element[0], $element[0], $scope);
-            else
-              wxRoot = ui.init($element[0], null, $scope);
+				// webix-ui attribute has some value - will try to use it as configuration
+				if (dataname) {
+					//configuration
+					var watcher = function (data) {
+						if (wxRoot) wxRoot.destructor();
+						if ($scope[dataname]) {
+							var config = webix.copy($scope[dataname]);
+							config.$scope =$scope;
+							wxRoot = webix.ui(config, $element[0]);
+							if (callback)
+								callback($scope, { root: wxRoot });
+						}
+					};
+					$scope.$watch(dataname, watcher);
+					watcher();
+				} else {
+					// if webix-ui is empty - init inner content as webix markup
+					if (!$attrs["view"])
+						$element.attr("view", "rows");
 
-            ui.attribute = tmp_a;
+					var ui = webix.markup;
+					var tmp_a = ui.attribute; ui.attribute = "";
+					// FIXME - memory leak, need to detect when the DOM element is removed, and destroy UI
+					if (typeof $attrs["webixRefresh"] != "undefined")
+						wxRoot = ui.init($element[0], $element[0], $scope);
+					else
+						wxRoot = ui.init($element[0], null, $scope);
 
-            if (callback)
-              callback($scope, { root: wxRoot });
-          }
+					ui.attribute = tmp_a;
 
-          //size of ui
-          $scope.$watch(function() {
-            return $element[0].offsetWidth + "." + $element[0].offsetHeight;
-          }, function() {
-            if (wxRoot) wxRoot.adjust();
-          });
+					if (callback)
+						callback($scope, { root: wxRoot });
+				}
 
-        });
-      }
-    };
-  }])
+				// size of ui
+				$scope.$watch(function () {
+					return $element[0].offsetWidth + "." + $element[0].offsetHeight;
+				}, function() {
+					if (wxRoot) wxRoot.adjust();
+				});
 
-  .directive('webixShow', [ "$parse", function($parse) {
-    return {
-      restrict: 'A',
-      scope: false,
+			});
+			}
+		};
+	}])
 
-      link:function ($scope, $element, $attrs, $controller){
-        var attr = $parse($attrs["webixShow"]);
-        var id = id_helper($element);
+	.directive('webixShow', [ "$parse", function($parse) {
+		return {
+			restrict: 'A',
+			scope: false,
 
-        if (!attr($scope))
-            $element.attr("hidden", "true");
+			link:function ($scope, $element, $attrs, $controller) {
+				var attr = $parse($attrs["webixShow"]);
+				var id = id_helper($element);
 
-        $scope.$watch($attrs["webixShow"], function(){
-          var view = webix.$$(id);
-          if (view){
-            if (attr($scope)){
-              webix.$$(id).show();
-              $element[0].removeAttribute("hidden");
-            } else
-              webix.$$(id).hide();
-          }
-        });
+				if (!attr($scope))
+					$element.attr("hidden", "true");
 
-      }
-    };
-  }])
+				$scope.$watch($attrs["webixShow"], function() {
+					var view = webix.$$(id);
+					if (view) {
+						if (attr($scope)) {
+							webix.$$(id).show();
+							$element[0].removeAttribute("hidden");
+						} else
+							webix.$$(id).hide();
+					}
+				});
+			}
+		};
+	}])
 
-  .directive('webixEvent', [ "$parse", function($parse) {
-    var wrap_helper = function($scope, view, eventobj){
-      var ev = eventobj.split("=");
-      var action = $parse(ev[1]);
-      var name = ev[0].trim();
-      view.attachEvent(name, function(){              
-        return action($scope, { id:arguments[0], details:arguments });
-      });
-    };
+	.directive('webixEvent', [ "$parse", function ($parse) {
+		var wrap_helper = function ($scope, view, eventobj) {
+			var ev = eventobj.split("=");
+			var action = $parse(ev[1]);
+			var name = ev[0].trim();
+			view.attachEvent(name, function () {
+				return action($scope, { id:arguments[0], details:arguments });
+			});
+		};
 
-    return {
-      restrict: 'A',
-      scope: false,
-      
-      link:function ($scope, $element, $attrs, $controller){
-        var events = $attrs["webixEvent"].split(";");
-        var id = id_helper($element);
+		return {
+			restrict: 'A',
+			scope: false,
 
-        setTimeout(function(){
-          var first = $element[0].firstChild;
-          if (first && first.nodeType == 1)
-            id = first.getAttribute("view_id") || id;
+			link:function ($scope, $element, $attrs, $controller) {
+				var events = $attrs["webixEvent"].split(";");
+				var id = id_helper($element);
 
-          var view = webix.$$(id);
-          for (var i = 0; i < events.length; i++) {
-            wrap_helper($scope, view, events[i]);
-          }
-        });
+				setTimeout(function () {
+					var first = $element[0].firstChild;
+					if (first && first.nodeType == 1)
+						id = first.getAttribute("view_id") || id;
 
-      }
-    };
-  }])
+					var view = webix.$$(id);
+					for (var i = 0; i < events.length; i++) {
+						wrap_helper($scope, view, events[i]);
+					}
+				});
+			}
+		};
+	}])
 
-  .directive('webixElements', [ "$parse", function($parse) {
-    return {
-      restrict: 'A',
-      scope: false,
+	.directive('webixElements', [ "$parse", function ($parse) {
+		return {
+			restrict: 'A',
+			scope: false,
 
-      link:function ($scope, $element, $attrs, $controller){
+			link:function ($scope, $element, $attrs, $controller) {
 
-        var data = $attrs["webixElements"];
-        var id = id_helper($element);
-        
-        if ($scope.$watchCollection)
-          $scope.$watchCollection(data, function(collection){
-            setTimeout(function(){
-              var view = webix.$$(id);
-              if (view){
-                view.define("elements", collection);
-                view.refresh();
-              }
-            },1);
-          });
-      }
+				var data = $attrs["webixElements"];
+				var id = id_helper($element);
 
-    };
-  }])
+				if ($scope.$watchCollection)
+					$scope.$watchCollection(data, function (collection) {
+						setTimeout(function () {
+							var view = webix.$$(id);
+							if (view) {
+								view.define("elements", collection);
+								view.refresh();
+							}
+						}, 1);
+					});
+			}
+		};
+	}])
 
-  .directive('webixData', [ "$parse", function($parse) {
-    return {
-      restrict: 'A',
-      scope: false,
+	.directive('webixData', [ "$parse", function ($parse) {
+		return {
+			restrict: 'A',
+			scope: false,
 
-      link:function ($scope, $element, $attrs, $controller){
+		link:function ($scope, $element, $attrs, $controller) {
 
-        var data = $attrs["webixData"];
-        var id = id_helper($element);
-        
-        if ($scope.$watchCollection)
-          $scope.$watchCollection(data, function(collection){
-            if (collection){
-              setTimeout(function(){
-                var first = $element[0].firstChild;
-                if (first && first.nodeType == 1)
-                id = first.getAttribute("view_id") || id;
-              
-                var view = webix.$$(id);
-                if (view){
-                  if (view.options_setter){
-                    view.define("options", collection);
-                    view.refresh();
-                  }else{
-                    if (view.clearAll)
-                      view.clearAll();
-                    view.parse(collection);
-                  }
-                }
-              },1);
-            }
-          });
-      }
+			var data = $attrs["webixData"];
+			var id = id_helper($element);
 
-    };
-  }]);
-})();
+			if ($scope.$watchCollection)
+				$scope.$watchCollection(data, function (collection) {
+					if (collection) {
+					setTimeout(function () {
+						var first = $element[0].firstChild;
+						if (first && first.nodeType == 1)
+							id = first.getAttribute("view_id") || id;
+
+						var view = webix.$$(id);
+						if (view) {
+							if (view.options_setter) {
+								view.define("options", collection);
+								view.refresh();
+							} else {
+								if (view.clearAll)
+									view.clearAll();
+								view.parse(collection);
+							}
+						}
+					}, 1);
+				}
+				});
+			}
+		};
+	}]);
+	})();
+
+
 if (window.Backbone)
 (function(){
 
@@ -29177,7 +29173,7 @@ webix.attachEvent("onSyncUnknown", function(wData, bData, config){
 
 window.WebixView = Backbone.View.extend({
 	tagName:"div",
-	//startign from backbone 1.1, this.options is not saved automatically
+	// starting from backbone 1.1, this.options is not saved automatically
 	initialize : function (options) {
 		this.options = options || {};
 	},
@@ -29294,13 +29290,13 @@ webix.ActiveContent = {
 	},
 	_bind_active_content:function(key){ 
 		return function(obj, common, active){
-			var object = common._active_holders?common:common.masterUI;
+			var object = common._active_holders?common:common.masterUI, el;
 
 			if (!object._active_holders[key]){
 				var d = document.createElement("DIV");
 				
 				active = active || object._settings.activeContent;
-				var el = webix.ui(active[key], d);
+				el = webix.ui(active[key], d);
 				d.firstChild.setAttribute("onclick", "webix.callEvent('onClick',[event]); event.cancelBubble = true;");
 
 				el.getNode = object._get_active_node(el, key, object);
@@ -29313,7 +29309,7 @@ webix.ActiveContent = {
 				object._active_holders_values[key] = {};
 			}
 			if (object.filter && obj[key] != object._active_holders_values[key] && !webix.isUndefined(obj[key])){
-				var el = object._active_references[key];
+				el = object._active_references[key];
 				el.blockEvent();
 				el.setValue(obj[key]);
 				el.refresh();
