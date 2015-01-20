@@ -19,7 +19,9 @@ webix.i18n.locales["ru-RU"]={
     	dayShort:["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
 		hours: "Часы",
 		minutes: "Минуты",
-		done: "Гoтовo"
+		done: "Гoтовo",
+		clear: "Сброс",
+		today: "Сегодня"
 	},
 
     controls:{

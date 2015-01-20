@@ -1,3 +1,18 @@
+Version 2.2
+================
+
+### Major features
+- Data binding for Tree, TreeTable and TreeCollection
+- Optional Today and Clear buttons in the Calendar
+- Ability to define file types for file uploader
+- Webix.ajax api can be used to fetch binary data ( file downloading by ajax )
+- Optional hover for rows in datatable
+- Improved scrolling on touch devices
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2_2.html)
+
+
+
 Version 2.1.1
 ================
 - regression in addView fixed

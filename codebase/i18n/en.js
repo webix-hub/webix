@@ -25,7 +25,9 @@ webix.i18n.locales["en-US"]={
     	dayShort:["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
 		hours: "Hours",
 		minutes: "Minutes",
-		done:"Done"
+		done:"Done",
+		clear: "Clear",
+		today: "Today"
     },
 
     controls:{

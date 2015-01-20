@@ -19,7 +19,9 @@ webix.i18n.locales["fr-FR"]={
     	dayShort:["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
 		hours: "Heures",
 		minutes: "Minutes",
-		done:"Fini"
+		done:"Fini",
+		clear: "Effacer",
+		today: "Aujourd'hui"
 	},
 
 	controls:{
