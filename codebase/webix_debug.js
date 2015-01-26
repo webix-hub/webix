@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.2.0
+webix UI v.2.2.1
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="2.2.0";
+webix.version="2.2.1";
 webix.codebase="./";
 webix.name = "core";
 
@@ -1822,13 +1822,13 @@ webix.template = function(str){
 		
 	str=(str||"").toString();			
 	if (str.indexOf("->")!=-1){
-		str = str.split("->");
-		switch(str[0]){
+		var teststr = str.split("->");
+		switch(teststr[0]){
 			case "html": 	//load from some container on the page
-				str = webix.html.getValue(str[1]);
+				str = webix.html.getValue(teststr[1]);
 				break;
 			case "http": 	//load from external file
-				str = new webix.ajax().sync().get(str[1],{uid:webix.uid()}).responseText;
+				str = new webix.ajax().sync().get(teststr[1],{uid:webix.uid()}).responseText;
 				break;
 			default:
 				//do nothing, will use template as is
@@ -3772,7 +3772,7 @@ webix.UIManager = {
 		}
 	},
 	_keycode: function(code, ctrl, shift, alt, meta) {
-		return code+"_"+[, (ctrl ? '1' : '0'), (shift ? '1' : '0'), (alt ? '1' : '0'), (meta ? '1' : '0')].join('');
+		return code+"_"+["", (ctrl ? '1' : '0'), (shift ? '1' : '0'), (alt ? '1' : '0'), (meta ? '1' : '0')].join('');
 	},
 
 	_check_keycode: function(code, is_any, e){
@@ -5787,8 +5787,11 @@ webix.protoUI({
 		collapsed:false
 	},
 	addView:function(view){
+		//adding view to the accordion
 		var id = webix.ui.layout.prototype.addView.apply(this, arguments);
-		webix.$$(id).refresh();
+		var child = webix.$$(id);
+		//repainting sub-panels in the accordion
+		if (child.collapsed_setter && child.refresh) child.refresh();
 		return id;
 	},
 	_parse_cells:function(){
@@ -6328,9 +6331,14 @@ webix.protoUI({
 		webix.event(this._contentobj, "click", webix.bind(this._ignore_clicks, this));
 	},
 	_ignore_clicks:function(e){
-		e.click_view = this._settings.id;
+		var popups = webix.ui._popups;
+		var index = popups.find(this);
+		if (index == -1)
+			index = popups.length - 1;
+
+		e.click_view = index;
 		if (webix.env.isIE8)
-			e.srcElement.click_view = this._settings.id;
+			e.srcElement.click_view = index;
 	},
 	getChildViews:function(){
 		if (this._head_cell)
@@ -6496,15 +6504,20 @@ webix.protoUI({
 		this.callEvent("onShow",[]);
 	}, 
 	_hide:function(e){
-		//ignore inside clicks
-		if  (e.click_view == this._settings.id) return;
 		//do not hide modal windows
-		if (this._settings.hidden || this._settings.modal || this._hide_timer || e.showpopup) return;
+		if (this._settings.hidden || this._settings.modal || this._hide_timer || (e && e.showpopup)) return;
 		//do not hide popup, when we have modal layer above the popup
 		if (webix._modality && this._settings.zIndex <= webix._modality) return;
 
-		//IE8 can't use event marking, so it marks the clicked node
-		if (webix.env.isIE8 && e.srcElement.click_view == this._settings.id) return;
+		//ignore inside clicks and clicks in child-popups
+
+		if (e){
+			var index = webix.env.isIE8 ? e.srcElement.click_view : e.click_view;
+			if (!index && index !== 0) index = -1;
+
+			var myindex = webix.ui._popups.find(this);
+			if (myindex <= index) return;
+		}
 
 		this.hide();
 	},
@@ -8306,8 +8319,9 @@ webix.protoUI({
 		var popup =  webix.$$(this._settings.popup.toString());
 		var calendar = popup._body_cell;
 		var timeMode = this._settings.type == "time";
-		var formatDate = (timeMode?webix.i18n.timeFormatDate:webix.i18n.parseFormatDate);
-		var formatStr = (timeMode?webix.i18n.timeFormatStr:webix.i18n.parseFormatStr);
+		var timepicker = this.config.timepicker;
+		var formatDate = this._formatDate||(timeMode?webix.i18n.timeFormatDate:(timepicker?webix.i18n.fullDateFormatDate:webix.i18n.parseFormatDate));
+		var formatStr = this._formatStr||(timeMode?webix.i18n.timeFormatStr:(timepicker?webix.i18n.fullDateFormatStr:webix.i18n.parseFormatStr));
 		if (typeof value=="string" && value)
 			value = formatDate(value);
 		if (value){
@@ -8325,24 +8339,27 @@ webix.protoUI({
 
 		calendar.selectDate(value,true);
 		this._settings.value = (value)?calendar.config.date:"";
-		this._settings.text = (value)?((this._settings.format||formatStr)(this._settings.value)):"";
+		this._settings.text = (value?formatStr(this._settings.value):"");
 		this.getInputNode()[this._settings.editable?"value":"innerHTML"] = this._settings.text || this._settings.placeholder || "";
 	},
 	format_setter:function(value){
-		return webix.Date.dateToStr(value);
+		this._formatStr = webix.Date.dateToStr(value);
+		this._formatDate = webix.Date.strToDate(value);
+		return value;
 	},
 	getInputNode: function(){
 		return this._settings.editable?this._dataobj.getElementsByTagName('input')[0]:this._dataobj.getElementsByTagName("DIV")[1];
 	},
 	getValue:function(){
 		var value = (this._rendered_input && this._settings.editable? this.getInputNode().value : this._settings.value);
+		var timepicker = this.config.timepicker;
 		if (value &&  webix.isArray(value) &&this._settings.type == "time"){
 			var newValue = new Date();
 			newValue.setHours(value[0]);
 			newValue.setMinutes(value[1]);
 			value = newValue;
 		}
-		var formatStr = (this._settings.type == "time"?webix.i18n.timeFormatStr:webix.i18n.parseFormatStr);
+		var formatStr = this._formatStr||((this._settings.type == "time"?webix.i18n.timeFormatStr:(timepicker?webix.i18n.fullDateFormatStr:webix.i18n.parseFormatStr)));
 		if(this._settings.stringResult && typeof value!="string"){
 			return (value?formatStr(value):"");
 		}
@@ -11253,7 +11270,7 @@ webix.TreeDataMove={
 						copy.id = webix.uid();
 					return copy;
 				};
-				var copy_data = { data:this.serialize(sid), parent:new_id };
+				var copy_data = { data:this.serialize(sid, true), parent:new_id };
 				this.data._scheme_serialize = temp;
 				tobj.parse(copy_data);
 			}
@@ -11597,8 +11614,9 @@ webix.TreeStore = {
 		var list = ["getPrevSiblingId","getNextSiblingId","getParentId","getFirstChildId","isBranch","getBranchIndex","filterMode_setter"];
 		for (var i=0; i < list.length; i++)
 			target[list[i]]=this._methodPush(this,list[i]);
-			
-		webix.DataStore.prototype.provideApi.call(this, target, eventable);
+
+		if (!target.getIndexById)
+			webix.DataStore.prototype.provideApi.call(this, target, eventable);
 	},
 	getTopRange:function(){
 		return webix.toArray([].concat(this.branch[0])).map(function(id){
@@ -11753,7 +11771,11 @@ webix.TreeStore = {
 
 		return out;
 	},
-	serialize: function(id){
+	serialize: function(id, all){
+		var coll = this.branch;
+		//use original collection of branches
+		if (all && this._filter_branch) coll = this._filter_branch;
+
 		var ids = this.branch[id||0];
 		var result = [];
 		for(var i=0; i< ids.length;i++) {
@@ -11766,8 +11788,8 @@ webix.TreeStore = {
 			} else 
 				rel = webix.copy(obj);
 				
-			if (obj.$count)
-				rel.data = this.serialize(obj.id);
+			if (this.branch[obj.id])
+				rel.data = this.serialize(obj.id, all);
 
 			result.push(rel);
 		}
@@ -11940,6 +11962,7 @@ webix.TreeCollection = webix.proto({
 	name:"TreeCollection",
 	$init:function(){
 		webix.extend(this.data, webix.TreeStore, true);
+		this.data.provideApi(this,true);
 	}
 }, webix.TreeDataLoader, webix.DataCollection);
 
@@ -17355,7 +17378,7 @@ webix.ui.datafilter = {
 			for (var i = 0; i < data.length; i++){
 				var option = document.createElement("option");
 				option.value = data[i].id;
-				option.label = data[i].value;
+				option.text = data[i].value;
 				select.add(option);
 			}
 
@@ -18578,8 +18601,10 @@ function _get_export_data(grid, scheme, config){
 
 		var level = item.$level ? ' level="' + (item.$level - 1) + '"' : '';
 		xml += '<row id="' + id + '"' + level + '>';
-		for (var j = 0; j < scheme.length; j++)
-			xml += '<cell><![CDATA[' + grid._getValue(item, scheme[j], i).toString().replace(/<[^>]*>/g,"") + ']]></cell>';
+		for (var j = 0; j < scheme.length; j++){
+			var value = grid._getValue(item, scheme[j], i);
+			xml += '<cell><![CDATA[' + ((value !== null && value !== webix.undefined) ? value.toString().replace(/<[^>]*>/g,"") : "") + ']]></cell>';
+		}
 		xml += '</row>';
 	}
 
@@ -18796,6 +18821,13 @@ webix.DataState = {
 					this._setColumnWidth( i, obj.size[i], true);
 			}
 		}
+
+		if (obj.filter){
+			for (var key in this._filter_elements){
+				var f = this._filter_elements[key];
+				f[2].setValue(f[0], "");
+			}
+		}
 		
 		this.unblockEvent();
 		this._updateColsSizeSettings(true);
@@ -18810,6 +18842,8 @@ webix.DataState = {
 		if (obj.filter){
 			for (var key in obj.filter) {
 				var value = obj.filter[key];
+				if (!value) continue;
+
 				if (!this._filter_elements[key]) continue;
 				var f = this._filter_elements[key];
 				f[2].setValue(f[0], value);
