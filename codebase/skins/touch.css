@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.2.1
+webix UI v.2.2.3
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -323,11 +323,12 @@ div.webix_modal_cover{background-color:#000;cursor:default;filter:alpha(opacity=
 .webix_cal_month_name{cursor:pointer}
 .webix_cal_block{float:left;text-align:center;cursor:pointer}
 .webix_selected{background:#f1f1f1;color:#000}
-.webix_cal_footer{font-size:12px;color:#444;margin:4px 22px;padding-top:2px;cursor:pointer;font-size:17px;padding:0 20px}
+.webix_cal_footer{text-align:center;font-size:12px;color:#444;margin:4px 22px;padding-top:2px;cursor:pointer;font-size:17px;padding:0 20px}
 .webix_cal_footer div{border-top-width:0!important;padding-bottom:6px}
 .webix_cal_footer .webix_icon{font-size:22px}
 .webix_cal_icons{float:right;padding:4px 4px}
-.webix_cal_time{float:left;padding:2px 4px}
+.webix_cal_time{padding:2px 4px}
+.webix_cal_time_icons{float:left}
 .webix_cal_icons .webix_cal_icon{text-align:center;padding:2px 4px}
 .webix_cal_icon:hover,.webix_cal_time:hover,.webix_cal_month_name:hover{text-decoration:underline;color:#65a0ff}
 .webix_time_header{padding:17px 17px 1px 17px}
@@ -468,7 +469,7 @@ label.webix_required:after{padding-left:4px;content:"*";color:red}
 .webix_el_tabbar .webixtype_icon .webix_img_btn .webix_icon_btn{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;margin:0 3px}
 .webix_el_tabbar .webixtype_icon .webix_item_tab,.webix_el_tabbar .webixtype_iconTop .webix_item_tab,.webix_el_tabbar .webixtype_image .webix_item_tab{padding:4px 0;border-radius:0}
 .webix_el_tabbar .webixtype_icon .webix_img_btn_top,.webix_el_tabbar .webixtype_iconTop .webix_img_btn_top,.webix_el_tabbar .webixtype_image .webix_img_btn_top{background-position:center 0;position:relative;height:100%}
-.webix_tab_more_icon{cursor:pointer;display:table-cell;overflow:hidden;text-align:center;box-sizing:border-box;padding:0 3px}
+.webix_tab_more_icon{cursor:pointer;display:table-cell;overflow:hidden;text-align:center;box-sizing:border-box;vertical-align:middle;padding:0 3px}
 .webix_tab_more_icon .webix_icon{width:100%}
 .webix_tab_list .webix_list_item:last-child{border-bottom:none}
 .webix_icon.webix_tab_close{font-size:12px;float:right;padding:4px;margin-top:-4px}
@@ -1176,7 +1177,7 @@ div.webix_inp_static{padding-top:0}
 .webixtype_bottom .webix_item_tab,.webixtype_bottom .webix_item_tab.webix_selected{border:1px solid #fff!important;border-left-width:0!important;background:#65a0ff;color:#fff}
 .webixtype_bottom .webix_item_tab:last-child,.webixtype_bottom .webix_item_tab.webix_selected:last-child{border-right:0!important}
 .webixtype_bottom .webix_item_tab.webix_selected{background:#3c87ff!important;color:#fff!important}
-.webixtype_bottom .webix_tab_more_icon{background:#65a0ff;color:#fff}
+.webixtype_bottom .webix_tab_more_icon{background:#65a0ff;color:#fff;border-top:1px solid #fff;border-bottom:1px solid #fff}
 .webix_el_tabbar .webixtype_icon{background:#65a0ff}
 .webix_el_tabbar .webixtype_icon .webix_img_btn{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;margin:0 auto;color:#65a0ff;text-align:center}
 .webix_el_tabbar .webixtype_icon .webix_img_btn .webix_icon_btn{height:100%;width:34px;border-radius:50%;-webkit-border-top-left-radius:50%;-webkit-border-bottom-left-radius:50%;-webkit-border-top-right-radius:50%;-webkit-border-bottom-right-radius:50%;-moz-border-radius-topleft:50%;-moz-border-radius-bottomleft:50%;-moz-border-radius-topright:50%;-moz-border-radius-bottomright:50%;border-top-left-radius:50%;border-bottom-left-radius:50%;border-top-right-radius:50%;border-bottom-right-radius:50%;background-color:#fff;font-size:20px;color:#65a0ff;margin:0 3px;width:100%;box-shadow:0 -1px #5b9aff;vertical-align:top;line-height:inherit}

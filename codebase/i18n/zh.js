@@ -24,7 +24,9 @@ webix.i18n.locales["zh-CN"] = {
 		dayShort:["周日","周一","周二","周三","周四","周五","周六"],
 		hours: "小时",
 		minutes: "分钟",
-		done:"准备"
+		done:"准备",
+		clear: "肃清",
+		today: "今天"
     },
 
     controls:{

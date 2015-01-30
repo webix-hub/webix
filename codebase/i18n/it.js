@@ -24,7 +24,9 @@ webix.i18n.locales["it-IT"] = {
 		dayShort:["dom","lun","mar","mer","gio","ven","sab"],
 		hours: "Orario",
 		minutes: "Minuti",
-		done:"Pronto"
+		done:"Pronto",
+		clear: "Chiara",
+		today: "Oggi"
     },
 
     controls:{

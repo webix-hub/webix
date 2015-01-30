@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.2.1
+webix UI v.2.2.3
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="2.2.1";
+webix.version="2.2.3";
 webix.codebase="./";
 webix.name = "core";
 
@@ -8288,6 +8288,7 @@ webix.protoUI({
 		stringResult:false,
 		timepicker:false,
 		icon:"calendar",
+		icons: true,
 		timeIcon: "clock-o"
 	},
 	$skin:function(){
@@ -8304,7 +8305,7 @@ webix.protoUI({
 			var timepicker = this._settings.timepicker;
 			obj.popup = obj.suggest = this.suggest_setter({
 				type:"calendar", height:240+(timepicker?30:0), width:250, padding:0,
-				body: { timepicker:timepicker, type: this._settings.type }
+				body: { timepicker:timepicker, type: this._settings.type, icons: this._settings.icons }
 			});
 		}
 
@@ -8320,8 +8321,8 @@ webix.protoUI({
 		var calendar = popup._body_cell;
 		var timeMode = this._settings.type == "time";
 		var timepicker = this.config.timepicker;
-		var formatDate = this._formatDate||(timeMode?webix.i18n.timeFormatDate:(timepicker?webix.i18n.fullDateFormatDate:webix.i18n.parseFormatDate));
-		var formatStr = this._formatStr||(timeMode?webix.i18n.timeFormatStr:(timepicker?webix.i18n.fullDateFormatStr:webix.i18n.parseFormatStr));
+		var formatDate = (timeMode?webix.i18n.parseTimeFormatDate:webix.i18n.parseFormatDate);
+		var formatStr = this._formatStr||(timeMode?webix.i18n.timeFormatStr:(timepicker?webix.i18n.fullDateFormatStr:webix.i18n.dateFormatStr));
 		if (typeof value=="string" && value)
 			value = formatDate(value);
 		if (value){
@@ -8352,18 +8353,27 @@ webix.protoUI({
 	},
 	getValue:function(){
 		var value = (this._rendered_input && this._settings.editable? this.getInputNode().value : this._settings.value);
+		var timeMode = this._settings.type == "time";
 		var timepicker = this.config.timepicker;
-		if (value &&  webix.isArray(value) &&this._settings.type == "time"){
+		if(typeof value=="string"){
+			var formatDate = this._formatDate||(timeMode?webix.i18n.timeFormatDate:(timepicker?webix.i18n.fullDateFormatDate:webix.i18n.dateFormatDate));
+			value = formatDate(value);
+		}
+		if (value &&  webix.isArray(value) &&timeMode){
 			var newValue = new Date();
 			newValue.setHours(value[0]);
 			newValue.setMinutes(value[1]);
 			value = newValue;
 		}
-		var formatStr = this._formatStr||((this._settings.type == "time"?webix.i18n.timeFormatStr:(timepicker?webix.i18n.fullDateFormatStr:webix.i18n.parseFormatStr)));
+		var formatStr = (timeMode?webix.i18n.parseTimeFormatStr:webix.i18n.parseFormatStr);
 		if(this._settings.stringResult && typeof value!="string"){
 			return (value?formatStr(value):"");
 		}
 		return value||null;
+	},
+	getText:function(){
+		var node = this.getInputNode();
+		return (node?(typeof node.value == "undefined" ? node.innerHTML : node.value):"");
 	}
 }, webix.ui.text);
 
@@ -10713,18 +10723,8 @@ webix.protoUI({
 			
 		this._probably_render_me();
 		var padding = webix.skin.$active.layoutPadding.space;
-		this._dataobj.style.height = "1px";
-
-		//Firefox, standarts vs the logic
-		if (webix.env.isFF){
-			var style = this._dataobj.style;
-			var scroll = style.overflow;
-			style.overflow = "scroll";
-			size = this._dataobj.scrollHeight+padding;
-			style.overflow = scroll;
-		} else
-			size = this._dataobj.scrollHeight+padding;
-
+		this._dataobj.style.height = "auto";
+		size = this._dataobj.scrollHeight;
 		this._dataobj.style.height = "";
 
 		return size;
@@ -11446,7 +11446,7 @@ webix.TreeStore = {
 				// open all parents of the found item
 				if (config.openParents !== false){
 					var parentId = this.getParentId(id);
-					while(parentId){
+					while(parentId && parentId != "0"){
 						this.getItem(parentId).open = 1;
 						parentId = this.getParentId(parentId);
 					}
@@ -15426,17 +15426,31 @@ webix.Date={
 
 
 webix.i18n = {
-	_dateMethods:["fullDateFormat", "timeFormat", "dateFormat", "longDateFormat", "parseFormat"],
-	parseFormat:"%Y-%m-%d",
+	_dateMethods:["fullDateFormat", "timeFormat", "dateFormat", "longDateFormat", "parseFormat", "parseTimeFormat"],
+	parseFormat:"%Y-%m-%d %H:%i",
+	parseTimeFormat:"%H:%i",
 	numberFormat:webix.Number.format,
 	priceFormat:function(value){ return webix.i18n._price_format(webix.i18n.numberFormat(value, webix.i18n._price_settings)); },
 
 	setLocale:function(locale){
+		var extend = function(base,source){
+			for (var method in source){
+				if(typeof(source[method]) == "object" && !webix.isArray(source[method])){
+					if(!base[method]){
+						base[method] = {};
+					}
+					extend(base[method],source[method]);
+				}
+				else
+					base[method] = source[method];
+			}
+		};
+
 		if (typeof locale == "string")
 			locale = this.locales[locale];
-		if (locale)
-			webix.extend(this, locale, true);
-
+		if (locale){
+			extend(this, locale);
+		}
 		var helpers = webix.i18n._dateMethods;
 		for( var i=0; i<helpers.length; i++){
 			var key = helpers[i];
@@ -17331,7 +17345,7 @@ webix.ui.datafilter = {
 			master.registerFilter(node, value, this);
 
 			node._comp_id = master._settings.id;
-			if (value.value) this.setValue(node, value.value);
+			if (value.value && this.getValue(node) != value.value) this.setValue(node, value.value);
 			node.onclick = webix.html.preventEvent;
 			webix.event(node, "keydown", this._on_key_down);
 		},
@@ -17344,7 +17358,6 @@ webix.ui.datafilter = {
 			var id = this._comp_id;
 
 			//tabbing through filters must not trigger filtering
-			//[TODO]
 			//we can improve this functionality by preserving initial filter value
 			//and comparing new one with it
 			if ((e.which || e.keyCode) == 9) return;
@@ -18044,6 +18057,7 @@ webix.extend(webix.ui.datatable, {
 	_childOf:function(e, tag){
 		var src = e.target||e.srcElement;
 		while (src){
+			if (src.getAttribute("webixignore")) return false;
 			if (src == tag)
 				return true;
 			src = src.parentNode;
@@ -18061,7 +18075,8 @@ webix.extend(webix.ui.datatable, {
 		if (this._block_panel){
 			var start = this._locate_cell_xy.apply(this, this._bs_ready);
 			var end = this._locate_cell_xy.apply(this, this._bs_progress);
-			this._selectRange(start, end);
+			if (start.row && end.row)
+				this._selectRange(start, end);
 			this._block_panel = webix.html.remove(this._block_panel);
 		}
 		this._bs_ready = this._bs_progress = false;	
@@ -18073,10 +18088,17 @@ webix.extend(webix.ui.datatable, {
 	},
 	_bs_move:function(e){
 		if (this._bs_ready !== false){
+			var pos = webix.html.pos(e);
+			var progress = [pos.x - this._bs_position.x, pos.y - this._bs_position.y];
+
+			//prevent unnecessary block selection while dbl-clicking
+			if (Math.abs(this._bs_ready[0] - progress[0]) < 5 && Math.abs(this._bs_ready[1] - progress[1]) < 5)
+				return;
+
 			if (this._bs_progress === false)
 				this._bs_start(e);
-			var pos = webix.html.pos(e);
-			this._bs_progress = [pos.x - this._bs_position.x, pos.y - this._bs_position.y];
+
+			this._bs_progress = progress;
 			this._setBlockPosition(this._bs_ready[0], this._bs_ready[1], this._bs_progress[0], this._bs_progress[1]);
 		}
 	},
@@ -18101,7 +18123,7 @@ webix.extend(webix.ui.datatable, {
 			x+= this._x_scroll.getScroll();
 
 			
-		y+= this._y_scroll.getScroll();
+		y += this.getScrollState().y;
 
 		var row = null;
 		var column = null;
@@ -24457,6 +24479,7 @@ webix.protoUI({
 		//calendarTime: "%H:%i",
 		events:webix.Date.isHoliday,
 		minuteStep: 5,
+		icons: false,
 		timepickerHeight: 30,
 		headerHeight: 70,
 		dayTemplate: function(d){
@@ -24575,8 +24598,11 @@ webix.protoUI({
 			this._icons = null;
 		else if(typeof value == "object")
 			this._icons = value;
+		else
+			this._icons = this._icons2;
 	},
-	_icons:[
+	_icons: [],
+	_icons2: [
 
 		{
 			template: function(){
@@ -24650,7 +24676,7 @@ webix.protoUI({
 			var time = this._settings.date;
 			if(time){
 				if(typeof(time) == "string"){
-					date = webix.i18n.timeFormatDate(time);
+					date = webix.i18n.parseTimeFormatDate(time);
 				}
 				else if(webix.isArray(time)){
 					date.setHours(time[0]);
@@ -24679,7 +24705,7 @@ webix.protoUI({
 	},
 	_timepicker_template:function(date){
 		var timeFormat = this._settings.calendarTime||webix.i18n.timeFormatStr;
-		return "<div class='webix_cal_time'><span class='webix_icon fa-clock-o'></span> "+timeFormat(date)+"</div>";
+		return "<div class='webix_cal_time"+(this._icons?" webix_cal_time_icons":"")+"'><span class='webix_icon fa-clock-o'></span> "+timeFormat(date)+"</div>";
 	},
 	_week_template: function(widths){
 		var s = this._settings;
@@ -24973,8 +24999,11 @@ webix.protoUI({
 
 
 	_string_to_date: function(date, format){
-		if (!date)
-			return new Date();
+		if (!date){
+			return webix.Date.datePart(new Date());
+		}
+
+
 		if(typeof date == "string"){
 			if (format)
 				date = webix.Date.strToDate(format)(date);
@@ -25017,6 +25046,9 @@ webix.protoUI({
         else{ //deselect
             this._selected_date = null;
             this._selected_date_part = null;
+	        if(this._settings.date){
+		        webix.Date.datePart(this._settings.date);
+	        }
         }
 
 		if (show)
@@ -26332,6 +26364,7 @@ webix.protoUI({
 		defaults.tabOffset = (typeof skin.tabOffset != "undefined"?skin.tabOffset:10);
 		defaults.bottomOffset = skin.tabBottomOffset||0;
 		defaults.height = skin.tabbarHeight;
+
 		defaults.tabMargin = skin.tabMargin;
 		defaults.inputPadding = skin.inputPadding;
 		defaults.tabMinWidth = skin.tabMinWidth||100;
@@ -26463,7 +26496,7 @@ webix.protoUI({
 
 					width = (tabs[i].width||obj.optionWidth||width);
 
-					sum += width + (i&&!obj.type?(obj.tabMargin+1):0) + 1;
+					sum += width + (i&&!obj.type?(obj.tabMargin+1):0) + (obj.tabMargin>0?1:0);
 
 					if(obj.tabMargin>0&&i&&!obj.type)
 					   html += "<div class='webix_tab_filler' style='width:"+obj.tabMargin+"px;'></div>";
@@ -26474,14 +26507,14 @@ webix.protoUI({
 
 					if(lastTab){
 						var iconHeight = common._content_height - (!obj.type?(verticalOffset):0);
-						html += '<div class="webix_tab_more_icon" style="width:'+obj.tabMoreWidth+'px;line-height:'+iconHeight+'px">'+obj.moreTemplate(obj,common)+'</div>';
+						html += '<div class="webix_tab_more_icon" style="width:'+obj.tabMoreWidth+'px;">'+obj.moreTemplate(obj,common)+'</div>';
 						sum += obj.tabMoreWidth;
 					}
 				}
 
 
 
-				leafWidth = common._content_width - sum - obj.tabOffset*2;
+				leafWidth = common._content_width - sum - obj.tabOffset;
 
 				if (leafWidth>0 && !obj.type)
 					html += "<div class='webix_tab_filler' style='width:"+leafWidth+"px;'>&nbsp;</div>";

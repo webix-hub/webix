@@ -1,3 +1,29 @@
+Version 2.2.3
+================
+
+### Fixes
+
+- autoheight in templates
+- blockselecting and dbl-click events
+- blockselection and custom scroll
+- blockselection in scrolled state
+- blockselection in the empty datatable
+- calendar with no buttons, timepicker position
+- default hotkeys for windows
+- getValue on "editable" datepicker
+- moving items in tree and tree table while in the filtered state
+- processing setState with empty filter value
+- regression in click handling inside of multi-level popup
+- resetting text filter value after reloading data from the server side
+- select filter in FF
+- setValue and getValue of datepicker uses parseDateFormat
+- tabbar "more" icon styling
+- treestore serialization in filtered state
+- calendar icons hidden by default
+- scrollable "Month" view in Scheduler
+
+
+
 Version 2.2
 ================
 

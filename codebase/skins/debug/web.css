@@ -1626,6 +1626,7 @@ div.webix_modal_cover {
   color: #1e2022;
 }
 .webix_cal_footer {
+  text-align: center;
   font-size: 12px;
   color: #444;
   margin: 4px 22px;
@@ -1637,8 +1638,10 @@ div.webix_modal_cover {
   padding: 4px 4px;
 }
 .webix_cal_time {
-  float: left;
   padding: 2px 4px;
+}
+.webix_cal_time_icons {
+  float: left;
 }
 .webix_cal_icons .webix_cal_icon {
   text-align: center;
@@ -2516,6 +2519,7 @@ label.webix_required:after {
   overflow: hidden;
   text-align: center;
   box-sizing: border-box;
+  vertical-align: middle;
   padding: 0 3px;
 }
 .webix_tab_more_icon .webix_icon {

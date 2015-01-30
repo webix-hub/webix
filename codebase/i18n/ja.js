@@ -24,7 +24,9 @@ webix.i18n.locales["ja-JP"]={
 		dayShort:["日", "月", "火", "水", "木", "金", "土"],
 		hours: "営業時間",
 		minutes: "分",
-		done: "レディー"
+		done: "レディー",
+		clear: "削除する",
+		today: "今日"
 	},
 
 	controls:{

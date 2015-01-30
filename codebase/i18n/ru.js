@@ -20,7 +20,7 @@ webix.i18n.locales["ru-RU"]={
 		hours: "Часы",
 		minutes: "Минуты",
 		done: "Гoтовo",
-		clear: "Сброс",
+		clear: "Очистить",
 		today: "Сегодня"
 	},
 
