@@ -18640,9 +18640,6 @@ function _send_export(url, xml) {
 
 })();
 
-if(!window.webix)
-	webix = {};
-
 if(!webix.storage)
 	webix.storage = {};
 
