@@ -419,6 +419,7 @@ x\:ui {
   height: 8px;
   padding: 6px 5px 6px 4px;
   width: 8px;
+  cursor: pointer;
 }
 .webix_nav_item div {
   -webkit-border-radius: 50%;
@@ -1577,7 +1578,6 @@ div.webix_modal_cover {
   height: 24px;
   line-height: 24px;
   white-space: nowrap;
-  overflow: hidden;
 }
 .webix_tree_item.webix_selected {
   background: transparent;
@@ -2325,6 +2325,7 @@ input.webixtype_next {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
+  font-family: Tahoma;
 }
 .webix_el_box {
   -moz-box-sizing: border-box;
@@ -2667,8 +2668,8 @@ textarea.webix_invalid {
   padding-left: 7px;
 }
 .webix_view.webix_control > .webix_disabled {
-  background-color: rgba(0, 0, 0, 0);
   filter: progid:DXImageTransform.Microsoft.Alpha(opacity=0);
+  opacity: 0;
 }
 .webix_view.webix_control .webix_disabled_box label,
 .webix_view.webix_control .webix_disabled_box .webix_input_icon {
@@ -2711,6 +2712,9 @@ label.webix_required:after {
   background: transparent;
   font-size: 1px;
   border-bottom: 1px solid rgba(0, 0, 0, 0);
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
 }
 .webix_tab_filler:first-child {
   border-right: 1px solid rgba(0, 0, 0, 0);
@@ -2739,6 +2743,9 @@ label.webix_required:after {
   border-bottom-left-radius: 0px;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0px;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
 }
 .webixtype_bottom .webix_item_tab {
   -webkit-border-radius: 0;
@@ -2890,16 +2897,19 @@ label.webix_required:after {
 .webix_menu .webix_list_item {
   display: block;
 }
-.webix_menu .webix_context_sep {
+.webix_menu .webix_context_separator {
   height: 3px;
   padding: 1px 3px 0 3px;
 }
-.webix_menu .webix_context_sep .sep_line {
+.webix_menu .webix_context_separator .sep_line {
   height: 1px;
   border-top: 1px solid rgba(0, 0, 0, 0);
 }
 .webix_menu .webix_submenu_icon {
   top: 13.5px;
+}
+.webix_menu .webix_context_spacer {
+  height: 32px;
 }
 .webix_menu_link {
   color: inherit;
@@ -3280,6 +3290,41 @@ label.webix_required:after {
   margin-top: -25px;
   display: inline-block;
   color: #a2a2a2;
+}
+.webix_organogram canvas {
+  position: absolute;
+}
+.webix_organogram_item {
+  position: absolute;
+  z-index: 1;
+  font-family: "PT Sans", Tahoma;
+  font-size: 15px;
+  text-align: center;
+  border-radius: 4px;
+  background-color: #e3f2fd;
+  border: 1px solid #bbdefb;
+  padding: 7px 7px 10px 7px;
+  box-sizing: border-box;
+}
+.webix_organogram_item.webix_selected {
+  background-color: #e42750;
+  border-color: #e42750;
+}
+.webix_organogram_list {
+  border-radius: 4px;
+  position: absolute;
+  z-index: 1;
+  height: auto;
+  border: 1px solid #dddddd;
+  box-sizing: border-box;
+}
+.webix_organogram_list_item {
+  font-family: "PT Sans", Tahoma;
+  border: none;
+  text-align: left;
+  position: static;
+  padding: 5px;
+  border-radius: 0px;
 }
 /*!
  *  Font Awesome 4.2.0 by @davegandy - http://fontawesome.io - @fontawesome
@@ -4973,6 +5018,7 @@ label.webix_required:after {
   border: none;
   padding: 0;
   cursor: pointer;
+  position: relative;
 }
 .webix_icon_button .webix_icon {
   font-size: 20px;
@@ -4996,6 +5042,41 @@ label.webix_required:after {
 }
 .webix_el_icon {
   cursor: pointer;
+}
+.webix_badge {
+  background-color: #ff8839;
+  color: #f4f4f4;
+  border-radius: 50%;
+  font-size: 12px;
+  height: 22px;
+  min-width: 22px;
+  box-sizing: border-box;
+  padding: 0 4px;
+  text-align: center;
+  line-height: 21px;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.webix_list_item .webix_badge {
+  position: static;
+  float: right;
+  margin: 4px -5px 0 10px;
+}
+.webixtype_base .webix_badge {
+  top: 50%;
+  margin-top: -11px;
+  margin-right: 8px;
+}
+.webix_barcode {
+  position: relative;
+}
+.webix_barcode .webix_canvas_text {
+  font-size: 15px;
+  padding: 0 2px;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
 }
 /*[L]*/
 /*[L]*/
@@ -5376,7 +5457,12 @@ div.webix_item_tab {
 .passiveBarBG {
   background: #bcbcbc;
 }
+.webix_all_tabs {
+  padding-left: 1px;
+  padding-right: 1px;
+}
 .webix_after_all_tabs {
+  margin: 0 1px;
   background: #bcbcbc;
 }
 .webix_el_box .webixtype_form:active {
@@ -5512,4 +5598,7 @@ div.webix_item_tab {
 .webix_inp_top_label,
 .webix_label_right {
   margin-bottom: 0px;
+}
+.webix_view table {
+  border-collapse: initial;
 }
