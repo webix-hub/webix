@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.3.0
+webix UI v.2.3.1
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="2.3.0";
+webix.version="2.3.1";
 webix.codebase="./";
 webix.name = "core";
 
@@ -2430,7 +2430,7 @@ webix.ajax.prototype={
 				if (value === null || value === webix.undefined)
 					value = "";
 			    if(typeof value==="object")
-			        value = webix.ajax.stringify(value);
+			        value = webix.ajax().stringify(value);
 				t.push(a+"="+encodeURIComponent(value));// utf-8 escaping
 		 	}
 			params=t.join("&");
