@@ -1,135 +1,31 @@
+Version 2.3.6
+=============
+
+- better position for sort-row marker
+- fix for missed onAfterFilter event for server side filtering
+- fix for server side filtering with active editor
+- fix for close all sub-windows on master popup closing
+- fix for validation in hidden form
+- fix for richselect filter in IE8
+- fix for unnecessary scroll blocking by datatable
+- fix for regression in treetable filtering
+- fix for combo behavior in dyn. loading mode
+- fix for onChange event in combo
+- fix for ActiveContent doesn't survive component repainting in IE
+- fix for regression in tooltip for icon
+
+
 Version 2.3
 ============
 
-### Breaking changes
-
-- Default parse format is changed for datepicker and calendar controls from **"%Y-%m-%d"** to **"%Y-%m-%d %H:%i"**.
-
-### Major new features
+### Major features
 
 - new material skin
 - barcode widget
 - organogram (organization chart) widget
-
-### Updates
-
-- multiselect and datepicker filters to Pivot
-- header sorting and value formatting in Pivot 
-- onChange event for toolbar and form to capture user changes
-- onValues event for toolbar and form 
-- getMenu method for menu to get current menu/submenu object
-- parseTimeFormat is added as **"%H:%i"** by default to parse "time" strings
-- badges and icons for list and menus (and views based on them)
-- badges for buttons
-- placeholder for richselect
-- spacer element in menu view
-- ability to provide submenu configuration in submenuConfig property of the topmost menu
+- badges and icons for list, buttons and menus (and views based on them)
 - "Today" and "Clear" buttons are added to the date editor.
-- editor object can receive full data item
-- DataCollection has getCursor setCursor methods by default
-- second click on a button will close the popup
-- autoConfig can be reused for datatable, e.g. after clearAll() call
-- $touchCapture flag in component configuration for touch limited mode
-- before sending to server side all dates are serialized
-- error handlers of webix.remote calls will receive the text of response
-- treestore has ability to serialize all data or filtered one
-- scrollable "Month" view in Scheduler
 - better default styling, ability to customize layout configuration
-
-### Fixes
-
-- fix regression in data loader init
-- correct values for onChange event in slider
-- using TreeDataLoader instead of DataLoader
-- unfiltering to affect not filtered view
-- getActiveId() for empty carousel
-- correct rendering of buttons after changing visibility state
-- removeView() to remove related value from form values
-- onChange event in form triggers only on edit operations in form
-- readonly mode for datepicker and colorpicker
-- onChange event for slider
-- using template.escape with null or undefined values
-- key navigation in empty combo
-- incorrect adding of hidden views in accordion
-- using quotas in button's text
-- onChange handlers for text and select controls used as ActiveContent
-- tooltip for inputs, progress in IE8
-- x-scroll in tree
-- tree horizontal scroll
-- borders in top level (and borderless) space layout
-- using removeView() to remove current view in the multiview
-- special chars handling in text inputs
-- progress bar positioning (scrolling offset for "icon" type only)
-- top and bottom positioning
-- layout uses fixed height and width without alterations
-- recurring editStop() calls
-- tree horizontal scroll
-- slider fix for Touch in limited mode
-- webix.ajax(url) call returns promise
-- promiz will not occur if error was catched
-- promiz throws an error only in debug version
-- fonts for compact skin
-- hiding columns with colspan
-- clipboard breaks focus in the editor
-- dynamic loading on touch devices
-- scrolling to the last row index in case of scroll overflow
-- IE8 fixes: preventing default actions and mouse event handling
-- hiding columns with colspan
-- regression in skin mapping
-- borders in datatable when Bootstrap used
-- clipboard breaks focus in the editor
-- drag-n-drop for columns in the datatable, header with colspans
-- dynamic loading on touch devices
-- fixing promize functionality which can export self to external structure when global "module" is defined
-- maximum tab number calculation
-- TreeStore: each method and filtered branches
-- applying new configuration after config reloading in datatable
-- tabs rendering (border-box sizing)
-- multiselect ignores non-existing values
-- set optionHeight for skins
-- checkAll() and uncheckAll() methods
-- configuration of richselect with options from HTML
-- inputHeight in case of labelPositon top
-- tree ignores open call for already opened items
-- regression in getValue() of colorpicker
-- attribute checking in block-selection for datatable
-- value property in tabview
-- fixed datathrottle usage
-- date serialization during ajax operations
-- resetting uploader after file choosing
-- focusing checkbox editor in Crhome
-- disabled counter in IE10
-- options with quote in multi-select
-- regression in getValue of colorpicker
-- resetting text filter value after reloading data from the server side
-- filters in treestore
-- autoheight in templates
-- tabbar "more" icon styling
-- blockselection and custom scroll
-- blockselection and dbl-click events
-- blockselection in scrolled state
-- blockselection in the empty datatable
-- "editable" property for datepicker and colorpicker
-- setValue() and getValue() of datepicker
-- setLocale() and  for omplex properties
-- remove icons from Scheduler's calendars
-- timepicker position
-- FileManager locale: confirmation popups; collisions resolving without url handler
-- conflicts between native navigation keys and navigation hotkeys
-- server side filter reacts on navigation keys
-- object id for gridsuggest
-- request collisions in FileManager (delete+rename/move/create)
-- createFolder API for FileManager
-- default hotkeys for windows
-- treestore serialize during filtering
-- moving items in tree and tree table while in the filtered state
-- missed methods in TreeCollection
-- "format" of datepicker and filemanager fixes
-- processing setState with empty filter value
-- select filter in FF
-- regression in click handling inside of multi-level popup
-- incorrect filter processing during setState call
-
 
 [Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2_3.html)
 

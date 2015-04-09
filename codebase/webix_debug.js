@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.3.1
+webix UI v.2.3.6
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="2.3.1";
+webix.version="2.3.6";
 webix.codebase="./";
 webix.name = "core";
 
@@ -2430,7 +2430,7 @@ webix.ajax.prototype={
 				if (value === null || value === webix.undefined)
 					value = "";
 			    if(typeof value==="object")
-			        value = webix.ajax().stringify(value);
+			        value = this.stringify(value);
 				t.push(a+"="+encodeURIComponent(value));// utf-8 escaping
 		 	}
 			params=t.join("&");
@@ -3949,7 +3949,10 @@ webix.ready(function() {
 				view.editStop();
 				return true;
 			}
-		}
+		} else
+			webix.delay(function(){
+				webix.UIManager.setFocus(webix.$$(document.activeElement), true);
+			},1);
 	});
 });
 
@@ -6642,7 +6645,19 @@ webix.protoUI({
 			this._prev_focus = null;
 		}
 
-		webix.ui._popups.remove(this);
+		this._hide_sub_popups();
+	},
+	//hide all child-popups
+	_hide_sub_popups:function(){
+		var order = webix.ui._popups;
+		var index = order.find(this);
+		var size = order.length - 1;
+
+		if (index > -1)
+			for (var i = size; i > index; i--)
+				order[i].hide();
+		
+		order.removeAt(index);
 	},
 	destructor: function() {
 		if (this._settings.autofocus){
@@ -6651,7 +6666,7 @@ webix.protoUI({
 			this._prev_focus = null;
 		}
 		
-		webix.ui._popups.remove(this);
+		this._hide_sub_popups();
 		webix.Destruction.destructor.apply(this, []);
 	},
 	_hide_callback:function(){
@@ -6909,6 +6924,8 @@ webix.protoUI({
 
 		obj.body = temp;
 		this.$ready.push(this._set_on_popup_click);
+
+		this._old_text = {};
 	},
 	_get_extendable_cell:function(obj){
 		return obj;
@@ -6959,8 +6976,9 @@ webix.protoUI({
 	},
 	getItemText:function(id){
 		var item = this.getList().getItem(id);
+
 		if (!item)
-			return id;
+			return this._old_text[id] || "";
 
 		if (this._settings.template)
 			return this._settings.template.call(this, item, this.type);
@@ -6969,7 +6987,9 @@ webix.protoUI({
 			return item[this._settings.textValue];
 		
 		var type = this.getList().type;
-		return type.template.call(type, item, type);
+		var text = type.template.call(type, item, type);
+
+		return (this._old_text[id] = text);
 	},
 	getSuggestion:function(){
 		var list = this.getList();
@@ -7331,7 +7351,7 @@ webix.protoUI({
 		});
 	},
 	tooltip_setter: function(value){
-		var box = this._getBox();
+		var box = this._getBox() || this.$view.firstChild;
 		if(box)
 			box.title = value;
 		return value;
@@ -8298,7 +8318,7 @@ webix.protoUI({
 	},
 	_reset_value:function(){
 		var value = this._settings.value;
-		if(!webix.isUndefined(value) && !this.getPopup().isVisible())
+		if(!webix.isUndefined(value) && !this.getPopup().isVisible() && !this._settings.text)
 			this.$setValue(value);
 	},
 
@@ -8351,9 +8371,9 @@ webix.protoUI({
 			if (this._settings.text == this.getText())
 				return;
 			var data = this.getPopup().getSuggestion();
-			if (data && !(this.getInputNode().value==="" && webix.$$(this._settings.suggest).getList().getItem(data).value!==""))
-				this.$setValue(data);
-			else if(!this._settings.editable){
+			if (data && !(this.getInputNode().value==="" && webix.$$(this._settings.suggest).getItemText(data)!=="")){
+				this.setValue(data);
+			} else if(!this._settings.editable){
 				var value = this.getValue();
 				this.$setValue(webix.isUndefined(value)?"":value);
 			}
@@ -8372,7 +8392,7 @@ webix.protoUI({
 			var input = this.getInputNode();
 			var newvalue = "";
 			if (input.value)
-				newvalue = webix.$$(this._settings.suggest).getSuggestion();
+				newvalue = webix.$$(this._settings.suggest).getSuggestion() || this._settings.value;
 			if (newvalue != this._settings.value)
 				this.setValue(newvalue, true);
 			else
@@ -8768,12 +8788,16 @@ webix.ValidateData = {
 		//optimistic by default :) 
 		var result =true;
 		var rules = this._settings.rules;
+		var isHidden = !this.isVisible();
 
         //prevent validation of hidden elements
 		var elements = {}, hidden = [];
         for(var i in this.elements){
             var name = this.elements[i].config.name;
-            if(this.elements[i].isVisible())
+            //we are ignoring hidden fields during validation
+            //if form itself is hidden, we can't separate hidden fiels,
+            //so we will vaidate all fields
+            if(isHidden || this.elements[i].isVisible())
                 elements[name] = this.elements[i];
             else
                 hidden.push(name);
@@ -9790,7 +9814,7 @@ webix.DataStore.prototype={
 	},
 	filter:function(text,value,preserve){
 		//unfilter call but we already in not-filtered state
-		if (!text && !this._filter_order) return;
+		if (!text && !this._filter_order && !this._filter_branch) return;
 		if (!this.callEvent("onBeforeFilter", [text, value])) return;
 		
 		this._filter_reset(preserve);
@@ -15184,6 +15208,7 @@ webix.protoUI({
 		webix.event(node,"scroll", this._onscroll,this);
 
 		this._last_set_size = 0;
+		this._last_scroll_pos = 0;
 	},
 	_check_quantum:function(value){
 		if (value>1500000){
@@ -15242,13 +15267,11 @@ webix.protoUI({
 		var config = this._settings;
 		value = Math.min(((config.scrollWidth||config.scrollHeight)-this._last_set_size)*config.zoom, value);
 
+		if (value < 0) value = 0;
 		var svalue = value/config.zoom;
-		if (svalue < 0) svalue = 0;
 
-		if (config.scrollPos != value){
+		if (this._last_scroll_pos != svalue){
 			this._viewobj[config.scroll == "x"?"scrollLeft":"scrollTop"] = svalue;
-			config.scrollPos = value;
-
 			this._onscroll_inner(svalue);
 			return true;
 		}
@@ -17336,10 +17359,13 @@ webix.protoUI({
 	},
 	_get_header_cell:function(column){
 		var cells = this._header.getElementsByTagName("TD");
-		for (var i = cells.length - 1; i >= 0; i--)
-			if (cells[i].getAttribute("column") == column && !cells[i].getAttribute("active_id"))
-				return cells[i].firstChild;
-		return null;
+		var maybe = null;
+		for (var i = 0; i<cells.length; i++)
+			if (cells[i].getAttribute("column") == column && !cells[i].getAttribute("active_id")){
+				maybe = cells[i].firstChild;
+				if ((cells[i].colSpan||0) < 2) return maybe;
+			}
+		return maybe;
 	},
 	_sort:function(col_id, direction, type){
 		direction = direction || "asc";
@@ -17630,8 +17656,12 @@ webix.ui.datafilter.serverFilter = webix.extend({
 			webix.$$(id).loadNext(-1,0,{
 				before:function(){
 					var url = this.data.url;
+					if (this.editStop) this.editStop();
 					this.clearAll();
 					this.data.url = url;
+				},
+				success:function(){
+					this.callEvent("onAfterFilter",[]);
 				}
 			},0,1);
 
@@ -17645,8 +17675,12 @@ webix.ui.datafilter.serverSelectFilter = webix.extend({
 		webix.$$(id).loadNext(-1,0,{
 			before:function(){
 				var url = this.data.url;
+				if (this.editStop) this.editStop();
 				this.clearAll();
 				this.data.url = url;
+			},
+			success:function(){
+				this.callEvent("onAfterFilter",[]);
 			}
 		},0,1);
 	}
@@ -30072,6 +30106,8 @@ webix.ActiveContent = {
 			if (object.filter && obj[key] != object._active_holders_values[key] && !webix.isUndefined(obj[key])){
 				var el = object._active_references[key];
 				el.blockEvent();
+				//in IE we can lost content of active element during parent repainting
+				if (!el.$view.firstChild) el.refresh();
 				el.setValue(obj[key]);
 				el.refresh();
 				el.unblockEvent();
