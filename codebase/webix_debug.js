@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.3.6
+webix UI v.2.3.8
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="2.3.6";
+webix.version="2.3.8";
 webix.codebase="./";
 webix.name = "core";
 
@@ -3402,6 +3402,7 @@ webix.ValueBind={
 		this.attachEvent("onChange", this._update_binds);
 	},
 	_bind_update:function(target, rule, format){
+		rule = rule || "value";
 		var data = this.getValue()||"";
 		if (format) data = format(data);
 		
@@ -8349,6 +8350,12 @@ webix.protoUI({
 		if (popup)
 			var text = this.getPopup().getItemText(value);
 
+		if (!text && typeof value == "object" && value.id){
+			this.getPopup().getList().add(value);
+			text = this.getPopup().getItemText(value.id);
+			this._settings.value = value.id;
+		}
+
 		this._settings.text = text;
 
 		var node = this.getInputNode();
@@ -8788,7 +8795,7 @@ webix.ValidateData = {
 		//optimistic by default :) 
 		var result =true;
 		var rules = this._settings.rules;
-		var isHidden = !this.isVisible();
+		var isHidden = this.isVisible && !this.isVisible();
 
         //prevent validation of hidden elements
 		var elements = {}, hidden = [];
@@ -18541,7 +18548,9 @@ webix.extend(webix.ui.datatable, {
 			if (dir == "x"){
 				
 				//in case of right split - different sizing logic applied
-				if (this._settings.rightSplit && obj.cind+1>=this._rightSplit){
+				if (this._settings.rightSplit && obj.cind+1>=this._rightSplit &&
+					obj.cind !== this._columns.length - 1)
+				{
 					obj.cind++;
 					newsize *= -1;
 				}
@@ -19911,8 +19920,11 @@ webix.extend(webix.ui.datatable,{
 	_parse_row_math:function(id, obj, action){
 		if (!id || (action=="delete" || action=="paint")) return;
 
+		if (action == "add")
+			this._exprs_by_columns(obj);
+
 		for (var i=0; i<this._columns.length; i++)
-			this._parse_cell_math(id, this._columns[i].id, true);
+			this._parse_cell_math(id, this._columns[i].id, action !== "add");
 	},
 	_parse_cell_math: function(row, col, _inner_call) {
 		var item = this.getItem(row);
@@ -19973,16 +19985,19 @@ webix.extend(webix.ui.datatable,{
 		}
 	},
 
-	_exprs_by_columns: function() {
+	_exprs_by_columns: function(row) {
 		for (var i = 0; i < this._columns.length; i++){
 			if (this._columns[i].math) {
 				var col = this.columnId(i);
 				var math = '=' + this._columns[i].math;
 				math = math.replace(/\$r/g, '#$r#');
 				math = math.replace(/\$c/g, '#$c#');
-				this.data.each(function(obj){
-					obj[col] = this._parse_relative_expr(math, obj.id, col);
-				}, this);
+				if (row)
+					row[col] = this._parse_relative_expr(math, row.id, col);
+				else
+					this.data.each(function(obj){
+						obj[col] = this._parse_relative_expr(math, obj.id, col);
+					}, this);
 			}
 		}
 	},

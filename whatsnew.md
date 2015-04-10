@@ -1,3 +1,11 @@
+Version 2.3.8
+=============
+- combo accepts full data object as a value
+- fix for scheduler: bottom toolbar height
+- fix for value binding and dataFeed
+- fix for regression in data saving handling
+
+
 Version 2.3.6
 =============
 
