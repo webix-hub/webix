@@ -1,3 +1,17 @@
+Version 2.3.14
+==============
+- fix date serialization for ajax calls
+- fix closing of nested popups can affect windows
+- fix for multiple instances of FileManager on the same page
+- fix for uploader in IE8
+- fix colspans and split mode
+- fix clipbuffer styling in IE8
+- fix metaKey support (mac OS) for multiselection
+- fix validation in dataprocessor breaks insert operations
+- fix for CSV parser, not it ignores the trailing new-lines
+- fix for richselect, setting an empty value clears list selection
+
+
 Version 2.3.8
 =============
 - combo accepts full data object as a value

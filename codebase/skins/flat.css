@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.3.6
+webix UI v.2.3.14
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -184,6 +184,7 @@ x\:ui{display:none}
 .webix_dt_editor input,.webix_dt_editor select{width:100%;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;padding:1px 8px 0 9px;margin:0;border:1px solid gold;height:100%;font-family:'PT Sans',Tahoma;font-size:15px;color:#666}
 .webix_dt_editor input[type=checkbox]{margin:6px 8px 4px 14px;height:auto;width:auto}
 .webix_dt_editor select{padding-right:0;padding-left:5px}
+.webix_clipbuffer{width:1px;height:1px;left:3px;top:3px;position:fixed;filter:alpha(opacity=0);opacity:0}
 .webix_message_area{position:fixed;right:5px;width:250px;z-index:1000}
 .webix_info{min-width:120px;font-family:Tahoma,Arial;z-index:10000;overflow:hidden;margin:5px 5px 10px;-webkit-transition:all .5s ease;-moz-transition:all .5s ease;-o-transition:all .5s ease;transition:all .5s ease}
 .webix_no_transition{-webkit-transition:none;-moz-transition:none;transition:none}
@@ -218,6 +219,7 @@ div.webix_modal_cover{background-color:#000;cursor:default;filter:alpha(opacity=
 .webix_hcell{width:100%;overflow:hidden}
 .webix_ss_body{overflow:hidden;position:relative}
 .webix_hs_center,.webix_hs_left,.webix_hs_right,.webix_ss_center,.webix_ss_left,.webix_ss_right{overflow:hidden;float:left}
+.webix_ss_center,.webix_ss_right{position:relative}
 .webix_ss_footer table,.webix_ss_header table{table-layout:fixed}
 .webix_ss_center_scroll{height:100%;position:relative;overflow:hidden}
 .webix_ss_hscroll{bottom:0}

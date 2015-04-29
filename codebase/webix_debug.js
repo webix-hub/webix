@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.3.8
+webix UI v.2.3.14
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="2.3.8";
+webix.version="2.3.14";
 webix.codebase="./";
 webix.name = "core";
 
@@ -1814,6 +1814,10 @@ webix.Destruction = {
 		if (webix.UIManager._view == this)
 			webix.UIManager._view = null;
 
+		var url = this._settings.url;
+		if (url && url.$proxy && url.release)
+			url.release();
+
 		this.$scope = null;
 		// this flag is checked in delay method
 		this.$destructed = true;
@@ -2208,6 +2212,7 @@ webix.proxy.connector = {
 
 webix.proxy.debug = {
 	$proxy:true,
+	load:function(){},
 	save:function(v,u,d,c){
 		webix.delay(function(){
 			window.console.log("[DP] "+u.id+" -> "+u.operation, u.data);
@@ -2393,10 +2398,13 @@ webix.ajax.prototype={
 			return webix.i18n.parseFormatStr(this);
 		};
 
-		var result = JSON.stringify(obj);
+		var result;
+		if (obj instanceof Date)
+			result = obj.toJSON();
+		else
+			result = JSON.stringify(obj);
 
 		Date.prototype.toJSON = origin;
-
 		return result;
 	},
 	/*
@@ -3697,6 +3705,8 @@ webix.UIManager = {
 	},
 	_keypress: function(e) {
 		var code = e.which || e.keyCode;
+		if(code>95 && code< 112)
+			code -= 48; //numpad support
 		var ctrl = e.ctrlKey;
 		var shift = e.shiftKey;
 		var alt = e.altKey;
@@ -6656,7 +6666,8 @@ webix.protoUI({
 
 		if (index > -1)
 			for (var i = size; i > index; i--)
-				order[i].hide();
+				if (order[i]._hide_point)	//hide only popups, skip windows
+					order[i].hide();
 		
 		order.removeAt(index);
 	},
@@ -7159,6 +7170,10 @@ webix.protoUI({
 		var value = this.getMasterValue();
 		if (value && list.exists && list.exists(value))
 			list.select(value);
+		else{
+			list.unselect();
+			list.showItem(list.getFirstId());
+		}
 	},
 	_enter_key: function(popup,list) {
 		if (list.count && list.count()){
@@ -7195,7 +7210,7 @@ webix.protoUI({
 
 		if(list.count && list.moveSelection) {
 			// up arrow
-			if (code === 38 && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+			if (code === 38 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
 
 				list.moveSelection("up");
 				this._preselectMasterOption(list.getSelectedItem());
@@ -7203,7 +7218,7 @@ webix.protoUI({
 			}
 
 			// down arrow
-			if (code === 40 && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+			if (code === 40 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
 				var visible = this.isVisible();
 				if (!visible){
 					if (list.count())
@@ -12798,15 +12813,8 @@ webix.clipbuffer = {
 		webix.destructors.push(this);
 		// creates new textarea
 		this._area = document.createElement('textarea');
+		this._area.className = "webix_clipbuffer";
 		this._area.setAttribute("webixignore", 1);
-		this._area.style.width = '1px';
-		this._area.style.height = '1px';
-		this._area.style.left = '3px';
-		this._area.style.top = '3px';
-		this._area.style.position = 'fixed';
-		// TODO: set invisible styles
-
-		this._area.style.opacity = '0';
 		document.body.appendChild(this._area);
 
 		webix.event(document.body, 'keydown', webix.bind(function(e){
@@ -13008,7 +13016,7 @@ webix.protoUI({
 						if (select && this.getParentId(id) != this.getParentId(select)) 
 							return;
 					}
-					this.select(id, false, (e.ctrlKey || (this._settings.multiselect == "touch")), e.shiftKey); 	//multiselection
+					this.select(id, false, (e.ctrlKey || e.metaKey || (this._settings.multiselect == "touch")), e.shiftKey); 	//multiselection
 				} else
 					this.select(id);
 			}
@@ -13525,7 +13533,7 @@ webix.protoUI({
 			if (this._settings.select){
                 this._no_animation = true;
 				if (this._settings.select=="multiselect"  || this._settings.multiselect)
-					this.select(id, false, (e.ctrlKey || (this._settings.multiselect == "touch")), e.shiftKey); 	//multiselection
+					this.select(id, false, (e.ctrlKey || e.metaKey || (this._settings.multiselect == "touch")), e.shiftKey); 	//multiselection
 				else
 					this.select(id);
                 this._no_animation = false;
@@ -13671,7 +13679,7 @@ webix.protoUI({
 				if (this._settings.select){
                     this._no_animation = true;
 					if (this._settings.select=="multiselect" || this._settings.multiselect)
-						this.select(id, false, ((this._settings.multiselect == "touch") || e.ctrlKey), e.shiftKey); 	//multiselection
+						this.select(id, false, ((this._settings.multiselect == "touch") || e.ctrlKey || e.metaKey), e.shiftKey); 	//multiselection
 					else
 						this.select(id);
                     this._no_animation = false;
@@ -15032,7 +15040,7 @@ webix.protoUI({
 		webix_dataview_item:function(e,id){ 
 			if (this._settings.select){
 				if (this._settings.select=="multiselect" || this._settings.multiselect)
-					this.select(id, false, ((this._settings.multiselect == "touch") || e.ctrlKey), e.shiftKey); 	//multiselection
+					this.select(id, false, ((this._settings.multiselect == "touch") || e.ctrlKey || e.metaKey), e.shiftKey); 	//multiselection
 				else
 					this.select(id);
 			}
@@ -15827,7 +15835,8 @@ webix.MapCollection = {
             delete element.options;
             element.collection = options;
             element.template = element.template || this._bind_accesser(options, element.id, element.optionslist);
-            options.data.attachEvent("onStoreUpdated", webix.bind(this.refresh, this));
+            var id = options.data.attachEvent("onStoreUpdated", webix.bind(this.refresh, this));
+            this.attachEvent("onDestruct", function(){ options.data.detachEvent(id); });
         }
     },
     _collection_accesser:function(options, id, multi){
@@ -16537,6 +16546,14 @@ webix.protoUI({
 			this._set_size_scroll_area(this._header_scroll, this._header_height, this._header_fix_width);
 		if (this._settings.footer)
 			this._set_size_scroll_area(this._footer_scroll, this._footer_height, this._header_fix_width);
+	},
+	_update_scroll:function(x,y){
+		this._scrollSizeY = (this._settings.autoheight || this._settings.scrollY === false) ? 0 : webix.ui.scrollSize;
+		this._scrollSizeX = (this._settings.autowidth || this._settings.scrollX === false) ? 0 : webix.ui.scrollSize;
+		if (this._x_scroll)
+			this._x_scroll._viewobj.style.display =  this._scrollSizeX ? "block" : "none";
+		if (this._y_scroll)
+			this._y_scroll._viewobj.style.display =  this._scrollSizeY ? "block" : "none";
 	},
 	_create_scrolls:function(){
 
@@ -18080,7 +18097,7 @@ webix.extend(webix.ui.datatable, {
 				}
 			},
 			_click_before_select:function(e, id){
-				var preserve = e.ctrlKey || (this._settings.multiselect == "touch");
+				var preserve = e.ctrlKey || e.metaKey || (this._settings.multiselect == "touch");
 				var range = e.shiftKey;
 
 				if (!this._settings.multiselect && this._settings.select != "multiselect")
@@ -18636,7 +18653,7 @@ webix.csv = {
 		if (!this.escape)
 			return this._split_clip_data(text, sep);
 
-		var lines = text.split(sep.rows);
+		var lines = text.replace(/\n$/,"").split(sep.rows);
 
 		var i = 0;
 		while (i < lines.length - 1) {
@@ -20663,6 +20680,7 @@ webix.extend(webix.ui.datatable, {
 		this.callEvent("onStructureUpdate");
 
 		this._define_structure();
+		this._update_scroll();
 		this.render();	
 	},
 	_refresh_columns:function(){
@@ -20822,6 +20840,7 @@ webix.extend(webix.ui.datatable, {
 					webix.DragControl._drag_context = { from:control, start:id, custom:"column_dnd" };
 
 					var column = this.getColumnConfig(id.column);
+
 					this._relative_column_drag = webix.html.posRelative(e);
 					this._limit_column_drag = column.width;
 
@@ -20833,7 +20852,8 @@ webix.extend(webix.ui.datatable, {
 					node.style.display = 'none';
 					var html = document.elementFromPoint(pos.x, box.y+1);
 
-					var id = this.locate(html);
+					var id = (html?this.locate(html):null);
+
 					var start = webix.DragControl.getContext().start.column;
 					if (id && id.column != start && (!this._column_dnd_temp_block || id.column != this._last_sort_dnd_node )){
 						//ignore normal dnd , and dnd from other components
@@ -20842,6 +20862,13 @@ webix.extend(webix.ui.datatable, {
 
 							var start_index = this.getColumnIndex(start);
 							var end_index = this.getColumnIndex(id.column);
+
+							//on touch devices we need to preserve drag-start element till the end of dnd
+							if(e.touches){
+								this._dragTarget = e.target;
+								this._dragTarget.style.display = "none";
+								this.$view.parentNode.appendChild(this._dragTarget);
+							}
 
 							this.moveColumn(start, end_index+(start_index<end_index?1:0));
 							this._last_sort_dnd_node = id.column;
@@ -20864,13 +20891,14 @@ webix.extend(webix.ui.datatable, {
 						if (pos.x > max)
 							pos.x = max;
 					}
-
 					webix.DragControl._skip = true;
 				
 				}, this),
 				$dragDestroy:webix.bind(function(a, node){
 					webix.html.remove(node);
-
+					//clean dnd source element
+					if(this._dragTarget)
+						webix.html.remove(this._dragTarget);
 					var id = webix.DragControl.getContext().start;
 					this.callEvent("onAfterColumnDropOrder",[id.column, this._last_sort_dnd_node, a]);
 				}, this)
@@ -20894,7 +20922,13 @@ webix.extend(webix.ui.datatable, {
 					return "<div class='webix_dd_drag_column'>"+text+"</div>";
 				}, this),
 				$drop:webix.bind(function(s,t,e){
-					var id = this.locate(e);
+					var target = e;
+					//on touch devices event doesn't point to the actual drop target
+					if(e.touches && this._drag_column_last)
+						target = this._drag_column_last;
+
+					var id = this.locate(target);
+
 					if (!id) return false;
 					var start = webix.DragControl.getContext().start.column;
 					if (start != id.column){
@@ -20923,6 +20957,7 @@ webix.extend(webix.ui.datatable, {
 							webix.html.removeCss(this._drag_column_last, "webix_dd_over_column");
 						webix.html.addCss(target, "webix_dd_over_column");
 					}
+
 					return (this._drag_column_last = target);
 				}, this),
 				$dragDestroy:webix.bind(function(a,h){
@@ -27229,12 +27264,15 @@ webix.DataProcessor = webix.proto({
 		//save parent id
 		if (!webix.isUndefined(obj.$parent)) update.data.parent = obj.$parent;
 
-		if (update.operation != "delete" && !this.validate(update.data)) return false;
+		if (update.operation != "delete"){
+			//prevent saving of not-validated records
+			var master = this._settings.master;
+			if (master && master.data && master.data.getMark && master.data.getMark(id, "webix_invalid"))
+				update._invalid = true;
 
-		//prevent saving of not-validated records
-		var master = this._settings.master;
-		if (master && master.data && master.data.getMark && master.data.getMark(id, "webix_invalid"))
-			update._invalid = true;
+			if (!this.validate(update.data))
+				update._invalid = true;
+		}
 
 		if (this._check_unique(update))
 			this._updates.push(update);
@@ -28674,15 +28712,16 @@ webix.UploadDriver = {
 				return false;
 			item.status = 'transfer';
 			if(this.getSwfObject()){
-				this.getSwfObject().upload(id, this._settings.upload);
+				this.getSwfObject().upload(id, this._settings.upload,this._settings.formData||{});
 			}
 			return true;
 
 		},
-		_beforeAddFileToQueue: function( name, size ){
+		_beforeAddFileToQueue: function( id, name, size ){
 			var type = name.split(".").pop();
 			var format = this._format_size(size);
 			return this.callEvent("onBeforeFileAdd", [{
+				id: id,
 				name:name,
 				size:size,
 				sizetext:format,
@@ -28706,6 +28745,7 @@ webix.UploadDriver = {
 			};
 			this.files.add(file_struct);
 			this.callEvent("onAfterFileAdd", [file_struct]);
+
 			if (id && this._settings.autosend)
 				this.send(id);
 		},
@@ -28717,12 +28757,17 @@ webix.UploadDriver = {
 			this.getSwfObject().uploadStop(id);
 			item.status = "client";
 		},
-		_onUploadSuccess: function(id,name){
+		_onUploadSuccess: function(id,name,response){
 			var item = this.files.getItem(id);
 			if(item){
 				item.status = "server";
 				item.progress = 100;
-				this.callEvent("onFileUpload", [item]);
+				
+				if(response.data && (typeof response.data == "string")){
+					response = JSON.parse(response.data);
+					webix.extend(item,response,true);
+				}
+				this.callEvent("onFileUpload", [item,response]);
 				this.callEvent("onChange", []);
 				this.files.updateItem(id);
 			}
