@@ -64,10 +64,6 @@ body.webix_full_screen {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
 }
 .webix_noselect,
 .webix_noselect div {
@@ -880,10 +876,6 @@ x\:ui {
 }
 .webix_pager_item,
 .webix_pager_item_selected {
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
   padding: 0 6px;
   text-align: center;
   height: 100%;
@@ -1220,9 +1212,6 @@ x\:ui {
 .webix_info,
 .webix_popup_button,
 .webix_button {
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: -moz-none;
   cursor: pointer;
 }
 .webix_popup_text {
@@ -1430,10 +1419,6 @@ div.webix_modal_cover {
 }
 .webix_dtable {
   position: relative;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
   cursor: default;
 }
 .webix_ss_footer,
@@ -1582,6 +1567,7 @@ div.webix_modal_cover {
 }
 .webix_dd_drag > div {
   display: inline-block;
+  vertical-align: top;
   background: white;
   border-top: 1px solid #ebebeb;
   border-right: 1px solid #ebebeb;
@@ -1930,12 +1916,6 @@ div.webix_modal_cover {
   background-position: 0 -9px;
 }
 /*basis*/
-.webix_tree {
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
 .webix_tree .webix_scroll_cont > .webix_tree_leaves {
   padding: 9px 10px 9px 9px;
 }
@@ -2139,7 +2119,7 @@ div.webix_modal_cover {
 }
 .webix_cal_day,
 .webix_cal_week_num {
-  line-height: 29px;
+  /*line-height: 29px;*/
   cursor: pointer;
   font-size: 12px;
   color: #666666;
@@ -2183,7 +2163,7 @@ div.webix_modal_cover {
   text-align: center;
   font-size: 12px;
   color: #444;
-  margin: 4px 22px;
+  margin: 4px 17px;
   padding-top: 2px;
   cursor: pointer;
 }
@@ -2206,6 +2186,11 @@ div.webix_modal_cover {
 .webix_cal_month_name:hover {
   text-decoration: underline;
   color: #3498db;
+}
+.webix_cal_month_name.webix_readonly:hover {
+  text-decoration: none;
+  color: #666666;
+  cursor: default;
 }
 .webix_time_header {
   padding: 17px 17px 1px 17px;
@@ -2252,6 +2237,7 @@ div.webix_modal_cover {
 .webix_cal_done {
   margin-top: 3px;
   padding: 2px 7px;
+  font-size: 12px;
   border-radius: 6px;
   border: 1px solid #dddddd;
   font-size: 15px;
@@ -2818,7 +2804,8 @@ input.webixtype_next {
 .webix_control textarea,
 .webix_el_label,
 .webix_inp_label,
-.webix_inp_top_label {
+.webix_inp_top_label,
+.webix_inp_bottom_label {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
@@ -2864,6 +2851,7 @@ input.webixtype_next {
 .webix_inp_label {
   float: left;
   padding-top: 3px;
+  padding-left: 3px;
   padding-right: 7.5px;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -2873,6 +2861,10 @@ input.webixtype_next {
   float: none;
   padding: 3px 2px;
   padding-bottom: 0px;
+}
+.webix_inp_bottom_label {
+  font-size: 13px;
+  color: #737373;
 }
 .webix_label_right {
   padding-left: 7.5px;
@@ -3103,7 +3095,7 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
 .webix_el_datepicker .webix_input_icon,
 .webix_el_colorpicker .webix_input_icon,
 .webix_el_search .webix_input_icon {
-  right: 4px;
+  right: 2px;
   background: transparent;
   z-index: 1;
   position: absolute;
@@ -3154,8 +3146,12 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
 input.webix_invalid,
 select.webix_invalid,
 textarea.webix_invalid {
-  background-color: #FEDEDF;
+  background-color: #fff6f6;
   border-color: #fea5a8;
+}
+.webix_invalid .webix_inp_bottom_label {
+  font-size: 13px;
+  color: #fd595f;
 }
 .webix_el_colorpicker .webix_inp_static div {
   float: right;
@@ -3208,6 +3204,51 @@ label.webix_required:after {
   padding-left: 4px;
   content: "*";
   color: red;
+}
+.webix_multicombo .webix_inp_static {
+  padding: 0 3px;
+}
+.webix_el_text .webix_multicombo_input {
+  background-color: transparent;
+  border: 0;
+  float: left;
+  vertical-align: middle;
+  padding: 0px;
+  color: #666666;
+  font-size: 15px;
+  font-family: 'PT Sans', Tahoma;
+  margin-left: 7px;
+}
+.webix_el_text .webix_multicombo_input:focus {
+  border: 0;
+  box-shadow: none;
+}
+.webix_multicombo_listbox {
+  width: auto;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.webix_multicombo_value {
+  padding: 0 5px 0 7px;
+  background-color: #f2f2f2;
+  display: inline-block;
+  margin: 3px;
+  float: left;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+}
+.webix_multicombo_delete {
+  margin-left: 10px;
+  padding: 0 5px ;
+  color: #404040;
+  cursor: pointer;
+}
+.webix_multilist .webix_selected {
+  background: #f2f2f2;
+  color: #666666;
 }
 .webix_el_tabbar {
   background: transparent;
@@ -3991,6 +4032,17 @@ label.webix_required:after {
   border: 1px solid #cccccc;
   background-color: #ffffff;
 }
+.webix_rangeslider .webix_slider_box .webix_slider_left {
+  position: absolute;
+}
+.webix_rangeslider .webix_slider_box .webix_slider_active {
+  z-index: 1;
+}
+.webix_rangeslider .webix_slider_box .webix_slider_right {
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
 .webix_slider_alt .webix_slider_box .webix_slider_left {
   border: 1px solid #e1e1e1;
 }
@@ -4104,15 +4156,15 @@ label.webix_required:after {
   border-radius: 0px;
 }
 /*!
- *  Font Awesome 4.2.0 by @davegandy - http://fontawesome.io - @fontawesome
+ *  Font Awesome 4.3.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
  */
 /* FONT PATH
  * -------------------------- */
 @font-face {
   font-family: 'FontAwesome';
-  src: url('../../fonts/fontawesome-webfont.eot?v=4.2.0');
-  src: url('../../fonts/fontawesome-webfont.eot?#iefix&v=4.2.0') format('embedded-opentype'), url('../../fonts/fontawesome-webfont.woff?v=4.2.0') format('woff'), url('../../fonts/fontawesome-webfont.svg?v=4.2.0#fontawesomeregular') format('svg');
+  src: url('../../fonts/fontawesome-webfont.eot?v=4.3.0');
+  src: url('../../fonts/fontawesome-webfont.eot?#iefix&v=4.3.0') format('embedded-opentype'), url('../../fonts/fontawesome-webfont.woff?v=4.3.0') format('woff'), url('../../fonts/fontawesome-webfont.ttf?v=4.3.0') format('truetype'), url('../../fonts/fontawesome-webfont.svg?v=4.3.0#fontawesomeregular') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -4127,6 +4179,7 @@ label.webix_required:after {
   line-height: 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transform: translate(0, 0);
 }
 /* makes the font 33% larger relative to the icon container */
 .fa-lg {
@@ -4188,6 +4241,10 @@ label.webix_required:after {
 .fa-spin {
   -webkit-animation: fa-spin 2s infinite linear;
   animation: fa-spin 2s infinite linear;
+}
+.fa-pulse {
+  -webkit-animation: fa-spin 1s infinite steps(8);
+  animation: fa-spin 1s infinite steps(8);
 }
 @-webkit-keyframes fa-spin {
   0% {
@@ -4719,6 +4776,7 @@ label.webix_required:after {
 .fa-twitter:before {
   content: "\f099";
 }
+.fa-facebook-f:before,
 .fa-facebook:before {
   content: "\f09a";
 }
@@ -5368,7 +5426,8 @@ label.webix_required:after {
 .fa-male:before {
   content: "\f183";
 }
-.fa-gittip:before {
+.fa-gittip:before,
+.fa-gratipay:before {
   content: "\f184";
 }
 .fa-sun-o:before {
@@ -5635,6 +5694,7 @@ label.webix_required:after {
 .fa-history:before {
   content: "\f1da";
 }
+.fa-genderless:before,
 .fa-circle-thin:before {
   content: "\f1db";
 }
@@ -5779,6 +5839,127 @@ label.webix_required:after {
 .fa-meanpath:before {
   content: "\f20c";
 }
+.fa-buysellads:before {
+  content: "\f20d";
+}
+.fa-connectdevelop:before {
+  content: "\f20e";
+}
+.fa-dashcube:before {
+  content: "\f210";
+}
+.fa-forumbee:before {
+  content: "\f211";
+}
+.fa-leanpub:before {
+  content: "\f212";
+}
+.fa-sellsy:before {
+  content: "\f213";
+}
+.fa-shirtsinbulk:before {
+  content: "\f214";
+}
+.fa-simplybuilt:before {
+  content: "\f215";
+}
+.fa-skyatlas:before {
+  content: "\f216";
+}
+.fa-cart-plus:before {
+  content: "\f217";
+}
+.fa-cart-arrow-down:before {
+  content: "\f218";
+}
+.fa-diamond:before {
+  content: "\f219";
+}
+.fa-ship:before {
+  content: "\f21a";
+}
+.fa-user-secret:before {
+  content: "\f21b";
+}
+.fa-motorcycle:before {
+  content: "\f21c";
+}
+.fa-street-view:before {
+  content: "\f21d";
+}
+.fa-heartbeat:before {
+  content: "\f21e";
+}
+.fa-venus:before {
+  content: "\f221";
+}
+.fa-mars:before {
+  content: "\f222";
+}
+.fa-mercury:before {
+  content: "\f223";
+}
+.fa-transgender:before {
+  content: "\f224";
+}
+.fa-transgender-alt:before {
+  content: "\f225";
+}
+.fa-venus-double:before {
+  content: "\f226";
+}
+.fa-mars-double:before {
+  content: "\f227";
+}
+.fa-venus-mars:before {
+  content: "\f228";
+}
+.fa-mars-stroke:before {
+  content: "\f229";
+}
+.fa-mars-stroke-v:before {
+  content: "\f22a";
+}
+.fa-mars-stroke-h:before {
+  content: "\f22b";
+}
+.fa-neuter:before {
+  content: "\f22c";
+}
+.fa-facebook-official:before {
+  content: "\f230";
+}
+.fa-pinterest-p:before {
+  content: "\f231";
+}
+.fa-whatsapp:before {
+  content: "\f232";
+}
+.fa-server:before {
+  content: "\f233";
+}
+.fa-user-plus:before {
+  content: "\f234";
+}
+.fa-user-times:before {
+  content: "\f235";
+}
+.fa-hotel:before,
+.fa-bed:before {
+  content: "\f236";
+}
+.fa-viacoin:before {
+  content: "\f237";
+}
+.fa-train:before {
+  content: "\f238";
+}
+.fa-subway:before {
+  content: "\f239";
+}
+.fa-medium:before {
+  content: "\f23a";
+}
 .webix_icon,
 .webix_input_icon {
   font-size: 17px;
@@ -5854,6 +6035,46 @@ label.webix_required:after {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
+}
+.portlet_drag {
+  position: absolute;
+  z-index: 1;
+  top: 5px;
+  right: 5px;
+  width: 18px;
+  opacity: 0.5;
+  cursor: pointer;
+}
+.portlet_in_drag {
+  opacity: 0.4;
+}
+.portlet_marker,
+.portlet_markertop,
+.portlet_markerbottom,
+.portlet_markerleft,
+.portlet_markerright {
+  opacity: 0.5;
+  background: #9169BE;
+  position: absolute;
+  transition: top 0.5s, left 0.5s, width 0.5s, height 0.5s;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+}
+.portlet_markertop {
+  height: 50%;
+}
+.portlet_markerbottom {
+  height: 50%;
+  top: 50%;
+}
+.portlet_markerleft {
+  width: 50%;
+}
+.portlet_markerright {
+  width: 50%;
+  left: 50%;
 }
 @font-face {
   font-family: 'PT Sans';
@@ -6490,6 +6711,19 @@ label.webix_required:after {
 .webix_el_search span.webix_input_icon {
   width: 24px;
 }
+.webix_el_text .webix_inp_static {
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.webix_focused .webix_inp_static {
+  border: 1px solid #3498db;
+  box-shadow: 0 0 1px #3498db inset;
+}
+.webix_multilist .fa-check-square {
+  color: #3498db;
+}
 .buttonStyle {
   color: #ffffff;
   font-size: 15px;
@@ -6914,16 +7148,17 @@ a:active .webix_custom_radio {
   box-shadow: 0 0 1px #3498db inset;
 }
 .webix_cal_body .webix_cal_today {
-  background-color: transparent;
-  color: #666666;
+  /*background-color: transparent;
+		color: @fontColor;*/
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
+  border: 1px solid #27ae60;
+  border-radius: 6px;
 }
 .webix_cal_body .webix_cal_today span {
-  width: 25px;
-  height: 25px;
-  border: 1px solid #27ae60;
+  /*#box > .sizing;
+			border: 1px solid @selectColor;*/
 }
 .webix_cal_body .webix_cal_day,
 .webix_cal_body .webix_cal_week_num {
@@ -6931,27 +7166,12 @@ a:active .webix_custom_radio {
 }
 .webix_cal_body .webix_cal_select,
 .webix_cal_body .webix_cal_select.webix_cal_today {
-  background: transparent;
-  color: #666666;
-}
-.webix_cal_body .webix_cal_day,
-.webix_cal_body .webix_cal_week_num {
-  line-height: 25px;
-}
-.webix_cal_body .webix_cal_today span,
-.webix_cal_body .webix_cal_select span,
-.webix_cal_body .webix_cal_select.webix_cal_today span {
-  width: 25px;
-  height: 25px;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
+  /*background: transparent;
+		color: @fontColor;*/
   border-radius: 6px;
-  display: inline-block;
 }
-.webix_cal_body .webix_cal_select span,
-.webix_cal_body .webix_cal_select.webix_cal_today span,
-.webix_cal_body .webix_selected {
+.webix_cal_body .webix_selected,
+.webix_cal_body .webix_cal_event.webix_cal_select {
   color: #ffffff;
   border-radius: 6px;
   background: #27ae60;
@@ -6963,7 +7183,8 @@ a:active .webix_custom_radio {
   font-weight: normal;
   color: #bbb;
 }
-.webix_time_footer .webix_cal_done {
+.webix_time_footer .webix_cal_done,
+.webix_cal_footer .webix_cal_done {
   font-size: 15px;
   padding: auto 6px;
   font-family: 'PT Sans', Tahoma;

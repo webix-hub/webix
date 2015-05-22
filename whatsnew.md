@@ -1,3 +1,15 @@
+Version 2.4.0
+==============
+
+- Portlet widget
+- MultiCombo widget
+- Range Slider widget
+- Advanced validation messages for forms
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2_4.html)
+
+
+
 Version 2.3.14
 ==============
 - fix date serialization for ajax calls

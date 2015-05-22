@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.3.14
+webix UI v.2.4.0
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="2.3.14";
+webix.version="2.4.0";
 webix.codebase="./";
 webix.name = "core";
 
@@ -732,15 +732,18 @@ webix.html={
 		return name;
 	},
 	addStyle:function(rule){
-		var style = document.createElement("style");
-		style.setAttribute("type", "text/css");
-		style.setAttribute("media", "screen"); 
+		var style = this._style_element;
+		if(!style){
+			style = this._style_element = document.createElement("style");
+			style.setAttribute("type", "text/css");
+			style.setAttribute("media", "screen");
+			document.getElementsByTagName("head")[0].appendChild(style);
+		}
 		/*IE8*/
 		if (style.styleSheet)
-			style.styleSheet.cssText = rule;
+			style.styleSheet.cssText += rule;
 		else
 			style.appendChild(document.createTextNode(rule));
-		document.getElementsByTagName("head")[0].appendChild(style);
 	},
 	create:function(name,attrs,html){
 		attrs = attrs || {};
@@ -809,7 +812,7 @@ webix.html={
 			var clientLeft = docElem.clientLeft || body.clientLeft || 0;
 			var top  = box.top +  scrollTop - clientTop;
 			var left = box.left + scrollLeft - clientLeft;
-			return { y: Math.round(top), x: Math.round(left), width:elem.offsetHeight, height:elem.offsetWidth };
+			return { y: Math.round(top), x: Math.round(left), width:elem.offsetWidth, height:elem.offsetHeight };
 		} else { //fallback to naive approach
 			var top=0, left=0;
 			while(elem) {
@@ -855,8 +858,9 @@ webix.html={
 		return false;
 	},
 	//add css class to the node
-	addCss:function(node,name){
-		node.className+=" "+name;
+	addCss:function(node,name,check){
+		if (!check || node.className.indexOf(name) === -1)
+			node.className+=" "+name;
 	},
 	//remove css class from the node
 	removeCss:function(node,name){
@@ -1762,6 +1766,8 @@ webix.Destruction = {
 	//will be called automatically on unload, can be called manually
 	//simplifies job of GC
 	destructor:function(){
+		var config = this._settings;
+
 		if (this._last_editor)
 			this.editCancel();
 
@@ -1782,7 +1788,7 @@ webix.Destruction = {
 					this._destroy_with_me[i].destructor();
 		}
 
-		delete webix.ui.views[this._settings.id];
+		delete webix.ui.views[config.id];
 
 		//html collection
 		this._htmlmap  = null;
@@ -1814,7 +1820,7 @@ webix.Destruction = {
 		if (webix.UIManager._view == this)
 			webix.UIManager._view = null;
 
-		var url = this._settings.url;
+		var url = config.url;
 		if (url && url.$proxy && url.release)
 			url.release();
 
@@ -2428,7 +2434,11 @@ webix.ajax.prototype={
 		call.push({ success: function(t, d){ defer.resolve(d);	},
 					error: function(t, d){ defer.reject(x);	}});
 
-		if (!webix.callEvent("onBeforeAjax", [mode, url, params, x])) return;
+		var headers = this._header || {};
+		if (mode !== 'GET')
+			headers['Content-type'] = 'application/x-www-form-urlencoded';
+
+		if (!webix.callEvent("onBeforeAjax", [mode, url, params, x, headers])) return;
 
 		//add extra params to the url
 		if (typeof params == "object"){
@@ -2444,8 +2454,10 @@ webix.ajax.prototype={
 			params=t.join("&");
 		}
 
-		if (params && mode==='GET')
+		if (params && mode==='GET'){
 			url=url+(url.indexOf("?")!=-1 ? "&" : "?")+params;
+			params = null;
+		}
 
 		x.open(mode, url, !this._sync);
 
@@ -2453,13 +2465,9 @@ webix.ajax.prototype={
 		if (type) x.responseType = type;
 
 		//if header was provided - use it
-		if (this._header){
-			for (var key in this._header)
-				x.setRequestHeader(key, this._header[key]);
-		//else for post requests - use default header
-		} else if (mode !== 'GET')
-			x.setRequestHeader('Content-type','application/x-www-form-urlencoded');
-		 
+		for (var key in headers)
+			x.setRequestHeader(key, headers[key]);
+		
 		//async mode, define loading callback
 		 var self=this;
 		 this.master = this.master || master;
@@ -2469,6 +2477,10 @@ webix.ajax.prototype={
 
 				webix.ajax.count++;
 				if (call && self && !x.aborted){
+					//IE8 and IE9, handling .abort call
+					if (webix._xhr_aborted.find(x) != -1)
+						return webix._xhr_aborted.remove(x);
+
 					var owner = self.master||self;
 
 					var is_error = x.status >= 400;
@@ -2491,8 +2503,13 @@ webix.ajax.prototype={
 		//IE can use sync mode sometimes, fix it
 		if (!this._sync)
 			setTimeout(function(){
-				if (!x.aborted)
-					x.send(params||null);
+				if (!x.aborted){
+					//abort handling in IE9
+					if (webix._xhr_aborted.find(x) != -1)
+						webix._xhr_aborted.remove(x);
+					else
+						x.send(params||null);
+				}
 			}, 1);
 		else
 			x.send(params||null);
@@ -2562,7 +2579,7 @@ webix.ajax.prototype={
 		return this;
 	},
 	headers:function(header){
-		this._header = header;
+		this._header = webix.extend(this._header||{},header);
 		return this;
 	},
 	bind:function(master){
@@ -3219,8 +3236,9 @@ webix.BaseBind = {
 		}
 	},
 	_bind_ready:function(){
+		var config = this._settings;
 		if (this.filter){
-			var key = this._settings.id;
+			var key = config.id;
 			this.data._on_sync = webix.bind(function(){
 				webix.$$(this._bind_source)._bind_updated[key] = false;
 			}, this);
@@ -3249,7 +3267,7 @@ webix.BaseBind = {
 		//we want to refresh list after data loading if it has master link
 		//in same time we do not want such operation for dataFeed components
 		//as they are reloading data as response to the master link
-		if (!this._settings.dataFeed && this.loadNext)
+		if (!config.dataFeed && this.loadNext)
 			this.data.attachEvent("onStoreLoad", webix.bind(function(){
 				if (this._bind_source)
 					webix.$$(this._bind_source)._bind_updated[this._settings.id] = false;
@@ -4689,6 +4707,8 @@ webix.protoUI({
 			view.callEvent("onViewShow",[]);
 	},
 	resizeChildren:function(){
+		if (webix.ui.$freeze) return;
+
 		if (this._layout_sizes){
 			var parent = this.getParentView();
 			if (parent){
@@ -4880,6 +4900,9 @@ webix.protoUI({
 		self_size[3] = Math.max(self_size[2], (self_size[3] || maxHeight) +dy);
 
 		webix.debug_size_box_end(this, self_size);
+
+		if (this._settings.responsive)
+			self_size[0] = 0;
 
 		return self_size;
 	},
@@ -5275,32 +5298,31 @@ webix.ui.layout.call(webix);
 webix.animate = function(html_element, config){
 	var animation = config;
 	if (webix.isArray(html_element)){
-
 		for (var i=0; i < html_element.length; i++) {
 			if(webix.isArray(config))
 				animation = config[i];
 
-            if(animation.type == 'slide'){
-                if(animation.subtype == 'out' && i===0) { // next
-                    continue;
-                }
-                if(animation.subtype == 'in' && i==1) { // current
-                    continue;
-                }
-            }
-            if(animation.type == 'flip'){
-                var animation_copy = webix.clone(animation);
-                if(i===0) { // next
-                    animation_copy.type = 'flipback';
-                }
-                if(i==1) { // current
-                    animation_copy.callback = null;
-                }
-                webix.animate(html_element[i], animation_copy);
-                continue;
-            }
-            webix.animate(html_element[i], animation);
-        }
+			if(animation.type == 'slide'){
+				if(animation.subtype == 'out' && i===0) { // next
+				    continue;
+				}
+				if(animation.subtype == 'in' && i==1) { // current
+				    continue;
+				}
+			}
+			if(animation.type == 'flip'){
+				var animation_copy = webix.clone(animation);
+				if(i===0) { // next
+				    animation_copy.type = 'flipback';
+				}
+				if(i==1) { // current
+				    animation_copy.callback = null;
+				}
+				webix.animate(html_element[i], animation_copy);
+				continue;
+			}
+			webix.animate(html_element[i], animation);
+		}
 		return;
 	}
 	var node = webix.toNode(html_element);
@@ -5343,17 +5365,27 @@ webix.animate.formLine=function(next, current, animation){
 		next.style.top = (animation.top || 0) + "px";
 		next.style.left = defAniPos + (direction=="left"?1:-1)*current.offsetWidth+"px";
 	}
-    current.parentNode.appendChild(next);
-    if(animation.type == 'slide' && animation.subtype == 'out') {
-        next.style.left = "0px";
-        next.style.top = (animation.top || 0)+"px";
-        current.parentNode.removeChild(current);
-        next.parentNode.appendChild(current);
-    }
+
+	// apply 'keepViews' mode, iframe solution
+	//( keepViews won't work in case of "in" and "out" subtypes )
+	if(current.parentNode == next.parentNode && animation.keepViews)
+		next.style.display = "";
+	else
+		current.parentNode.appendChild(next);
+
+	if(animation.type == 'slide' && animation.subtype == 'out') {
+		next.style.left = "0px";
+		next.style.top = (animation.top || 0)+"px";
+		current.parentNode.removeChild(current);
+		next.parentNode.appendChild(current);
+	}
 	return [next, current];
 };
 webix.animate.breakLine=function(line){
-	webix.html.remove(line[1]); // 1 = current
+	if(arguments[1])
+		line[1].style.display = "none"; // 'keepViews' multiview mode
+	else
+		webix.html.remove(line[1]); // 1 = current
 	webix.animate.clear(line[0]);
 	webix.animate.clear(line[1]);
 	line[0].style.position="";
@@ -5634,7 +5666,7 @@ webix.MouseEvents={
 			}
 			css=trg.className;
 			if (css){		//check if pre-defined reaction for element's css name exists
-				css = css.split(" ");
+				css = css.toString().split(" ");
 				for (var i=0; i<css.length; i++){
 					if (hash[css[i]]){
 						var functor = webix.toFunctor(hash[css[i]], this.$scope);
@@ -5650,6 +5682,7 @@ webix.MouseEvents={
 		return found;	//returns true if item was located and event was triggered
 	}
 };
+
 
 webix.protoUI({
 	name:"accordionitem",
@@ -6031,7 +6064,7 @@ webix.DragControl={
 			//if we have nested drag areas, use the top one and ignore the inner one
 			if (webix.DragControl._saved_event == e) return;
 			webix.DragControl._preStartFalse();
-			webix.DragControl.destroyDrag();
+			webix.DragControl.destroyDrag(e);
 		}
 		webix.DragControl._active=this;
 
@@ -6042,7 +6075,8 @@ webix.DragControl={
 		webix.DragControl._webix_drag_mm = webix.event(document.body,webix.env.mouse.move,webix.DragControl._startDrag);
 		webix.DragControl._webix_drag_mu = webix.event(document.body,webix.env.mouse.up,webix.DragControl._preStartFalse);
 
-		webix.html.addCss(document.body,"webix_noselect");
+		//need to run here, or will not work in IE
+		webix.html.addCss(document.body,"webix_noselect", 1);
 	},
 	//if mouse was released before moving - this is not a dnd, remove event handlers
 	_preStartFalse:function(e){
@@ -6056,6 +6090,7 @@ webix.DragControl={
 			return;
 
 		webix.DragControl._clean_dom_after_drag(true);
+
 		if (!webix.DragControl.createDrag(webix.DragControl._saved_event)) return;
 		
 		webix.DragControl.sendSignal("start"); //useless for now
@@ -6075,7 +6110,7 @@ webix.DragControl={
 			webix.DragControl.$drop(webix.DragControl._active, webix.DragControl._last, e);
 			webix.DragControl.$dragOut(webix.DragControl._active,webix.DragControl._last,null,e);
 		}
-		webix.DragControl.destroyDrag();
+		webix.DragControl.destroyDrag(e);
 		webix.DragControl.sendSignal("stop");	//useless for now
 	},
 	_clean_dom_after_drag:function(still_drag){
@@ -6183,14 +6218,14 @@ webix.DragControl={
 		webix.DragControl._skip=true;
 	},
 	//after dnd end, remove all traces and used html elements
-	destroyDrag:function(){
+	destroyDrag:function(e){
 		var a=webix.DragControl._active;
 		var master = this._drag_masters[a.webix_drag];
 
 		if (master && master.$dragDestroy){
 			webix.DragControl._skipDropH = webix.eventRemove(webix.DragControl._skipDropH);
 			if(webix.DragControl._html)
-				master.$dragDestroy(a,webix.DragControl._html);
+				master.$dragDestroy(a,webix.DragControl._html,e);
 		}
 		else{
 			webix.html.remove(webix.DragControl._html);
@@ -6438,6 +6473,10 @@ webix.protoUI({
 		if (!config.id) config.id = webix.uid();
 
 		webix.event(this._contentobj, "click", webix.bind(this._ignore_clicks, this));
+		
+		// hidden_setter handling
+		if(config.modal)
+			this._modal = true;
 	},
 	_ignore_clicks:function(e){
 		var popups = webix.ui._popups;
@@ -6476,10 +6515,15 @@ webix.protoUI({
 		this.resize(true);
 	},
 	show:function(node, mode, point){
+		if(!this.callEvent("onBeforeShow",arguments))
+			return false;
+
 		this._settings.hidden = false;
 		this._viewobj.style.zIndex = (this._settings.zIndex||webix.ui.zIndex());
-		if (this._settings.modal)
+		if (this._settings.modal || this._modal){
 			this._modal_set(true);
+			this._modal = null; // hidden_setter handling
+		}
 
 		var pos, dx, dy;
 		mode = mode || {};
@@ -6964,9 +7008,10 @@ webix.protoUI({
 				master.refresh();
 			else if (master.options_setter)
 				master.setValue(data.id);
+			else if(master.setValueHere)
+				master.setValueHere(data.text||data.value);
 			else
 				master.setValue(data.text||data.value);
-
 		} else if (this._last_input_target){
 			this._last_input_target.value = data.text||data.value;
 		}
@@ -7155,6 +7200,9 @@ webix.protoUI({
 			} else 
 				this._dont_unfilter = false;
 
+			if(this.$customWidth){
+				this.$customWidth(node);
+			}
 			if (node.tagName && this._settings.fitMaster){
 				this._settings.width = node.offsetWidth -2 ; //2 - borders
 			}
@@ -7163,7 +7211,6 @@ webix.protoUI({
 
 			this.adjust();
 		}
-		
 		webix.ui.popup.prototype.show.apply(this, arguments);
 	},
 	_show_selection:function(list){
@@ -7271,7 +7318,7 @@ webix.attachEvent("onClick", function(e){
 		var css = "";
 		var id = null;
 		var found = false;
-		if (trg.className && trg.className.indexOf("webix_view")===0) return;
+		if (trg.className && trg.className.toString().indexOf("webix_view")===0) return;
 		//loop through all parents
 		while (trg && trg.parentNode){
 			if (trg.getAttribute){
@@ -7280,7 +7327,7 @@ webix.attachEvent("onClick", function(e){
 					
 				css=trg.className;
 				if (css){
-					css = css.split(" ");
+					css = css.toString().split(" ");
 					for (var i =0; i<css.length; i++){
 						if (element.on_click[css[i]]){
 							var res =  element.on_click[css[i]].call(element,e,element._settings.id,trg);
@@ -7340,7 +7387,7 @@ webix.protoUI({
 	},
 	_inputTemplate:function(obj){
 		var css = "class='webixtype_"+(obj.type||"base")+"' ";
-		return "<button "+css+">"+webix.template.escape(obj.label||obj.value)+"</button>";
+		return "<button type='button' "+css+">"+webix.template.escape(obj.label||obj.value)+"</button>";
 	},
 	$init:function(config){
 		this._viewobj.className += " webix_control webix_el_"+(this.$cssName||this.name);
@@ -7453,6 +7500,7 @@ webix.protoUI({
 		if (oldvalue == value) return false;
 		
 		this._settings.value = value;
+
 		if (this._rendered_input)
 			this.$setValue(value);
 
@@ -7472,21 +7520,17 @@ webix.protoUI({
 	$getValue:function(){
 		return this._settings.value||"";	
 	},
-	
-
 	focus:function(){
 		var input = this.getInputNode();
 		if (input && input.focus) input.focus();
 	},
-	
 	blur:function() {
 		var input = this.getInputNode();
 		if (input && input.blur) input.blur();
 	},
-
 	//get input element
 	getInputNode: function() {
-		return this._dataobj.getElementsByTagName('input')[0];
+		return this._dataobj.getElementsByTagName('input')[0]||this._dataobj.getElementsByTagName('button')[0];
 	},
 	//get top-level sub-container
 	_getBox:function(){
@@ -7538,6 +7582,7 @@ webix.protoUI({
 		this._calck_input_size();
 		this._settings.awidth  = this._input_width||this._content_width;
 		this._settings.aheight = this._input_height||this._content_height;
+
 		//image button - image width
 		this._settings.bheight = this._settings.aheight+2;
 		this._settings.cheight = this._settings.aheight- 2*webix.skin.$active.inputPadding;
@@ -7588,7 +7633,6 @@ webix.protoUI({
 				this._init_once(this.data);
 				this._init_once = 0;
 			}
-
 		}
 	},
 
@@ -7704,7 +7748,7 @@ webix.protoUI({
 	},
 	defaults:{
 		template:function(obj){
-			return "<button type='button' style='height:100%;width:100%;' class='webix_icon_button'><span class='webix_icon fa-"+obj.icon+" '></span>"+
+			return "<button type='button' "+(!obj.tabFocus?"tabindex='-1'":"")+" style='height:100%;width:100%;' class='webix_icon_button'><span class='webix_icon fa-"+obj.icon+" '></span>"+
 				(obj.badge ? "<span class='webix_badge'>"+obj.badge+"</span>":"")+
 				"</button>";
 		},
@@ -7816,21 +7860,73 @@ webix.protoUI({
 			return false;
 		return true;
 	},
+	bottomLabel_setter: function(value){
+		if(!this._settings.bottomPadding)
+			this._settings.bottomPadding = 18;
+		return value;
+	},
+	_getInvalidText: function(){
+		var text = this._settings.invalidMessage;
+		if(typeof text == "function"){
+			text.call(this);
+		}
+		return text;
+	},
+	_showBottomText: function(text){
+		var config = this._settings;
+		if (typeof text != "undefined")
+			config.bottomLabel = text;
+
+		var message = (config.invalid ? config.invalidMessage : "" ) || config.bottomLabel;
+		if (!message) config.inputHeight = 0;
+
+		if (message && !config.bottomPadding){
+			this._restorePadding = 1;
+			config.bottomPadding = config.bottomPadding || 18;	
+			//textarea
+			if (!config.height)
+				this.render();
+			this.resize();
+		} else if (!message && this._restorePadding){
+			config.bottomPadding = this._restorePadding = 0;
+			//textarea
+			if (!config.height)
+				this.render();
+			this.resize();
+		} else
+			this.render();
+	},
+	$getSize: function(){
+		var sizes = webix.ui.view.prototype.$getSize.apply(this,arguments);
+
+		var heightInc = this.config.bottomPadding;
+		if(heightInc){
+			sizes[2] += heightInc;
+			sizes[3] += heightInc;
+		}
+
+		return sizes;
+	},
 	$setSize:function(x,y){
+		var config = this._settings;
+
 		if(webix.ui.view.prototype.$setSize.call(this,x,y)){
 			if (!x || !y) return;
 
-			var config = this._settings;
 			if (config.labelPosition == "top"){
 				if (!config.inputHeight)
-					config.inputHeight = this._content_height - this._labelTopHeight;
+					config.inputHeight = this._content_height - this._labelTopHeight - (this.config.bottomPadding||0);
 				config.labelWidth = 0;
+			} else if (config.bottomPadding){
+				config.inputHeight = this._content_height - this.config.bottomPadding;
 			}
+
 			this.render();
 		}
 	}, 
 	_get_input_width: function(config){
-		var width = (this._input_width||0)-(config.label?this._settings.labelWidth:0)-webix.skin.$active.inputPadding*2 - (config.iconWidth || 0);
+		var width = (this._input_width||0)-(config.label?this._settings.labelWidth:0)- 	(this._settings.labelPosition == "top"||!config.label?4:2) - (config.iconWidth || 0);
+
 		//prevent js error in IE
 		return (width < 0)?0:width;
 	},
@@ -7867,17 +7963,18 @@ webix.protoUI({
 	},
 	$renderInput: function(config, div_start, id) {
 		var inputAlign = (config.inputAlign||"left");
+		var inputWidth = this._get_input_width(config);
+
 		id = id || config.name || webix.uid();
 
 		var label = this.$renderLabel(config,id);
 
 		var html = "";
 		if(div_start){
-			html+= div_start;
-		} else { 
-			var width = this._get_input_width(config);
-			html += this._baseInputHTML("input")+"id='" + id + "' type='"+(config.type||this.name)+"' value='" + webix.template.escape(config.value||"") + "' style='width: " + width + "px; text-align: " + inputAlign + ";'";
-			var attrs = this._settings.attributes;
+			html += div_start;
+		} else {
+			html += this._baseInputHTML("input")+"id='" + id + "' type='"+(config.type||this.name)+"' value='" + webix.template.escape(config.value||"") + "' style='width: " + inputWidth + "px; text-align: " + inputAlign + ";'";
+			var attrs = config.attributes;
 			if (attrs)
 				for(var prop in attrs)
 					html += " "+prop+"='"+attrs[prop]+"'";
@@ -7885,12 +7982,24 @@ webix.protoUI({
 		}
 		var icon = this.$renderIcon?this.$renderIcon(config):"";
 		html += icon;
-		html +=	"</div>";
 
+		var result = "";
+
+		//label position, top or left
 		if (top)
-			return label+"<div class='webix_el_box' style='width:"+this._settings.awidth+"px; height:"+this._settings.aheight+"px'>"+html+"</div>";
+			result = label+"<div class='webix_el_box' style='width:"+config.awidth+"px; height:"+config.aheight+"px'>"+html+"</div>";
 		else
-			return "<div class='webix_el_box' style='width:"+this._settings.awidth+"px; height:"+this._settings.aheight+"px'>"+label+html+"</div>";
+			result = "<div class='webix_el_box' style='width:"+config.awidth+"px; height:"+config.aheight+"px'>"+label+html+"</div>";
+
+
+		//bottom message width
+		var padding = config.awidth-inputWidth-webix.skin.$active.inputPadding*2;
+		//bottom message text
+		var message = (config.invalid ? config.invalidMessage : "") || config.bottomLabel;
+		if (message)
+			result +=  "<div class='webix_inp_bottom_label' style='width:"+(inputWidth||config.awidth)+"px;margin-left:"+Math.max(padding,webix.skin.$active.inputPadding)+"px;'>"+message+"</div>";
+
+		return result;
 	},		
 	defaults:{
 		template:function(obj, common){
@@ -7968,7 +8077,7 @@ webix.protoUI({
 				obj.value = options[0].id;
 
 			for(var i=0; i<options.length; i++){
-				html+="<button style='width:"+(options[i].width || optionWidth)+"px' ";
+				html+="<button type='button' style='width:"+(options[i].width || optionWidth)+"px' ";
 				html+="class='"+((obj.value==options[i].id)?"webix_selected ":"")+"webix_segment_"+((i==options.length-1)?"N":(i>0?1:0))+"' button_id='"+options[i].id+"' >";
 				html+= options[i].value+"</button>";
 			}
@@ -8972,6 +9081,9 @@ webix.rules = {
 	isNumber: function(value){
 		return (parseFloat(value) == value);
 	},
+	isChecked: function(value){
+		return (!!value) || value === "0";
+	},
 	isNotEmpty: function(value){
 		return (value === 0 || value);
 	}
@@ -9187,7 +9299,11 @@ webix.DataLoader=webix.proto({
 	_call_onclearall:function(){
 		for (var i = 0; i < this._ajax_queue.length; i++){
 			var xhr = this._ajax_queue[i];
-			xhr.aborted = true;
+
+			//IE9 and IE8 deny extending of ActiveX wrappers
+			try { xhr.aborted = true; } catch(e){ 
+				webix._xhr_aborted.push(xhr);
+			}
 			xhr.abort();
 		}
 
@@ -9198,6 +9314,9 @@ webix.DataLoader=webix.proto({
 		this._parseSeetingColl(config);
 	}
 },webix.AtomDataLoader);
+
+//ie8 compatibility
+webix._xhr_aborted = webix.toArray();
 
 webix.DataMarks = {
 	addCss:function(id, css, silent){
@@ -10374,7 +10493,8 @@ webix.PagingAbility = {
 					var obj = webix.$$(pager);
 
 					this._settings.pager = this.pager_setter(obj);
-					obj._settings.count = this.count();
+					var s = obj._settings;
+					s.count = this.data._count_pager_total(s.level);
 					obj.refresh();
 
 					this.$blockRender = false;
@@ -10403,10 +10523,10 @@ webix.PagingAbility = {
 			//initial value of pager = -1, waiting for real value
 			if (s.page == -1) return false;	
 			
-			this.data.$min = s.page*s.size;	//affect data.getRange
-			this.data.$pagesize = s.size;
-			this.data.$max = ((s.page+1)*s.size-1);
-			
+			this.data.$min = this._count_pager_index(0, s.page*s.size);	//affect data.getRange
+			this.data.$max = this._count_pager_index(this.data.$min, s.size);
+			this.data.$pagesize = this.data.$max - this.data.$min;
+
 			return true;
 		}
 
@@ -10418,11 +10538,47 @@ webix.PagingAbility = {
 		}
 		this._pager = pager;
 		pager.$master = this;
+
 		this.data.attachEvent("onStoreUpdated", function(){
-			pager._settings.count = this.count();
+			var s = pager._settings;
+			s.count = this._count_pager_total(s.level);
 			pager.refresh();
-		}, null, true);
+		});
+		this.data._count_pager_total = this._count_pager_total;
+
 		return pager._settings;
+	},
+	_count_pager_total:function(level){
+		if (level && level !== 0){
+			var count = 0; 
+			this.each(function(obj){
+				if (obj.$level == level) count++;
+			});
+			return count;
+		} else
+			return this.count();
+	},
+	_count_pager_index:function(start, count){
+		var s = this._settings.pager;
+
+		if (s.level && s.level !== 0){
+			var end = start;
+			var max = this.data.order.length;
+
+			if (count)
+				while (end < max){
+					if (this.data.getItem(this.data.order[end]).$level == s.level){
+						if (count === 0)
+							break;
+						else
+							count--;
+					}
+					end++;
+				}
+
+			return end;
+		} else
+			return start+count;
 	},
 	setPage:function(value){
 		if (this._pager)
@@ -10713,15 +10869,24 @@ webix.Values = {
 		this.callEvent("onAfterLoad",[]);
 		this.waitData.resolve();
 	},
-	_mark_invalid:function(id,obj){
-		if (id && this.elements[id]){
-			this._clear_invalid(id,obj);
-			webix.html.addCss(this.elements[id]._viewobj, "webix_invalid");
+	_mark_invalid:function(id,obj,silent){
+		var input = this.elements[id];
+		if (id && input){
+			this._clear_invalid(id,obj,true);
+			webix.html.addCss(input._viewobj, "webix_invalid");
+			input._settings.invalid = true;
+			if(input._settings.invalidMessage && input._showBottomText)
+				input._showBottomText();
 		}
 	},
-	_clear_invalid:function(id,obj){
-        if(id && this.elements[id] && this.elements[id].$view)
-		    webix.html.removeCss(this.elements[id]._viewobj, "webix_invalid");
+	_clear_invalid:function(id,obj,silent){
+		var input = this.elements[id];
+        if(id && input && input.$view && input._settings.invalid){
+	        webix.html.removeCss(input._viewobj, "webix_invalid");
+	        input._settings.invalid = false;
+	        if(input._settings.invalidMessage && !silent && input._showBottomText)
+	        	input._showBottomText();
+        }
 	}
 };
 
@@ -11249,6 +11414,17 @@ webix.SelectionModel={
 		this.data.attachEvent("onStoreLoad", webix.bind(this._data_loaded,this));
 		this.data.attachEvent("onAfterFilter", webix.bind(this._data_filtered,this));
 		this.data.attachEvent("onIdChange", webix.bind(this._id_changed,this));
+		this.$ready.push(this._set_noselect);
+	},
+	_set_noselect: function(){
+		if (this._settings.select=="multiselect" || this._settings.multiselect)
+			webix.event(this.$view,"mousedown", function(e){
+				var shiftKey = (e||event).shiftKey;
+				if(shiftKey){
+					webix._noselect_element = this;
+					webix.html.addCss(this,"webix_noselect",1);
+				}
+			});
 	},
 	_id_changed:function(oldid, newid){
 		for (var i = this._selected.length - 1; i >= 0; i--)
@@ -11424,6 +11600,15 @@ webix.SelectionModel={
 		this.callEvent("onSelectChange",[refresh]);
 	}
 };
+
+webix.ready(function(){
+	webix.event(document.body,"mouseup", function(e){
+		if(webix._noselect_element){
+			webix.html.removeCss(webix._noselect_element,"webix_noselect");
+			webix._noselect_element = null;
+		}
+	});
+});
 /*
 	Behavior:DataMove - allows to move and copy elements, heavily relays on DataStore.move
 	@export
@@ -11917,15 +12102,22 @@ webix.TreeStore = {
 		obj.$parent = (parent?parent.id:0);
 
 		if (this._filter_branch){	//adding during filtering
-			//we can't know the location of new item in full dataset, making suggestion
-			//put at end by default
-			var original_index = this._filter_branch[pid||0].length;
-			//put at start only if adding to the start and some data exists
-			if (!index && this.branch[pid||0].length)
-				original_index = 0;
+			var origin = this._filter_branch[pid||0];
+			//newly created branch
+			if (!origin) origin = this._filter_branch[pid] = this.order;
 
-			this._filter_branch[pid||0] = webix.toArray(this._filter_branch[pid||0]);
-			this._filter_branch[pid||0].insertAt(obj.id,original_index);
+			//branch can be shared bettwen collections, ignore such cases
+			if (this.order !== origin){
+				//we can't know the location of new item in full dataset, making suggestion
+				//put at end by default
+				var original_index = origin.length;
+				//put at start only if adding to the start and some data exists
+				if (!index && this.branch[pid||0].length)
+					original_index = 0;
+
+				origin = webix.toArray(origin);
+				origin.insertAt(obj.id,original_index);
+			}
 		}
 
 		//call original adding logic
@@ -14655,8 +14847,11 @@ webix.editors.combo = webix.extend({
 		}
 		return node;
 	},
+	getPopup:function(){
+		return webix.$$(this.config.suggest);
+	},
 	showPopup:function(){
-		var popup = webix.$$(this.config.suggest);
+		var popup = this.getPopup();
         var list = popup.getList();
 		var input = this.getInputNode();
         var value = this.getValue();
@@ -16777,6 +16972,10 @@ webix.protoUI({
 		if (pager){
 			start = pager.size * pager.page;
 			max = Math.min(max, start + pager.size);
+			if (pager.level){
+				start = this.data.$min;
+				max = this.data.$max;
+			}
 		}
 
 		return this._getHeightByIndexSumm(start, max);
@@ -16858,6 +17057,10 @@ webix.protoUI({
 		if (pager){
 			var start = pager.page*pager.size;
 			var end = Math.min(end, start+pager.size);
+			if (pager.level){
+				start = this.data.$min;
+				end = this.data.$max;
+			}
 		}
 
 		//in case of autoheight - request full rendering
@@ -16881,7 +17084,7 @@ webix.protoUI({
 			}
 
 		//how much of the first cell is scrolled out
-		var xdef = xind>0?-(this._getHeightByIndex(xind-1)+t):0;
+		var xdef = (xind>0 && t)?-(this._getHeightByIndex(xind-1)+t):0;
 		var xend = xind;
 		if (t) xind--;
 
@@ -17177,7 +17380,7 @@ webix.protoUI({
 		//if columns not aligned during scroll - set correct scroll top value for each column
 		var total = 0;
 		if (this._settings.scrollAlignY){
-			if (yr[1] == (this.data.$pagesize || this.data.order.length)){
+			if ((yr[1] == this.data.order.length) || (this.data.$pagesize && yr[1] % this.data.$pagesize === 0 )){
 				total = (this._render_scroll_shift = yr[2]);
 				col.node.style.top = total+"px";
 			 } else if (col._yr2)
@@ -17430,7 +17633,7 @@ webix.protoUI({
 		//loop through all parents
 		while (trg && trg.parentNode){
 			if ((css = trg.className)) {
-				css = css.split(" ");
+				css = css.toString().split(" ");
 
 				for (var i = css.length - 1; i >= 0; i--)
 					if (hash[css[i]])
@@ -17957,6 +18160,8 @@ webix.extend(webix.ui.datatable, {
 				this.data.attachEvent("onClearAll", webix.bind(this._data_cleared,this));
 				this.data.attachEvent("onAfterFilter", webix.bind(this._data_filtered,this));
 				this.data.attachEvent("onIdChange", webix.bind(this._id_changed,this));
+
+				this.$ready.push(webix.SelectionModel._set_noselect);
 			},
 			_id_changed:function(oldid, newid){
 				for (var i=0; i<this._selected_rows.length; i++)
@@ -18154,6 +18359,9 @@ webix.extend(webix.ui.datatable, {
 			_select_css:' webix_row_select',
 			_select_key:function(data){ return data.row; },
 			select:function(row_id, preserve){
+				//when we are using id from mouse events
+				if (row_id) row_id = row_id.toString();
+
 				webix.assert(this.data.exists(row_id), "Incorrect id in select command: "+row_id);
 				this._select({ row:row_id }, preserve);
 			},
@@ -19682,6 +19890,28 @@ webix.attachEvent("onDataTable", function(table, config){
 		webix.Touch.$init();
 		config.scrollSize = 0;
 		webix.extend(table, (config.prerender===true)?table._touchNative:table._touch);
+
+		// needed to show datatable scroll
+		if(webix.Touch._disabled)
+			webix.Touch.limit();
+
+		table.defaults.scrollAlignY = false;
+
+		table._body.setAttribute("touch_scroll","xy");
+
+		table.$ready.push(function(){
+			var scrollMode = "";
+			var config = this._settings;
+			if (!config.autowidth && config.scrollX !== false)
+				scrollMode += "x";
+			if (!config.autoheight && config.scrollY !== false)
+				scrollMode += "y";
+			this._body.setAttribute("touch_scroll", scrollMode);
+		});
+		
+		webix.Touch._init_scroll_node(table._body.childNodes[1].firstChild);
+		webix.Touch._set_matrix(table._body.childNodes[1].firstChild, 0,0,"0ms");
+		table._sync_scroll(0,0,"0ms");
 	}
 });
 
@@ -19695,11 +19925,7 @@ webix.extend(webix.ui.datatable, {
 			var temp = webix.Touch._get_matrix(this._body.childNodes[1].firstChild);
 			return { x : -temp.e, y : -temp.f };
 		},
-		$init:function(){ 
-			webix.Touch.limit();
-			this.defaults.scrollAlignY = false;
-
-			this._body.setAttribute("touch_scroll","xy");
+		$init:function(){
 			this.attachEvent("onBeforeScroll", function(){ 
 				webix.Touch._scroll_node = this._body.childNodes[1].firstChild;
 				webix.Touch._get_sizes(webix.Touch._scroll_node);
@@ -19708,10 +19934,6 @@ webix.extend(webix.ui.datatable, {
 			this.attachEvent("onTouchEnd", function(){
 				webix.Touch._scroll_master = null;
 			});
-
-			webix.Touch._init_scroll_node(this._body.childNodes[1].firstChild);
-			webix.Touch._set_matrix(this._body.childNodes[1].firstChild, 0,0,"0ms");
-			this._sync_scroll(0,0,"0ms");
 		},
 		_sync_scroll:function(x,y,t){
 			if (this._settings.leftSplit)
@@ -19739,10 +19961,6 @@ webix.extend(webix.ui.datatable, {
 			elastic:false
 		},
 		$init:function(){
-			webix.Touch.limit();
-			this.defaults.scrollAlignY = false;
-
-			this._body.setAttribute("touch_scroll","xy");
 			this.attachEvent("onBeforeScroll", function(){
 				var t = webix.Touch;
 				t._scroll_node = this._body.childNodes[1].firstChild;
@@ -19771,10 +19989,6 @@ webix.extend(webix.ui.datatable, {
 				this.render();
 				return false;
 			});
-
-			webix.Touch._init_scroll_node(this._body.childNodes[1].firstChild);
-			webix.Touch._set_matrix(this._body.childNodes[1].firstChild, 0,0,"0ms");
-			this._sync_scroll(0,0,"0ms");
 		},
 		_sync_scroll:function(x,y,t){
 			y += this._scrollTop;
@@ -21987,7 +22201,7 @@ webix.protoUI({
 			end += step;
 			end = parseFloat((end*1.0).toFixed(Math.abs(power)));
 		}
-		return { start:start,end:end,step:step,fixNum:Math.abs(power) };
+		return { start:start,end:end,step:step,fixNum:power<0?Math.abs(power):0 };
 	},
 	_getLimits:function(orientation,value){
 		var data = this.data._obj_array();
@@ -24945,7 +25159,7 @@ webix.protoUI({
 		var width = sizes[0];
 		var height = sizes[1];
 
-		var html = "<div class='webix_cal_month'><span class='webix_cal_month_name'>"+s.calendarHeader(date)+'</span>';
+		var html = "<div class='webix_cal_month'><span class='webix_cal_month_name"+(!this._settings.monthSelect?" webix_readonly":"")+"'>"+s.calendarHeader(date)+'</span>';
 		if (s.navigation)
 			html += "<div class='webix_cal_prev_button'></div><div class='webix_cal_next_button'></div>";
 		html += "</div>";
@@ -25055,7 +25269,7 @@ webix.protoUI({
                 
 
 		for (var y=0; y<heights.length; y++){
-			html += "<div class='webix_cal_row' style='height:"+heights[y]+"px'>";
+			html += "<div class='webix_cal_row' style='height:"+heights[y]+"px;line-height:"+heights[y]+"px'>";
 			if (start)
 				html += "<div class='webix_cal_week_num' style='width:"+widths[0]+"px'>"+weekNumber+"</div>";
 
@@ -25874,7 +26088,7 @@ webix.protoUI({
 		/*needed to stop stick moving when the limit for dimension is reached*/
 		this._resizeStick.attachEvent("onResize", webix.bind(this._rsResizeHandler, this));
 
-		webix.html.addCss(document.body,"webix_noselect");
+		webix.html.addCss(document.body,"webix_noselect",1);
 	},
 	_getResizeDir: function(){
 		return this.getParentView()._vertical_orientation?"y":"x";
@@ -26041,6 +26255,8 @@ webix.protoUI({
 	},
 	_render_activation:function(cell_id){ 
 		var cell = webix.$$(cell_id);
+		if(this._settings.keepViews)
+			cell._viewobj.style.display = "";
 		/*back array*/
 		if(this._back_queue[this._back_queue.length-2]!=cell_id){
 			if(this._back_queue.length==10)
@@ -26084,8 +26300,13 @@ webix.protoUI({
 			
 		webix.ui.baselayout.prototype._parse_cells.call(this, collection);
 		
-		for (var i=1; i < this._cells.length; i++)
-			webix.html.remove(this._cells[i]._viewobj);
+		for (var i=1; i < this._cells.length; i++){
+			if(this._settings.keepViews)
+				this._cells[i]._viewobj.style.display = "none";
+			else
+				webix.html.remove(this._cells[i]._viewobj);
+		}
+
 			
 		for (var i=0; i<collection.length; i++){
 			var cell = this._cells[i];
@@ -26138,6 +26359,8 @@ webix.protoUI({
 		//need to be moved in animate
 		if((animation_options||typeof animation_options=="undefined")&&webix.animate.isSupported() && this._settings.animate) {
 			var aniset = webix.extend({}, this._settings.animate);
+			if(this._settings.keepViews)
+				aniset.keepViews = true;
         	aniset.direction = this._getDirection(_next_cell,this._active_cell);
         	aniset = webix.Settings._mergeSettings(animation_options||{}, aniset);
 
@@ -26150,7 +26373,7 @@ webix.protoUI({
 
 			var callback_original = aniset.callback;
 			aniset.callback = function(){
-				webix.animate.breakLine(line);
+				webix.animate.breakLine(line,this._settings.keepViews);
 				this._in_animation = false;
 				if (callback_original) callback_original.call(this);
 				callback_original = aniset.master = aniset.callback = null;
@@ -26165,11 +26388,15 @@ webix.protoUI({
 			this._in_animation = true;
 		}
 		else { // browsers which don't support transform and transition
-			webix.html.remove(prev._viewobj);
+			if(this._settings.keepViews){
+				prev._viewobj.style.display = "none";
+			}
+			else{
+				webix.html.remove(prev._viewobj);
+				this._viewobj.appendChild(this._cells[i]._viewobj);
+			}
 
 			this._active_cell = _next_cell;
-
-			this._viewobj.appendChild(this._cells[i]._viewobj);
 
 			prev.resize();
 			this._render_activation(this.getActiveId());
@@ -26271,49 +26498,491 @@ webix.protoUI({
 }, webix.ui.toolbar);
 
 
+
+
 webix.protoUI({
-	name:"gridsuggest",
+	name:"multiselect",
+	$cssName:"richselect",
 	defaults:{
-		type:"datatable",
-		fitMaster:false,
+        separator:","
+	},
+	_suggest_config:function(value){
+		var isobj = !webix.isArray(value) && typeof value == "object" && !value.name; 
+		var suggest = { view:"checksuggest", separator:this.config.separator, buttonText: this.config.buttonText, button: this.config.button };
+
+		if (this._settings.optionWidth)
+			suggest.width = this._settings.optionWidth;
+		else
+			suggest.fitMaster = true;
+
+		if (isobj)
+			webix.extend(suggest, value, true);
+
+		var view = webix.ui(suggest);
+		var list = view.getList();
+		if (typeof value == "string")
+			list.load(value);
+		else if (!isobj)
+			list.parse(value);
+
+		view.attachEvent("onBeforeShow",function(node,mode, point){
+			this.setValue(webix.$$(this._settings.master).config.value);
+		});
+
+		return view;
+	},
+
+	$setValue:function(value){
+		if (!this._rendered_input) return;
+		var popup = this.getPopup();
+		this.getInputNode().innerHTML = popup ? popup.setValue(value) : "";
+	},
+	getValue:function(){
+		return this._settings.value||"";
+	}
+}, webix.ui.richselect);
+
+webix.editors.multiselect = webix.extend({
+	popupType:"multiselect"	
+}, webix.editors.richselect);
+
+webix.type(webix.ui.list, {
+	name:"multilist",
+	templateStart:webix.template('<div webix_l_id="#!id#" class="{common.classname()}" style="width:{common.widthSize()}; height:{common.heightSize()}; overflow:hidden;">')
+}, "default");
+
+webix.type(webix.ui.list, {
+	name:"checklist",
+	templateStart:webix.template('<div webix_l_id="#!id#" class="{common.classname()}" style="width:{common.widthSize()}; height:{common.heightSize()}; overflow:hidden; white-space:nowrap;">{common.checkbox()}'),
+	checkbox: function(obj){
+		var icon = obj.$checked?"fa-check-square":"fa-square-o";
+		return "<span class='webix_icon "+icon+"'></span>";
+	},
+	template: webix.template("#value#")
+}, "default");
+
+
+webix.protoUI({
+	name:"multisuggest",
+	defaults:{
+		separator:",",
+		type:"layout",
+		button:true,
 		width:0,
-		body:{
-			navigation:true,
-			autoheight:true,
-			autowidth:true,
-			select:true
+		filter:function(item,value){
+			var itemText = this.getItemText(item.id);
+			return (itemText.toString().toLowerCase().indexOf(value.toLowerCase())>-1);
 		},
-		filter:function(item, value){
-			var text = this.config.template(item);
-			if (text.toString().toLowerCase().indexOf(value.toLowerCase())===0) return true;
-				return false;
-		}
-	},
-	$init:function(obj){
-		if (!obj.body.columns)
-			obj.body.autoConfig = true;
-		if (!obj.template)
-			obj.template = webix.bind(this._getText, this);
-	},
-	_getText:function(item, common){
-		var grid = this.getBody();
-		var value = this.config.textValue || grid.config.columns[0].id;
-		return grid.getText(item.id, value);
-	}
-}, webix.ui.suggest);
-webix.protoUI({
-	name:"datasuggest",
-	defaults:{
-		type:"dataview",
-		fitMaster:false,
-		width:0,
 		body:{
-			xCount:3,
-			autoheight:true,
-			select:true
+			rows:[
+				{ view:"list", type:"multilist", borderless:true,  autoheight:true, yCount:5, multiselect:"touch", select:true,
+				  on:{
+					onItemClick: function(id){
+						var popup = this.getParentView().getParentView();
+						webix.delay(function(){
+							webix.$$(popup._settings.master).setValue(popup.getValue());
+						});
+					}
+				}},
+				{ view:"button", click:function(){
+					var suggest = this.getParentView().getParentView();
+					suggest.setMasterValue({ id:suggest.getValue() });
+					suggest.hide();
+				}}
+			]
 		}
+	},
+	_get_extendable_cell:function(obj){
+		return obj.rows[0];
+	},
+	_set_on_popup_click:function(){
+		var button = this.getButton();
+		var text = (this._settings.button?(this._settings.buttonText || webix.i18n.controls.select):0);
+		if(button){
+			if(text){
+				button._settings.value = text;
+				button.refresh();
+			}
+			else
+				button.hide();
+		}
+	},
+	getButton:function(){
+		return this.getBody().getChildViews()[1];
+	},
+	getList:function(){
+		return this.getBody().getChildViews()[0];
+	},
+	setValue:function(value){
+		var text = [];
+		var list = this.getList();
+		list.unselect();
+
+		if (value){
+			if (typeof value == "string")
+				value = value.split(this.config.separator);
+				
+			if (value[0]){
+				for (var i = 0; i < value.length; i++){
+					if (list.exists(value[i])){
+						list.select(value[i], true);
+						text.push(this.getItemText(value[i]));
+					}
+				}
+			}
+		}
+
+		return text.join(this.config.separator+" ");
+	},
+	getValue:function(){
+		return this.getList().getSelectedId(true).sort().join(this.config.separator);
 	}
 }, webix.ui.suggest);
+
+webix.protoUI({
+	name:"checksuggest",
+	defaults:{
+		button:false,
+		body:{
+			rows:[
+				{ view:"list",  css:"webix_multilist", borderless:true, autoheight:true, yCount:5, select: true,
+					type:"checklist",
+					on:{
+						onItemClick: function(id){
+							var item = this.getItem(id);
+							item.$checked = item.$checked?0:1;
+							this.refresh(id);
+							var popup = this.getParentView().getParentView();
+							webix.$$(popup._settings.master).setValue(popup.getValue());
+						}
+					}
+				},
+				{ view:"button", click:function(){
+					var suggest = this.getParentView().getParentView();
+					suggest.setMasterValue({ id:suggest.getValue() });
+					suggest.hide();
+				}}
+			]
+		}
+	},
+	_enter_key: function(popup,list) {
+		if (list.count && list.count()){
+			if (popup.isVisible()) {
+				var value = list.getSelectedId(false, true);
+				if(value){
+					list.getItem(value).$checked = list.getItem(value).$checked?0:1;
+					value = this.getValue();
+					var master = webix.$$(this._settings.master);
+					master._inputValue = "";
+					master.setValue(value);
+					master.getInputNode().value = "";
+				}
+				popup.hide(true);
+			} else {
+				popup.show(this._last_input_target);
+			}
+		} else {
+			if (popup.isVisible())
+				popup.hide(true);
+		}
+	},
+	setValue:function(value){
+		var i,
+			list = this.getList(),
+			text = [],
+			values = {},
+			changed = [];
+
+		value = value || [];
+		if (typeof value == "string")
+			value = value.split(this.config.separator);
+
+		for ( i = 0; i < value.length; i++){
+			values[value[i]] = 1;
+		}
+
+		list.data.each(function(item){
+			if(item.$checked){
+				if(!values[item.id]){
+					item.$checked = 0;
+					changed.push(item.id);
+				}
+			}
+			else{
+				if(values[item.id]){
+					item.$checked = 1;
+					changed.push(item.id);
+				}
+			}
+			if(item.$checked)
+				text.push(this.getItemText(item.id));
+		},this,true);
+
+		for( i=0; i < changed.length; i++ ){
+			list.refresh(changed[i]);
+		}
+
+		return text.join(this.config.separator+" ");
+	},
+	getValue:function(){
+		var values = [];
+		this.getList().data.each(function(item){
+			if(item.$checked){
+				values.push(item.id);
+			}
+		},this,true);
+		return values.sort().join(this.config.separator);
+	},
+	_preselectMasterOption: function(){}
+}, webix.ui.multisuggest);
+
+webix.protoUI({
+	name:"multicombo",
+	$cssName:"text",
+	defaults:{
+		separator:",",
+		icon: false,
+		iconWidth: 0,
+		template:function(obj,common){
+			return common._render_value_block(obj, common);
+		}
+	},
+	$init:function(){
+		this.$view.className += " webix_multicombo";
+
+		this.attachEvent("onBlur", webix.bind(function(e){
+			this._inputValue = "";
+			this.refresh();
+		},this));
+
+		this.attachEvent("onBeforeRender",function(){
+			if(!this._inputHeight)
+				this._inputHeight = this.config.aheight;
+			return true;
+		});
+		this.attachEvent("onAfterRender", function(){
+			this._last_size = null;
+		});
+	},
+	on_click: {
+		"webix_multicombo_delete": function(e,view,node){
+			var value;
+			if(node && (value = node.parentNode.getAttribute("value")))
+				this._removeValue(value);
+			return false;
+		}
+	},
+	_removeValue: function(value){
+		var v = webix.toArray(this._settings.value.split(this._settings.separator));
+		v.remove(value);
+		this.setValue(v.join(this._settings.separator));
+	},
+	_suggest_config:function(value){
+		var isObj = !webix.isArray(value) && typeof value == "object" && !value.name,
+			suggest = { view:"checksuggest", separator:this.config.separator, buttonText: this.config.buttonText, button: this.config.button },
+			combo = this;
+
+		if (this._settings.optionWidth)
+			suggest.width = this._settings.optionWidth;
+
+		if (isObj)
+			webix.extend(suggest, value, true);
+
+		var view = webix.ui(suggest);
+		if(!this._settings.optionWidth)
+			view.$customWidth = function(node){
+				this.config.width = combo._get_input_width(combo._settings);
+			};
+		view.attachEvent("onBeforeShow",function(node,mode, point){
+			this.setValue(webix.$$(this._settings.master).config.value);
+			if(node.tagName && node.tagName.toLowerCase() == "input"){
+				webix.ui.popup.prototype.show.apply(this, [node.parentNode,mode, point]);
+				return false;
+			}
+		});
+		var list = view.getList();
+		if (typeof value == "string")
+			list.load(value);
+		else if (!isObj)
+			list.parse(value);
+
+		return view;
+	},
+	_render_value_block:function(obj, common){
+
+		var id = obj.id || webix.uid();
+		var width = common._get_input_width(obj);
+		var inputAlign = obj.inputAlign || "left";
+
+		var height = this._inputHeight - 2*webix.skin.$active.inputPadding -2;
+		var text = (obj.text||obj.value||this._get_div_placeholder(obj));
+		var value = obj.value;
+
+		var list = "<ul class='webix_multicombo_listbox' style='line-height:"+height+"px'></ul>";
+		var input = "<input type='text' class='webix_multicombo_input' style='width: "+Math.min(width,(common._inputWidth||7))+"px;height:"+height+"px;max-width:"+(width-20)+"px' value='"+(common._inputValue||"")+"'/>";
+		var html = "<div class='webix_inp_static' tabindex='0' onclick='' style='line-height:"+height+"px;width: " + width + "px;  text-align: " + inputAlign + ";height:auto' >"+list+input +"</div>";
+
+		var inputAlign = (obj.inputAlign||"left");
+		id = id || obj.name || webix.uid();
+
+		var label = common.$renderLabel(obj,id);
+
+
+		html +=	"</div>";
+
+		if (top)
+			return label+"<div class='webix_el_box' style='width:"+this._settings.awidth+"px; '>"+html+"</div>";
+		else
+			return "<div class='webix_el_box' style='width:"+this._settings.awidth+"px; min-height:"+this._settings.aheight+"px;'>"+label+html+"</div>";
+
+	},
+	_getValueListBox: function(){
+		return this._getBox().getElementsByTagName("UL")[0];
+	},
+	_set_inner_size: function(){
+		var popup = this.getPopup();
+		if(popup){
+			var text = (popup ? popup.setValue(this._settings.value) : "");
+			var html = "";
+			var listbox = this._getValueListBox();
+			if(text){
+
+				var values = this._settings.value.split(this._settings.separator);
+				var textArr = text.split(this._settings.separator);
+
+				var height = this._inputHeight - 2*webix.skin.$active.inputPadding - 8;
+				for(var i=0; i < textArr.length;i++){
+					var content = "<span>"+textArr[i]+"</span><span class='webix_multicombo_delete'>x</span>";
+					html += "<li class='webix_multicombo_value' style='line-height:"+height+"px;' value='"+values[i]+"'>"+content+"</li>";
+				}
+			}
+
+			listbox.innerHTML = html;
+		}
+		this._resizeToContent();
+	},
+	_focusAtEnd: function(inputEl){
+		if (inputEl && inputEl.value.length){
+			if (inputEl.createTextRange){
+				var FieldRange = inputEl.createTextRange();
+				FieldRange.moveStart('character',inputEl.value.length);
+				FieldRange.collapse();
+				FieldRange.select();
+			}else if (inputEl.selectionStart || inputEl.selectionStart == '0') {
+				var elemLen = inputEl.value.length;
+				inputEl.selectionStart = elemLen;
+				inputEl.selectionEnd = elemLen;
+				inputEl.focus();
+			}
+		}else{
+			inputEl.focus();
+		}
+	},
+	_resizeToContent: function(){
+		var top = this._settings.labelPosition == "top";
+		var inputHeight = Math.max(this._getBox().firstChild.offsetHeight+ 2*webix.skin.$active.inputPadding, this._inputHeight)+ (top?this._labelTopHeight:0);
+
+		if(inputHeight != this.$height){
+
+			this._calcHeight = this._getBox().firstChild.offsetHeight + (top?this._labelTopHeight:0);
+			this._tempWidth = this.$view.offsetWidth;
+
+			var top =this.getTopParentView();
+			clearTimeout(top._template_resize_timer);
+			top._template_resize_timer = webix.delay(function(){
+				this.config.height = this._calcHeight + 2*webix.skin.$active.inputPadding;
+				this.resize();
+				if(this._typing){
+					this._focusAtEnd(this.getInputNode());
+					this._typing = false;
+				}
+				if(this.getPopup().isVisible()||this._typing)
+					this.getPopup().show(this._getBox().firstChild);
+			}, this);
+
+		}
+	},
+	getInputNode: function(){
+		return this._getBox().getElementsByTagName("INPUT")[0];
+	},
+	$setValue:function(){
+		this._set_inner_size();
+	},
+	getValue:function(){
+		return this._settings.value;
+	},
+	_calcInputWidth: function(value){
+		var tmp = document.createElement("span");
+		tmp.className = "webix_multicombo_input";
+		tmp.style.visibility = "visible";
+		tmp.style.height = "0px";
+		tmp.innerHTML = value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+		document.body.appendChild(tmp);
+		var width = tmp.offsetWidth+10;
+		document.body.removeChild(tmp);
+		return width;
+	},
+	_init_onchange:function(){
+
+		// input focus and focus styling
+		webix.event(this._getBox(),"click",function(){
+			this.getInputNode().focus();
+		},this);
+		webix.event(this.getInputNode(),"focus",function(){
+			if(this._getBox().className.indexOf("webix_focused") == -1)
+				this._getBox().className += " webix_focused";
+
+		},this);
+		webix.event(this.getInputNode(),"blur",function(){
+			this._getBox().className = this._getBox().className.replace(" webix_focused","");
+		},this);
+
+		// need for clear click ("x") in IE
+		webix.event(this.getInputNode(),"input",function(){
+			if(!this.getInputNode().value && this._inputValue){
+				this.getInputNode().style.width = "20px";
+				this._inputWidth = 20;
+				this._inputValue = "";
+				this._typing = true;
+				this.getPopup().show(this._getBox().firstChild);
+				this._resizeToContent();
+			}
+		},this);
+		// resize
+		webix.event(this.getInputNode(),"keyup",function(){
+			var inp = this.getInputNode();
+			var width = this._calcInputWidth(inp.value)+10;
+			inp.style.width = width +"px";
+			if(width!=this._inputWidth){
+				this._inputWidth = width;
+				this._inputValue = inp.value;
+				this._typing = true;
+				this.getPopup().show(this._getBox().firstChild);
+				this._resizeToContent();
+			}
+
+		},this);
+
+		// remove the last value on Backspace click
+		webix.event(this.getInputNode(),"keydown",function(e){
+			if (this.isVisible()){
+				e = (e||event);
+				var node = this._getValueListBox().lastChild;
+				if(e.keyCode == 8 && node){
+					if(!this.getInputNode().value && ((new Date()).valueOf() - (this._backspaceTime||0) > 500)){
+						this._typing = true;
+						this._removeValue(node.getAttribute("value"));
+					}
+					else{
+						this._backspaceTime = (new Date()).valueOf();
+					}
+				}
+
+			}
+		},this);
+		webix.$$(this._settings.suggest).linkInput(this);
+	}
+}, webix.ui.richselect);
 
 
 
@@ -26635,8 +27304,7 @@ webix.ContextHelper = {
 		this._area = { obj:webix.$$(e), id:id };
 		return this._show_at(e);
 	},
-	_show_at:function(e){ 
-		if (!this.callEvent("onBeforeShow", [e])) return;
+	_show_at:function(e){
 		this.show(e, null, true);
 		//event forced to close other popups|context menus
 		webix.callEvent("onClick", [e]);
@@ -28044,11 +28712,10 @@ webix.markup = {
 		box.setAttribute("webixbox", 1);
 			
 		var inner = '';
-
 		if (config.width)
-			box.style.width = config.width;
+			box.style.width = config.width+(webix.rules.isNumber(config.width)?"px":"");
 		if (config.height)
-			box.style.height = config.height;
+			box.style.height = config.height+(webix.rules.isNumber(config.height)?"px":"");
 		if (config.title)
 			inner+='<div class="webix_popup_title">'+config.title+'</div>';
 		inner+='<div class="webix_popup_text"><span>'+(config.content?'':config.text)+'</span></div><div  class="webix_popup_controls">';
@@ -28869,17 +29536,25 @@ webix.UploadDriver = {
 
 			var formData = new FormData();
 			formData.append("upload", item.file);
-			if (details)
+
+			var headers = {};
+				details = details || {};
+
+			if(webix.callEvent("onBeforeAjax",["POST", this._settings.upload, details, xhr, headers, formData])){
 				for (var key in details)
 					formData.append(key, details[key]);
 
 
-			var xhr = item.xhr = new XMLHttpRequest();
+				var xhr = item.xhr = new XMLHttpRequest();
+				xhr.upload.addEventListener('progress', webix.bind(function(e){ this._update_progress(id, e.loaded/e.total*100); }, this), false);
+				xhr.onload = webix.bind(function(e){ if (!xhr.aborted) this._file_complete(id); }, this);
+				xhr.open('POST', this._settings.upload, true);
 
-			xhr.upload.addEventListener('progress', webix.bind(function(e){ this._update_progress(id, e.loaded/e.total*100); }, this), false);
-			xhr.onload = webix.bind(function(e){ if (!xhr.aborted) this._file_complete(id); }, this);
-			xhr.open('POST', this._settings.upload, true);
-			xhr.send(formData);
+				for (var key in headers)
+					xhr.setRequestHeader(key, headers[key]);
+
+				xhr.send(formData);
+			}
 
 			this._update_progress(id, 0);
 			return true;
@@ -29461,11 +30136,20 @@ webix.protoUI({
     },
     _on_mouse_down_start:function(e){
         var trg = e.target || e.srcElement;
-        if (trg.className == "webix_slider_handle"){
-            this._start_value = this._settings.value;
+	    if(this._mouse_down_process){
+		    this._mouse_down_process(e);
+	    }
+
+	    var value = this._settings.value;
+	    if(webix.isArray(value))
+		    value = webix.copy(value);
+
+        if (trg.className.indexOf("webix_slider_handle")!=-1){
+            this._start_value = value;
             return this._start_handle_dnd.apply(this,arguments);
         } else if (trg.className.indexOf("webix_slider") != -1){
-            this._start_value = this._settings.value;
+            this._start_value = value;
+
             this._settings.value = this._get_value_from_event.apply(this,arguments);
 
             this._start_handle_dnd(e);
@@ -29502,11 +30186,16 @@ webix.protoUI({
         webix.html.removeCss(document.body,"webix_noselect");
 
         var value = this._settings.value;
-        this._settings.value = this._start_value;
+	    if(webix.isArray(value))
+		    value = webix.copy(value);
+
+	    this._settings.value = this._start_value;
         this.setValue(value);
     },
     _handle_move_process:function(e){
+
         this._settings.value = this._get_value_from_event.apply(this,arguments);
+
         this.refresh();
         this.callEvent("onSliderDrag", []);
     },
@@ -30237,13 +30926,37 @@ webix.ProgressBar = {
 			webix.delay(function(){
 				if (this._progress){
 					var position = config.position || 1;
-					this._progress.firstChild.style.width = position*100+"%";
+					//check for css-transition support
+					if(this._progress.style[webix.env.transitionDuration] !== webix.undefined || !config.delay){
+						this._progress.firstChild.style.width = position*100+"%";
+						if (config.delay)
+							this._progress.firstChild.style[webix.env.transitionDuration] = config.delay+"ms";
+					} else{
+					//if animation is not supported fallback to timeouts [IE9]
+						var count = 0,
+							start = 0,
+							step = position/config.delay*30,
+							view = this;
 
-					if (config.delay)
-						this._progress.firstChild.style[webix.env.transitionDuration] = config.delay+"ms";
+						if(this._progressTimer){
+							//reset the existing progress
+							window.clearInterval(this._progressTimer);
+							start = this._progress.firstChild.offsetWidth/this._progress.offsetWidth*100;
+						}
+						this._progressTimer = window.setInterval(function(){
+							if(count*30 == config.delay){
+								window.clearInterval(view._progressTimer);
+							}
+							else{
+								view._progress.firstChild.style.width = start+count*step*position*100+"%";
+								count++;
+							}
+						},30);
+					}
 
 					if (config.hide)
 						webix.delay(this.hideProgress, this, [1], config.delay);
+
 				}
 				this._progress_delay = 0;
 			}, this);
@@ -30255,6 +30968,8 @@ webix.ProgressBar = {
 
 		if (this._progress){
 			if (now){
+				if(this._progressTimer)
+					window.clearInterval(this._progressTimer);
 				webix.html.remove(this._progress);
 				this._progress = null;
 			} else {
