@@ -571,6 +571,16 @@ x\:ui {
   background-color: #ffdb8f;
   border: 1px solid #ffd47b;
 }
+.webix_animation .webix_ss_header {
+  position: relative;
+  z-index: 10;
+}
+.webix_animation .webix_ss_footer,
+.webix_animation .webix_vscroll_x {
+  position: absolute;
+  bottom: 0px;
+  z-index: 10;
+}
 /*helper for allowing selection*/
 .webix_allow_selection {
   -moz-user-select: text;
@@ -1167,6 +1177,10 @@ div.webix_modal_cover {
   background-image: -o-linear-gradient(top, #eaf3ff 0%, #e5f1ff 60%, #d6e8ff 100%);
   background-position: 0px 1px;
   background-repeat: repeat-x;
+}
+.webix_ss_footer TD,
+.webix_ss_vscroll_footer {
+  background: white;
 }
 /*content in header and footer*/
 .webix_hcell {
@@ -2563,7 +2577,8 @@ textarea.webix_invalid {
   opacity: 0;
 }
 .webix_view.webix_control .webix_disabled_box label,
-.webix_view.webix_control .webix_disabled_box .webix_input_icon {
+.webix_view.webix_control .webix_disabled_box .webix_input_icon,
+.webix_view.webix_control .webix_disabled_box button {
   color: #aaaaaa;
 }
 .webix_view.webix_control .webix_disabled_box input,

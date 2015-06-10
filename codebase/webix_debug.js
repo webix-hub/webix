@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.4.0
+webix UI v.2.4.4
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="2.4.0";
+webix.version="2.4.4";
 webix.codebase="./";
 webix.name = "core";
 
@@ -4370,7 +4370,13 @@ webix.protoUI({
 
 		this._viewobj.style.width = x+"px";
 		this._viewobj.style.height = y+"px";
-		
+
+		// temp. fix: Chrome [DIRTY]
+		if (webix.env.isWebKit){
+			var w = this._viewobj.offsetWidth;
+			var h = this._viewobj.offsetHeight;
+		}
+
 		return true;
 	},
 	$getSize:function(dx, dy){
@@ -4397,6 +4403,8 @@ webix.protoUI({
 
 			if (show?parent._show:parent._hide)
 				(show?parent._show:parent._hide).call(parent, this, animate_settings);
+			if (show)
+				this._render_hidden_views();
 			if (force && show)  
 				parent.show(force);
 		}
@@ -5371,13 +5379,13 @@ webix.animate.formLine=function(next, current, animation){
 	if(current.parentNode == next.parentNode && animation.keepViews)
 		next.style.display = "";
 	else
-		current.parentNode.appendChild(next);
+		webix.html.insertBefore(next, current.nextSibling, current.parentNode);
 
 	if(animation.type == 'slide' && animation.subtype == 'out') {
 		next.style.left = "0px";
 		next.style.top = (animation.top || 0)+"px";
 		current.parentNode.removeChild(current);
-		next.parentNode.appendChild(current);
+		webix.html.insertBefore(current, next.nextSibling, next.parentNode);
 	}
 	return [next, current];
 };
@@ -7784,7 +7792,7 @@ webix.protoUI({
 	},
 	$init:function(config){
 		if (config.labelPosition == "top")
-			if (webix.isUndefined(config.height))
+			if (webix.isUndefined(config.height) && this.defaults.height)  // textarea
 				config.height = this.defaults.height + this._labelTopHeight;
 
 		//suggest reference for destructor
@@ -7877,7 +7885,7 @@ webix.protoUI({
 		if (typeof text != "undefined")
 			config.bottomLabel = text;
 
-		var message = (config.invalid ? config.invalidMessage : "" ) || config.bottomLabel;
+		var message = (config.invalid ? config.invalidMessage : "" ) || config.bottomLabel || config.bottomPadding;
 		if (!message) config.inputHeight = 0;
 
 		if (message && !config.bottomPadding){
@@ -7898,13 +7906,11 @@ webix.protoUI({
 	},
 	$getSize: function(){
 		var sizes = webix.ui.view.prototype.$getSize.apply(this,arguments);
-
 		var heightInc = this.config.bottomPadding;
 		if(heightInc){
 			sizes[2] += heightInc;
 			sizes[3] += heightInc;
 		}
-
 		return sizes;
 	},
 	$setSize:function(x,y){
@@ -7920,7 +7926,6 @@ webix.protoUI({
 			} else if (config.bottomPadding){
 				config.inputHeight = this._content_height - this.config.bottomPadding;
 			}
-
 			this.render();
 		}
 	}, 
@@ -7984,7 +7989,6 @@ webix.protoUI({
 		html += icon;
 
 		var result = "";
-
 		//label position, top or left
 		if (top)
 			result = label+"<div class='webix_el_box' style='width:"+config.awidth+"px; height:"+config.aheight+"px'>"+html+"</div>";
@@ -10434,14 +10438,11 @@ webix.protoUI({
 
 		//make copy of existing view
 		var top = 0;
-		var fnode = 0;
 		var snode = this.$master._dataobj;
 		if (this.$master._body){	//datatable
 			snode = this.$master._body;
-			fnode = this.$master._header;
-			fnode.style.position = "relative";
-			fnode.style.zIndex = "10";
 			top = snode.offsetTop;
+			webix.html.addCss(this.$master.$view, "webix_animation");
 		}
 
 		var onode = snode.cloneNode(true);
@@ -10451,7 +10452,7 @@ webix.protoUI({
 		//redraw page
 		this.$master.refresh();
 		//append copy next to original
-		snode.parentNode.appendChild(onode);
+		webix.html.insertBefore(onode, snode.nextSibling, snode.parentNode);
 
 		//animation config
 		var line;
@@ -10462,8 +10463,8 @@ webix.protoUI({
 				aniset.callback = null;
 				webix.animate.breakLine(line);
 				this._pgInAnimation = false;
-				if (fnode)
-					fnode.style.position = "";
+				if (this.$master._body)
+					webix.html.removeCss(this.$master.$view, "webix_animation");
 			},this),
 			top:top
 		}, base);
@@ -12143,6 +12144,13 @@ webix.TreeStore = {
 		if (this._marks[id])
 			delete this._marks[id];
 	},
+	_filter_removed:function(pull, parentId, id){
+		var branch = pull[parentId];
+		if (branch.length == 1 && branch[0] == id && parentId){
+			delete pull[parentId];
+		} else
+			webix.toArray(branch).remove(id);
+	},
 	remove:function(id){
 		webix.assert(this.exists(id), "Not existing ID in remove command"+id);
 		var obj = this.pull[id];
@@ -12153,17 +12161,15 @@ webix.TreeStore = {
 		this.callEvent("onAfterDelete",[id]);
 
 		var parent = this.pull[parentId];
-		var branch = this.branch[parentId];
-		if (branch.length == 1 && parentId)
-			delete this.branch[parentId];
-		else
-			webix.toArray(branch).remove(id);
-		
+		this._filter_removed(this.branch, parentId, id);
+		if (this._filter_branch)
+			this._filter_removed(this._filter_branch, parentId, id);
 
 		var refresh_parent = 0;
 		if (parent){
 			parent.$count--;
-			if (!parent.$count){
+			if (parent.$count<=0){
+				parent.$count=0;
 				parent.open = 0;
 				refresh_parent = 1;
 			}
@@ -13189,7 +13195,12 @@ webix.protoUI({
 	_id:"webix_tm_id",
 	//supports custom context menu
 	on_context:{},
-	on_dblclick:{},
+	on_dblclick:{
+		webix_tree_checkbox:function(){
+			if(this.on_click.webix_tree_checkbox)
+				return this.on_click.webix_tree_checkbox.apply(this,arguments);
+		}
+	},
 	//css class to action map, for onclick event
 	on_click:{
 		webix_tree_item:function(e,id){
@@ -16112,7 +16123,6 @@ webix.protoUI({
 			var col = this.getColumnConfig(id.column);
 
 			var value = (item[id.column] != col.checkValue) ? col.checkValue : col.uncheckValue;
-
 			item[id.column] = value;
 			this.callEvent("onCheck", [id.row, id.column, value]);
 			this.data.callEvent("onStoreUpdated", [id.row, item, (this._settings.checkboxRefresh?"update":"save")]);
@@ -16139,6 +16149,9 @@ webix.protoUI({
 		}
 	},
 	on_dblclick:{
+		webix_table_checkbox: function(){
+			return this.on_click.webix_table_checkbox.apply(this,arguments);
+		}
 	},
 	on_context:{
 	},
@@ -16733,6 +16746,10 @@ webix.protoUI({
 
 			obj.style.height = Math.max(height,1)-1+"px";
 			obj.style.width = (this._rightSplit?0:hdx)+this._scrollSizeY-1+"px";
+
+			// temp. fix: Chrome [DIRTY]
+			if (webix.env.isWebKit)
+				var w = obj.offsetWidth;
 		} else 
 			obj.style.display = "none";
 	},
@@ -17504,7 +17521,13 @@ webix.protoUI({
 			this._header_fix_width = delta;
 			this._size_header_footer_fix();
 		}
-		
+
+		// temp. fix: Chrome [DIRTY]
+		if (webix.env.isWebKit){
+			var w = this._body.childNodes[0].offsetWidth;
+			w = this._body.childNodes[1].offsetWidth;
+			w = this._body.childNodes[2].offsetWidth;
+		}
 
 		this._x_scroll.sizeTo(this._content_width-this._scrollSizeY);
 		this._x_scroll.define("scrollWidth", this._dtable_width+this._left_width+this._right_width);
@@ -17533,7 +17556,7 @@ webix.protoUI({
 	_restore_scroll_state:function(){
 		if (this._x_scroll){
 			var state = this.getScrollState();
-			this._x_scroll._settings.scrollPos = this._y_scroll._settings.scrollPos = -1;
+			this._x_scroll._last_scroll_pos = this._y_scroll._last_scroll_pos = -1;
 			this.scrollTo(state.x, state.y);
 		}
 	},
@@ -26881,15 +26904,12 @@ webix.protoUI({
 	_resizeToContent: function(){
 		var top = this._settings.labelPosition == "top";
 		var inputHeight = Math.max(this._getBox().firstChild.offsetHeight+ 2*webix.skin.$active.inputPadding, this._inputHeight)+ (top?this._labelTopHeight:0);
-
-		if(inputHeight != this.$height){
-
+		var sizes = this.$getSize(0,0);
+		if(inputHeight != sizes[2]){
 			this._calcHeight = this._getBox().firstChild.offsetHeight + (top?this._labelTopHeight:0);
-			this._tempWidth = this.$view.offsetWidth;
-
-			var top =this.getTopParentView();
-			clearTimeout(top._template_resize_timer);
-			top._template_resize_timer = webix.delay(function(){
+			var topView =this.getTopParentView();
+			clearTimeout(topView._template_resize_timer);
+			topView._template_resize_timer = webix.delay(function(){
 				this.config.height = this._calcHeight + 2*webix.skin.$active.inputPadding;
 				this.resize();
 				if(this._typing){
@@ -26899,7 +26919,6 @@ webix.protoUI({
 				if(this.getPopup().isVisible()||this._typing)
 					this.getPopup().show(this._getBox().firstChild);
 			}, this);
-
 		}
 	},
 	getInputNode: function(){
@@ -27305,10 +27324,11 @@ webix.ContextHelper = {
 		return this._show_at(e);
 	},
 	_show_at:function(e){
-		this.show(e, null, true);
+		var result = this.show(e, null, true);
 		//event forced to close other popups|context menus
 		webix.callEvent("onClick", [e]);
-		return webix.html.preventEvent(e);
+		
+		return (result === false?false:webix.html.preventEvent(e));
 	},
 	_show_on_mouse_out:true,
 	master_setter:function(value){
@@ -29346,7 +29366,7 @@ webix.UploadDriver = {
 
 			this.files.attachEvent("onBeforeDelete", webix.bind(this._stop_file,this));
 		},
-		_applyFlash: function(name,params){
+		$applyFlash: function(name,params){
 			return this[name].apply(this,params);
 		},
 		getSwfObject: function(){
@@ -29384,7 +29404,7 @@ webix.UploadDriver = {
 			return true;
 
 		},
-		_beforeAddFileToQueue: function( id, name, size ){
+		$beforeAddFileToQueue: function( id, name, size ){
 			var type = name.split(".").pop();
 			var format = this._format_size(size);
 			return this.callEvent("onBeforeFileAdd", [{
@@ -29395,7 +29415,7 @@ webix.UploadDriver = {
 				type:type
 			}]);
 		},
-		_addFileToQueue: function(id, name, size){
+		$addFileToQueue: function(id, name, size){
 			if(this.files.exists(id))
 				return false;
 			if (!this._settings.multiple)
@@ -29424,7 +29444,7 @@ webix.UploadDriver = {
 			this.getSwfObject().uploadStop(id);
 			item.status = "client";
 		},
-		_onUploadSuccess: function(id,name,response){
+		$onUploadSuccess: function(id,name,response){
 			var item = this.files.getItem(id);
 			if(item){
 				item.status = "server";
@@ -29439,7 +29459,7 @@ webix.UploadDriver = {
 				this.files.updateItem(id);
 			}
 		},
-		_onUploadFail: function(id){
+		$onUploadFail: function(id){
 			var item = this.files.getItem(id);
 			item.status = "error";
 			delete item.percent;
@@ -29546,7 +29566,7 @@ webix.UploadDriver = {
 
 
 				var xhr = item.xhr = new XMLHttpRequest();
-				xhr.upload.addEventListener('progress', webix.bind(function(e){ this._update_progress(id, e.loaded/e.total*100); }, this), false);
+				xhr.upload.addEventListener('progress', webix.bind(function(e){ this.$updateProgress(id, e.loaded/e.total*100); }, this), false);
 				xhr.onload = webix.bind(function(e){ if (!xhr.aborted) this._file_complete(id); }, this);
 				xhr.open('POST', this._settings.upload, true);
 
@@ -29556,7 +29576,7 @@ webix.UploadDriver = {
 				xhr.send(formData);
 			}
 
-			this._update_progress(id, 0);
+			this.$updateProgress(id, 0);
 			return true;
 		},
 
@@ -29744,7 +29764,7 @@ webix.protoUI({
 		return true;
 	},
 
-	_update_progress: function(id, percent) {
+	$updateProgress: function(id, percent) {
 		var item = this.files.getItem(id);
 		item.percent = Math.round(percent);
 		this.files.updateItem(id);
