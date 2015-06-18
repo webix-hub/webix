@@ -60,6 +60,9 @@ button,
   filter: progid:DXImageTransform.Microsoft.Alpha(opacity=40);
   z-index: 1;
 }
+.webix_disabled_view {
+  overflow: hidden !important;
+}
 body.webix_full_screen {
   margin: 0;
   padding: 0;
@@ -686,7 +689,7 @@ x\:ui {
   visibility: hidden;
 }
 /*button of pager*/
-.webix_pager {
+.webix_view.webix_pager {
   padding: 4px 0;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -1299,7 +1302,7 @@ div.webix_modal_cover {
 }
 .webix_ss_footer TD,
 .webix_ss_vscroll_footer {
-  background: white;
+  background: #fafafa;
 }
 /*content in header and footer*/
 .webix_hcell {

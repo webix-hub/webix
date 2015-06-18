@@ -60,6 +60,9 @@ button,
   filter: progid:DXImageTransform.Microsoft.Alpha(opacity=40);
   z-index: 1;
 }
+.webix_disabled_view {
+  overflow: hidden !important;
+}
 body.webix_full_screen {
   margin: 0;
   padding: 0;
@@ -536,7 +539,7 @@ x\:ui {
   visibility: hidden;
 }
 /*button of pager*/
-.webix_pager {
+.webix_view.webix_pager {
   padding: 2px 0;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -1088,7 +1091,7 @@ div.webix_modal_cover {
   position: absolute;
   bottom: 0px;
   right: 0px;
-  border-left: 1px solid #a4bed4;
+  border-left: 1px solid #ffffff;
   border-top: 1px solid #a4bed4;
   z-index: 1;
 }
@@ -1170,7 +1173,7 @@ div.webix_modal_cover {
 }
 .webix_ss_footer TD,
 .webix_ss_vscroll_footer {
-  background: white;
+  background: #fafafa;
 }
 /*content in header and footer*/
 .webix_hcell {
@@ -1184,7 +1187,7 @@ div.webix_modal_cover {
 }
 .webix_ss_footer td {
   border-right: 1px solid #ebebeb;
-  border-top: 1px solid #a4bed4;
+  border-top: 1px solid #ebebeb;
 }
 /*remove rightmost borders*/
 .webix_hs_right td.webix_last,

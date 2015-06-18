@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.4.4
+webix UI v.2.4.7
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -12,6 +12,7 @@ body{-webkit-tap-highlight-color:transparent!important}
 .webix_layout_accordion,.webix_layout_clean,.webix_layout_line,.webix_multiview{background:0 0}
 .webix_overlay{width:100%;height:100%;position:absolute;z-index:10;text-align:center;padding-top:10px}
 .webix_view>.webix_disabled{width:100%;height:100%;position:absolute;top:0;left:0;background-color:#ddd;opacity:.4;filter:alpha(opacity=40);z-index:1}
+.webix_disabled_view{overflow:hidden!important}
 body.webix_full_screen{margin:0;padding:0;overflow:hidden}
 .webix_noselect,.webix_noselect div{-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;user-select:none}
 .webix_selectable{-moz-user-select:text;-webkit-user-select:text;user-select:text}
@@ -91,7 +92,7 @@ x\:ui{display:none}
 .webix_view.webix_list-x{white-space:nowrap}
 .webix_list_item.webix_disabled{color:#8b949e}
 .webix_list_item.webix_disabled .webix_submenu_icon{visibility:hidden}
-.webix_pager{padding:2px 0;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;background-color:transparent}
+.webix_view.webix_pager{padding:2px 0;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;background-color:transparent}
 .webix_pager_item,.webix_pager_item_selected{padding:0 6px;text-align:center;height:100%;width:32px;border:1px solid #cecece;margin:0 2px;cursor:pointer;background-color:#fff;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;font-family:Arial;font-size:13px}
 .webix_pager_item_selected{cursor:default;background-color:#fff3a1;border:1px solid #e6e6e6}
 .webix_animation .webix_ss_header{position:relative;z-index:10}
@@ -170,7 +171,7 @@ div.webix_modal_cover{background-color:#000;cursor:default;filter:alpha(opacity=
 .webix_ss_center_scroll{height:100%;position:relative;overflow:hidden}
 .webix_ss_hscroll{bottom:0}
 .webix_ss_vscroll{position:absolute;top:0;right:0;z-index:2}
-.webix_ss_vscroll_footer{position:absolute;bottom:0;right:0;border-left:1px solid transparent;border-top:1px solid #cecece;z-index:1}
+.webix_ss_vscroll_footer{position:absolute;bottom:0;right:0;border-left:1px solid #fff;border-top:1px solid #cecece;z-index:1}
 .webix_ss_vscroll_header{position:absolute;top:0;right:0;border-left:1px solid transparent;border-bottom:1px solid #cecece;z-index:1}
 .webix_dtable{position:relative;cursor:default}
 .webix_ss_footer,.webix_ss_header{clear:both;overflow:hidden}
@@ -182,7 +183,7 @@ div.webix_modal_cover{background-color:#000;cursor:default;filter:alpha(opacity=
 .webix_richfilter{margin-top:1px}
 .webix_ss_filter select{padding:3px}
 .webix_dd_drag_column,.webix_ss_header,.webix_ss_header TD,.webix_ss_vscroll_header{background:#fff;color:#2f2f2f}
-.webix_ss_footer TD,.webix_ss_vscroll_footer{background:#fff}
+.webix_ss_footer TD,.webix_ss_vscroll_footer{background:#fafafa}
 .webix_hcell{padding:0 20px;text-align:left}
 .webix_ss_header td{border-right:1px solid transparent;border-bottom:1px solid transparent}
 .webix_ss_footer td{border-right:1px solid transparent}
