@@ -3,19 +3,7 @@ Version 2.4.7
 
 ### Fixes
 
-- workaround for rendering regressions in Google Chrome
-- aminations in datatable	
-- avoiding errors when refresh() is called before render()
-- bottomPadding and invalid message; textarea sizing
-- incorrect checkbox state after double-click
-- deleting items in filtered state in tree or treetable
-- display native context menu on a page with webix context menu
-- flash upload and compiled webix.js
-- regression in restoring of scroll state in datatable
-- repainting changes in the hidden view
-- styling of disabled buttons
-- text selection during using a custom scrolls
-
+TBD
 
 Version 2.4.4
 ==============
@@ -23,17 +11,17 @@ Version 2.4.4
 ### Fixes
 
 - workaround for rendering regressions in Google Chrome
-- aminations in datatable	
-- avoiding errors when refresh() is called before render()
-- bottomPadding and invalid message; textarea sizing
+- animations in datatable	
+- avoiding errors when `refresh()` is called before `render()`
+- `bottomPadding` and invalid message; textarea sizing
 - incorrect checkbox state after double-click
 - deleting items in filtered state in tree or treetable
-- display native context menu on a page with webix context menu
-- flash upload and compiled webix.js
-- regression in restoring of scroll state in datatable
+- display native context menu on a page with Webix context menu
+- Flash upload and compiled webix.js
+- regression in restoring scroll state in datatable
 - repainting changes in the hidden view
 - styling of disabled buttons
-- text selection during using a custom scrolls
+- text selection while using custom scrolls
 
 
 Version 2.4.0
