@@ -3,18 +3,22 @@ Version 2.4.7
 
 ### Fixes
 
-- workaround for rendering regressions in Google Chrome
-- aminations in datatable	
-- avoiding errors when refresh() is called before render()
-- bottomPadding and invalid message; textarea sizing
-- incorrect checkbox state after double-click
-- deleting items in filtered state in tree or treetable
-- display native context menu on a page with webix context menu
-- flash upload and compiled webix.js
-- regression in restoring of scroll state in datatable
-- repainting changes in the hidden view
-- styling of disabled buttons
-- text selection during using a custom scrolls
+- tab/enter processing for multiselect; values order
+- ability to cancel scroll within datatable
+- apply input values on resize
+- buttons react on right-click
+- content-type for ajax calls
+- datatable scroll cancelling (dynamically)
+- dateFilter filter out empty records
+- disabling views with scrolls
+- footer styling, paging sizes
+- IE checkbox dblclick
+- list filtering in Combo
+- Safari vscroll in DataTable
+- slider step process
+- templateStart for grouplist and unitlist
+- tree lines in Flat skin
+- unnecessary scrolling for datatable with huge rowspans
 
 
 Version 2.4.4
@@ -36,8 +40,10 @@ Version 2.4.4
 - text selection during using a custom scrolls
 
 
-Version 2.4.0
+Version 2.4
 ==============
+
+### Major features
 
 - Portlet widget
 - MultiCombo widget
@@ -45,46 +51,6 @@ Version 2.4.0
 - Advanced validation messages for forms
 
 [Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2_4.html)
-
-
-
-Version 2.3.14
-==============
-- fix date serialization for ajax calls
-- fix closing of nested popups can affect windows
-- fix for multiple instances of FileManager on the same page
-- fix for uploader in IE8
-- fix colspans and split mode
-- fix clipbuffer styling in IE8
-- fix metaKey support (mac OS) for multiselection
-- fix validation in dataprocessor breaks insert operations
-- fix for CSV parser, not it ignores the trailing new-lines
-- fix for richselect, setting an empty value clears list selection
-
-
-Version 2.3.8
-=============
-- combo accepts full data object as a value
-- fix for scheduler: bottom toolbar height
-- fix for value binding and dataFeed
-- fix for regression in data saving handling
-
-
-Version 2.3.6
-=============
-
-- better position for sort-row marker
-- fix for missed onAfterFilter event for server side filtering
-- fix for server side filtering with active editor
-- fix for close all sub-windows on master popup closing
-- fix for validation in hidden form
-- fix for richselect filter in IE8
-- fix for unnecessary scroll blocking by datatable
-- fix for regression in treetable filtering
-- fix for combo behavior in dyn. loading mode
-- fix for onChange event in combo
-- fix for ActiveContent doesn't survive component repainting in IE
-- fix for regression in tooltip for icon
 
 
 Version 2.3
@@ -102,32 +68,6 @@ Version 2.3
 [Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2_3.html)
 
 
-Version 2.2.3
-================
-
-### Fixes
-
-- autoheight in templates
-- blockselecting and dbl-click events
-- blockselection and custom scroll
-- blockselection in scrolled state
-- blockselection in the empty datatable
-- calendar with no buttons, timepicker position
-- default hotkeys for windows
-- getValue on "editable" datepicker
-- moving items in tree and tree table while in the filtered state
-- processing setState with empty filter value
-- regression in click handling inside of multi-level popup
-- resetting text filter value after reloading data from the server side
-- select filter in FF
-- setValue and getValue of datepicker uses parseDateFormat
-- tabbar "more" icon styling
-- treestore serialization in filtered state
-- calendar icons hidden by default
-- scrollable "Month" view in Scheduler
-
-
-
 Version 2.2
 ================
 
@@ -139,34 +79,21 @@ Version 2.2
 - Optional hover for rows in datatable
 - Improved scrolling on touch devices
 
+
 [Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2_2.html)
-
-
-
-Version 2.1.1
-================
-- regression in addView fixed
-- issue with input focus in IE fixed
-
 
 
 Version 2.1
 ================
 
 ### Major features
-
-- better compatibility with Bootstrap and jQuery
+- Better compatibility with Bootstrap and jQuery
 - Icon font contains 479 icons now ( Font Awesome updated to 4.2 )
 - "strict" mode for Webix
 - Datatable and treetable math can be extended with custom functions
-- Uploader can work in Internet Explorer 8-9
-- ability to send extra data with file upload
-- addView() and removeView() methods can be used to add and remove tabs in tabview
-- find API for datatable and treetable
-- addDropZone() method for uploader to allow file upload by drag-n-drop on html area
+- Uploader can work in Internet Explorer 8
 
 [Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2_1.html)
-
 
 
 Version 2.0
@@ -191,7 +118,6 @@ Version 2.0
 
 
 [Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2.html)
-
 
 
 Version 1.10
