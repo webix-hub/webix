@@ -1708,9 +1708,18 @@ div.webix_modal_cover {
 .webix_cal_inactive {
   background: #888;
 }
-.webix_cal_day_disabled {
+.webix_cal_day_disabled,
+.webix_cal_day_disabled.webix_cal_event {
   color: #7e868e;
-  background: #f4f4f4 !important;
+  background: #f4f4f4;
+}
+.webix_hours .webix_cal_day_disabled,
+.webix_minutes .webix_cal_day_disabled,
+.webix_hours .webix_cal_day_disabled.webix_cal_event,
+.webix_minutes .webix_cal_day_disabled.webix_cal_event {
+  background: #ffffff;
+  font-weight: normal;
+  text-decoration: line-through;
 }
 .webix_cal_month_name {
   cursor: pointer;
@@ -2251,7 +2260,7 @@ input.webixtype_next {
 }*/
 .webix_inp_label {
   float: left;
-  padding-top: 2px;
+  padding-top: 1px;
   padding-left: 2px;
   padding-right: 7.5px;
   text-overflow: ellipsis;

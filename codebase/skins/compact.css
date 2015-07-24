@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.4.7
+webix UI v.2.5.0
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -356,10 +356,10 @@ div.webix_modal_cover{background-color:#000;cursor:default;filter:alpha(opacity=
 .webix_cal_body .webix_cal_select,.webix_cal_body .webix_cal_select.webix_cal_today,.webix_cal_body .webix_selected{color:#fff;background:#27ae60}
 .webix_cal_day,.webix_cal_week_num{cursor:pointer;font-size:12px;color:#666}
 .webix_cal_week_num{color:#bfbfbf;cursor:default;margin-right:0;border-right:1px solid #cecece}
-.webix_cal_event{font-weight:700;color:#C66200}
-.webix_cal_outside{color:#ccc}
+.webix_cal_event{font-weight:700}
 .webix_cal_inactive{background:#888}
-.webix_cal_day_disabled{color:#ccc;background:#f4f4f4!important}
+.webix_cal_day_disabled,.webix_cal_day_disabled.webix_cal_event{color:#ccc;background:#f4f4f4}
+.webix_hours .webix_cal_day_disabled,.webix_hours .webix_cal_day_disabled.webix_cal_event,.webix_minutes .webix_cal_day_disabled,.webix_minutes .webix_cal_day_disabled.webix_cal_event{background:#fff;font-weight:400;text-decoration:line-through}
 .webix_cal_month_name{cursor:pointer}
 .webix_cal_block{float:left;text-align:center;cursor:pointer}
 .webix_selected{background:#27ae60;color:#fff}
@@ -460,7 +460,7 @@ input.webixtype_next{border-right-width:0;border-radius:6px 0 0 6px;-webkit-bord
 .webix_el_box{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;padding:3px 2px;height:100%;width:100%;font-size:13px}
 .webix_el_combo input,.webix_el_datepicker input,.webix_el_search input,.webix_el_text input{height:100%;padding:0 10px;border:1px solid #ddd;color:#666;font-size:13px;background:#fff;font-family:'PT Sans',Tahoma;border-color:#ccc;-webkit-appearance:none;border-radius:0;padding-top:4px\0}
 .webix_inp_label,.webix_inp_top_label,.webix_label_right{color:#666}
-.webix_inp_label{float:left;padding-top:3px;padding-left:3px;padding-right:7.5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.webix_inp_label{float:left;padding-top:1px;padding-left:3px;padding-right:7.5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
 .webix_inp_top_label{float:none;padding:3px 2px 0}
 .webix_inp_bottom_label{font-size:11px;color:#737373}
 .webix_label_right{padding-left:7.5px}
@@ -1406,8 +1406,8 @@ a:active .webix_custom_radio,a:focus .webix_custom_radio{border:1px solid #3498d
 .webix_cal_body .webix_cal_day,.webix_cal_body .webix_cal_week_num{font-size:11px}
 .webix_cal_body .webix_cal_select,.webix_cal_body .webix_cal_select.webix_cal_today{border-radius:6px}
 .webix_cal_body .webix_cal_event.webix_cal_select,.webix_cal_body .webix_selected{color:#fff;border-radius:6px;background:#27ae60}
-.webix_cal_body .webix_cal_event{color:#3498db}
-.webix_cal_body .webix_cal_outside{font-weight:400;color:#bbb}
+.webix_cal_event{color:#3498db}
+.webix_cal_outside{font-weight:400;color:#bbb}
 .webix_cal_footer .webix_cal_done,.webix_time_footer .webix_cal_done{font-size:13px;padding:auto 6px;font-family:'PT Sans',Tahoma;border:1px solid #3498db;outline:0;color:#fff;background:#3498db;border-bottom:1px solid #2386c8}
 .webix_cal_month{line-height:20px;text-align:center;font-size:17px;font-weight:700}
 .webix_view>.webix_cal_header div{font-size:12px}

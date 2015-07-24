@@ -1,4 +1,4 @@
-Webix UI v.2.4.7
+Webix UI v.2.5.0
 ==============
 
 http://webix.com
@@ -14,4 +14,4 @@ If you don't know where to start - check
 You can buy commercial license and support subscription at http://webix.com
 
 
-(c) XB Software Ltd. 2014
+(c) XB Software Ltd. 2013 - 2015

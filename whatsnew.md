@@ -1,44 +1,15 @@
-Version 2.4.7
+Version 2.5
 ==============
 
-### Fixes
+### Major features
 
-- tab/enter processing for multiselect
-- order of values in multiselect
-- ability to cancel scroll within datatable
-- apply input values on resize
-- buttons react on right-click
-- content-type for ajax calls
-- datatable scroll cancelling (dynamically)
-- dateFilter filter out empty records
-- disabling views with scrolls
-- footer styling, paging sizes
-- IE checkbox dblclick
-- list filtering in Combo
-- Safari vscroll in DataTable
-- slider step process
-- templateStart for grouplist and unitlist
-- tree lines in Flat skin
-- unnecessary scrolling for datatable with huge rowspans
+- Support of Microsoft Edge
+- Handling of complex data in Form widget
+- Swimlanes in Kanban widget
+- Total calculations in Pivot widget
 
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2_5.html)
 
-Version 2.4.4
-==============
-
-### Fixes
-
-- workaround for rendering regressions in Google Chrome
-- animations in datatable	
-- avoiding errors when `refresh()` is called before `render()`
-- `bottomPadding` and invalid message; textarea sizing
-- incorrect checkbox state after double-click
-- deleting items in filtered state in tree or treetable
-- display native context menu on a page with Webix context menu
-- Flash upload and compiled webix.js
-- regression in restoring scroll state in datatable
-- repainting changes in the hidden view
-- styling of disabled buttons
-- text selection while using custom scrolls
 
 
 Version 2.4

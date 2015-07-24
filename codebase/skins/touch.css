@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.4.7
+webix UI v.2.5.0
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -311,7 +311,8 @@ div.webix_modal_cover{background-color:#000;cursor:default;filter:alpha(opacity=
 .webix_cal_event{font-weight:700;color:#C66200}
 .webix_cal_outside{color:#666}
 .webix_cal_inactive{background:#888}
-.webix_cal_day_disabled{color:#666;background:#f4f4f4!important}
+.webix_cal_day_disabled,.webix_cal_day_disabled.webix_cal_event{color:#666;background:#f4f4f4}
+.webix_hours .webix_cal_day_disabled,.webix_hours .webix_cal_day_disabled.webix_cal_event,.webix_minutes .webix_cal_day_disabled,.webix_minutes .webix_cal_day_disabled.webix_cal_event{background:#fff;font-weight:400;text-decoration:line-through}
 .webix_cal_month_name{cursor:pointer}
 .webix_cal_block{float:left;text-align:center;cursor:pointer}
 .webix_selected{background:#f1f1f1;color:#000}
@@ -399,7 +400,7 @@ input.webixtype_next{border-right-width:0;border-radius:4px 0 0 4px;-webkit-bord
 .webix_el_box{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;padding:4px 2px;height:100%;width:100%;font-size:17px}
 .webix_el_combo input,.webix_el_datepicker input,.webix_el_search input,.webix_el_text input{height:100%;padding:0 10px;border:1px solid #dedede;border-radius:0;padding-top:4px\0}
 .webix_inp_label,.webix_inp_top_label,.webix_label_right{color:#000;font-size:17px}
-.webix_inp_label{float:left;padding-top:4px;padding-left:4px;padding-right:7.5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.webix_inp_label{float:left;padding-top:1px;padding-left:4px;padding-right:7.5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
 .webix_inp_top_label{float:none;padding:4px 2px 0}
 .webix_inp_bottom_label{font-size:15px;color:#0d0d0d}
 .webix_label_right{padding-left:7.5px}
