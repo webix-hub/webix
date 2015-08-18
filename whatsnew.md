@@ -1,3 +1,30 @@
+Version 2.5.8
+==============
+
+### Fixes
+
+- %c as ISO 8601 date format
+- .find API for all data components
+- .open support second parameter, open all parents
+- datatype for uploader view ( ability to use a custom response format )10:50 AM
+- cell selection mode and colspans
+- event start in lists templates for all-day events
+- incorrect processing of null values by richselect
+- not applying new options collection after changing structure of datatable10:53 AM
+- not-preserving text in filter input after server side filtering
+- onStructureUpdate event occurs a bit erlier
+- position of added items in filtered state
+- refreshing items in tree after adding into an empty folder
+- regression in block-selection visualizations
+- scroll in datatable blocks other touch scroll componentsKozhukh
+- suggest doesn't use template when used against HTML inputKozhukh
+- SVG elements and .locate in datatable
+- tooltip do not disapears in some cases
+- using clearAll against grouped component
+- ability to use data updates in TreeStore
+- data binding for tree-like components
+
+
 Version 2.5
 ==============
 

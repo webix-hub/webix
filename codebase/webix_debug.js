@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.2.5.0
+webix UI v.2.5.8
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="2.5.0";
+webix.version="2.5.8";
 webix.codebase="./";
 webix.name = "core";
 
@@ -7111,7 +7111,7 @@ webix.protoUI({
 			else
 				master.setValue(data.text||data.value);
 		} else if (this._last_input_target){
-			this._last_input_target.value = data.text||data.value;
+			this._last_input_target.value = data.id ? this.getItemText(data.id) : (data.text||data.value);
 		}
 
 		if (!refresh){
@@ -8571,7 +8571,7 @@ webix.protoUI({
 		if (popup)
 			var text = this.getPopup().getItemText(value);
 
-		if (!text && typeof value == "object" && value.id){
+		if (!text && value && typeof value == "object" && value.id){
 			this.getPopup().getList().add(value);
 			text = this.getPopup().getItemText(value.id);
 			this._settings.value = value.id;
@@ -9187,6 +9187,7 @@ webix.rules = {
 webix.MapCollection = {
     $init:function(){
         this.$ready.push(this._create_scheme_init);
+        this.attachEvent("onStructureUpdate", this._create_scheme_init);
     },
     _create_scheme_init:function(order){
         var order = this._scheme_init_order = [];
@@ -9911,6 +9912,17 @@ webix.DataStore.prototype={
 				}
 		}
 
+		if (this._extraParser && !data.branch){
+			this.branch = { 0:[]};
+			if (!this._datadriver_child)
+				this._set_child_scheme("data");
+
+			for (var i = 0; i<this.order.length; i++){
+				var key = this.order[i];
+				this._extraParser(this.pull[key], 0, 0, false);
+			}
+		}
+
 		if (!silent)
 			this.callEvent("onStoreUpdated",[]);
 	},
@@ -10036,11 +10048,11 @@ webix.DataStore.prototype={
 		order.insertAt(id,index);
 		if (this._filter_order){	//adding during filtering
 			//we can't know the location of new item in full dataset, making suggestion
-			//put at end by default
+			//put at end of original dataset by default
 			var original_index = this._filter_order.length;
-			//put at start only if adding to the start and some data exists
-			if (!index && this.order.length)
-				original_index = 0;
+			//if some data exists, put at the same position in original and filtered lists
+			if (this.order.length)
+				original_index = Math.min((index || 0), original_index);
 
 			this._filter_order.insertAt(id,original_index);
 		}
@@ -10200,6 +10212,31 @@ webix.DataStore.prototype={
 			this._filter_order = this.order;
 		this.order = neworder;
 	},
+	find:function(config, first){
+		var result = [];
+		var count = this.count();
+
+		for (var i = 0; i < count; i++){
+			var data = this.pull[this.order[i]];
+			var match = true;
+			if (typeof config == "object"){
+				for (var key in config)
+					if (data[key] != config[key]){
+						match = false;
+						break;
+					}
+			} else if (!config(data))
+				match = false;
+
+			if (match)
+				result.push(data);
+
+			if (first && result.length)
+				return result[0];
+		}
+
+		return result;
+	},
 	filter:function(text,value,preserve){
 		//unfilter call but we already in not-filtered state
 		if (!text && !this._filter_order && !this._filter_branch) return;
@@ -10275,7 +10312,7 @@ webix.DataStore.prototype={
 			});
 		}
 			
-		var list = ["sort","add","remove","exists","getIdByIndex","getIndexById","getItem","updateItem","refresh","count","filter","getNextId","getPrevId","clearAll","getFirstId","getLastId","serialize","sync"];
+		var list = ["sort","add","remove","exists","getIdByIndex","getIndexById","getItem","updateItem","refresh","count","filter","find","getNextId","getPrevId","clearAll","getFirstId","getLastId","serialize","sync"];
 		for (var i=0; i < list.length; i++)
 			target[list[i]] = this._methodPush(this,list[i]);
 			
@@ -10286,8 +10323,8 @@ webix.DataStore.prototype={
 		if (!obj[mark]){
 			obj[mark] = value||true;	
 			if (css){
-				var old_css = obj["$css"]||"";
-				obj["$css"] = old_css+" "+mark;
+				var old_css = obj.$css||"";
+				obj.$css = old_css+" "+mark;
 			}
 			if (!silent)
 				this.refresh(id);
@@ -10300,9 +10337,9 @@ webix.DataStore.prototype={
 			if (obj[mark])
 				delete obj[mark];
 			if (css){
-				var current_css = obj["$css"];
+				var current_css = obj.$css;
 				if (current_css){
-					obj["$css"] = current_css.replace(mark, "").replace("  "," ");
+					obj.$css = current_css.replace(mark, "").replace("  "," ");
 				}
 			}
 			if (!silent) 
@@ -10888,7 +10925,7 @@ webix.protoUI({
 	show:function(data,pos){
 		if (this._disabled) return;
 		//render sefl only if new data was provided
-        if (this.data!=data){
+		if (this.data!=data){
 			this.data=webix.extend({},data);
 			this.render(data);
 		}
@@ -10930,10 +10967,9 @@ webix.AutoTooltip = {
 				value = { template:value };
 
 			var col_mode = !value.template;
-			var handlers = [];
 			var t = new webix.ui.tooltip(value);
 			this._enable_mouse_move();
-			handlers[0] = this.attachEvent("onMouseMove",function(id,e){	//show tooltip on mousemove
+			var showEvent = this.attachEvent("onMouseMove",function(id,e){	//show tooltip on mousemove
 				if (this.getColumnConfig){
 					var config = t.type.column = this.getColumnConfig(id.column);
 					if (col_mode){
@@ -10953,10 +10989,9 @@ webix.AutoTooltip = {
 				if (!webix.DragControl.active)
 					t.show(this.getItem(id),webix.html.pos(e));
 			});
-			handlers[1] = this.attachEvent("onMouseOut",function(id,e){	//hide tooltip on mouseout
-				t.hide();
-			});
-			handlers[2] = this.attachEvent("onMouseMoving",function(id,e){	//hide tooltip just after moving start
+			// [[IMPROVE]]  As we can can have only one instance of tooltip per page 
+			//				this handler can be attached once per page, not once per component
+			var hideEvent = webix.event(document.body, "mousemove", function(){
 				t.hide();
 			});
 			this.attachEvent("onDestruct",function(){
@@ -10964,8 +10999,8 @@ webix.AutoTooltip = {
 					this.config.tooltip.destructor();
 			});
 			t.attachEvent("onDestruct",webix.bind(function(){
-				for(var i = 0; i < handlers.length;i++)
-					this.detachEvent(handlers[i]);
+				this.detachEvent(showEvent);
+				webix.eventRemove(hideEvent);
 			},this));
 			return t;
 		}
@@ -11802,9 +11837,6 @@ webix.SelectionModel={
 		else
 			this.removeCss(id, "webix_selected", true);
 
-		var name = state ? "onAfterSelect" : "onAfterUnSelect";
-		this.callEvent(name,[id]);
-
 		if (refresh)
 			refresh.push(id);				//if we in the mass-select mode - collect all changed IDs
 		else{
@@ -11814,6 +11846,9 @@ webix.SelectionModel={
 				this._selected.remove(id);
 			this._refresh_selection(id);	//othervise trigger repainting
 		}
+
+		var name = state ? "onAfterSelect" : "onAfterUnSelect";
+		this.callEvent(name,[id]);
 
 		return true;
 	},
@@ -12280,27 +12315,36 @@ webix.TreeStore = {
 		for (var i=0; i<recs.length; i++){
 			//get hash of details for each record
 			var temp = this.driver.getDetails(recs[i]);
-			if (this._scheme_init)
-				this._scheme_init(temp);
 			var id = this.id(temp); 	//generate ID for the record
-			this.pull[id]=temp;
-			this._extraParser(temp, parent);
-		}
+			var update = !!this.pull[id]; //update mode
 
-		if (parent && parent !== "0")
-			this.pull[parent].$count = recs.length;
+			if (update){
+				temp = webix.extend(this.pull[id], temp, true);
+				if (this._scheme_update)
+					this._scheme_update(temp);
+			} else {
+				if (this._scheme_init)
+					this._scheme_init(temp);
+				this.pull[id]=temp;
+			}
+
+			this._extraParser(temp, parent, 0, update);
+		}
 	},
-    _extraParser:function(obj, parent, level){
+    _extraParser:function(obj, parent, level, update){
     	//processing top item
+    	obj.$count = 0;
     	obj.$parent = parent||0;
 		obj.$level = level||(parent!="0"?this.pull[parent].$level+1:1);
 		
-		if (!this.branch[obj.$parent])
-			this.branch[obj.$parent] = [];
+		var parent_branch = this.branch[obj.$parent];
+		if (!parent_branch)
+			parent_branch =  this.branch[obj.$parent] = [];
 			if (this._filter_branch)
-				this._filter_branch[obj.$parent] = this.branch[obj.$parent];
+				this._filter_branch[obj.$parent] = parent_branch;
 
-		this.branch[obj.$parent].push(obj.id);
+		if (!update)
+			parent_branch.push(obj.id);
 
     	var child = this._datadriver_child(obj);
 
@@ -12316,16 +12360,28 @@ webix.TreeStore = {
     		child = [child];
     	
 
-    	//processing childrens
-		obj.$count = child.length;
 		for (var i=0; i < child.length; i++) {
 			//extra processing to convert strings to objects
 			var item = webix.DataDriver.json.getDetails(child[i]);
-			if (this._scheme_init)
-				this._scheme_init(item);
-			this.pull[this.id(item)]=item;
-			this._extraParser(item, obj.id, obj.$level+1);
+			var itemid = this.id(item);
+			update = !!this.pull[itemid];
+			
+			if (update){
+				item = webix.extend(this.pull[itemid], item, true);
+				if (this._scheme_update)
+					this._scheme_update(item);
+			} else {
+				if (this._scheme_init)
+					this._scheme_init(item);
+				this.pull[itemid]=item;
+			}
+			this._extraParser(item, obj.id, obj.$level+1, update);
 		}
+
+		//processing childrens
+		var branch = this.branch[obj.id];
+		if (branch)
+			obj.$count = branch.length;
 	}, 
 	_sync_to_order:function(master){
 		this.order = webix.toArray();
@@ -12420,15 +12476,16 @@ webix.TreeStore = {
 	add:function(obj, index, pid){
 		var refresh_parent = false;
 
-		this.branch[pid||0] = this.order = webix.toArray(this.branch[pid||0]);
-		
 		var parent = this.getItem(pid||0);
 		if(parent){
 			//when adding items to leaf item - it need to be repainted
 			if (!this.branch[parent.id])
 				refresh_parent = true;
-			parent.$count++;	
+			parent.$count++;
 		}
+
+		this.branch[pid||0] = this.order = webix.toArray(this.branch[pid||0]);
+
 		obj.$count = 0; 
 		obj.$level= (parent?parent.$level+1:1); 
 		obj.$parent = (parent?parent.id:0);
@@ -12585,7 +12642,7 @@ webix.TreeType={
 };
 
 webix.TreeAPI = {
-	open: function(id) {
+	open: function(id, show) {
 		if (!id) return;
 		//ignore open for leaf items
 		var item = this.getItem(id);
@@ -12596,6 +12653,9 @@ webix.TreeAPI = {
 			this.data.callEvent("onStoreUpdated",[id, 0, "branch"]);
 			this.callEvent("onAfterOpen",[id]);
 		}
+
+		if (show && id != "0")
+			this.open(this.getParentId(id), show);
 	},
 	close: function(id) {
 		if (!id) return;
@@ -13133,6 +13193,13 @@ webix.GroupMethods = {
 };
 
 webix.GroupStore = {
+	$init:function(){
+		this.attachEvent("onClearAll", this._reset_groups);
+	},
+	_reset_groups:function(){
+		this._not_grouped_order = this._not_grouped_pull = null;
+		this._group_level_count = 0;
+	},
 	ungroup:function(skipRender){
 		if (this.getBranchIndex)
 			return this._ungroup_tree.apply(this, arguments);
@@ -13141,9 +13208,8 @@ webix.GroupStore = {
 			this.order = this._not_grouped_order;
 			this.pull = this._not_grouped_pull;
 			this._not_grouped_pull = this._not_grouped_order = null;
-		}
-		if(!skipRender){
-			this.callEvent("onStoreUpdated",[]);
+			if(!skipRender)
+				this.callEvent("onStoreUpdated",[]);
 		}
 
 	},
@@ -16003,6 +16069,16 @@ webix.Date={
 						if( s == "%A")  return (date.getHours()>11?"PM":"AM");
 						if( s == "%s")  return webix.Date.toFixed(date.getSeconds());
 						if( s == "%W")  return webix.Date.toFixed(webix.Date.getISOWeek(date));
+						if( s == "%c"){
+							var str = date.getFullYear();
+							str += "-"+webix.Date.toFixed((date.getMonth()+1));
+							str += "-"+webix.Date.toFixed(date.getDate());
+							str += "T";
+							str += webix.Date.toFixed(date.getHours());
+							str += ":"+webix.Date.toFixed(date.getMinutes());
+							str += ":"+webix.Date.toFixed(date.getSeconds());
+							return str;
+						}
 						return s;
 					};
 					str += fn(date);
@@ -16035,6 +16111,18 @@ webix.Date={
 				case "%A": return "\"+(date.getHours()>11?\"PM\":\"AM\")+\"";
 				case "%s": return "\"+webix.Date.toFixed(date.getSeconds())+\"";
 				case "%W": return "\"+webix.Date.toFixed(webix.Date.getISOWeek(date))+\"";
+				case "%c":
+					var str = "\"+date.getFullYear()+\"";
+					str += "-\"+webix.Date.toFixed((date.getMonth()+1))+\"";
+					str += "-\"+webix.Date.toFixed(date.getDate())+\"";
+					str += "T";
+					str += "\"+webix.Date.toFixed(date.getHours())+\"";
+					str += ":\"+webix.Date.toFixed(date.getMinutes())+\"";
+					str += ":\"+webix.Date.toFixed(date.getSeconds())+\"";
+					if(utc === true)
+						str += "Z";
+					return str;
+
 				default: return a;
 			}
 		});
@@ -16070,8 +16158,9 @@ webix.Date={
 					var a = mask[i];
 					if( a ==  "%y")
 						set[0]=temp[i]*1+(temp[i]>30?1900:2000);
-					else if( a ==  "%Y")
+					else if( a ==  "%Y"){
 						set[0]=(temp[i]||0)*1; if (set[0]<30) set[0]+=2000;
+					}
 					else if( a == "%n" || a == "%m")
 						set[1]=(temp[i]||1)-1;
 					else if( a ==  "%M")
@@ -16088,6 +16177,16 @@ webix.Date={
 						set[4]=temp[i]||0;
 					else if( a ==  "%s")
 						set[5]=temp[i]||0;
+					else if( a ==  "%c"){
+						var reg = /(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)/g;
+						var res = reg.exec(date);
+						set[0]= (res[1]||0)*1; if (set[0]<30) set[0]+=2000;
+						set[1]= (res[2]||1)-1;
+						set[2]= res[3]||1;
+						set[3]= res[4]||0;
+						set[4]= res[5]||0;
+						set[5]= res[6]||0;
+					}
 				}
 				if(utc)
 					return new Date(Date.UTC(set[0],set[1],set[2],set[3],set[4],set[5]));
@@ -16124,6 +16223,17 @@ webix.Date={
 				case "%M":  splt+="set[1]=webix.i18n.calendar.monthShort_hash[temp["+i+"]]||0;";
 					break;
 				case "%F":  splt+="set[1]=webix.i18n.calendar.monthFull_hash[temp["+i+"]]||0;";
+					break;
+				case "%c":
+					splt+= "var res = date.split('T');";
+					splt+= "if(res[0]){ var d = res[0].split('-');";
+					splt+= "set[0]= (d[0]||0)*1; if (set[0]<30) set[0]+=2000;";
+					splt+= "set[1]= (d[1]||1)-1;";
+					splt+= "set[2]= d[2]||1;}";
+					splt+= "if(res[1]){ var t = res[1].split(':');";
+					splt+= "set[3]= t[0]||0;";
+					splt+= "set[4]= t[1]||0;";
+					splt+= "set[5]= t[2]||0;}";
 					break;
 				default:
 					break;
@@ -16446,8 +16556,8 @@ webix.protoUI({
 		this._render_initial = function(){};
 	},
 	_first_render:function(){
-		this.data.attachEvent("onStoreLoad", webix.bind(this.refreshHeaderContent, this));
-		this.data.attachEvent("onSyncApply", webix.bind(this.refreshHeaderContent, this));
+		this.data.attachEvent("onStoreLoad", webix.bind(this._refresh_any_header_content, this));
+		this.data.attachEvent("onSyncApply", webix.bind(this._refresh_any_header_content, this));
 		this.data.attachEvent("onStoreUpdated", webix.bind(function(){ return this.render.apply(this, arguments); }, this));
 		this.data.attachEvent("onStoreUpdated", webix.bind(this._refresh_tracking_header_content, this));
 		this.render();
@@ -16651,6 +16761,7 @@ webix.protoUI({
 	_render_header_and_footer:function(){
 		if (!this._header_fix_width)
 			this._header_fix_width = 0;
+
 		if (this._settings.header) {
 			this._refreshHeaderContent(this._header, 0, 1);
 			this._normalize_headers("header", this._headers);
@@ -16664,7 +16775,7 @@ webix.protoUI({
 			this._render_header_section(this._footer, "footer", this._footers);
 		}	
 
-		this.refreshHeaderContent();
+		this.refreshHeaderContent(false, false);
 		this._size_header_footer_fix();
 
 		if (this._last_sorted)
@@ -16939,23 +17050,24 @@ webix.protoUI({
 			this.scrollTo(header, null);
 	},
 	_refresh_tracking_header_content:function(){
-		this.refreshHeaderContent(true);
+		this.refreshHeaderContent(true, true);
 	},
-	refreshHeaderContent:function(cellTrackOnly){
-		//method called from some other events which can provide first parameter
-		//most notable - onStoreLoad
-		cellTrackOnly = cellTrackOnly === true;
-		
-		if (this._settings.header)
-			this._refreshHeaderContent(this._header, cellTrackOnly);
-		if (this._settings.footer)
-			this._refreshHeaderContent(this._footer, cellTrackOnly);
+	_refresh_any_header_content:function(){
+		this.refreshHeaderContent(false, true);
+	},
+	//[DEPRECATE] - v3.0, move to private
+	refreshHeaderContent:function(trackedOnly, preserve, id){
+		if (this._settings.header){
+			if (preserve) this._refreshHeaderContent(this._header, trackedOnly, 1, id);
+			this._refreshHeaderContent(this._header, trackedOnly, 0, id);
+		}
+		if (this._settings.footer){
+			if (preserve) this._refreshHeaderContent(this._footer, trackedOnly, 1, id);
+			this._refreshHeaderContent(this._footer, trackedOnly, 0, id);
+		}
 	},
 	refreshFilter:function(id){
-		this._refreshHeaderContent(this._header,0,1,id);
-		this._refreshHeaderContent(this._header,0,0,id);
-		this._refreshHeaderContent(this._footer,0,1,id);
-		this._refreshHeaderContent(this._footer,0,0,id);
+		this.refreshHeaderContent(false, true, id);
 	},
 	_refreshHeaderContent:function(sec, cellTrackOnly, getOnly, byId){
 		if (this._has_active_headers && sec){
@@ -16969,9 +17081,10 @@ webix.protoUI({
 					
 					var content = webix.ui.datafilter[obj.content];
 
-					if (getOnly)
-						obj.value = content.getValue(alltd[i]);
-					else if (!cellTrackOnly || content.trackCells){
+					if (getOnly){
+						if (content.getValue)
+							obj.value = content.getValue(alltd[i]);
+					} else if (!cellTrackOnly || content.trackCells){
 						content.refresh(this, alltd[i], obj);
 					}
 				}
@@ -17101,7 +17214,7 @@ webix.protoUI({
 		while (node && node.getAttribute){
 			if (node.getAttribute("view_id"))
 				break;
-			var cs = node.className;
+			var cs = node.className.toString();
 
 			var pos = null;
 			if (cs.indexOf("webix_cell")!=-1){
@@ -18263,31 +18376,6 @@ webix.ui.datafilter.dateFilter = webix.extend({
 }, webix.ui.datafilter.numberFilter);
 
 webix.extend(webix.ui.datatable,{
-	find:function(config, first){
-		var result = [];
-		var count = this.data.count();
-
-		for (var i = 0; i < count; i++){
-			var data = this.getItem(this.data.order[i]);
-			var match = true;
-			if (typeof config == "object"){
-				for (var key in config)
-					if (data[key] != config[key]){
-						match = false;
-						break;
-					}
-			} else if (!config(data))
-				match = false;
-
-			if (match)
-				result.push(data);
-
-			if (first && result.length)
-				return result[0];
-		}
-
-		return result;
-	},
 	filterByAll:function(){
 		//we need to use dynamic function creating
 		//jshint -W083:true
@@ -18878,6 +18966,7 @@ webix.extend(webix.ui.datatable, {
 	_bs_select:function(mode, theend){
 		var start = this._locate_cell_xy.apply(this, this._bs_ready);
 		var end = this._locate_cell_xy.apply(this, this._bs_progress);
+
 		if (!this.callEvent("onBeforeBlockSelect", [start, end, theend]))
 			return;
 
@@ -18899,13 +18988,27 @@ webix.extend(webix.ui.datatable, {
 					var endn = this._cellPosition(end.row, end.column);
 					var scroll = this.getScrollState();
 
+					if (this._right_width && this._bs_ready[0] > this._left_width+this._center_width){
+						startn.left += this._left_width+this._center_width;
+					} else if (this._left_width){
+						if (this._bs_ready[0] > this._left_width)
+  							startn.left+=this._left_width-scroll.x;
+					} else startn.left -= scroll.x;
 
-					startx = Math.min(startn.left, endn.left)-scroll.x;
-					endx = Math.max(startn.left+startn.width, endn.left+endn.width)-scroll.x;
+					if (this._right_width && this._bs_progress[0] > this._left_width+this._center_width){
+						endn.left += this._left_width+this._center_width;
+					} else if (this._left_width){
+						if (this._bs_progress[0] > this._left_width)
+  							endn.left+=this._left_width-scroll.x;
+					} else endn.left -= scroll.x;  					
 
-					starty = Math.min(startn.top, endn.top)-scroll.y;
-					endy = Math.max(startn.top+startn.height, endn.top+endn.height-scroll.y);
+					startx = Math.min(startn.left, endn.left);
+					endx = Math.max(startn.left+startn.width, endn.left+endn.width);
+
+					starty = Math.min(startn.top, endn.top);
+					endy = Math.max(startn.top+startn.height, endn.top+endn.height);
 				}
+  
 
 				var style = this._block_panel.style;
 				style.left = startx+"px";
@@ -18943,7 +19046,6 @@ webix.extend(webix.ui.datatable, {
 		else if (!this._left_width || x>this._left_width)
 			x+= this._x_scroll.getScroll();
 
-			
 		y += this.getScrollState().y;
 
 		var row = null;
@@ -19872,7 +19974,7 @@ var t = webix.Touch = {
 			t._axis_x = t._axis_check(delta._x, "x", t._axis_x);
 			t._axis_y = t._axis_check(delta._y, "y", t._axis_y);
 			if (t._scroll_mode){
-				var view = t._get_event_view("onBeforeScroll");
+				var view = t._get_event_view("onBeforeScroll", true);
 				if (view){
 					var data = {};
 					view.callEvent("onBeforeScroll",[data]);
@@ -20098,7 +20200,7 @@ var t = webix.Touch = {
 		t._locate(stop_mode);
 		var scroll = t._scroll[0]||t._scroll[1];
 		if (scroll){
-			var view = t._get_event_view("onBeforeScroll");
+			var view = t._get_event_view("onBeforeScroll", true);
 			if (view)
 				view.callEvent("onBeforeScroll", [t._start_context,t._current_context]);
 		}
@@ -20165,8 +20267,8 @@ var t = webix.Touch = {
 		if (view)
 			view.callEvent(name, [t._start_context,t._current_context]);
 	},
-	_get_event_view:function(name){
-		var view = webix.$$(t._start_context);
+	_get_event_view:function(name, active){
+		var view = webix.$$(active ? t._scroll_node : t._start_context);
 		if(!view) return null;
 		
 		while (view){
@@ -21260,9 +21362,10 @@ webix.extend(webix.ui.datatable, {
 		this._columns = this.config.columns = (columns || this.config.columns);
 
 		this._dtable_fully_ready = 0;
+		this._define_structure();
+
 		this.callEvent("onStructureUpdate");
 
-		this._define_structure();
 		this._update_scroll();
 		this.render();	
 	},
@@ -29706,8 +29809,15 @@ webix.protoUI({
 		}
 
 		var config = {borderless: true, type: "clean"};
-		config[layout] = webix.copy(this.config[layout]);
-		webix.extend(config,(this._settings.layoutConfig||{}),true);
+		config[layout] = webix.copy(this._settings[layout]);
+		var layoutProp = ["type", "margin", "marginX", "marginY", "padding", "paddingX", "paddingY"];
+		var layoutConfig = {};
+		for(var i=0; i< layoutProp.length; i++){
+			if(this._settings[layoutProp[i]]){
+				layoutConfig[layoutProp[i]] = this._settings[layoutProp[i]];
+			}
+		}
+		webix.extend(config,layoutConfig,true);
 
 		this._layout = webix.ui._view(config);
 		this._layout._parent_cell = this;
@@ -30145,7 +30255,7 @@ webix.UploadDriver = {
 			if (item){
 				var response = null;
 				if(item.xhr.status == 200)
-					response = webix.DataDriver.json.toObject(item.xhr.responseText);
+					response = webix.DataDriver[this._settings.datatype||"json"].toObject(item.xhr.responseText);
 				if (!response || response.status == "error"){
 					item.status = "error";
 					delete item.percent;
