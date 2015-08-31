@@ -723,7 +723,7 @@ x\:ui {
 }
 .webix_c_scroll_y {
   position: absolute;
-  z-index: 1;
+  z-index: 3;
   width: 10px;
   right: 0px;
 }
@@ -746,7 +746,7 @@ x\:ui {
 }
 .webix_c_scroll_x {
   position: absolute;
-  z-index: 1;
+  z-index: 3;
   height: 10px;
   bottom: 0px;
 }
@@ -1439,6 +1439,11 @@ div.webix_modal_cover {
   display: inline-block !important;
   margin-left: -5px;
   float: none;
+}
+.webix_measure_size input,
+.webix_measure_size textarea,
+.webix_measure_size select {
+  width: 5px;
 }
 .webix_tree_close,
 .webix_tree_open,

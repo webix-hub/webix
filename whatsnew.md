@@ -1,3 +1,32 @@
+Version 2.5.14
+==============
+
+### Fixes
+
+- .move api for DataCollection and TreeCollection
+- autosizing columns with filter in the header
+- blur and focus with htmlform
+- conflict between updateFromResponse and new ID
+- custom scroll and accordion panels
+- data binding in property view
+- export doesn't include summ values from a footer
+- extra requests during dynamic loading in tree
+- headermenu and colspans in grid
+- id of newly added item in case of sync. data saving
+- IE9 and node selection
+- importData doesn't work with missed properties
+- incorrect focus after hiding window
+- incorrect landing for dragOut event
+- incorrect scroll state in datatable after refreshColumns call
+- native context can't be used with inline editors
+- refreshing data in select-based filters on options loadStaskova
+- scrolling view with borders
+- selection within disabled date range
+- sending two Content-Type headers
+- suggest ignores template for returned value
+- week number calculation
+
+
 Version 2.5.8
 ==============
 
@@ -25,6 +54,7 @@ Version 2.5.8
 - data binding for tree-like components
 
 
+
 Version 2.5
 ==============
 
@@ -36,7 +66,6 @@ Version 2.5
 - Total calculations in Pivot widget
 
 [Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2_5.html)
-
 
 
 Version 2.4
@@ -57,12 +86,12 @@ Version 2.3
 
 ### Major features
 
-- new material skin
-- barcode widget
-- organogram (organization chart) widget
-- badges and icons for list, buttons and menus (and views based on them)
+- New material skin
+- Barcode widget
+- Organogram (organization chart) widget
+- Badges and icons for list, buttons and menus (and views based on them)
 - "Today" and "Clear" buttons are added to the date editor.
-- better default styling, ability to customize layout configuration
+- Better default styling, ability to customize layout configuration
 
 [Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_2_3.html)
 
