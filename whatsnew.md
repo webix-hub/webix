@@ -19,7 +19,7 @@ Version 2.5.14
 - incorrect landing for dragOut event
 - incorrect scroll state in datatable after refreshColumns call
 - native context can't be used with inline editors
-- refreshing data in select-based filters on options loadStaskova
+- refreshing data in select-based filters on options load
 - scrolling view with borders
 - selection within disabled date range
 - sending two Content-Type headers
@@ -35,18 +35,18 @@ Version 2.5.8
 - %c as ISO 8601 date format
 - .find API for all data components
 - .open support second parameter, open all parents
-- datatype for uploader view ( ability to use a custom response format )10:50 AM
+- datatype for uploader view ( ability to use a custom response format )
 - cell selection mode and colspans
 - event start in lists templates for all-day events
 - incorrect processing of null values by richselect
-- not applying new options collection after changing structure of datatable10:53 AM
+- not applying new options collection after changing structure of datatable
 - not-preserving text in filter input after server side filtering
 - onStructureUpdate event occurs a bit erlier
 - position of added items in filtered state
 - refreshing items in tree after adding into an empty folder
 - regression in block-selection visualizations
-- scroll in datatable blocks other touch scroll componentsKozhukh
-- suggest doesn't use template when used against HTML inputKozhukh
+- scroll in datatable blocks other touch scroll components
+- suggest doesn't use template when used against HTML input
 - SVG elements and .locate in datatable
 - tooltip do not disapears in some cases
 - using clearAll against grouped component
@@ -208,7 +208,7 @@ Default skin changed to flat ( you still can use the old skin by using skins/air
 Compact skin changed to flat theme as well ( old one renamed to skins/aircompact.css )  
 
 
-### Improvments in API
+### Improvements in API
 - text sorting mode for datatable
 - autoheight property for "property" view
 - ability to edit math formulas in the datatable
@@ -233,7 +233,7 @@ onError event replaced with two new events - onBeforeSaveError and onAfterSaveEr
 - drag-n-drop on touch devices
 
 
-### Improvments in Server side integrations
+### Improvements in Server side integrations
 - full support of REST API
 - data in components can be updated from server side
 - client side code can't be broken by server side errors anymore
@@ -255,13 +255,13 @@ Version 1.5
 - new skin for mobile UI
 - functionality of desktop UI adapted to touch events and gestures
 
-### Improvments in DataTable
+### Improvements in DataTable
 - adjustRowHeight method added to datatable
 - fillspace can be used for multiple columsn
 - richselect can be used as editor in the datatable
 - checkboxes can have checkValue and uncheckValue options
  
-### Improvments in Angular and Backbone 
+### Improvements in Angular and Backbone 
 
 - [angular] webix-ui is compatible with ng-repeat
 - [angular] webix-data works for options in combo and select
