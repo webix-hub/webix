@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.3.0.0
+webix UI v.3.0.1
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="3.0.0";
+webix.version="3.0.1";
 webix.codebase="./";
 webix.name = "core";
 
@@ -11255,6 +11255,10 @@ webix.Values = {
 		if (webix.debug_render)
 			webix.log("Render: "+this.name+"@"+this._settings.id);
 
+		for (var name in data)
+			if (!this.elements[name])
+				this._values[name] = data[name];
+
 		for (var name in this.elements){
 			var input = this.elements[name];
 			if (input){
@@ -18220,7 +18224,7 @@ webix.protoUI({
 			id = null, 
 			res,
 			trg=e.target||e.srcElement;
-			
+
 		//loop through all parents
 		while (trg && trg.parentNode && trg != this._viewobj.parentNode){
 			if ((css = trg.className)) {
@@ -18231,7 +18235,7 @@ webix.protoUI({
 						css_call.push(hash[css[i]]);
 			}
 
-			if (trg.parentNode.getAttribute){
+			if (trg.parentNode.getAttribute && !id){
 				var column = trg.parentNode.getAttribute("column") || trg.getAttribute("column");
 				if (column){ //we need to ignore TD - which is header|footer
 					var  isBody = trg.parentNode.tagName == "DIV";
@@ -18248,7 +18252,7 @@ webix.protoUI({
 					if (res===false) return;
 					
 					//call inner handler
-					if (isBody){
+					if (isBody ){
 						if(this.callEvent("on"+name,[id,e,trg])&&pair){
 							this.callEvent("on"+pair,[id,e,trg]);
 						}

@@ -1,3 +1,10 @@
+Version 3.0.1
+==============
+
+- fix for regression in form.setValues api
+- fix for click processing regression in the datatable
+
+
 Version 3.0
 ==============
 
