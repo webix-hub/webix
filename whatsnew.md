@@ -1,58 +1,20 @@
-Version 2.5.14
+Version 3.0
 ==============
 
-### Fixes
+### New tools
 
-- .move api for DataCollection and TreeCollection
-- autosizing columns with filter in the header
-- blur and focus with htmlform
-- conflict between updateFromResponse and new ID
-- custom scroll and accordion panels
-- data binding in property view
-- export doesn't include summ values from a footer
-- extra requests during dynamic loading in tree
-- headermenu and colspans in grid
-- id of newly added item in case of sync. data saving
-- IE9 and node selection
-- importData doesn't work with missed properties
-- incorrect focus after hiding window
-- incorrect landing for dragOut event
-- incorrect scroll state in datatable after refreshColumns call
-- native context can't be used with inline editors
-- refreshing data in select-based filters on options load
-- scrolling view with borders
-- selection within disabled date range
-- sending two Content-Type headers
-- suggest ignores template for returned value
-- week number calculation
+- Visual editor
+- Webix Jet frameworks
 
+### Major features
 
-Version 2.5.8
-==============
+- Excel viewer
+- PDF viewer
+- export to Excel
+- export to PNG
+- SubViews and SubGrids
 
-### Fixes
-
-- %c as ISO 8601 date format
-- .find API for all data components
-- .open support second parameter, open all parents
-- datatype for uploader view ( ability to use a custom response format )
-- cell selection mode and colspans
-- event start in lists templates for all-day events
-- incorrect processing of null values by richselect
-- not applying new options collection after changing structure of datatable
-- not-preserving text in filter input after server side filtering
-- onStructureUpdate event occurs a bit erlier
-- position of added items in filtered state
-- refreshing items in tree after adding into an empty folder
-- regression in block-selection visualizations
-- scroll in datatable blocks other touch scroll components
-- suggest doesn't use template when used against HTML input
-- SVG elements and .locate in datatable
-- tooltip do not disapears in some cases
-- using clearAll against grouped component
-- ability to use data updates in TreeStore
-- data binding for tree-like components
-
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_3_0.html)
 
 
 Version 2.5
