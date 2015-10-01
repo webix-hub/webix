@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.3.0.1
+webix UI v.3.0.4
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="3.0.1";
+webix.version="3.0.4";
 webix.codebase="./";
 webix.name = "core";
 
@@ -102,11 +102,15 @@ webix.copy = function(source){
 		target = (webix.isArray(source)?[]:{});
 
 	for (var method in source){
-		if(source[method] && typeof source[method] == "object" && !webix.isDate(source[method])){
-			target[method] = (webix.isArray(source[method])?[]:{});
-			webix.copy(target[method],source[method]);
-		}else{
-			target[method] = source[method];
+		var from = source[method];
+		if(from && typeof from == "object"){
+			if (!webix.isDate(from)){
+				target[method] = (webix.isArray(from)?[]:{});
+				webix.copy(target[method],from);
+			} else
+				target[method] = new Date(from);
+		} else {
+			target[method] = from;
 		}
 	}
 
@@ -6605,7 +6609,16 @@ webix.protoUI({
 		if (!config.id) config.id = webix.uid();
 
 		webix.event(this._contentobj, "click", webix.bind(this._ignore_clicks, this));
-		
+
+		// IE8 does not allow to define event capturing
+		if(this._contentobj.addEventListener)
+			webix.event(this._contentobj, "click", function(){
+				// brings a window to the front of other windows
+				if(!this._settings.zIndex){
+					this._viewobj.style.zIndex = webix.ui.zIndex();
+				}
+			}, this, true);
+
 		// hidden_setter handling
 		if(config.modal)
 			this._modal = true;
@@ -6619,11 +6632,6 @@ webix.protoUI({
 		e.click_view = index;
 		if (webix.env.isIE8)
 			e.srcElement.click_view = index;
-
-		// brings a window to the front of other windows
-		if(!this._settings.zIndex){
-			this._viewobj.style.zIndex = webix.ui.zIndex();
-		}
 	},
 	getChildViews:function(){
 		if (this._head_cell)
@@ -8540,6 +8548,12 @@ webix.protoUI({
 			return common.$renderInput(config, html, id);
 		}
 	},
+	customCheckbox_setter: function(value){
+		if( value === true && webix.skin.$active.customCheckbox){
+			value = "<a onclick='javascript:void(0)'><button class='webix_custom_checkbox'></button></a>";
+		}
+		return value;
+	},
 	_init_onchange: function(){},
 	$setValue:function(value){
 		var isChecked = (value == this._settings.checkValue);
@@ -8559,7 +8573,7 @@ webix.protoUI({
 	},
 	$skin:function(){
 		if(webix.skin.$active.customCheckbox)
-			this.defaults.customCheckbox = "<a onclick='javascript:void(0)'><button class='webix_custom_checkbox'></button></a>";
+			this.defaults.customCheckbox = true;
 	}
 }, webix.ui.text);
 
@@ -8627,9 +8641,14 @@ webix.protoUI({
 	getValue:function(obj){
 		return this._settings.value;
 	},
+	customRadio_setter: function(value){
+		if(value === true && webix.skin.$active.customRadio)
+			value = "<a onclick='javascript:void(0)'><button class='webix_custom_radio'></button></a>";
+		return value;
+	},
 	$skin:function(){
 		if(webix.skin.$active.customRadio)
-			this.defaults.customRadio = "<a onclick='javascript:void(0)'><button class='webix_custom_radio'></button></a>";
+			this.defaults.customRadio = true;
 		if(webix.skin.$active.optionHeight)
 			this.defaults.optionHeight = webix.skin.$active.optionHeight;
 	}
@@ -8855,8 +8874,12 @@ webix.protoUI({
 		}
 	},
 	format_setter:function(value){
-		this._formatStr = webix.Date.dateToStr(value);
-		this._formatDate = webix.Date.strToDate(value);
+		if (typeof value === "function")
+			this._formatStr = value;
+		else {
+			this._formatStr = webix.Date.dateToStr(value);
+			this._formatDate = webix.Date.strToDate(value);
+		}
 		return value;
 	},
 	getInputNode: function(){
@@ -21487,7 +21510,7 @@ webix.extend(webix.ui.datatable, {
 		var ids = [];
 		
 		for (var i=0; i<span; i++)
-			ids.push(order[index+i]);
+			ids.push(order[index+i]||id);
 
 		return ids;
 	},
@@ -26352,7 +26375,8 @@ webix.protoUI({
 			}
 		},
 		webix_cal_done:function(e){
-			this._selectDate(this._settings.date);
+			if(this._checkDate(this._settings.date))
+				this._selectDate(this._settings.date);
 		},
 		webix_cal_month_name:function(e){
 			this._zoom_in = false;
@@ -26401,8 +26425,7 @@ webix.protoUI({
 	},
 	showCalendar: function(date) {
 		date = this._string_to_date(date);
-		if (this._checkDate(date))
-			this._settings.date = date;
+		this._settings.date = date;
 		this.render();
 		this.resize();
 	},
@@ -27639,6 +27662,10 @@ webix.protoUI({
 		separator:",",
 		icon: false,
 		iconWidth: 0,
+		tagMode: true,
+		tagTemplate: function(values){
+			return (values.length?values.length+" item(s)":"");
+		},
 		template:function(obj,common){
 			return common._render_value_block(obj, common);
 		}
@@ -27653,7 +27680,7 @@ webix.protoUI({
 
 		this.attachEvent("onBeforeRender",function(){
 			if(!this._inputHeight)
-				this._inputHeight = this.config.aheight;
+				this._inputHeight = webix.skin.$active.inputHeight - 2*this._settings.inputPadding;
 			return true;
 		});
 		this.attachEvent("onAfterRender", function(){
@@ -27777,11 +27804,17 @@ webix.protoUI({
 			var text = textArr && textArr.length;
 			if(text){
 				var values = this._settings.value.split(this._settings.separator);
-				var height = this._inputHeight - 2*webix.skin.$active.inputPadding - 8;
-				for(var i=0; i < textArr.length;i++){
-					var content = "<span>"+textArr[i]+"</span><span class='webix_multicombo_delete'>x</span>";
-					html += "<li class='webix_multicombo_value' style='line-height:"+height+"px;' value='"+values[i]+"'>"+content+"</li>";
+				if(this._settings.tagMode){
+					var height = this._inputHeight - 2*webix.skin.$active.inputPadding - 8;
+					for(var i=0; i < textArr.length;i++){
+						var content = "<span>"+textArr[i]+"</span><span class='webix_multicombo_delete'>x</span>";
+						html += "<li class='webix_multicombo_value' style='line-height:"+height+"px;' value='"+values[i]+"'>"+content+"</li>";
+					}
 				}
+				else{
+					html += "<li class='webix_multicombo_tag'>"+this._settings.tagTemplate(values)+"</li>";
+				}
+
 			}
 			listbox.innerHTML = html;
 
@@ -27855,6 +27888,18 @@ webix.protoUI({
 	},
 	getValue:function(){
 		return this._settings.value;
+	},
+	$setSize:function(x,y){
+		var config = this._settings;
+
+		if(webix.ui.view.prototype.$setSize.call(this,x,y)){
+			if (!x || !y) return;
+
+			if (config.labelPosition == "top"){
+				config.labelWidth = 0;
+			}
+			this.render();
+		}
 	},
 	_calcInputWidth: function(value){
 		var tmp = document.createElement("span");
@@ -29289,6 +29334,10 @@ webix.markup = {
 		maxHeight:true,
         headerRowHeight:true
 	},
+	_parse_bool:{
+		disabled:true,
+		hidden:true
+	},
 	_view_has_method:function(view, name){
 		return webix.ui.hasMethod(view, name);
 	},
@@ -29612,6 +29661,8 @@ webix.markup = {
 
             if (this._parse_int[name])
                 value = parseInt(value,10);
+            else if (this._parse_bool[name])
+            	value = (value && value !== "false" && value != "0");
 
             json[name] = value;
         }
@@ -32059,3 +32110,22 @@ webix.protoUI({
 		controls: true
 	}
 }, webix.ui.view);
+
+
+webix.protoUI({
+	name:"NonGPL",
+	$init:function(){
+		webix.message("GPL version does not support '"+this.name+"'","error",-1);
+	}
+},webix.ui.view);
+
+webix.protoUI({	name:"organogram" },webix.ui.NonGPL);
+webix.protoUI({	name:"barcode" },webix.ui.NonGPL);
+webix.protoUI({ name:"portlet" },webix.ui.NonGPL);
+webix.protoUI({ name:"pdfviewer" },webix.ui.NonGPL);
+webix.protoUI({ name:"pdfbar" },webix.ui.NonGPL);
+webix.protoUI({ name:"excelviewer" },webix.ui.NonGPL);
+webix.protoUI({ name:"excelbar" },webix.ui.NonGPL);
+webix.protoUI({ name:"datasuggest" },webix.ui.NonGPL);
+webix.protoUI({ name:"gridsuggest" },webix.ui.NonGPL);
+webix.protoUI({ name:"multitext" },webix.ui.NonGPL);

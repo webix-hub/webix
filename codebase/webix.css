@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.3.0.0
+webix UI v.3.0.4
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -498,7 +498,8 @@ body:not(:-moz-handler-blocked) .webix_el_select select{padding:.2em}
 .webix_el_colorpicker .webix_input_icon,.webix_el_combo .webix_input_icon,.webix_el_datepicker .webix_input_icon,.webix_el_richselect .webix_input_icon,.webix_el_search .webix_input_icon{right:2px;background:0 0;z-index:1;position:absolute}
 .webix_el_combo .webix_input_icon,.webix_el_richselect .webix_input_icon{padding-left:7px;width:19px}
 .webix_el_colorpicker .webix_input_icon,.webix_el_datepicker .webix_input_icon,.webix_el_search .webix_input_icon{padding-left:5px;width:21px}
-.webix_el_radio .webix_inp_label{line-height:normal!important;padding-top:9.5px}
+.webix_view button::-moz-focus-inner{padding:0;border:0}
+.webix_el_radio .webix_inp_label{line-height:normal!important;padding-top:6.5px}
 .webix_el_checkbox input,.webix_inp_radio_border input{margin:0;padding:0;float:left}
 .webix_line_break{clear:both}
 .webix_custom_checkbox,.webix_custom_radio{-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;user-select:none}
@@ -520,7 +521,8 @@ label.webix_required:after{padding-left:4px;content:"*";color:red}
 .webix_el_text .webix_multicombo_input{background-color:transparent;border:0;float:left;vertical-align:middle;padding:0;color:#666;font-size:15px;font-family:'PT Sans',Tahoma;margin-left:7px}
 .webix_el_text .webix_multicombo_input:focus{border:0;box-shadow:none}
 .webix_multicombo_listbox{width:auto;line-height:1;margin:0;padding:0;list-style:none}
-.webix_multicombo_value{padding:0 5px 0 7px;background-color:#f2f2f2;display:inline-block;margin:3px;float:left;-webkit-border-radius:6px;-moz-border-radius:6px;border-radius:6px}
+.webix_multicombo_tag,.webix_multicombo_value{padding:0 5px 0 7px;background-color:#f2f2f2;display:inline-block;margin:3px;float:left;-webkit-border-radius:6px;-moz-border-radius:6px;border-radius:6px}
+.webix_multicombo_tag{min-width:15px;text-align:center;padding:0 5px}
 .webix_multicombo_delete{margin-left:10px;padding:0 5px;color:#404040;cursor:pointer}
 .webix_multilist .webix_selected{background:#f2f2f2;color:#666}
 .webix_el_tabbar{background:0 0}
@@ -1425,8 +1427,8 @@ div.webix_item_tab.webix_selected{padding-top:2px}
 .webix_custom_checkbox:focus{border-color:#3498db}
 a:active .webix_custom_checkbox,a:focus .webix_custom_checkbox{border:1px solid #3498db;box-shadow:0 0 1px #3498db inset}
 .webix_el_radio .webix_custom_radio:before{content:" ";background-color:#fff}
-.webix_el_radio .webix_radio_1 .webix_custom_radio:before{content:" ";margin:3px;border-radius:50%;display:block;width:7px;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;height:7px;background-color:#3498db}
-.webix_el_radio .webix_custom_radio{display:block;height:15px;width:15px;padding:0;border:1px solid #ccc;border-radius:50%;background-color:#fff}
+.webix_el_radio .webix_radio_1 .webix_custom_radio:before{content:" ";border-radius:50%;display:block;width:7px;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;height:7px;background-color:#3498db}
+.webix_el_radio .webix_custom_radio{display:block;height:15px;width:15px;padding:3px;border:1px solid #ccc;border-radius:50%;background-color:#fff}
 .webix_el_radio .webix_custom_radio:focus{border-color:#3498db}
 .webix_el_radio .webix_label_right{color:#666;font-size:15px}
 a:active .webix_custom_radio,a:focus .webix_custom_radio{border:1px solid #3498db;box-shadow:0 0 1px #3498db inset}
