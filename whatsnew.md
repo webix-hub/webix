@@ -1,3 +1,27 @@
+Version 3.0.8
+==============
+
+- onSubViewOpen event handler	
+- support for numPad keys
+- carousel navigation z-index
+- data corrupting by counter in the footer
+- disabled Resizer
+- double-rendering from onchange handler in Chrome
+- Fieldset vertical padding
+- focus() method for checkbox and radio
+- handling mouseup outside browser window
+- IE8 compatibility
+- pager update on data count change
+- progressBar in window
+- regression in form focus handling
+- regression in windows focus handling
+- scrolling DataTable with span(s) on touch devices
+- size of editors in case of sub-forms, sub-rows
+- sub-rows and precise scroll
+- export to excel and Webix Jet (RequireJS)
+- date-time shifting in export to Excel 
+
+
 Version 3.0.4
 ==============
 

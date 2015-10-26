@@ -218,6 +218,9 @@ x\:ui {
   z-index: 2;
   left: 0px;
 }
+.webix_resizer.webix_disabled_view {
+  cursor: default;
+}
 .webix_resizer_vy {
   cursor: n-resize;
   margin-top: 0px !important;
@@ -2554,9 +2557,14 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
   padding-left: 5px;
   width: 21px;
 }
+/*Remove button padding in FF*/
+.webix_view button::-moz-focus-inner {
+  padding: 0;
+  border: 0;
+}
 .webix_el_radio .webix_inp_label {
   line-height: normal !important;
-  padding-top: 7px;
+  padding-top: 5px;
 }
 .webix_inp_radio_border input,
 .webix_el_checkbox input {
@@ -2687,7 +2695,8 @@ label.webix_required:after {
   padding: 0;
   list-style: none;
 }
-.webix_multicombo_value {
+.webix_multicombo_value,
+.webix_multicombo_tag {
   padding: 0 5px 0 7px;
   background-color: #f2f2f2;
   display: inline-block;
@@ -2696,6 +2705,11 @@ label.webix_required:after {
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   border-radius: 4px;
+}
+.webix_multicombo_tag {
+  min-width: 15px;
+  text-align: center;
+  padding: 0 5px 0 5px;
 }
 .webix_multicombo_delete {
   margin-left: 10px;
