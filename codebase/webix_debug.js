@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.3.0.8
+webix UI v.3.1.0
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="3.0.8";
+webix.version="3.1.0";
 webix.codebase="./";
 webix.name = "core";
 
@@ -885,6 +885,24 @@ webix.html={
 	//remove css class from the node
 	removeCss:function(node,name){
 		node.className=node.className.replace(RegExp(" "+name,"g"),"");
+	},
+	getTextSize:function(text, css){
+		var d = webix.html.create("DIV",{"class":"webix_view webix_measure_size "+(css||"")},"");
+		d.style.cssText = "width:1px; height:1px; visibility:hidden; position:absolute; top:0px; left:0px; overflow:hidden; white-space:nowrap;";
+		document.body.appendChild(d);
+
+		var all = (typeof text !==  "object") ? [text] : text;
+		var width = 0;
+		var height = 0;
+
+		for (var i = 0; i < all.length; i++) {
+			d.innerHTML = all[i];
+			width = Math.max(width, d.scrollWidth);
+			height = Math.max(height, d.scrollHeight);
+		}
+		
+		webix.html.remove(d);
+		return { width:width, height:height };
 	}
 };
 
@@ -2463,7 +2481,7 @@ webix.ajax.prototype={
 		params - hash of properties which will be added to the url
 		call - callback, can be an array of functions
 	*/
-	_send:function(url,params,call, master, mode){
+	_send:function(url, params, call, master, mode){
 		if (params && (webix.isArray(params) || (typeof (params.success || params.error || params) == "function"))){
 			master = call;
 			call = params;
@@ -2814,7 +2832,6 @@ webix.AtomDataLoader={
 		}
 		else 
 			this._onLoadError(text,response,loader);
-
 		this.callEvent("onAfterLoad",[]);
 		this.waitData.resolve();
 	},
@@ -2857,7 +2874,7 @@ webix.DataDriver.json={
 		if (typeof data == "string"){
 			try{
 				if (this.parseDates){
-					var isodate = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/;
+					var isodate = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d{3})?Z/;
 					data = JSON.parse(data, function(key, value){
 						if (typeof value == "string"){
 							if (isodate.test(value))
@@ -3241,6 +3258,7 @@ webix.debug_code(function(){
 });
 
 
+
 //UI interface
 webix.BaseBind = {
 	bind:function(target, rule, format){
@@ -3590,11 +3608,12 @@ webix.AtomRender={
 	},
 	//render self, by templating data object
 	render:function(){
-		if (this.isVisible(this._settings.id)){
+		var cfg = this._settings;
+		if (this.isVisible(cfg.id)){
 			if (webix.debug_render)
-				webix.log("Render: "+this.name+"@"+this._settings.id);
+				webix.log("Render: "+this.name+"@"+cfg.id);
 			if (!this.callEvent || this.callEvent("onBeforeRender",[this.data])){
-				if (this.data && !this._settings.content){
+				if (this.data && !cfg.content){
 					//it is critical to have this as two commands
 					//its prevent destruction race in Chrome
 					this._dataobj.innerHTML = "";
@@ -4244,6 +4263,69 @@ webix.ui.animate = function(ui, parent, config){
 	}
 };
 
+webix.ui.animateView = function(view, stateHandler, config){
+	view = webix.$$(view);
+	if (view){
+		config = config || { type:"slide", direction:"left" };
+
+		var getHTML = function(view){
+			var el = view._viewobj;
+			var css = el.className;
+			var content =el.innerHTML;
+			return "<div class='"+css+"' style='width:"+el.offsetWidth+"px;height:"+el.offsetHeight+"px;'>"+content+"</div>";
+		};
+
+		// get 'display' state of child nodes
+		var display = [];
+		for(var i =0; i< view._viewobj.childNodes.length;i++){
+			var node = view._viewobj.childNodes[i];
+			var value = node.currentStyle ?node.currentStyle.display : getComputedStyle(node, null).display;
+			display.push(value||"");
+		}
+		// get current html content
+		var currentState = getHTML(view);
+
+		// apply new state
+		if(typeof stateHandler == "function"){
+			stateHandler.call(this);
+		}
+
+		// get new html content
+		var newState = getHTML(view);
+
+		// insert elements into the view
+		var tempParent = view._viewobj.insertBefore(webix.html.create("DIV",{
+			"class" : "webix_view_animate",
+			"style" : "width:"+view._viewobj.offsetWidth+"px;height:"+view._viewobj.offsetHeight+"px;"
+		}, newState+currentState),view._viewobj.firstChild);
+
+		// hide child nodes
+		for(var i =1; i< view._viewobj.childNodes.length;i++){
+			view._viewobj.childNodes[i].style.display = "none";
+		}
+
+		// animate inserted elements
+		var line = webix.animate.formLine(
+			tempParent.childNodes[0],
+			tempParent.childNodes[1],
+			config
+		);
+		config.callback = function(){
+			if(tempParent){
+				view._viewobj.removeChild(tempParent);
+				tempParent = null;
+				// restore 'display' state of child nodes
+				for(var i =0; i< view._viewobj.childNodes.length;i++){
+					view._viewobj.childNodes[i].style.display = display[i];
+				}
+			}
+		};
+		webix.animate(line, config);
+
+		return view;
+	}
+};
+
 /*called in baseview $init for calculate scrollSize*/
 webix.ui._detectScrollSize = function(){
 	var div = webix.html.create("div");
@@ -4483,11 +4565,11 @@ webix.protoUI({
 		return value;
 	},
 	id_setter:function(value){
-		if (webix._global_collection && webix._global_collection != this){
+		if (webix._global_collection && (webix._global_collection != this || this._prev_global_col)){
 			var oldvalue = this.config.$id = value;
-			webix._global_collection._elements[value] = this;
+			(this._prev_global_col || webix._global_collection)._elements[value] = this;
 			value = webix.ui._uid(this.name);
-			webix._global_collection._translate_ids[value]=oldvalue;
+			(this._prev_global_col || webix._global_collection)._translate_ids[value]=oldvalue;
 		}
 		webix.assert(!webix.ui.views[value], "Non unique view id: "+value);
 		webix.ui.views[value] = this;
@@ -6019,11 +6101,11 @@ webix.protoUI({
 		return (this._settings.collapsed?this._settings.headerAltHeight:this._settings.headerHeight);
 	},
 	$setSize:function(x,y){
-		if (webix.ui.view.prototype.$setSize.call(this,x,y)){
+		if (webix.ui.view.prototype.$setSize.call(this,x,y) || this._getHeaderSize() != this._last_set_header_size){
 			x = this._content_width;
 			y = this._content_height;
 
-			var headerSize = this._getHeaderSize();//-(this._settings._inner.top?0:1);
+			var headerSize = this._last_set_header_size = this._getHeaderSize();//-(this._settings._inner.top?0:1);
 			if (this._settings.header){
 
 				this._headobj.style.height=headerSize+"px";
@@ -7647,6 +7729,9 @@ webix.protoUI({
 
 		this.data = this._settings;
 		this._dataobj = this._viewobj;
+
+		if (config.autowidth)
+			config.width = webix.html.getTextSize((config.value||config.label), "webixbutton").width;
 	},
 	hotkey_setter: function(key){
 		var control = this;
@@ -7795,29 +7880,18 @@ webix.protoUI({
 	},
 	_sqrt_2:Math.sqrt(2),
 	_set_inner_size_next:function(){
-		 var arrow = this._getBox().childNodes[1];
-		 var button = arrow.previousSibling;
-		 var style = this._settings.type == "next"?"right":"left";
-		 var height = this._settings.aheight-webix.skin.$active.inputPadding*2-2; //-2 - borders
-
-		/* var ax = Math.round((height)/this._sqrt_2);
-		 var ay = Math.round(Math.sqrt(height*height-ax*ax));
-		 
-		 arrow.style.width = ax-2+"px";
-		 arrow.style.height = ay-2+"px";
-		 arrow.style.top = Math.round(ax/4) -1 + "px";
-		 arrow.style[style] = Math.floor(ax/4)+ "px";
-
-		 button.style.width = this._settings.awidth - 3*ax/4 -2  + "px";
-		 button.style.height = height + "px";
-		 button.style[style] = 3*ax/4 + "px";*/
+		var cfg = this._settings;
+		var arrow = this._getBox().childNodes[1];
+		var button = arrow.previousSibling;
+		var style = cfg.type == "next"?"right":"left";
+		var height = cfg.aheight-webix.skin.$active.inputPadding*2-2; //-2 - borders
 
 		var arrowEdge = height*this._sqrt_2/2;
 		arrow.style.width = arrowEdge+"px";
 		arrow.style.height = arrowEdge+"px";
 		arrow.style.top = (height - arrowEdge)/2 + webix.skin.$active.inputPadding+ "px";
 		arrow.style[style] = (height - arrowEdge)/2 +this._sqrt_2/2+ "px";
-		button.style.width = this._settings.awidth - height/2 -2  + "px";
+		button.style.width = cfg.awidth - height/2 -2  + "px";
 		button.style.height = height + 2 + "px";
 		button.style[style] =  height/2 + 2 + "px";
 		button.style.top = webix.skin.$active.inputPadding+ "px";
@@ -9200,7 +9274,7 @@ webix.ValidateData = {
 			}
 		}
 	},
-	validate:function(obj) {
+	validate:function(mode, obj) {
 		webix.assert(this.callEvent, "using validate for eventless object");
 		
 		this.callEvent("onBeforeValidate", []);
@@ -9209,20 +9283,26 @@ webix.ValidateData = {
 		//optimistic by default :) 
 		var result =true;
 		var rules = this._settings.rules;
+		
 		var isHidden = this.isVisible && !this.isVisible();
+		var validateHidden = mode && mode.hidden;
+		var validateDisabled = mode && mode.disabled;
 
         //prevent validation of hidden elements
 		var elements = {}, hidden = {};
         for(var i in this.elements){
             var name = this.elements[i].config.name;
-            //we are ignoring hidden fields during validation
+            //we are ignoring hidden and disabled fields during validation
+            //if mode doesn not instruct us otherwise
             //if form itself is hidden, we can't separate hidden fiels,
             //so we will vaidate all fields
-            if(isHidden || this.elements[i].isVisible())
-                elements[name] = this.elements[i];
-            else
-                hidden[name]=true;
+            if((isHidden || this.elements[i].isVisible() || validateHidden) && (this.elements[i].isEnabled() || validateDisabled))
+				elements[name] = this.elements[i];
+            else{
+				hidden[name]=true;
+            }
         }
+
 
 		if (rules || elements)
 			if(!obj && this.getValues)
@@ -9334,7 +9414,7 @@ webix.ValidateCollection = {
 		else {
 			this._validate_details = {};
 			var obj = this.getItem(id);
-			result = webix.ValidateData.validate.call(this, obj);
+			result = webix.ValidateData.validate.call(this, null, obj);
 			if (result){
 				if (this.callEvent("onValidationSuccess",[id, obj]))
 					this._clear_invalid(id);
@@ -9693,6 +9773,7 @@ webix.DataLoader=webix.proto({
 	save_setter:function(value){
 		if (value)
 			this.$ready.push(this._init_dataprocessor);
+
 		return value;
 	},
 	scheme_setter:function(value){
@@ -9970,8 +10051,10 @@ webix.DataStore.prototype={
 		webix.assert(data, "Ivalid ID for updateItem");
 		webix.assert(!update || !update.id || update.id == id, "Attempt to change ID in updateItem");
 
-		if (!webix.isUndefined(update) && data !== update)
+		if (!webix.isUndefined(update) && data !== update){
 			webix.extend(data, update, true);
+			data.id = id;
+		}
 
 		if (this._scheme_update)
 			this._scheme_update(data);
@@ -11123,7 +11206,7 @@ webix.protoUI({
 		//create  container for future tooltip
 		this._viewobj = this._contentobj = this._dataobj = document.createElement("DIV");
 		this._contentobj.className = "webix_tooltip";
-		webix.html.insertBefore(this._contentobj,document.body.firstChild);
+		webix.html.insertBefore(this._contentobj,document.body.firstChild,document.body);
 		webix.attachEvent("onClick", webix.bind(function(e){
 			if (this._visible && webix.$$(e) != this)
 				this.hide();
@@ -11183,6 +11266,8 @@ webix.AutoTooltip = {
 			var t = new webix.ui.tooltip(value);
 			this._enable_mouse_move();
 			var showEvent = this.attachEvent("onMouseMove",function(id,e){	//show tooltip on mousemove
+				this._mouseEventX = e.clientX;
+				this._mouseEventY = e.clientY;
 				if (this.getColumnConfig){
 					var config = t.type.column = this.getColumnConfig(id.column);
 					if (col_mode){
@@ -11204,9 +11289,11 @@ webix.AutoTooltip = {
 			});
 			// [[IMPROVE]]  As we can can have only one instance of tooltip per page 
 			//				this handler can be attached once per page, not once per component
-			var hideEvent = webix.event(document.body, "mousemove", function(){
-				t.hide();
-			});
+			var hideEvent = webix.event(document.body, "mousemove", webix.bind(function(e){
+				e = e||event;
+				if(this._mouseEventX != e.clientX || this._mouseEventY != e.clientY)
+					t.hide();
+			},this));
 			this.attachEvent("onDestruct",function(){
 				if(this.config.tooltip)
 					this.config.tooltip.destructor();
@@ -12660,6 +12747,17 @@ webix.TreeStore = {
 					functor.call(this, this.getItem(key), false);
 			}
 	},
+	eachLeaf:function(id, functor){
+		var top = this.branch[id||0];
+		if (top)
+			for (var i=0; i<top.length; i++){
+				var key = top[i];
+				if (this.branch[key]){
+					this.eachLeaf(key, functor);
+				} else
+					functor.call(this, this.getItem(key), false);
+			}
+	},
 	_sort_core:function(sort, order){
 		var sorter = this._sort._create(sort);
 		for (var key in this.branch){
@@ -12725,7 +12823,7 @@ webix.TreeStore = {
 	},
 	_rec_remove:function(id, inner){
 		var obj = this.pull[id];
-        if(this.branch[obj.id] > 0){
+        if(this.branch[obj.id] && this.branch[obj.id].length > 0){
         	var branch = this.branch[id];
             for(var i=0;i<branch.length;i++)
                 this._rec_remove(branch[i], true);
@@ -13680,6 +13778,10 @@ webix.CopyPaste = {
 				this._paste[this._settings.clipboard].call(this, text);
 		});
 		this.attachEvent("onFocus", function() {
+			webix.clipbuffer.focus();
+		});
+		// solution for clicks on selected items
+		this.attachEvent("onItemClick",function(){
 			webix.clipbuffer.focus();
 		});
 		return value;
@@ -16691,6 +16793,7 @@ webix.protoUI({
 			item[id.column] = value;
 
 			this.callEvent("onCheck", [id.row, id.column, value]);
+			this.data.callEvent("onDataUpdate", [id, item]);
 			this.data.callEvent("onStoreUpdated", [id.row, item, (this._settings.checkboxRefresh?"update":"save")]);
 			return false;
 		},
@@ -18599,10 +18702,10 @@ webix.ui.datafilter.numberFilter = webix.extend({
 		};
 	},
 	format:function(value){
-		return value.replace(/[^0-9]/g,"");
+		return value.replace(/[^\-\.0-9]/g,"");
 	},
 	_greater:function(a,b){ return a*1>b; },
-	_lesser:function(a,b){ return a && a*1<b; },
+	_lesser:function(a,b){ return a!=="" && a*1<b; },
 	_equal:function(a,b){ return a*1==b; }	
 }, webix.ui.datafilter.textFilter);
 
@@ -18960,7 +19063,7 @@ webix.extend(webix.ui.datatable, {
 				
 				delete this._selected_pull[key];
 
-				this.callEvent("onAfterUnselect",[data]);
+				this.callEvent("onAfterUnSelect",[data]);
 				this._finalize_select(0, this._post_unselect(data));
 			},
 			_add_item_select:function(id){
@@ -19652,12 +19755,17 @@ webix.TablePaste = {
 		if (value === true || value === 1) this._settings.clipboard = 'block';
 		webix.clipbuffer.init();
 		this.attachEvent("onSelectChange",this._sel_to_clip);
+		// solution for clicks on selected items
+		this.attachEvent("onItemClick",function(){
+			webix.clipbuffer.focus();
+		});
 		this.attachEvent("onPaste", this._clip_to_sel);
 
 		return value;
 	},
 
 	_sel_to_clip: function() {
+
 		if (!this.getEditor || !this.getEditor()){
 			var data = this._get_sel_text();
 			webix.clipbuffer.set(data);
@@ -20806,10 +20914,10 @@ webix.extend(webix.ui.datatable, {
 		var width = this._content_width - this._scrollSizeY;
 		var resize = false;
 
-		for (var i=0; i<cols.length; i++)
-			if (!fill[i]) width -= (cols[i].width || this.config.columnWidth);
-
 		if (width>0){
+			for (var i=0; i<cols.length; i++)
+				if (!fill[i]) width -= (cols[i].width || this.config.columnWidth);
+
 			for (var i = 0; i < fill.length; i++)
 				if (fill[i]){
 					var request = Math.min(width, Math.round(width * fill[i]/summ));
@@ -20817,10 +20925,10 @@ webix.extend(webix.ui.datatable, {
 					width = width - cols[i].width;
 					summ = summ - fill[i];
 				}
-		}
 
-		if (resize) 
-			this._updateColsSizeSettings(true);
+			if (resize) 
+				this._updateColsSizeSettings(true);
+		}
 	},
 	_getColumnConfigSize:function(ind, headers){
 		var d = webix.html.create("DIV",{"class":"webix_view webix_table_cell webix_measure_size webix_cell"},"");
@@ -21677,8 +21785,10 @@ webix.extend(webix.ui.datatable, {
 		}
 	},
 	refreshColumns:function(columns, reset){
-		if ((columns && columns != this.config.columns) || reset)
+		if ((columns && columns != this.config.columns) || reset){
 			this._clear_hidden_state();
+			this._filter_elements = [];
+		}
 
 		this._columns_pull = {};
 		//clear rendered data
@@ -27737,6 +27847,10 @@ webix.protoUI({
 		this.$view.className += " webix_multicombo";
 
 		this.attachEvent("onBlur", webix.bind(function(){
+			var value = this.getInputNode().value;
+			if(value && this._settings.newValues){
+				this._addNewValue(value);
+			}
 			this._inputValue = "";
 			this.refresh();
 		},this));
@@ -27749,6 +27863,8 @@ webix.protoUI({
 		this.attachEvent("onAfterRender", function(){
 			this._last_size = null;
 		});
+
+		this._renderCount = 0;
 	},
 	on_click: {
 		"webix_multicombo_delete": function(e,view,node){
@@ -27779,6 +27895,14 @@ webix.protoUI({
 				this.setValue(suggest.getValue());
 			}
 		}
+	},
+	_addNewValue: function(value){
+		var suggest = webix.$$(this.config.suggest);
+		var list = suggest.getList();
+		if(!list.exists(value) && value.replace(/^\s+|\s+$/g,'')){
+			list.add({id: value, value: value});
+		}
+		this._addValue(value);
 	},
 	_suggest_config:function(value){
 		var isObj = !webix.isArray(value) && typeof value == "object" && !value.name,
@@ -27823,36 +27947,45 @@ webix.protoUI({
 		return view;
 	},
 	_render_value_block:function(obj, common){
-		var top = this._settings.labelPosition == "top";
-		var id = obj.id || webix.uid();
-		var width = common._get_input_width(obj);
-		var inputAlign = obj.inputAlign || "left";
+		var id, input, inputAlign,inputValue, inputWidth,
+			height, html, label, list, message, padding,  width,
+			bottomLabel = "",
+			placeholder = "",
+			top =  this._settings.labelPosition == "top";
 
-		var height = this._inputHeight - 2*webix.skin.$active.inputPadding -2;
+		top = this._settings.labelPosition == "top";
+		id = obj.id || webix.uid();
+		width = common._get_input_width(obj);
+		inputAlign = obj.inputAlign || "left";
 
-		var inputValue = (common._inputValue||"");
+		height = this._inputHeight - 2*webix.skin.$active.inputPadding -2;
 
-		var list = "<ul class='webix_multicombo_listbox' style='line-height:"+height+"px'></ul>";
+		inputValue = (common._inputValue||"");
 
-		var inputWidth = Math.min(width,(common._inputWidth||7));
-		var placeholder = "";
+		list = "<ul class='webix_multicombo_listbox' style='line-height:"+height+"px'></ul>";
+
+		inputWidth = Math.min(width,(common._inputWidth||7));
+
 		if(obj.placeholder && !obj.value && !common._inputValue){
 			placeholder = obj.placeholder||"";
 			inputWidth = width;
 		}
 
-		var input = "<input type='text' placeholder='"+placeholder+"' class='webix_multicombo_input' style='width: "+inputWidth+"px;height:"+height+"px;max-width:"+(width-20)+"px' value='"+inputValue+"'/>";
-		var html = "<div class='webix_inp_static' tabindex='0' onclick='' style='line-height:"+height+"px;width: " + width + "px;  text-align: " + inputAlign + ";height:auto' >"+list+input +"</div>";
+		input = "<input type='text' placeholder='"+placeholder+"' class='webix_multicombo_input' style='width: "+inputWidth+"px;height:"+height+"px;max-width:"+(width-20)+"px' value='"+inputValue+"'/>";
+		html = "<div class='webix_inp_static' tabindex='0' onclick='' style='line-height:"+height+"px;width: " + width + "px;  text-align: " + inputAlign + ";height:auto' >"+list+input +"</div>";
 
 
+		label = common.$renderLabel(obj,id);
 
-		//html +=	"</div>";
-		var label = common.$renderLabel(obj,id);
+		padding = this._settings.awidth - width - webix.skin.$active.inputPadding*2;
+		message = (obj.invalid ? obj.invalidMessage : "") || obj.bottomLabel;
+		if (message)
+			bottomLabel =  "<div class='webix_inp_bottom_label' style='width:"+width+"px;margin-left:"+Math.max(padding,webix.skin.$active.inputPadding)+"px;'>"+message+"</div>";
+
 		if (top)
-			return label+"<div class='webix_el_box' style='width:"+this._settings.awidth+"px; '>"+html+"</div>";
+			return label+"<div class='webix_el_box' style='width:"+this._settings.awidth+"px; '>"+html+bottomLabel+"</div>";
 		else
-			return "<div class='webix_el_box' style='width:"+this._settings.awidth+"px; min-height:"+this._settings.aheight+"px;'>"+label+html+"</div>";
-
+			return "<div class='webix_el_box' style='width:"+this._settings.awidth+"px; min-height:"+this._settings.aheight+"px;'>"+label+html+bottomLabel+"</div>";
 	},
 	_getValueListBox: function(){
 		return this._getBox().getElementsByTagName("UL")[0];
@@ -27920,10 +28053,24 @@ webix.protoUI({
 		if(top)
 			inputHeight += this._labelTopHeight;
 
+		inputHeight += this._settings.bottomPadding ||0;
+
 		var sizes = this.$getSize(0,0);
 
 		if(inputHeight != sizes[2]){
-			this._calcHeight = inputDiv.offsetHeight + (top?this._labelTopHeight:0);
+			var cHeight = inputDiv.offsetHeight + (top?this._labelTopHeight:0);
+
+			// workaround for potential rendering loop
+			if(cHeight == this._calcHeight)
+				this._renderCount++;
+			else
+				this._renderCount = 0;
+
+			if(this._renderCount > 10)
+				return false;
+
+			this._calcHeight = cHeight;
+
 			var topView =this.getTopParentView();
 			clearTimeout(topView._template_resize_timer);
 			topView._template_resize_timer = webix.delay(function(){
@@ -28062,7 +28209,11 @@ webix.protoUI({
 					if(!list.getSelectedId()){
 						if (input.value)
 							id = suggest.getSuggestion();
-						if(id){
+
+						if(this._settings.newValues){
+							this._addNewValue(input.value);
+						}
+						else if(id){
 							if(e.keyCode == 9){
 								this._typing = false;
 								this._inputValue = "";
@@ -28075,6 +28226,7 @@ webix.protoUI({
 								this._addValue(id);
 							}
 						}
+
 					}
 					if(e.keyCode == 13){
 						this._enter = true;
@@ -28097,7 +28249,12 @@ webix.protoUI({
 webix.protoUI({
 	name:"menu",
 	_listClassName:"webix_menu",
-	$init:function(){
+	$init:function(config){
+		if (config.autowidth){
+			this._autowidth_submenu = true;
+			delete config.autowidth;
+		}
+
 		this.data.attachEvent('onStoreUpdated', webix.bind(function(){
 			this._hide_sub_menu();
 		},this));
@@ -28145,6 +28302,17 @@ webix.protoUI({
 			this._hidden_items = [];
 		});
 		this.data._hidden_items = [];
+	},
+	sizeToContent:function(){
+		if (this._settings.layout == "y"){
+			var texts = [];
+			this.data.each(function(obj){
+				texts.push(this._toHTML(obj));
+			}, this);
+
+			this.config.width = webix.html.getTextSize(texts, this.$view.className).width+20;
+			this.resize();
+		} else webix.assert(false, "sizeToContent will work for vertical menu only");
 	},
 	getTopMenu:function(){
 		var parent = this;
@@ -28244,6 +28412,8 @@ webix.protoUI({
 			if(this.data.getMark(id,"webix_disabled"))
 				return;
 
+			if (this.getTopMenu()._autowidth_submenu && sub.sizeToContent && !sub.isVisible())
+				sub.sizeToContent();
 			sub.show(target,{ pos:this._settings.subMenuPos });
 
 			sub._parent_menu = this._settings.id;
@@ -29051,7 +29221,7 @@ webix.DataProcessor = webix.proto({
 			if (master && master.data && master.data.getMark && master.data.getMark(id, "webix_invalid"))
 				update._invalid = true;
 
-			if (!this.validate(update.data))
+			if (!this.validate(null, update.data))
 				update._invalid = true;
 		}
 
@@ -29257,11 +29427,7 @@ webix.DataProcessor = webix.proto({
 			this.setItemState(id, false);
 
 		if (obj && status != "delete" && this._settings.updateFromResponse){
-			var item = this._settings.store.getItem(id);
-			webix.extend(item, obj, true);
-			//do not allow to override id, we will need the valid id for the changeId operation
-			item.id = id;
-			this._settings.store.refresh(id);
+			this._settings.store.updateItem(id, obj);
 		}
 
 		if (newid && id != newid)
@@ -30459,7 +30625,7 @@ webix.UploadDriver = {
 					uploaderId: config.id,
 					ID: config.swfId,
 					enableLogs:(config.enableLogs?"1":""),
-					paramName:(config.paramName||"upload"),
+					paramName:(config.inputName),
 					multiple:(config.multiple?"Y":"")
 			}, {wmode:"transparent"});
 
@@ -30673,7 +30839,7 @@ webix.UploadDriver = {
 			item.status = 'transfer';
 
 			var formData = new FormData();
-			formData.append("upload", item.file);
+			formData.append(this.config.inputName, item.file);
 
 			var headers = {};
 				details = details || {};
@@ -30736,7 +30902,8 @@ webix.protoUI({
 	name:"uploader",
 	defaults:{
 		autosend:true,
-		multiple:true
+		multiple:true,
+		inputName:"upload"
 	},
 	$cssName:"button",
 	_allowsClear:true,
@@ -32188,7 +32355,6 @@ webix.protoUI({
 	}
 }, webix.ui.view);
 
-
 webix.protoUI({
 	name:"NonGPL",
 	$init:function(){
@@ -32206,3 +32372,409 @@ webix.protoUI({ name:"excelbar" },webix.ui.NonGPL);
 webix.protoUI({ name:"datasuggest" },webix.ui.NonGPL);
 webix.protoUI({ name:"gridsuggest" },webix.ui.NonGPL);
 webix.protoUI({ name:"multitext" },webix.ui.NonGPL);
+webix.protoUI({
+	name:"sidemenu",
+	defaults: {
+		padding:0,
+		animate: true,
+		position: "left",
+		width: 200,
+		borderless: true
+	},
+	$init:function(){
+		this.$view.className += " webix_sidemenu";
+	},
+	position_setter: function(value){
+		var prevPosition = this._settings.position;
+		if(prevPosition)
+			webix.html.removeCss(this.$view," webix_sidemenu_"+prevPosition);
+		webix.html.addCss(this.$view," webix_sidemenu_"+value);
+		return value;
+	},
+	$getSize: function(){
+		var sizes = webix.ui.window.prototype.$getSize.apply(this,arguments);
+		this._desired_sizes = sizes;
+		return sizes;
+	},
+	$setSize:function(x,y){
+		webix.ui.view.prototype.$setSize.call(this,x,y);
+		x = this._content_width-this._settings.padding*2;
+		y = this._content_height-this._settings.padding*2;
+		this._contentobj.style.padding = this._settings.padding+"px";
+		this._headobj.style.display="none";
+		this._bodyobj.style.height = y+"px";
+		this._body_cell.$setSize(x,y);
+	},
+	show: function(){
+		if(!this.callEvent("onBeforeShow",arguments))
+			return false;
+
+		this._settings.hidden = false;
+		this._viewobj.style.zIndex = (this._settings.zIndex||webix.ui.zIndex());
+		if (this._settings.modal || this._modal){
+			this._modal_set(true);
+			this._modal = null; // hidden_setter handling
+		}
+		this._viewobj.style.display = "block";
+		this._render_hidden_views();
+		if (this._settings.position)
+			this._setPosition();
+
+		this._hide_timer = 1;
+		webix.delay(function(){ this._hide_timer = 0; }, this, [], (webix.env.touch ? 400 : 100 ));
+
+		if (this.config.autofocus){
+			this._prev_focus = webix.UIManager.getFocus();
+			webix.UIManager.setFocus(this);
+		}
+
+		if (-1 == webix.ui._popups.find(this))
+			webix.ui._popups.push(this);
+
+		this.callEvent("onShow",[]);
+	},
+	_setPosition: function(x){
+		var width, height, maxWidth, maxHeight,
+			position,
+			left = 0, top = 0,
+			state = { };
+
+
+		this.$view.style.position = "fixed";
+
+		maxWidth = (window.innerWidth||document.documentElement.offsetWidth);
+		maxHeight = (window.innerHeight||document.documentElement.offsetHeight);
+
+		width = this._desired_sizes[0] || maxWidth;
+		height = this._desired_sizes[2] ||maxHeight;
+
+		webix.assert(width &&height, "Attempt to show not rendered window");
+
+		position = this._settings.position;
+
+		if(position == "top"){
+			width = maxWidth;
+		} else if(position == "right"){
+			height = maxHeight;
+			left = maxWidth - width;
+		} else if(position == "bottom"){
+			width = maxWidth;
+			top = maxHeight - height;
+		} else {
+			height = maxHeight;
+		}
+
+		state = { left: left, top: top,
+			width: width, height: height,
+			maxWidth: maxWidth, maxHeight: maxHeight
+		};
+
+		if (typeof this._settings.state == "function")
+			this._settings.state.call(this, state);
+
+		this._state = state;
+
+		this.$setSize(state.width, state.height);
+
+		if (typeof x == "undefined" && this._isAnimationSupported()){
+			webix.html.removeCss(this.$view,"webix_animate",true);
+			// set initial state
+			this._animate[this._settings.position].beforeShow.call(this, state);
+			// set apply animation css
+			webix.delay(function(){
+				webix.html.addCss(this.$view,"webix_animate",true);
+			},this, null,1);
+			// animate popup
+			webix.delay(function(){
+				this._animate[this._settings.position].show.call(this, state);
+			},this, null,10);
+
+		}
+		else{
+
+			this.setPosition(state.left, state.top);
+		}
+	},
+	_isAnimationSupported: function(){
+		return webix.animate.isSupported() && this._settings.animate && !(webix.env.isIE && navigator.appVersion.indexOf("MSIE 9")!=-1);
+	},
+	hidden_setter:function(value){
+		if(value)
+			this.hide(true);
+		else
+			this.show();
+		return !!value;
+	},
+	_animate:{
+		left: {
+			beforeShow: function(state){
+				this.$view.style.left = -state.width+"px";
+				this.$view.style.top = state.top+"px";
+			},
+			show: function(){
+				this.$view.style.left = "0px";
+			},
+			hide: function(state){
+				this.$view.style.left = -state.width+"px";
+			}
+		},
+		right: {
+			beforeShow: function(state){
+				this.$view.style.left = "auto";
+				this.$view.style.right = -state.width+"px";
+				this.$view.style.top = state.top+"px";
+			},
+			show: function(){
+				this.$view.style.right = 0 +"px";
+			},
+			hide: function(state){
+				this.$view.style.right = -state.width+"px";
+			}
+		},
+		top: {
+			beforeShow: function(state){
+				this.setPosition(state.left,state.top);
+				this.$view.style.height ="0px";
+				this._bodyobj.style.height ="0px";
+			},
+			show: function(state){
+				this.$view.style.height = state.height +"px";
+				this._bodyobj.style.height =state.height+"px";
+			},
+			hide: function(){
+				this.$view.style.height = "0px";
+				this._bodyobj.style.height = "0px";
+			}
+		},
+		bottom: {
+			beforeShow: function(state){
+				this.$view.style.left = state.left + "px";
+				this.$view.style.top = "auto";
+				var bottom = (state.bottom != webix.undefined?state.bottom:(state.maxHeight-state.top  -state.height));
+				this.$view.style.bottom = bottom +"px";
+				this.$view.style.height ="0px";
+			},
+			show: function(state){
+				this.$view.style.height = state.height +"px";
+			},
+			hide: function(){
+				this.$view.style.height = "0px";
+			}
+		}
+	},
+	hide:function(force){
+
+		if (this.$destructed) return;
+
+		if (this._settings.modal)
+			this._modal_set(false);
+
+		var maxWidth = (window.innerWidth||document.documentElement.offsetWidth);
+		var maxHeight = (window.innerHeight||document.documentElement.offsetHeight);
+
+		if (!force && this._isAnimationSupported() && maxWidth == this._state.maxWidth && maxHeight == this._state.maxHeight){
+			// call 'hide' animation handler
+			this._animate[this._settings.position].hide.call(this, this._state);
+			// hide popup
+			var tid = webix.event(this.$view, webix.env.transitionEnd, webix.bind(function(ev){
+				this._hide_callback();
+				webix.eventRemove(tid);
+			},this));
+		}
+		else{
+			this._hide_callback();
+		}
+
+		if (this._settings.autofocus){
+			var el = document.activeElement;
+			if (el && this._viewobj && this._viewobj.contains(el)){
+				webix.UIManager.setFocus(this._prev_focus);
+				this._prev_focus = null;
+			}
+		}
+
+		this._hide_sub_popups();
+
+	}
+
+}, webix.ui.popup);
+
+
+
+(function(){
+
+webix.toPNG = function(id, name){
+    webix.require("http://cdn.webix.com/extras/html2canvas.min.js", function(){
+        var view = webix.$$(id);
+        var node = view ? view.$view : webix.toHTML(id);
+        var filename = (name||"chart")+".png";
+        
+        window.html2canvas(node).then(function(canvas) {
+
+            if (canvas.msToBlob) { //for IE
+                var blob = canvas.msToBlob();
+                window.navigator.msSaveBlob(blob, filename);
+            } else {
+                //other browsers
+                var link = document.createElement("a");
+                link.href = canvas.toDataURL("image/png");
+                link.download = filename;
+	            document.body.appendChild(link);
+                link.click();
+	            document.body.removeChild(link);
+                link.remove();
+            }
+
+            canvas.remove();
+
+        });
+    });
+};
+
+
+webix.toExcel = function(id, options){
+
+    var view = webix.$$(id);
+
+    webix.require("http://cdn.webix.com/extras/xlsx.core.min.js", function(){
+
+        options = options || {};
+        
+        var scheme = getExportScheme(view, options);
+        var result = getExportData(view, options, scheme);
+        var data   = getExcelData(result, scheme);
+
+
+        var wb = { SheetNames:[], Sheets:[]};
+        var name = options.name || "Data";
+        wb.SheetNames.push(name);
+        wb.Sheets[name] = data;
+        
+        var xls = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
+        var filename =  (options.filename || name)+".xlsx";
+
+        var blob = new Blob([str2array(xls)], { type: "application/xlsx" });
+        if (window.navigator.msSaveBlob) { //for IE
+            window.navigator.msSaveBlob(blob, filename);
+        } else {
+            //other browsers
+            var reader = new window.FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = function() {
+                var link = document.createElement("a");
+                link.href = reader.result;
+                link.download = filename;
+	            document.body.appendChild(link);
+                link.click();
+	            document.body.removeChild(link);
+                link.remove();
+            };
+        }
+    });
+};
+
+function getExportScheme(view, options){
+
+    var scheme = [];
+    var isTable = view.getColumnConfig;
+    var columns = options.columns;
+    if (!columns){
+        if (isTable)
+            columns = view._columns_pull;
+        else {
+            var columns = webix.copy(view.data.pull[view.data.order[0]]);
+            for (var key in columns) columns[key] = true;
+            delete columns.id;
+        }
+    }
+
+    if (options.id)
+        scheme.push({ id:"id", template:function(obj){ return obj.id; } });
+
+    for (var key in columns){
+        var column = columns[key];
+	    
+        if (isTable && view._columns_pull[key])
+            column = webix.extend(webix.extend({}, column), view._columns_pull[key]);
+
+        var record = {
+            id:         column.id,
+            template:   (column.template || function(key){return function(obj){ return obj[key]; };}(key)),
+            width:      ((column.width   || 200) * 8.43/70),
+            header:     (column.header!==false?(column.header||key)  : "")
+        };
+        if (typeof record.header == "object")
+            record.header = record.header[0].text;
+
+        scheme.push(record);
+    }
+    return scheme;
+}
+
+function getExportData(view, options, scheme){
+    var header = [];
+    for (var i = 0; i < scheme.length; i++)
+        header.push(scheme[i].header);
+    var data = [header];
+
+    view.data.each(function(item){
+        var line = [];
+        for (var i = 0; i < scheme.length; i++){
+	        line.push( scheme[i].template(item, view.type) );
+        }
+
+        data.push(line);
+    }, view);
+    return data;
+}
+
+function getColumnsWidths(scheme){
+    var wscols = [];
+    for (var i = 0; i < scheme.length; i++)
+        wscols.push({ wch: scheme[i].width });
+        
+    return wscols;
+}
+
+function excelDate(date) {
+    return Math.round(25569 + date / (24 * 60 * 60 * 1000));
+}
+var table = "_table";
+function getExcelData(data, scheme) {
+    var ws = {};
+    var range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
+    for(var R = 0; R != data.length; ++R) {
+        for(var C = 0; C != data[R].length; ++C) {
+            if(range.s.r > R) range.s.r = R;
+            if(range.s.c > C) range.s.c = C;
+            if(range.e.r < R) range.e.r = R;
+            if(range.e.c < C) range.e.c = C;
+            var cell = {v: data[R][C] };
+            if(cell.v === null) continue;
+            var cell_ref = XLSX.utils.encode_cell({c:C,r:R});
+
+            if(typeof cell.v === 'number') cell.t = 'n';
+            else if(typeof cell.v === 'boolean') cell.t = 'b';
+            else if(cell.v instanceof Date) {
+                cell.t = 'n'; cell.z = XLSX.SSF[table][14];
+                cell.v = excelDate(cell.v);
+            }
+            else cell.t = 's';
+
+            ws[cell_ref] = cell;
+        }
+    }
+    if(range.s.c < 10000000) ws['!ref'] = XLSX.utils.encode_range(range);
+
+    ws['!cols'] = getColumnsWidths(scheme);
+    return ws;
+}
+
+function str2array(s) {
+    var buf = new ArrayBuffer(s.length);
+    var view = new Uint8Array(buf);
+    for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+    return buf;
+}
+
+})();

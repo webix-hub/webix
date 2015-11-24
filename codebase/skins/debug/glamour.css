@@ -206,6 +206,11 @@ body.webix_full_screen {
 .webix_spacer {
   background: transparent;
 }
+.webix_view_animate {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
 x\:ui {
   display: none;
 }
@@ -1220,6 +1225,7 @@ div.webix_modal_cover {
 .webix_dtable {
   position: relative;
   cursor: default;
+  z-index: 0;
 }
 .webix_ss_footer,
 .webix_ss_header {
@@ -1676,15 +1682,18 @@ div.webix_modal_cover {
   width: 13px;
   margin-top: 0 !important;
 }
-.webix_measure_size div {
-  display: inline-block !important;
-  margin-left: -5px;
-  float: none;
-}
 .webix_measure_size input,
 .webix_measure_size textarea,
 .webix_measure_size select {
   width: 5px;
+}
+.webix_measure_size div {
+  margin-left: -5px;
+  float: none;
+}
+.webix_measure_size div,
+.webix_measure_size a {
+  display: inline-block !important;
 }
 .webix_tree_close,
 .webix_tree_open,
@@ -3517,13 +3526,14 @@ label.webix_required:after {
   border: 1px solid #dddddd;
   box-sizing: border-box;
 }
-.webix_organogram_list_item {
+.webix_organogram_list .webix_organogram_list_item {
   font-family: "PT Sans", Tahoma;
   border: none;
   text-align: left;
   position: static;
   padding: 5px;
   border-radius: 0px;
+  box-sizing: border-box;
 }
 /*!
  *  Font Awesome 4.3.0 by @davegandy - http://fontawesome.io - @fontawesome
@@ -5396,6 +5406,78 @@ label.webix_required:after {
   margin-top: -11px;
   margin-right: 8px;
 }
+.webix_treemap {
+  background-color: #f5f5f5;
+}
+.webix_treemap .webix_scroll_cont {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+.webix_treemap_item {
+  position: absolute;
+  color: #444;
+  overflow: hidden;
+  text-align: left;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  padding: 3px 5px;
+  border-width: 0px 1px 1px 0;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.2);
+  background: transparent;
+}
+.webix_treemap_level_top {
+  z-index: 1;
+  border-color: rgba(0, 0, 0, 0.4);
+}
+.webix_treemap_item_bottom {
+  border-bottom-width: 0;
+}
+.webix_treemap_item_right {
+  border-right-width: 0;
+}
+.webix_treemap_item:hover {
+  box-shadow: inset 0 0 5px #666;
+}
+.webix_treemap_item.webix_selected {
+  border-color: #e42750;
+  box-shadow: inset 0 0 1px 2px #e42750;
+}
+.webix_treemap_header {
+  width: 100%;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.webix_treemap_header {
+  padding: 0 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0);
+}
+.webix_treemap_header_item {
+  cursor: pointer;
+}
+.webix_treemap_header_item:last-child {
+  cursor: default;
+}
+.webix_treemap_reset {
+  float: right;
+  width: 25px;
+  text-align: center;
+}
+.webix_treemap_reset:before {
+  content: "\f00d";
+  color: #555555;
+  font-family: FontAwesome;
+  font-size: 16px;
+  display: block;
+  cursor: pointer;
+}
+.webix_treemap_path_icon {
+  width: 20px;
+  text-align: center;
+}
 .webix_barcode {
   position: relative;
 }
@@ -5445,6 +5527,47 @@ label.webix_required:after {
 .portlet_markerright {
   width: 50%;
   left: 50%;
+}
+.webix_popup.webix_sidemenu.webix_sidemenu_left {
+  border-width: 0 1px 0 0;
+  box-shadow: 2px 0 2px rgba(0, 0, 0, 0.05);
+}
+.webix_sidemenu_left.webix_animate {
+  transition: left 0.6s;
+}
+.webix_popup.webix_sidemenu.webix_sidemenu_right {
+  left: auto;
+  border-width: 0 0 0 1px;
+  box-shadow: -2px 0px 2px rgba(0, 0, 0, 0.05);
+}
+.webix_sidemenu_right.webix_animate {
+  transition: right 0.6s;
+}
+.webix_popup.webix_sidemenu.webix_sidemenu_top {
+  border-width: 0 0 1px 0 ;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.05);
+}
+.webix_sidemenu_top .webix_win_body {
+  position: relative;
+}
+.webix_sidemenu_top .webix_win_body > .webix_view {
+  position: absolute;
+  top: auto;
+  left: 0;
+  bottom: 0;
+}
+.webix_sidemenu_top.webix_animate,
+.webix_sidemenu_top.webix_animate .webix_win_body {
+  transition: height 0.6s;
+}
+.webix_popup.webix_sidemenu.webix_sidemenu_bottom {
+  border-width: 1px 0 0 0 ;
+  top: auto;
+  box-shadow: 0 -2px 2px rgba(0, 0, 0, 0.05);
+}
+.webix_sidemenu_bottom.webix_animate,
+.webix_sidemenu_bottom.webix_animate .webix_win_body {
+  transition: height 0.6s;
 }
 .webix_view.webix_pdf {
   background-color: #404040;
