@@ -1,4 +1,4 @@
-Webix UI v.3.1.2
+Webix UI v.3.2.0
 ================
 
 http://webix.com
@@ -37,7 +37,4 @@ Starting from Webix 2.4, it possible to use a FLOSS Exception to the GPL License
 You can buy a commercial license and support subscription at http://webix.com
 
 
-(c) XB Software Ltd. 2013 - 2015
-
-
-
+(c) XB Software Ltd. 2013 - 2016

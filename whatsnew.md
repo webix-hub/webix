@@ -1,4 +1,17 @@
-Version 3.1.2
+Version 3.2 (February 2015)
+================
+
+### Major features
+
+- Spreadsheet widget
+- Rangechart widget
+- undo functionality
+- export to PDF
+- area selection
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_3_2.html)
+
+Version 3.1
 ==============
 
 ### Major features
