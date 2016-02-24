@@ -2,7 +2,10 @@
   "name": "webix",
   "version": "3.2.0",
   "description": "Javascript components library for mobile and desktop browsers",
-  "main": "codebase/webix.js",
+  "main": [
+    "codebase/webix.js",
+    "codebase/webix.css"
+  ],
   "keywords": [
     "components",
     "widgets",
