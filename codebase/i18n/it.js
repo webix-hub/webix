@@ -31,5 +31,9 @@ webix.i18n.locales["it-IT"] = {
 
     controls:{
     	select:"Selezionare"
+    },
+    dataExport:{
+		page:"Pagina",
+		of:"di"
     }
 };

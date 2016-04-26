@@ -32,5 +32,9 @@ webix.i18n.locales["en-US"]={
 
     controls:{
     	select:"Select"
+    },
+    dataExport:{
+		page:"Page",
+		of:"of"
     }
 };

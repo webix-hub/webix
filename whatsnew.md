@@ -1,4 +1,18 @@
-Version 3.2 (February 2015)
+Version 3.3 (April 2016)
+================
+
+### Major features
+
+- AbsLayout widget
+- DataLayout widget
+- sparklines for DataTable and TreeTable
+- ability to use JSON payload in Ajax calls
+- drag-n-drop on touch devices
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_3_3.html)
+
+
+Version 3.2 (February 2016)
 ================
 
 ### Major features
@@ -10,6 +24,7 @@ Version 3.2 (February 2015)
 - area selection
 
 [Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_3_2.html)
+
 
 Version 3.1
 ==============

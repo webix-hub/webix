@@ -31,5 +31,9 @@
 
 	controls:{
     	select:"Выбраць"
+    },
+    dataExport:{
+		page:"Старонка",
+		of:"з"
     }
 };

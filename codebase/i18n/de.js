@@ -24,12 +24,16 @@ webix.i18n.locales["de-DE"] = {
 		dayShort:["So","Mo","Di","Mi","Do","Fr","Sa"],
 		hours: "Stunden",
 		minutes: "Minuten",
-		done:"Bereit",
-		clear: "Klären",
+		done:"Fertig",
+		clear: "Entfernen",
 		today: "Heute"
     },
 
     controls:{
     	select:"Wählen"
+    },
+    dataExport:{
+		page:"Seite",
+		of:"aus"
     }
 };

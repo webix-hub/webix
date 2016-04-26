@@ -29,6 +29,9 @@ button,
 	webix_layout_{type}
 	known types are: line, clean, wide, space;
 */
+.webix_abslayout > .webix_view {
+  position: absolute;
+}
 .webix_layout_space {
   background-color: #ffffff;
 }
@@ -623,6 +626,9 @@ x\:ui {
   border-bottom: 1px solid #dedede;
   text-align: left;
 }
+.webix_list_item.webix_invalid {
+  background-color: #ffeeee;
+}
 .webix_list_item.webix_selected {
   color: #000000;
   background: #f1f1f1;
@@ -630,9 +636,6 @@ x\:ui {
 .webix_list .webix_list_item.webix_selected {
   border-bottom: 1px solid #e7e7e7;
   padding: 7px 10px;
-}
-.webix_list_item.webix_invalid {
-  background-color: #ffeeee;
 }
 .webix_group {
   position: relative;
@@ -1233,13 +1236,14 @@ div.webix_modal_cover {
   font-family: Arial;
   font-size: 17px;
   color: #000000;
+  pointer-events: none;
 }
 .webix_drag_zone .borderless {
   padding: 2px 20px 2px 2px;
 }
 .webix_drag_over,
 .webix_drop_zone {
-  background-color: #ffffaa;
+  background-color: #f4f4f4;
 }
 .webix_transparent {
   opacity: 0;
@@ -1429,36 +1433,6 @@ div.webix_modal_cover {
   text-align: left;
 }
 /*alter styles for even and odd rows*/
-/*selection*/
-.webix_column > div.webix_cell_select,
-.webix_column > div.webix_column_select,
-.webix_column > div.webix_row_select {
-  color: #000000;
-  background: #f1f1f1;
-}
-/*extra borders, for selection in cell mode*/
-.webix_column > div.webix_cell_select {
-  border-bottom: 1px solid #e7e7e7;
-  border-left: 1px solid #e7e7e7;
-  border-right: 1px solid #e7e7e7;
-  padding-top: 0px;
-  padding-left: 9px;
-}
-.webix_ss_right .webix_column.webix_first > div.webix_cell_select {
-  padding-left: 10px;
-}
-/*extra borders, for selection in row mode*/
-.webix_column > div.webix_row_select,
-.webix_column > div.webix_invalid.webix_row_select:nth-child(even) {
-  border-bottom: 1px solid #e7e7e7;
-  padding-top: 0px;
-}
-/*extra borders for selection in column mode*/
-.webix_column > div.webix_column_select {
-  border-left: 1px solid #e7e7e7;
-  border-right: 1px solid #e7e7e7;
-  padding-left: 9px;
-}
 /*header selection in column mode*/
 .webix_sel_hcell,
 .webix_dd_over_column {
@@ -1492,7 +1466,8 @@ div.webix_modal_cover {
   padding: 5px 10px 5px 10px;
 }
 .webix_column > .webix_drag_over.webix_cell {
-  background-color: #ffffaa;
+  background-color: #f4f4f4;
+  color: #000000;
 }
 .webix_ss_header th,
 .webix_ss_header td,
@@ -1519,6 +1494,40 @@ div.webix_modal_cover {
   border-top: 8px solid #f44;
   border-left: 8px solid transparent;
 }
+/*selection*/
+.webix_column > div.webix_cell_select,
+.webix_column > div.webix_column_select,
+.webix_column > div.webix_row_select {
+  color: #000000;
+  background: #f1f1f1;
+}
+/*extra borders, for selection in cell mode*/
+.webix_column > div.webix_cell_select {
+  border-bottom: 1px solid #e7e7e7;
+  border-left: 1px solid #e7e7e7;
+  border-right: 1px solid #e7e7e7;
+  padding-top: 0px;
+  padding-left: 9px;
+}
+.webix_ss_right .webix_column.webix_first > div.webix_cell_select {
+  padding-left: 10px;
+}
+/*extra borders, for selection in row mode*/
+.webix_column > div.webix_row_select,
+.webix_column > div.webix_invalid.webix_row_select:nth-child(even) {
+  border-bottom: 1px solid #e7e7e7;
+  padding-top: 0px;
+}
+/*extra borders for selection in column mode*/
+.webix_column > div.webix_column_select {
+  border-left: 1px solid #e7e7e7;
+  border-right: 1px solid #e7e7e7;
+  padding-left: 9px;
+}
+.webix_column > .webix_cell.webix_invalid.webix_cell_select:nth-child(even) {
+  color: #000000;
+  background: #f1f1f1;
+}
 .webix_dtable_colrow,
 .webix_dtable_subrow,
 .webix_dtable_subview {
@@ -1541,6 +1550,7 @@ div.webix_modal_cover {
   border-top: 1px solid #dedede;
   padding: 0px 0px 0px 0px;
   padding-left: 10px;
+  box-sizing: border-box;
 }
 .number .webix_cell {
   text-align: right;
@@ -1953,7 +1963,7 @@ div.webix_modal_cover {
   position: absolute;
   top: 17px;
   width: 30px;
-  height: 42px;
+  height: 28px;
   background-repeat: no-repeat;
   background-position: 11.5px 4px;
   -moz-user-select: none;
@@ -2514,7 +2524,6 @@ input.webixtype_next {
   padding: 0;
 }
 .webix_img_btn,
-.webix_img_btn_top,
 .webix_img_btn_abs {
   cursor: pointer;
   text-align: left;
@@ -2524,7 +2533,6 @@ input.webixtype_next {
   font-size: 17px;
 }
 .webix_img_btn .webix_icon,
-.webix_img_btn_top .webix_icon,
 .webix_img_btn_abs .webix_icon {
   color: #ffffff;
 }
@@ -2552,6 +2560,7 @@ input.webixtype_next {
 };*/
 .webix_img_btn_top {
   text-align: center;
+  background-repeat: no-repeat;
   background-position: center 5px;
 }
 .webix_img_btn_text {
@@ -2585,19 +2594,27 @@ input.webixtype_next {
 .webix_pressed .webixtype_base {
   box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 }
-.webix_disabled_box .webixtype_base,
-.webix_disabled_box .webixtype_prev,
-.webix_disabled_box .webixtype_next,
-.webix_disabled_box .webixtype_danger,
-.webix_disabled_box .webixtype_form,
-.webix_disabled_box .webix_el_arrow {
+.webix_control .webix_disabled_box .webixtype_base,
+.webix_control .webix_disabled_box .webixtype_prev,
+.webix_control .webix_disabled_box .webixtype_next,
+.webix_control .webix_disabled_box .webixtype_danger,
+.webix_control .webix_disabled_box .webixtype_form,
+.webix_control .webix_disabled_box .webix_el_arrow {
   color: #aaaaaa !important;
   background: #e9e9e9 !important;
   border: 1px solid #e6e6e6 !important;
   text-shadow: none !important;
 }
-.webix_disabled_box .webix_icon,
-.webix_disabled_box .webix_img_btn_text {
+.webix_control .webix_disabled_box .webix_img_btn_text {
+  color: #aaaaaa;
+}
+.webix_disabled_view.webix_control .webix_icon_btn,
+.webix_disabled_view.webix_control .webix_icon {
+  color: #aaaaaa;
+}
+.webix_layout_toolbar.webix_toolbar .webix_disabled_view.webix_control .webix_icon,
+.webix_layout_toolbar.webix_toolbar .webix_disabled_view.webix_control .webix_disabled_box .webix_img_btn_text,
+.webix_layout_toolbar.webix_toolbar .webix_disabled_view.webix_control .webix_icon_btn {
   color: #aaaaaa;
 }
 .webixbutton {
@@ -2940,13 +2957,10 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
   -ms-user-select: none;
   user-select: none;
 }
-.webix_line_break {
-  height: 6.5px;
-}
 .webix_radio_option {
   display: table;
   float: left;
-  margin-top: 6.5px;
+  height: 32px;
   margin-right: 20px;
 }
 .webix_inp_radio_border,
@@ -3535,11 +3549,10 @@ label.webix_required:after {
   filter: progid:DXImageTransform.Microsoft.Alpha(opacity=0);
 }
 .webix_drop_file {
-  background: #CBE8F5;
+  background: #f4f4f4;
   position: relative;
 }
 .webix_drop_file::before {
-  content: "Drop files here";
   position: absolute;
   bottom: 10px;
   left: 0px;
@@ -3791,8 +3804,6 @@ label.webix_required:after {
 .webix_organogram_item {
   position: absolute;
   z-index: 1;
-  font-family: "PT Sans", Tahoma;
-  font-size: 15px;
   text-align: center;
   border-radius: 4px;
   background-color: #e3f2fd;
@@ -3813,7 +3824,6 @@ label.webix_required:after {
   box-sizing: border-box;
 }
 .webix_organogram_list .webix_organogram_list_item {
-  font-family: "PT Sans", Tahoma;
   border: none;
   text-align: left;
   position: static;
@@ -6861,6 +6871,23 @@ div.webix_inp_static {
 }
 .webix_skin_mark {
   height: 190px;
+}
+.webix_sparklines {
+  padding: 1px 0;
+  box-sizing: border-box;
+}
+.webix_sparklines svg {
+  box-sizing: border-box;
+}
+.webix_sparklines_line {
+  stroke: #3498db;
+  stroke-width: 1;
+  fill: transparent;
+  stroke-linecap: round;
+}
+.webix_sparklines_item {
+  fill: #3498db;
+  stroke-width: 1;
 }
 /*predefined styles for text lables inside a item*/
 .webix_strong {
