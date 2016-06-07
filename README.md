@@ -1,6 +1,8 @@
 Webix UI v.3.3.17
 ================
 
+[![npm version](https://badge.fury.io/js/webix.svg)](https://badge.fury.io/js/webix)
+
 http://webix.com
 
 If you don't know where to start - check 
