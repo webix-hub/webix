@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.3.3.0
+webix UI v.3.3.17
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="3.3.0";
+webix.version="3.3.17";
 webix.codebase="./";
 webix.name = "core";
 webix.cdn = "//cdn.webix.com";
@@ -69,8 +69,8 @@ webix.extend = function(base, source, force){
 	webix.assert(base,"Invalid mixing target");
 	webix.assert(source,"Invalid mixing source");
 
-	if (base._webix_proto_wait){
-		webix.PowerArray.insertAt.call(base._webix_proto_wait, source,1);
+	if (base.$protoWait){
+		webix.PowerArray.insertAt.call(base.$protoWait, source,1);
 		return base;
 	}
 	
@@ -143,14 +143,14 @@ webix.protoUI = function(){
 		if (!t)
 			return webix.ui[selfname].prototype;
 
-		var origins = t._webix_proto_wait;
+		var origins = t.$protoWait;
 		if (origins){
 			var params = [origins[0]];
 			
 			for (var i=1; i < origins.length; i++){
 				params[i] = origins[i];
 
-				if (params[i]._webix_proto_wait)
+				if (params[i].$protoWait)
 					params[i] = params[i].call(webix, params[i].name);
 
 				if (params[i].prototype && params[i].prototype.name)
@@ -170,7 +170,7 @@ webix.protoUI = function(){
 		else 
 			return webix.ui[selfname];
 	};
-	t._webix_proto_wait = Array.prototype.slice.call(arguments, 0);
+	t.$protoWait = Array.prototype.slice.call(arguments, 0);
 	return (webix.ui[selfname]=t);
 };
 
@@ -943,6 +943,18 @@ webix.html={
 			document.body.removeChild(link);
 			link.remove();
 		});
+	},
+	_getClassName: function(node){
+		if(!node) return "";
+
+		var className = node.className || "";
+		if(className.baseVal)//'className' exist but not a string - IE svg element in DOM
+			className = className.baseVal;
+
+		if(!className.indexOf)
+			className = "";
+
+		return className;
 	}
 };
 
@@ -2144,7 +2156,7 @@ webix.template.bind =function(value){	return webix.bind(webix.template(value),th
 		data - properties of template
 	*/
 webix.type=function(obj, data){ 
-	if (obj._webix_proto_wait){
+	if (obj.$protoWait){
 		if (!obj._webix_type_wait)
 			obj._webix_type_wait = [];
 				obj._webix_type_wait.push(data);
@@ -4516,7 +4528,7 @@ ui.hasMethod = function(view, method){
 	var obj = webix.ui[view];
 	if (!obj) return false;
 
-	if (obj._webix_proto_wait)
+	if (obj.$protoWait)
 		obj = obj.call(webix);
 
 	return !!webix.ui[view].prototype[method];
@@ -6023,7 +6035,7 @@ webix.MouseEvents={
 					found = true;
 				}
 			}
-			css=trg.className;
+			css=webix.html._getClassName(trg);
 			if (css){		//check if pre-defined reaction for element's css name exists
 				css = css.toString().split(" ");
 				for (var i=0; i<css.length; i++){
@@ -7749,6 +7761,10 @@ webix.protoUI({
 				list.render();
 
 			this.adjust();
+
+			// needed to return focus
+			if(node.tagName == "INPUT")
+				this._last_input_target = node;
 		}
 		webix.ui.popup.prototype.show.apply(this, arguments);
 	},
@@ -8619,6 +8635,8 @@ webix.protoUI({
 				webix.assert(false, "segmented: options undefined");
 			var options = obj.options;
 			common._check_options(options);
+			options = common._filterOptions(options);
+
 			var width = common._get_input_width(obj);
 
 			var id = webix.uid();
@@ -8677,18 +8695,56 @@ webix.protoUI({
 			webix.PowerArray.removeAt.call(options, index);
 
 		// if we remove a selected option
-		if(this._settings.value == id){
-			var next_index = Math.min(index, options.length-1);
-			if (next_index >= 0){
-				this.setValue(options[next_index].id);
-				//return options[next_index].id;
-			} else {
-				this._settings.value = -1;
-			}
-		}
+		if(this._settings.value == id)
+			this._setNextVisible(options, index);
+			
         this.callEvent("onOptionRemove", [id, this._settings.value]);
 		this.refresh();
 
+	},
+	_setNextVisible: function(options, index){
+		var size = options.length;
+
+		if(size){
+			index = Math.min(index, size-1);
+			//forward search
+			for (var i=index; i<size; i++)
+				if (!options[i].hidden)
+					return this.setValue(options[i].id);
+			//backward search
+			for (var i=index; i>=0; i--)
+				if (!options[i].hidden)
+					return this.setValue(options[i].id);
+		}
+		
+		//nothing found		
+		this.setValue("");
+	},
+	_filterOptions: function(options){
+		var copy = [];
+		for(var i=0; i<options.length;i++)
+			if(!options[i].hidden)
+				copy.push(options[i]);
+		return copy;
+	},
+	_setOptionVisibility: function(id, state){
+		var options = this._settings.options;
+		var index = this.optionIndex(id);
+		var option = options[index];
+		if (option && state == !!option.hidden){  //new state differs from previous one
+			option.hidden = !state;
+			if (state || this._settings.value != id){ 	//show item, no need for extra steps
+				this.refresh();
+			} else {									//hide item, switch to next visible one
+				this._setNextVisible(options, index);
+			}
+		}
+	},
+	hideOption: function(id){
+		this._setOptionVisibility(id,false);
+	},
+	showOption: function(id){
+		this._setOptionVisibility(id,true);
 	},
 	_set_inner_size:false
 }, webix.ui.text);
@@ -9144,7 +9200,11 @@ webix.protoUI({
 			if(common._settings.type == "time"){
 				common._settings.icon = common._settings.timeIcon;
 			}
-			return obj.editable?common.$renderInput(obj):common._render_div_block(obj, common);
+			//temporary remove obj.type [[DIRTY]]
+			var t = obj.type; obj.type = "";
+			var res = obj.editable?common.$renderInput(obj):common._render_div_block(obj, common);
+			obj.type = t;
+			return res;
 		},
 		stringResult:false,
 		timepicker:false,
@@ -9178,11 +9238,20 @@ webix.protoUI({
 		this.$setValue(obj.value);
 	},	
 	_parse_value:function(value){
-		var timeMode = this._settings.type == "time";
+		var type = this._settings.type;
+		var timeMode = type == "time";
 
 		//setValue("1980-12-25")
+		if(!isNaN(parseFloat(value)))
+			value = ""+value;
+
 		if (typeof value=="string" && value){
-			var formatDate = (timeMode?webix.i18n.parseTimeFormatDate:webix.i18n.parseFormatDate);
+			var formatDate = null;
+			if((type == "month" || type == "year") && this._formatDate){
+				formatDate = this._formatDate;
+			}
+			else
+				formatDate = (timeMode?webix.i18n.parseTimeFormatDate:webix.i18n.parseFormatDate);
 			value = formatDate(value);
 		}
 
@@ -9198,6 +9267,9 @@ webix.protoUI({
 				}
 			}
 			//setValue(invalid date)
+
+
+
 			if(isNaN(value.getTime()))
 				value = "";
 		}
@@ -9210,7 +9282,6 @@ webix.protoUI({
 
 		//convert string or array to date
 		value = this._parse_value(value);
-
 		//select date in calendar-popup
 		calendar.selectDate(value,true);
 
@@ -9232,20 +9303,25 @@ webix.protoUI({
 		}
 	},
 	format_setter:function(value){
-		if (typeof value === "function")
-			this._formatStr = value;
-		else {
-			this._formatStr = webix.Date.dateToStr(value);
-			this._formatDate = webix.Date.strToDate(value);
+		if(value){
+			if (typeof value === "function")
+				this._formatStr = value;
+			else {
+				this._formatStr = webix.Date.dateToStr(value);
+				this._formatDate = webix.Date.strToDate(value);
+			}
 		}
+		else
+			this._formatStr = this._formatDate = null;
 		return value;
 	},
 	getInputNode: function(){
 		return this._settings.editable?this._dataobj.getElementsByTagName('input')[0]:this._dataobj.getElementsByTagName("DIV")[1];
 	},
 	getValue:function(){
+		var type = this._settings.type;
 		//time mode
-		var timeMode = this._settings.type == "time";
+		var timeMode = (type == "time");
 		//date and time mode
 		var timepicker = this.config.timepicker;
 
@@ -9262,7 +9338,13 @@ webix.protoUI({
 
 		//return string from getValue
 		if(this._settings.stringResult){
-			var formatStr = (timeMode?webix.i18n.parseTimeFormatStr:webix.i18n.parseFormatStr);
+			var formatStr =webix.i18n.parseFormatStr;
+			if(timeMode)
+				formatStr = webix.i18n.parseTimeFormatStr;
+			if(this._formatStr && (type == "month" || type == "year")){
+				formatStr = this._formatStr;
+			}
+
 			return (value?formatStr(value):"");
 		}
 		
@@ -10693,7 +10775,7 @@ webix.DataStore.prototype={
 		this.callEvent("onAfterSort",parameters);
 	},
 	_sort_core:function(sort, order){
-		var sorter = this._sort._create(sort);
+		var sorter = this.sorting.create(sort);
 		if (this.order.length){
 			//get array of IDs
 			var neworder = webix.toArray();
@@ -10908,12 +10990,11 @@ webix.DataStore.prototype={
 		}
 		return result;
 	},
-
-	_sort:{
-		_create:function(config){
+	sorting:{
+		create:function(config){
 			return this._dir(config.dir, this._by(config.by, config.as));
 		},
-		_as:{
+		as:{
 			//handled by dataFeed
 			"server":function(){
 				return false;
@@ -10942,7 +11023,7 @@ webix.DataStore.prototype={
 			if (!prop)
 				return method;
 			if (typeof method != "function")
-				method = this._as[method||"string"];
+				method = this.as[method||"string"];
 
 			webix.assert(method, "Invalid sorting method");
 			return function(a,b){
@@ -11512,15 +11593,25 @@ webix.AutoTooltip = {
 				if (this.getColumnConfig){
 					var config = t.type.column = this.getColumnConfig(id.column);
 					if (col_mode){
-
 						//empty tooltip - ignoring
 						if (!config.tooltip && config.tooltip != webix.undefined)
 							return;
-						if (config.tooltip)
-							t.type.template = config.tooltip = webix.template(config.tooltip);
-						else {
-							var text = this.getText(id.row, id.column);
-							t.type.template = function(){ return text; };
+						var trg = e.target || e.srcElements;
+
+						if(trg.getAttribute("webix_area") && config.tooltip){
+							var area = trg.getAttribute("webix_area");
+							t.type.template = function(obj,common){
+								var values = obj[common.column.id];
+								return webix.template(config.tooltip).call(this,obj,common,values[area],area);
+							};
+						}
+						else{
+							if (config.tooltip)
+								t.type.template = config.tooltip = webix.template(config.tooltip);
+							else {
+								var text = this.getText(id.row, id.column);
+								t.type.template = function(){ return text; };
+							}
 						}
 					}
 				}
@@ -12229,8 +12320,15 @@ webix.TreeRenderStack={
 						parent = this._dataobj.firstChild;
 					} else {
 						parent  = this.getItemNode(item.$parent);
-						if (parent)
+						if (parent){
+							//when item created by the script, it will miss the container for child notes
+							//create it on demand
+							if (!parent.nextSibling){
+								var leafs = webix.html.create("DIV", { "class" : "webix_tree_leaves" },"");
+								parent.parentNode.appendChild(leafs);
+							}
 							parent = parent.nextSibling;
+						}
 					}
 
 					if (parent){
@@ -13010,7 +13108,7 @@ webix.TreeStore = {
 			}
 	},
 	_sort_core:function(sort, order){
-		var sorter = this._sort._create(sort);
+		var sorter = this.sorting.create(sort);
 		for (var key in this.branch){
 			var bset =  this.branch[key];
 			var data = [];
@@ -16233,7 +16331,7 @@ webix.VirtualRenderStack={
 		var min = Math.floor(top/t.height);				//index of first visible row
 		var dy = Math.ceil((height+top)/t.height)-1;		//index of last visible row
 		//total count of items, paging can affect this math
-		var count = this.data.$max?(this.data.$max-this.data.$min-1):this.data.count();
+		var count = this.data.$max?(this.data.$max-this.data.$min):this.data.count();
 		var max = Math.ceil(count/dx)*t.height;			//size of view in rows
 
 		return { _from:min, _height:dy, _top:top, _max:max, _y:t.height, _dx:dx};
@@ -17605,6 +17703,8 @@ webix.protoUI({
 		if (!this._header_fix_width)
 			this._header_fix_width = 0;
 
+		this._header_height = this._footer_height = 0;
+
 		if (this._settings.header) {
 			this._refreshHeaderContent(this._header, 0, 1);
 			this._normalize_headers("header", this._headers);
@@ -17875,7 +17975,7 @@ webix.protoUI({
 		if (this._getScrollState_touch)
 			return this._getScrollState_touch();
 
-		var diff =  this._render_scroll_shift?0:this._render_scroll_diff;
+		var diff =  this._render_scroll_shift?0:(this._render_scroll_diff||0);
 		return {x:(this._scrollLeft||0), y:(this._scrollTop + diff)};
 	},
 	showItem:function(id){
@@ -18061,7 +18161,7 @@ webix.protoUI({
 		while (node && node.getAttribute){
 			if (node.getAttribute("view_id"))
 				break;
-			var cs = node.className.toString();
+			var cs = webix.html._getClassName(node).toString();
 
 			var pos = null;
 			if (cs.indexOf("webix_cell")!=-1){
@@ -18111,7 +18211,7 @@ webix.protoUI({
 	setColumnWidth:function(col, width, skip_update){
 		return this._setColumnWidth( this.getColumnIndex(col), width, skip_update);
 	},
-	_setColumnWidth:function(col, width, skip_update){
+	_setColumnWidth:function(col, width, skip_update, by_user){
 		if (isNaN(width)) return;
 		var column = this._columns[col];
 
@@ -18134,7 +18234,7 @@ webix.protoUI({
 			if(!skip_update)
 				this._updateColsSizeSettings();
 
-			this.callEvent("onColumnResize", [column.id, width, old]);
+			this.callEvent("onColumnResize", [column.id, width, old, !!by_user]);
 			return true;
 		}
 		return false;
@@ -18941,7 +19041,8 @@ webix.protoUI({
 
 		//loop through all parents
 		while (trg && trg.parentNode && trg != this._viewobj.parentNode){
-			if ((css = trg.className)) {
+			var trgCss = webix.html._getClassName(trg);
+			if ((css = trgCss)) {
 				css = css.toString().split(" ");
 
 				for (var i = css.length - 1; i >= 0; i--)
@@ -18953,6 +19054,10 @@ webix.protoUI({
 				var column = trg.parentNode.getAttribute("column") || trg.getAttribute("column");
 				if (column){ //we need to ignore TD - which is header|footer
 					var  isBody = trg.parentNode.tagName == "DIV";
+					
+					//column already hidden or removed
+					if(!this._columns[column]) return;
+					
 					found = true;
 					if (isBody){
 						var index = trg.parentNode.getAttribute("row") || trg.getAttribute("row") || ( webix.html.index(trg) + this._columns[column]._yr0 );
@@ -20209,9 +20314,7 @@ webix.extend(webix.ui.datatable, {
 		}
 		return value;
 	},
-
 	_rs_init_flag:true,
-
 	_rs_down:function(e){
 		//if mouse was near border
 		if (!this._rs_ready) return;
@@ -20277,8 +20380,7 @@ webix.extend(webix.ui.datatable, {
 				var column = this._columns[obj.cind];
 				var oldwidth = column.width;
 				delete column.fillspace;
-				this._setColumnWidth(obj.cind, oldwidth + newsize, true);
-				this.callEvent("onColumnResizeAction",[this._columns[obj.cind].id]);
+				this._setColumnWidth(obj.cind, oldwidth + newsize, true, true);
 				this._updateColsSizeSettings();
 			}
 			else {
@@ -20291,6 +20393,7 @@ webix.extend(webix.ui.datatable, {
 		this._rs_progress = null;
 	},
 	_rs_move:function(e){
+		var config = this._settings;
 		if (this._rs_ready && this._rs_process)
 			return this._rs_start(e);
 
@@ -20302,7 +20405,7 @@ webix.extend(webix.ui.datatable, {
 		var element_class = node.className||"";
 		var in_body = element_class.indexOf("webix_cell")!=-1;
 		//ignore resize in case of drag-n-drop enabled
-		if (in_body && this.config.drag) return;
+		if (in_body && config.drag) return;
 		var in_header = element_class.indexOf("webix_hcell")!=-1;
 		this._rs_ready = false;
 		
@@ -20310,22 +20413,28 @@ webix.extend(webix.ui.datatable, {
 			var dx = node.offsetWidth;
 			var dy = node.offsetHeight;
 			var pos = webix.html.posRelative(e);
-			
-			if (in_body && this._settings.resizeRow){
-				if (pos.y<3){
+
+			var resizeRow = config.resizeRow;
+			if (in_body && resizeRow){
+				if(resizeRow===true)
+					resizeRow = 3;
+				if (pos.y<resizeRow){
 					this._rs_ready = ["y", 0, node];
 					mode = "n-resize";
-				} else if (dy-pos.y<4){
+				} else if (dy-pos.y<resizeRow+1){
 					this._rs_ready = ["y", dy, node];
 					mode = "n-resize";
 				} 
 				
 			}
-			if (this._settings.resizeColumn){
-				if (pos.x<3){
+			var resizeColumn = config.resizeColumn;
+			if (resizeColumn){
+				if(resizeColumn===true)
+					resizeColumn = 3;
+				if (pos.x<resizeColumn){
 					this._rs_ready = ["x", 0, node];
 					mode = "e-resize";
-				} else if (dx-pos.x<4){
+				} else if (dx-pos.x<resizeColumn+1){
 					this._rs_ready = ["x", dx, node];
 					mode = "e-resize";
 				}
@@ -21420,7 +21529,10 @@ webix.extend(webix.ui.datatable, {
 		this.attachEvent("onStructureLoad", this._adjustColumns);
 
 		this.attachEvent("onStructureUpdate", this._resizeColumns);
-		this.attachEvent("onColumnResizeAction", this._resizeColumns);
+		this.attachEvent("onColumnResize", function(a,b,c,user){
+			if (user)
+				this._resizeColumns();
+		});
 		this.attachEvent("onResize", this._resizeColumns);
 	},
 	_adjustColumns:function(){ 
@@ -22308,19 +22420,23 @@ webix.extend(webix.ui.datatable, {
 				var header = config.header[i];
 				if (!this.isColumnVisible(ind[j])){
 					//hidden column
-					if (header && header.$colspan){
+					if (header && header.$colspan && spanSize <= 0){
+						//start of colspan in hidden
 						spanSize = header.colspan = header.$colspan;
 						isHidden = spanSource = header;
 					}
-					if (spanSource && spanSize > 0)
+					if (spanSource && spanSize > 0){
+						//hidden column in colspan, decrease colspan size
 						spanSource.colspan--;
+					}
 				} else {
 					//visible column
 					if (isHidden && spanSize > 0 && spanSource && spanSource.colspan > 0){
-						header = config.header[i] = webix.copy(spanSource);
-						delete header.$colspan;
+						//bit start of colspan is hidden
+						header = config.header[i] = spanSource;
 						spanSource = header;
-					} else if (header && header.$colspan){
+					} else if (header && header.$colspan && spanSize <= 0){
+						//visible start of colspan
 						spanSize = header.colspan = header.$colspan;
 						spanSource = header;
 					}
@@ -22391,6 +22507,7 @@ webix.extend(webix.ui.datatable, {
 		this._refresh_columns();
 	}
 });
+
 
 
 webix.extend(webix.ui.datatable, {
@@ -22528,7 +22645,7 @@ webix.extend(webix.ui.datatable, {
 			control = {
 				$drag:webix.bind(function(s,e){
 					var id = this.locate(e);
-					if (!id || !this.callEvent("onBeforeColumnDrag", [id.column, e])) return false;
+					if (this._rs_process || !id || !this.callEvent("onBeforeColumnDrag", [id.column, e])) return false;
 					webix.DragControl._drag_context = { from:control, start:id, custom:"column_dnd" };
 
 					var column = this.getColumnConfig(id.column);
@@ -22600,7 +22717,7 @@ webix.extend(webix.ui.datatable, {
 				_inner_drag_only:true,
 				$drag:webix.bind(function(s,e){
 					var id = this.locate(e);
-					if (!id || !this.callEvent("onBeforeColumnDrag", [id.column, e])) return false;
+					if (this._rs_process || !id || !this.callEvent("onBeforeColumnDrag", [id.column, e])) return false;
 					webix.DragControl._drag_context = { from:control, start:id, custom:"column_dnd" };
 
 					var header = this.getColumnConfig(id.column).header;
@@ -22719,91 +22836,706 @@ webix.extend(webix.ui.datatable, {
 webix.extend(webix.ui.datatable, webix.ValidateCollection);
 
 (function(){
-	var slines = webix.Sparklines = {
-		paddingX: 6,
-		radius: 2,
-		paddingY: 6,
-		template: function(item, common, data, column, index){
-			var view = webix.$$(column.node);
-			var width = column.width;
-			var height = view.config.rowHeight;
-			slines._getData(data);
-			return slines._line(data, width, height);
-		},
-		_getData: function(data){
-			var values = [];
-			for (var i = data.length - 1; i >= 0; i--) {
-				var value = data[i];
-				values[i] = (typeof value === "object" ? value.value : value);
-			}
-			return values;
-		},
-		_line: function(data, width, height){
-			var points = slines._points.line(data, width, height);
-			var graph = '<g>'+slines._getLinePath(points)+'</g>';
-			graph += '<g>'+slines._getPoints(points).join("")+'</g>';
-			return  slines._getSVG(graph, width, height);
-		},
-		_getSVG: function(graph, width, height){
-			var svg= '<div style="width:100%;height:100%" class="webix_sparklines">';
-			svg += '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" viewBox="0 0 '+width+' '+height+'">';
-			svg += graph;
-			svg += '</svg></div>';
-			return svg;
-		},
-		_getLinePath: function(points){
-			var path = slines._getPath(points);
-			return '<path class="webix_sparklines_line" vector-effect="non-scaling-stroke" d="'+path+'"/>';
-		},
-		_getPoints: function(points){
-			var items = [];
-			var css = "webix_sparklines_item";
-			var radius = slines.radius;
-			for(var i = 0; i< points.length; i++){
-				items.push('<circle class="'+css+'" cx="'+points[i].x+'" cy="'+points[i].y+'" r="'+radius+'"/>');
-			}
-			return items;
-		},
-		_points: {
-			line: function(data, width, height){
-				var minValue = Math.min.apply(null,data);
-				var maxValue = Math.max.apply(null,data);
-				var result = [];
-				var x = slines.paddingX;
-				var y = slines.paddingY;
-				width = (width||100)-x*2;
-				height = (height||100)-y*2;
-				if(data.length){
-					if(data.length==1)
-						result.push({x: width/2+x, y: height/2+x});
-					else{
-						var unitX = width/(data.length-1);
-						var yNum = maxValue - minValue;
-						var unitY = height/(yNum?yNum:1);
-						if(!yNum)
-							height /= 2;
-						for(var i=0; i < data.length; i++){
-							result.push({x: Math.ceil(unitX*i)+x, y: height-Math.ceil(unitY*(data[i]-minValue))+y});
-						}
-					}
-				}
-				return result;
-			}
-		},
-		_getPath: function(points, close){
-			var path = [];
-			for(var i = 0; i< points.length; i++){
-				path.push(points[i].x + " "+points[i].y);
-			}
-			return "M"+path.join(" L ")+(close?" Z":"");
+	function getData(data){
+		var values = [];
+		for (var i = data.length - 1; i >= 0; i--) {
+			var value = data[i];
+			values[i] = (typeof value === "object" ? value.value : value);
 		}
+		return values;
+	}
+
+	var SLines = webix.Sparklines = function(){};
+	SLines.types ={};
+
+	SLines.getTemplate = function(customConfig){
+		var config = customConfig||{};
+		if(typeof customConfig == "string")
+			config = { type: customConfig };
+
+		webix.extend(config,{ type:"line" });
+
+		var slConstructor = this.types[config.type];
+		webix.assert(slConstructor,"Unknown sparkline type");
+		return webix.bind(this._template, new slConstructor(config));
+	};
+
+	SLines._template =  function(item, common, data, column){
+		if (column)
+			return this.draw(getData(data), column.width, 33);
+		else
+			return this.draw(item.data || item, common.width, common.height);
 	};
 })();
 
 // add "sparklines" type
 webix.attachEvent("onDataTable", function(table){
-	table.type.sparklines = webix.template(webix.Sparklines.template);
+	table.type.sparklines = webix.Sparklines.getTemplate();
 });
+
+(function(){
+	function setOpacity(color,opacity){
+		color = webix.color.toRgb(color);
+		color.push(opacity);
+		return "rgba("+color.join(",")+")";
+	}
+
+	function joinAttributes(attrs){
+		var result = ' ';
+		if(attrs)
+			for(var a in attrs)
+				result += a+'=\"'+attrs[a]+'\" ';
+		return result;
+	}
+	// SVG
+	var SVG = {};
+
+	SVG.draw = function(content, width, height, css){
+		var attrs = {
+			xmlns: 'http://www.w3.org/2000/svg',
+			version: '1.1',
+			height: '100%',
+			width: '100%',
+			viewBox: '0 0 '+width+' '+height,
+			"class": css||""
+		};
+		return '<svg '+joinAttributes(attrs)+'>'+content+'</svg>';
+	};
+	SVG.styleMap = {
+		"lineColor": "stroke",
+		"color": "fill"
+	};
+	SVG.group = function(path){
+		return "<g>"+path+"</g>";
+	};
+	SVG._handlers = {
+		// MoveTo: {x:px,y:py}
+		"M": function(p){
+			return " M "+ p.x+" "+ p.y;
+		},
+		// LineTo: {x:px,y:py}
+		"L": function(p){
+			return " L "+ p.x+" "+ p.y;
+		},
+		// Curve: 3 points {x:px,y:py}: two control points and an end point
+		"C": function(cp0, cp1, p){
+			return " C "+cp0.x + " "+cp0.y+" "+cp1.x + " "+cp1.y+" "+p.x + " "+p.y;
+		},
+		// Arc: center point {x:px,y:py}, radius, angle0, angle1
+		"A": function(p, radius, angle0, angle1){
+			var x = p.x+Math.cos(angle1)*radius;
+			var y = p.y+Math.sin(angle1)*radius;
+			return  " A "+radius+" "+radius+" 0 0 1 "+x+" "+y;
+		}
+	};
+	// points is an array of an array with two elements: {string} line type, {array}
+	SVG.definePath = function(points, close){
+		var path = "";
+		for(var i =0; i < points.length; i++){
+			webix.assert(points[i][0]&&typeof points[i][0] == "string", "Path type must be a string");
+			var type = (points[i][0]).toUpperCase();
+			webix.assert(this._handlers[type], "Incorrect path type");
+			path += this._handlers[type].apply(this,points[i].slice(1));
+
+		}
+		if(close)
+			path += " Z";
+
+		return path;
+	};
+	SVG._linePoints = function(points){
+		var result = [];
+		for(var i = 0; i< points.length; i++){
+			result.push([i?"L":"M",points[i]]);
+		}
+		return result;
+	};
+	SVG.setOpacity = function(color,opacity){
+		color = webix.color.toRgb(color);
+		color.push(opacity);
+		return "rgba("+color.join(",")+")";
+	};
+	SVG._curvePoints = function(points){
+		var result = [];
+		for(var i = 0; i< points.length; i++){
+			var p = points[i];
+			if(!i){
+				result.push(["M",p[0]]);
+			}
+			result.push(["C",p[1],p[2],p[3]]);
+		}
+		return result;
+	};
+	SVG.getPath = function(path, css, attrs){
+		attrs = joinAttributes(attrs);
+		return '<path class="'+css+'" vector-effect="non-scaling-stroke" d="'+path+'" '+attrs+'/>';
+	};
+	SVG.getSector = function(p, radius, angle0, angle1, css, attrs){
+		attrs = joinAttributes(attrs);
+		var x0 = p.x+Math.cos(angle0)*radius;
+		var y0 = p.y+Math.sin(angle0)*radius;
+		var lines = [
+			["M",p],
+			["L",{x:x0, y:y0}],
+			["A", p,radius,angle0,angle1],
+			["L",p]
+		];
+
+
+		return '<path class="'+css+'" vector-effect="non-scaling-stroke" d="'+SVG.definePath(lines,true)+'" '+attrs+'/>';
+	};
+	SVG.getCurve = function(points,css, attrs){
+		attrs = joinAttributes(attrs);
+		var path = this.definePath(this._curvePoints(points));
+		return '<path fill="none" class="'+css+'" vector-effect="non-scaling-stroke" d="'+path+'" '+attrs+'/>';
+	};
+	SVG.getLine = function(p0,p1,css, attrs){
+		return this.getPath(this.definePath(this._linePoints([p0,p1]),true),css,attrs);
+	};
+	SVG.getCircle = function(p, radius, css, attrs){
+		attrs = joinAttributes(attrs);
+		return '<circle class="'+css+'" cx="'+ p.x+'" cy="'+ p.y+'" r="'+radius+'" '+attrs+'/>';
+	};
+	SVG.getRect = function(x, y, width, height, css, attrs){
+		attrs = joinAttributes(attrs);
+		return '<rect class="'+css+'" rx="0" ry="0" x="'+x+'" y="'+y+'" width="'+width+'" height="'+height+'" '+attrs+'/>';
+	};
+	webix._SVG = SVG;
+})();
+(function(){
+	var defaults = {
+		paddingX: 3,
+		paddingY: 4,
+		radius: 1,
+		minHeight: 4,
+		eventRadius: 8
+	};
+
+	function Area(config){
+		this.config = webix.extend(webix.copy(defaults),config||{},true);
+	}
+
+	Area.prototype.draw = function(data, width, height){
+		var eventRadius, graph, path, points, styles,
+			config = this.config,
+			Line = webix.Sparklines.types.line.prototype,
+			renderer = webix._SVG;
+
+		// draw area
+		points = this.getPoints(data, width, height);
+		path = renderer.definePath(Line._getLinePoints(points),true);
+
+		if(config.color)
+			styles = this._applyColor(renderer,config.color);
+
+		graph = renderer.group(renderer.getPath(path,'webix_sparklines_area'+(styles?' '+styles.area:'')));
+		// draw line
+		points.splice(points.length - 3, 3);
+		path = renderer.definePath(Line._getLinePoints(points));
+		graph += renderer.group(renderer.getPath(path,'webix_sparklines_line'+(styles?' '+styles.line:'')));
+		// draw items
+		graph += Line._drawItems(renderer, points, config.radius, 'webix_sparklines_item'+(styles?' '+styles.item:''));
+		// draw event areas
+		eventRadius = Math.min(data.length?(width-2*(config.paddingX||0))/data.length:0,config.eventRadius);
+		graph += Line._drawEventItems(renderer, points, eventRadius);
+		return  renderer.draw(graph, width, height, 'webix_sparklines_area_chart'+(config.css?' '+config.css:''));
+	};
+	Area.prototype._applyColor = function(renderer,color){
+		var config = {'area': {}, 'line':{},'item':{}},
+			map = renderer.styleMap;
+		if(color){
+			config.area[map.color] = renderer.setOpacity(color,0.2);
+			config.line[map.lineColor] = color;
+			config.item[map.color] = color;
+			for(var name in config)
+				config[name] = webix.html.createCss(config[name]);
+		}
+
+		return config;
+	};
+	Area.prototype.getPoints = function(data, width, height){
+		var Line = webix.Sparklines.types.line.prototype;
+		var points =Line.getPoints.call(this, data, width, height);
+		var x = this.config.paddingX || 0;
+		var y = this.config.paddingY || 0;
+		points.push({x: width - x, y: height - y},{x: x, y: height - y},{x: x, y: points[0].y});
+		return points;
+	};
+	webix.Sparklines.types["area"]=Area;
+})();
+(function(){
+	var defaults = {
+		paddingX: 3,
+		paddingY: 4,
+		width: 20,
+		margin: 4,
+		minHeight: 4,
+		eventRadius: 8,
+		origin:0,
+		itemCss: function(value){return value < (this.config.origin||0)?" webix_sparklines_bar_negative":"";}
+	};
+	function Bar(config){
+		this.config = webix.extend(webix.copy(defaults),config||{},true);
+	}
+
+	Bar.prototype.draw = function(data, width, height){
+		var i, css, p, y, padding,
+			config = this.config,
+			graph = "", items = [],
+			points = this.getPoints(data, width, height),
+			renderer = webix._SVG;
+
+		// draw bars
+		for( i = 0; i< points.length; i++){
+			css = (typeof config.itemCss == 'function'?config.itemCss.call(this,data[i]):(config.itemCss||''));
+			if (config.negativeColor && data[i] < config.origin)
+				css += ' '+this._applyColor(renderer,config.negativeColor);
+			else if(config.color)
+				css += ' '+this._applyColor(renderer,config.color);
+			p = points[i];
+			items.push(renderer.getRect(p.x, p.y, p.width, p.height,'webix_sparklines_bar '+css));
+		}
+		graph += renderer.group(items.join(""));
+		// origin)
+		y = parseInt(this._getOrigin(data, width, height),10)+0.5;
+		padding = config.paddingX||0;
+		graph += renderer.group(renderer.getLine({x:padding, y: y},{x: width-padding, y: y},'webix_sparklines_origin'));
+
+		// event areas
+		var evPoints = this._getEventPoints(data, width, height);
+		var evItems = [];
+		for( i = 0; i< evPoints.length; i++){
+			p = evPoints[i];
+			evItems.push(renderer.getRect(p.x, p.y, p.width, p.height,'webix_sparklines_event_area ',{"webix_area":i}));
+		}
+		graph += renderer.group(evItems.join(""));
+		return  renderer.draw(graph, width, height, 'webix_sparklines_bar_chart'+(config.css?' '+config.css:''));
+	};
+	Bar.prototype._applyColor = function(renderer,color){
+		var config = {},
+			map = renderer.styleMap;
+		if(color)
+			config[map.color] = color;
+		return webix.html.createCss(config);
+	};
+	Bar.prototype._getOrigin = function(data, width, height){
+		var config = this.config;
+		var y = config.paddingY||0;
+		height = (height||100)-y*2;
+		var pos = y+height;
+		if(config.origin !== false){
+			var minValue = Math.min.apply(null,data);
+			var maxValue = Math.max.apply(null,data);
+			var origin = config.origin||0;
+			if(origin >= maxValue){
+				pos = y;
+			}
+			else if(origin > minValue){
+				var unitY = height/(maxValue - minValue);
+				pos -= unitY*(origin-minValue);
+			}
+		}
+		return pos;
+	};
+	Bar.prototype._getEventPoints = function(data, width, height){
+		var result = [];
+		var x = this.config.paddingX||0;
+		var y = this.config.paddingY||0;
+		width = (width||100)-x*2;
+		height = (height||100)-y*2;
+		if(data.length){
+			var unitX = width/data.length;
+			for(var i=0; i < data.length; i++)
+				result.push({x: Math.ceil(unitX*i)+x, y: y, height: height, width: unitX});
+		}
+		return result;
+	};
+	Bar.prototype.getPoints = function(data, width, height){
+		var config = this.config;
+		var minValue = Math.min.apply(null,data);
+		var maxValue = Math.max.apply(null,data);
+		var result = [];
+		var x = config.paddingX;
+		var y = config.paddingY;
+		var margin = config.margin;
+		var barWidth = config.width||20;
+		var originY = this._getOrigin(data,width,height);
+		width = (width||100)-x*2;
+		height = (height||100)-y*2;
+		if(data.length){
+			var unitX = width/data.length;
+			var yNum = maxValue - minValue;
+			barWidth = Math.min(unitX-margin,barWidth);
+			margin = unitX-barWidth;
+			var minHeight = 0;
+			var origin = minValue;
+
+			if(config.origin !== false && config.origin > minValue)
+				origin = config.origin||0;
+			else
+				minHeight = config.minHeight;
+
+			var unitY = (height-minHeight)/(yNum?yNum:1);
+
+			for(var i=0; i < data.length; i++){
+				var h = Math.ceil(unitY*(data[i]-origin));
+				result.push({x: Math.ceil(unitX*i)+x+margin/2, y: originY-(data[i]>=origin?h:0)-minHeight, height: Math.abs(h)+minHeight, width: barWidth});
+			}
+
+		}
+		return result;
+	};
+	webix.Sparklines.types["bar"]=Bar;
+})();
+(function(){
+	var defaults = {
+		paddingX: 6,
+		paddingY: 6,
+		radius: 2,
+		minHeight: 4,
+		eventRadius: 8
+	};
+	function Line(config){
+		this.config = webix.extend(webix.copy(defaults),config||{},true);
+	}
+
+	Line.prototype.draw = function(data, width, height){
+		var points = this.getPoints(data, width, height);
+		var config = this.config;
+		var renderer = webix._SVG;
+		var styles = config.color?this._applyColor(renderer,config.color):null;
+		// draw line
+		var path = renderer.definePath(this._getLinePoints(points));
+		var graph = renderer.group(renderer.getPath(path,'webix_sparklines_line'+(styles?' '+styles.line:'')));
+		// draw items
+		graph += this._drawItems(renderer, points, config.radius, 'webix_sparklines_item'+(styles?' '+styles.item:''));
+		// draw event items
+		var eventRadius = Math.min(data.length?(width-2*(config.paddingX||0))/data.length:0,config.eventRadius);
+		graph += this._drawEventItems(renderer, points, eventRadius);
+		return  renderer.draw(graph, width, height, "webix_sparklines_line_chart"+(config.css?' '+config.css:''));
+	};
+	Line.prototype._applyColor = function(renderer,color){
+		var config = {'line':{},'item':{}},
+			map = renderer.styleMap;
+		if(color){
+			config.line[map.lineColor] = color;
+			config.item[map.color] = color;
+			for(var name in config)
+				config[name] = webix.html.createCss(config[name]);
+		}
+		return config;
+	};
+	Line.prototype._drawItems = function(renderer,points,radius,css,attrs){
+		var items = [];
+		for(var i = 0; i< points.length; i++){
+			items.push(renderer.getCircle(points[i], radius, css,attrs));
+		}
+		return renderer.group(items.join(""));
+	};
+	Line.prototype._drawEventItems = function(renderer,points,radius){
+		var items = [];
+		for(var i = 0; i< points.length; i++){
+			items.push(renderer.getCircle(points[i], radius, 'webix_sparklines_event_area', {webix_area:i}));
+		}
+		return renderer.group(items.join(""));
+	};
+
+	Line.prototype._getLinePoints = function(points){
+		var i, type, result =[];
+		for( i =0; i< points.length; i++){
+			type = i?"L":"M";
+			result.push([type,points[i]]);
+		}
+		return result;
+	};
+	Line.prototype.getPoints = function(data, width, height) {
+		var config = this.config;
+		var minValue = Math.min.apply(null,data);
+		var maxValue = Math.max.apply(null,data);
+		var result = [];
+		var x = config.paddingX||0;
+		var y = config.paddingY||0;
+		width = (width||100)-x*2;
+		var minHeight = config.minHeight||0;
+		height = (height||100)-y*2;
+		if(data.length){
+			if(data.length==1)
+				result.push({x: width/2+x, y: height/2+x});
+			else{
+				var unitX = width/(data.length-1);
+				var yNum = maxValue - minValue;
+				var unitY = (height- minHeight)/(yNum?yNum:1);
+				if(!yNum)
+					height /= 2;
+				for(var i=0; i < data.length; i++){
+					result.push({x: Math.ceil(unitX*i)+x, y: height-Math.ceil(unitY*(data[i]-minValue))+y-minHeight});
+				}
+			}
+		}
+		return result;
+	};
+	webix.Sparklines.types["line"] = Line;
+})();
+(function(){
+	var defaults = {
+		paddingY: 2
+	};
+
+	function Pie(config){
+		this.config = webix.extend(defaults,config||{},true);
+	}
+	Pie.prototype._defColorsCursor = 0;
+	Pie.prototype._defColors  = [
+		"#f55b50","#ff6d3f","#ffa521","#ffc927","#ffee54","#d3e153","#9acb61","#63b967",
+		"#21a497","#21c5da","#3ea4f5","#5868bf","#7b53c0","#a943ba","#ec3b77","#9eb0b8"
+	];
+	Pie.prototype._getColor = function(i,data){
+		var count = data.length;
+		var colorsCount = this._defColors.length;
+		if(colorsCount > count){
+			if(i){
+				if(i < colorsCount - count)
+					i = this._defColorsCursor +2;
+				else
+					i = this._defColorsCursor+1;
+			}
+			this._defColorsCursor = i;
+		}
+		else
+			i = i%colorsCount;
+		return this._defColors[i];
+	};
+	Pie.prototype.draw = function(data, width, height){
+		var attrs, graph, i, sectors,
+			config = this.config,
+			color = config.color||this._getColor,
+			points = this.getAngles(data),
+			renderer = webix._SVG,
+			y = config.paddingY|| 0,
+			// radius
+			r = height/2 - y,
+			// center
+			x0 = width/2, y0 = height/2;
+
+		// draw sectors
+		if(typeof color != "function")
+			color = function(){return color;};
+		sectors = "";
+		for( i =0; i < points.length; i++){
+			attrs = {};
+			attrs[renderer.styleMap['color']] = color.call(this,i,data,this._context);
+			sectors += renderer.getSector({x:x0,y:y0},r,points[i][0],points[i][1],'webix_sparklines_sector', attrs);
+		}
+		graph = renderer.group(sectors);
+
+		// draw event areas
+		sectors = "";
+		for(i =0; i < points.length; i++){
+			sectors += renderer.getSector({x:x0,y:y0},r,points[i][0],points[i][1],'webix_sparklines_event_area',{"webix_area":i});
+		}
+		graph += renderer.group(sectors);
+
+		return  renderer.draw(graph, width, height, 'webix_sparklines_pie_chart'+(config.css?' '+config.css:''));
+	};
+	Pie.prototype.getAngles = function(data){
+		var a0 = -Math.PI/ 2, a1,
+			i, result = [];
+
+		var ratios = this._getRatios(data);
+
+		for( i =0; i < data.length; i++){
+			a1= -Math.PI/2+ratios[i]-0.0001;
+			result.push([a0,a1]);
+			a0 = a1;
+		}
+		return result;
+	};
+	Pie.prototype._getTotalValue = function(data){
+		var t=0;
+		for(var i = 0; i < data.length;i++)
+			t += data[i];
+		return  t;
+	};
+	Pie.prototype._getRatios = function(data){
+		var i, value,
+			ratios = [],
+			prevSum = 0,
+			totalValue = this._getTotalValue(data);
+		for(i = 0; i < data.length;i++){
+			value = data[i];
+			ratios[i] = Math.PI*2*(totalValue?((value+prevSum)/totalValue):(1/data.length));
+			prevSum += value;
+		}
+
+		return ratios;
+	};
+
+	webix.Sparklines.types["pie"]=Pie;
+})();
+(function(){
+	var defaults = {
+		paddingX: 3,
+		paddingY: 6,
+		radius: 2,
+		minHeight: 4,
+		eventRadius: 8
+	};
+
+	function Spline(config){
+		this.config = webix.extend(webix.copy(defaults),config||{},true);
+	}
+
+	Spline.prototype.draw = function(data, width, height){
+		var config = this.config,
+			graph = "",
+		 	Line = webix.Sparklines.types.line.prototype,
+			points = this.getPoints(data, width, height),
+			renderer = webix._SVG,
+			styles = config.color?this._applyColor(renderer,config.color):null;
+
+		// draw spline
+		graph += renderer.group(renderer.getCurve(points, 'webix_sparklines_line'+(styles?' '+styles.line:'')));
+
+		var linePoints = Line.getPoints.call(this,data, width, height);
+		// draw items
+		graph += Line._drawItems(renderer, linePoints, config.radius, 'webix_sparklines_item'+(styles?' '+styles.item:''));
+		// draw event items
+		var eventRadius = Math.min(data.length?(width-2*(config.paddingX||0))/data.length:0,config.eventRadius);
+		graph += Line._drawEventItems(renderer, linePoints, eventRadius);
+		return  renderer.draw(graph, width, height,"webix_sparklines_line_chart"+(config.css?' '+config.css:''));
+	};
+	Spline.prototype._applyColor = function(renderer,color){
+		var config = {'line':{},'item':{}},
+			map = renderer.styleMap;
+		if(color){
+			config.line[map.lineColor] = color;
+			config.item[map.color] = color;
+			for(var name in config)
+				config[name] = webix.html.createCss(config[name]);
+		}
+		return config;
+	};
+	Spline.prototype.getPoints = function(data, width, height){
+		var i, points, px, py,
+			result = [], x = [], y =[],
+			Line = webix.Sparklines.types.line.prototype;
+
+		points = Line.getPoints.call(this, data, width, height);
+
+		for(i = 0; i< points.length; i++){
+			x.push(points[i].x);
+			y.push(points[i].y);
+		}
+		px = this._getControlPoints(x);
+		py = this._getControlPoints(y);
+		/*updates path settings, the browser will draw the new spline*/
+		for ( i=0;i<points.length-1;i++){
+			result.push([points[i],{x:px[0][i],y:py[0][i]},{x:px[1][i],y:py[1][i]},points[i+1]]);
+		}
+		return result;
+
+	};
+	/* code from https://www.particleincell.com/2012/bezier-splines/ */
+	Spline.prototype._getControlPoints = function(points){
+		var a=[], b=[], c=[], r=[], p1=[], p2=[],
+			i, m, n = points.length-1;
+
+		a[0]=0;
+		b[0]=2;
+		c[0]=1;
+		r[0] = points[0] + 2*points[1];
+
+		for (i = 1; i < n - 1; i++){
+			a[i]=1;
+			b[i]=4;
+			c[i]=1;
+			r[i] = 4 * points[i] + 2 * points[i+1];
+		}
+
+		a[n-1]=2;
+		b[n-1]=7;
+		c[n-1]=0;
+		r[n-1] = 8*points[n-1]+points[n];
+
+		for (i = 1; i < n; i++){
+			m = a[i]/b[i-1];
+			b[i] = b[i] - m * c[i - 1];
+			r[i] = r[i] - m*r[i-1];
+		}
+
+		p1[n-1] = r[n-1]/b[n-1];
+		for (i = n - 2; i >= 0; --i)
+			p1[i] = (r[i] - c[i] * p1[i+1]) / b[i];
+
+		for (i=0;i<n-1;i++)
+			p2[i]=2*points[i+1]-p1[i+1];
+
+		p2[n-1]=0.5*(points[n]+p1[n-1]);
+
+		return [p1, p2];
+	};
+
+	webix.Sparklines.types["spline"] = Spline;
+
+	var defaultsArea = {
+		paddingX: 3,
+		paddingY: 6,
+		radius: 1,
+		minHeight: 4,
+		eventRadius: 8
+	};
+	// spline area
+	function SplineArea(config){
+		this.config = webix.extend(webix.copy(defaultsArea),config||{},true);
+	}
+	SplineArea.prototype = webix.copy(Spline.prototype);
+	SplineArea.prototype.draw = function(data, width, height){
+		var config = this.config,
+			Line = webix.Sparklines.types.line.prototype,
+			renderer = webix._SVG,
+			styles = config.color?this._applyColor(renderer,config.color):null;
+
+		var points = this.getPoints(data, width, height);
+		// draw area
+		var linePoints = points.splice(points.length - 3, 3);
+		var linePath = renderer._linePoints(linePoints);
+		linePath[0][0] = "L";
+		var areaPoints = renderer._curvePoints(points).concat(linePath);
+		var graph = renderer.group(renderer.getPath(renderer.definePath(areaPoints),'webix_sparklines_area'+(styles?' '+styles.area:''), true));
+		// draw line
+		graph += renderer.group(renderer.getPath(renderer.definePath(renderer._curvePoints(points)),'webix_sparklines_line'+(styles?' '+styles.line:'')));
+
+		var itemPoints = Line.getPoints.call(this,data, width, height);
+		// draw items
+		graph += Line._drawItems(renderer, itemPoints, config.radius, 'webix_sparklines_item'+(styles?' '+styles.item:''));
+		// draw event items
+		var eventRadius = Math.min(data.length?(width-2*(config.paddingX||0))/data.length:0,config.eventRadius);
+		graph += Line._drawEventItems(renderer, itemPoints, eventRadius);
+		return  renderer.draw(graph, width, height, "webix_sparklines_splinearea_chart"+(config.css?' '+config.css:''));
+	};
+	SplineArea.prototype._applyColor = function(renderer,color){
+		var config = {'area': {}, 'line':{},'item':{}},
+			map = renderer.styleMap;
+		if(color){
+			config.area[map.color] = renderer.setOpacity(color,0.2);
+			config.line[map.lineColor] = color;
+			config.item[map.color] = color;
+			for(var name in config)
+				config[name] = webix.html.createCss(config[name]);
+		}
+		return config;
+	};
+	SplineArea.prototype.getPoints = function(data, width, height){
+		var points = Spline.prototype.getPoints.call(this, data, width, height);
+		var x = this.config.paddingX || 0;
+		var y = this.config.paddingY || 0;
+		points.push({x: width - x, y: height - y},{x: x, y: height - y},{x: x, y: points[0][0].y});
+		return points;
+	};
+	webix.Sparklines.types["splineArea"] = SplineArea;
+})();
+
+
 
 
 
@@ -23551,9 +24283,9 @@ webix.protoUI({
 	},
 	legend_setter:function( config){
 		if(!config){
-			if(this.legendObj){
-				this.legendObj.innerHTML = "";
-				this.legendObj = null;
+			if(this._legendObj){
+				this._legendObj.innerHTML = "";
+				this._legendObj = null;
 			}
 			return false;
 		}
@@ -25185,7 +25917,7 @@ webix.extend(webix.ui.chart, {
 	$render_barH:function(ctx, data, point0, point1, sIndex, map){
 		var barOffset, barWidth, cellWidth, color, gradient, i, limits, maxValue, minValue,
 			innerGradient, valueFactor, relValue, radius, relativeValues,
-			startValue, totalWidth,value,  unit, x0, y0, yax;
+			startValue, totalWidth,value,  unit, x0, y0, xax;
 
 		/*an available width for one bar*/
 		cellWidth = (point1.y-point0.y)/data.length;
@@ -25197,14 +25929,14 @@ webix.extend(webix.ui.chart, {
 
 		totalWidth = point1.x-point0.x;
 
-		yax = !!this._settings.yAxis;
+		xax = !!this._settings.xAxis;
 
 		/*draws x and y scales*/
-		if(!sIndex)
+		if(!sIndex )
 			this._drawHScales(ctx,data,point0, point1,minValue,maxValue,cellWidth);
 
 		/*necessary for automatic scale*/
-		if(yax){
+		if(xax ){
 			maxValue = parseFloat(this._settings.xAxis.end);
 			minValue = parseFloat(this._settings.xAxis.start);
 		}
@@ -25215,7 +25947,7 @@ webix.extend(webix.ui.chart, {
 		valueFactor = relativeValues[1];
 
 		unit = (relValue?totalWidth/relValue:10);
-		if(!yax){
+		if(!xax){
 			/*defines start value for better representation of small values*/
 			startValue = 10;
 			unit = (relValue?(totalWidth-startValue)/relValue:10);
@@ -25241,7 +25973,7 @@ webix.extend(webix.ui.chart, {
 			this._settings.gradient(gradient);
 		}
 		/*draws a black line if the horizontal scale isn't defined*/
-		if(!yax){
+		if(!xax){
 			this._drawLine(ctx,point0.x-0.5,point0.y,point0.x-0.5,point1.y,"#000000",1); //hardcoded color!
 		}
 
@@ -25271,7 +26003,7 @@ webix.extend(webix.ui.chart, {
 			}
 
 			/*takes start value into consideration*/
-			if(!yax) value += startValue/unit;
+			if(!xax) value += startValue/unit;
 			color = gradient||this._settings.color.call(this,data[i]);
 
 			/*drawing the gradient border of a bar*/
@@ -25316,6 +26048,7 @@ webix.extend(webix.ui.chart, {
 	_setBarHPoints:function(ctx,x0,y0,barWidth,radius,unit,value,offset,skipLeft){
 		/*correction for displaing small values (when rounding radius is bigger than bar height)*/
 		var angle_corr = 0;
+
 		if(radius>unit*value){
 			var sinA = (radius-unit*value)/radius;
 			angle_corr = -Math.asin(sinA)+Math.PI/2;
@@ -25324,6 +26057,7 @@ webix.extend(webix.ui.chart, {
 		ctx.moveTo(x0,y0+offset);
 		/*start of left rounding*/
 		var x1 = x0 + unit*value - radius - (radius?0:offset);
+		x1 = Math.max(x0,x1);
 		if(radius<unit*value)
 			ctx.lineTo(x1,y0+offset);
 		/*left rounding*/
@@ -25382,7 +26116,9 @@ webix.extend(webix.ui.chart, {
 			if(this._settings.yAxis.lines.call(this,data[i]))
 				this._drawLine(ctx,point0.x,unitPos,point1.x,unitPos,this._settings.yAxis.lineColor.call(this,data[i]),1);
 		}
-		this._drawLine(ctx,point0.x+0.5,y1+0.5,point1.x,y1+0.5,this._settings.yAxis.lineColor.call(this,{}),1);
+
+		if(this._settings.yAxis.lines.call(this,{}))
+			this._drawLine(ctx,point0.x+0.5,y1+0.5,point1.x,y1+0.5,this._settings.yAxis.lineColor.call(this,{}),1);
 		this._setYAxisTitle(point0,point1);
 	},
 	_drawHXAxis:function(ctx,data,point0,point1,start,end){
@@ -26706,6 +27442,9 @@ webix.protoUI({
 			this._zoom_in = true;
 			this._zoom_level = -1;
 		}
+		else if(value == "year"){
+			this._fixed = true;
+		}
 		return value;
 	},
 	$setSize:function(x,y){
@@ -26843,7 +27582,6 @@ webix.protoUI({
 
 		if(s.weekHeader)
 			html += "<div class='webix_cal_header'>"+this._week_template(width)+"</div>";
-
 		html += "<div class='webix_cal_body'>"+this._body_template(width, height, bounds)+"</div>";
 
 		if (this._settings.timepicker || this._icons){
@@ -26871,6 +27609,12 @@ webix.protoUI({
 				}
 			}
 			this._changeZoomLevel(-1,date);
+		}
+		else if(this._settings.type == "month"){
+			this._changeZoomLevel(1,date);
+		}
+		else if(this._settings.type == "year"){
+			this._changeZoomLevel(2,date);
 		}
 		this.callEvent("onAfterRender",[]);
 	},
@@ -27122,16 +27866,19 @@ webix.protoUI({
 		}
 	},
 	_update_zoom_level:function(date){
-		var css, height, i, selected, width;
+		var config, css, height, i, index,  sections, selected, type, width, zlogic;
 		var html = "";
-		var index = this._settings.weekHeader?2: 1;
-		var zlogic = this._zoom_logic[this._zoom_level];
-		var sections  = this._contentobj.childNodes;
+
+		config = this._settings;
+		index = config.weekHeader?2: 1;
+		zlogic = this._zoom_logic[this._zoom_level];
+		sections  = this._contentobj.childNodes;
 
 		if (date){
-            this._settings.date = date;
+			config.date = date;
 		}
 
+		type = config.type;
 
 
 
@@ -27139,7 +27886,12 @@ webix.protoUI({
 		if (!this._zoom_size){
 			/*this._reserve_box_height = sections[index].offsetHeight +(index==2?sections[1].offsetHeight:0);*/
 
-			this._reserve_box_height = this._contentobj.offsetHeight - this._settings.headerHeight - this._settings.timepickerHeight;
+			this._reserve_box_height = this._contentobj.offsetHeight - config.headerHeight ;
+			if(type != "year" && type != "month")
+				this._reserve_box_height -= config.timepickerHeight;
+			else if(this._icons){
+				this._reserve_box_height -= 10;
+			}
 			this._reserve_box_width = sections[index].offsetWidth;
 			this._zoom_size = 1;
 		}
@@ -27162,7 +27914,7 @@ webix.protoUI({
 			this._correctBlockedTime();
 
 			html += "<div class='webix_hours'>";
-			selected = this._settings.date.getHours();
+			selected = config.date.getHours();
 			for (i= 0; i< 24; i++){
 				css="";
 				if(enLocale){
@@ -27182,8 +27934,8 @@ webix.protoUI({
 			html += "</div>";
 
 			html += "<div class='webix_minutes'>";
-			selected = this._settings.date.getMinutes();
-			for (i=0; i<60; i+=this._settings.minuteStep){
+			selected = config.date.getMinutes();
+			for (i=0; i<60; i+=config.minuteStep){
 				css = "";
 				if(this._zoom_logic[-2]._isBlocked.call(this,i)){
 					css = " webix_cal_day_disabled";
@@ -27200,11 +27952,11 @@ webix.protoUI({
 		} else {
 			//years and months
 			//reset header
-			sections[0].firstChild.innerHTML = zlogic._getTitle(this._settings.date);
+			sections[0].firstChild.innerHTML = zlogic._getTitle(config.date);
 			height = this._reserve_box_height/3;
 			width = this._reserve_box_width/4;
-            if(this._checkDate(this._settings.date))
-			    selected = (this._zoom_level==1?this._settings.date.getMonth():this._settings.date.getFullYear());
+            if(this._checkDate(config.date))
+			    selected = (this._zoom_level==1?config.date.getMonth():config.date.getFullYear());
 			for (i=0; i<12; i++){
 				css = (selected == (this._zoom_level==1?i:zlogic._getContent(i)) ? " webix_selected" : "");
 				if(zlogic._isBlocked(i,this)){
@@ -27216,11 +27968,12 @@ webix.protoUI({
 				sections[index-1].style.display = "none";
 			}
 			sections[index].innerHTML = html;
-			if(!sections[index+1]){
-				this._contentobj.innerHTML += "<div  class='webix_time_footer'>"+this._timeButtonsTemplate()+"</div>";
+			if(type != "year" && type != "month"){
+				if(!sections[index+1])
+					this._contentobj.innerHTML += "<div  class='webix_time_footer'>"+this._timeButtonsTemplate()+"</div>";
+				else
+					sections[index+1].innerHTML=this._timeButtonsTemplate();
 			}
-			else
-				sections[index+1].innerHTML=this._timeButtonsTemplate();
 			sections[index].style.height = this._reserve_box_height+"px";
 		}
 	},
@@ -27252,14 +28005,20 @@ webix.protoUI({
 		return date;
 	},
 	_mode_selected:function(value){
+
 		var now = this._settings.date;
 		var next = webix.Date.copy(now);
 		this._zoom_logic[this._zoom_level]._setContent(next, value);
 
-		var zoom = this._zoom_level-1;
+		var zoom = this._zoom_level-(this._fixed?0:1);
+		var prevZoom = this._zoom_level;
         next = this._correctDate(next);
-        if(this._checkDate(next))
-		    this._changeZoomLevel(zoom, next);
+        if(this._checkDate(next)){
+			this._changeZoomLevel(zoom, next);
+			var type = this._settings.type;
+			if(type == "month" && prevZoom !=2 || type == "year")
+				this._selectDate(next);
+		}
 	},
 	// selects date and redraw calendar
 	_selectDate: function(date){
@@ -28111,7 +28870,10 @@ webix.protoUI({
 	},
 	addView:function(){
 		var id = webix.ui.baselayout.prototype.addView.apply(this, arguments);
-		webix.html.remove(webix.$$(id).$view);
+		if(this._settings.keepViews)
+			webix.$$(id)._viewobj.style.display = "none";
+		else
+			webix.html.remove(webix.$$(id)._viewobj);
 		return id;
 	},
 	_beforeRemoveView:function(index, view){
@@ -28629,6 +29391,7 @@ webix.protoUI({
 	//ignore body element
 	body_setter:function(){
 	},
+	getChildViews:function(){ return []; },
 	defaults:{
 		width:150,
 		subMenuPos:"right",
@@ -28733,19 +29496,23 @@ webix.protoUI({
 	},
 	_getTabbarSizes: function(){
 
-		var config = this.config,
-			i,
-			len = config.options.length, // number of tabs
+		var config = this._settings,
+			i, len,
+			tabs = this._tabs||config.options,
 			totalWidth = this._input_width - config.tabOffset*2,
 			limitWidth = config.optionWidth||config.tabMinWidth;
+
+		len = tabs.length;
 
 		if(config.tabMinWidth && totalWidth/len < limitWidth){
 			return { max: (parseInt(totalWidth/limitWidth,10)||1)};
 		}
+
+
 		if(!config.optionWidth){
-			for(i=0;i<  config.options.length; i++){
-				if(config.options[i].width){
-					totalWidth -= config.options[i].width+(!i&&!config .type?config.tabMargin:0);
+			for(i=0;i< len; i++){
+				if(tabs[i].width){
+					totalWidth -= tabs[i].width+(!i&&!config .type?config.tabMargin:0);
 					len--;
 				}
 			}
@@ -28796,8 +29563,9 @@ webix.protoUI({
 		yCount: 7,
 		moreTemplate: '<span class="webix_icon fa-ellipsis-h"></span>',
 		template:function(obj,common) {
-			var contentWidth, html, i, leafWidth, resultHTML, style, sum, verticalOffset, width,
-				tabs = obj.options;
+			var contentWidth, html, i, leafWidth, resultHTML, style, sum, tabs, verticalOffset, width;
+
+			common._tabs = tabs = common._filterOptions(obj.options);
 
 			if (!tabs.length){
 				html = "<div class='webix_tab_filler' style='width:"+common._input_width+"px; border-right:0px;'></div>";
@@ -28805,8 +29573,6 @@ webix.protoUI({
 				common._check_options(tabs);
 				if (!obj.value && tabs.length)
 					obj.value = tabs[0].id;
-
-				tabs = webix.copy(tabs);
 
 				html = "";
 				if (obj.tabOffset)
@@ -28831,7 +29597,7 @@ webix.protoUI({
 									if((i+1) > sizes.max){
 										var selectedTab =  tabs.splice(i, 1);
 										var displayTabs = tabs.splice(0, sizes.max-1).concat(selectedTab);
-										obj.options = tabs = displayTabs.concat(tabs);
+										tabs = displayTabs.concat(tabs);
 									}
 								}
 							list.clearAll();
@@ -28871,12 +29637,10 @@ webix.protoUI({
 
 
 					if(lastTab){
-						var iconHeight = common._content_height - (!obj.type?(verticalOffset):0);
 						html += '<div class="webix_tab_more_icon" style="width:'+obj.tabMoreWidth+'px;">'+obj.moreTemplate(obj,common)+'</div>';
 						sum += obj.tabMoreWidth;
 					}
 				}
-
 
 
 				leafWidth = common._content_width - sum;
@@ -28999,7 +29763,7 @@ webix.protoUI({
 		for (var i = cells.length - 1; i >= 0; i--){
 			var view = cells[i].body||cells[i];
 			if (!view.id) view.id = "view"+webix.uid();
-			tabs[i] = { value:cells[i].header, id:view.id, close:cells[i].close, width:cells[i].width };
+			tabs[i] = { value:cells[i].header, id:view.id, close:cells[i].close, width:cells[i].width, hidden:  !!cells[i].hidden};
 			cells[i] = view;
 		}
 
@@ -32818,6 +33582,7 @@ webix.toPDF = function(id, options){
 
 function getExportScheme(view, options){
     var scheme = [];
+    var h_count = 0, f_count = 0;
     var isTable = view.getColumnConfig;
     var columns = options.columns;
     var raw = !!options.rawValues;
@@ -32856,9 +33621,9 @@ function getExportScheme(view, options){
         for(var i = 0; i<record.header.length; i++){
             record.header[i] = record.header[i]?(record.header[i].contentId?"":record.header[i].text):"";
         }
+        h_count = Math.max(h_count, record.header.length);
 
-
-         if(view._settings.footer){
+        if(view._settings.footer){
             var footer = column.footer || "";
             if(typeof footer == "string") footer = [{text:footer}];
             else footer = webix.copy(footer);
@@ -32868,10 +33633,26 @@ function getExportScheme(view, options){
                 else footer[i] = "";
             }
             record.footer = footer;
+            f_count = Math.max(f_count, record.footer.length);
         }
         
         scheme.push(record);
     }
+
+    //normalize headers and footers
+    for(var i =0; i<scheme.length; i++){
+
+        var diff = h_count-scheme[i].header.length;
+        for(var d=0; d<diff; d++)
+            scheme[i].header.push("");
+
+        if(view._settings.footer){
+            diff = f_count-scheme[i].footer.length;
+            for(var d=0; d<diff; d++)
+                scheme[i].footer.push("");
+        }
+    }
+
     return scheme;
 }
 

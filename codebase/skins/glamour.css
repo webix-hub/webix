@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.3.3.0
+webix UI v.3.3.17
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -433,6 +433,7 @@ body:not(:-moz-handler-blocked) .webix_el_select select{padding:.2em}
 .webix_segment_0,.webix_segment_1{height:100%}
 .webix_segment_0{-webkit-border-radius:0;-moz-border-radius-topleft:0;-moz-border-radius-bottomleft:0;-moz-border-radius-topright:0;-moz-border-radius-bottomright:0;border-radius:0}
 .webix_segment_N{height:100%;-webkit-border-radius:0;-moz-border-radius-topleft:0;-moz-border-radius-bottomleft:0;-moz-border-radius-topright:0;-moz-border-radius-bottomright:0;border-radius:0}
+.webix_segment_N:first-child{-webkit-border-radius:0;-moz-border-radius-topleft:0;-moz-border-radius-bottomleft:0;-moz-border-radius-topright:0;-moz-border-radius-bottomright:0;border-radius:0}
 .webix_segment_0,.webix_segment_1,.webix_segment_N{-webkit-appearance:none;background:#bcbcbc;color:#fff;font-size:15px;font-family:Tahoma;border:1px solid #bcbcbc;border-bottom:1px solid #b2b2b2;cursor:pointer;padding:0}
 .webix_segment_0.webix_selected,.webix_segment_1.webix_selected,.webix_segment_N.webix_selected{color:#fff;background:#e42750;box-shadow:0 1px #d71b44 inset!important;border:1px solid #e42750!important}
 .webix_inp_static{border:1px solid transparent;background:#fff;overflow:hidden;padding:0 10px;height:100%;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;float:left}
@@ -1283,6 +1284,13 @@ div.webix_item_tab{border-top:none!important;border-left:none!important;border-b
 .webix_sparklines svg{box-sizing:border-box}
 .webix_sparklines_line{stroke:#3498db;stroke-width:1;fill:transparent;stroke-linecap:round}
 .webix_sparklines_item{fill:#3498db;stroke-width:1}
+.webix_sparklines_bar{fill:#6dbcf0}
+.webix_sparklines_bar_negative{fill:#d86c79}
+.webix_sparklines_area{fill:#e5eef4}
+.webix_sparklines_origin{stroke:#888;stroke-width:1}
+.webix_sparklines_event_area{fill:transparent}
+.webix_sparklines_area_chart .webix_sparklines_event_area:hover,.webix_sparklines_line_chart .webix_sparklines_event_area:hover,.webix_sparklines_splinearea_chart .webix_sparklines_event_area:hover{fill:rgba(220,220,220,.4);stroke:rgba(255,255,255,.6)}
+.webix_sparklines_bar_chart .webix_sparklines_event_area:hover,.webix_sparklines_pie_chart .webix_sparklines_event_area:hover{fill:rgba(255,255,255,.3)}
 .webix_strong{font-weight:700;white-space:nowrap}
 .webix_light{color:#a2a2a2}
 .webix_debug div{border:1px solid orange;background-color:#FF9;color:#000}

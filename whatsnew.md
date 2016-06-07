@@ -1,3 +1,27 @@
+### Version 3.3.17
+
+[fix] border-radius of context menu
+[fix] compressed lib and custom properties on data objects
+[fix] creating export scheme with multiple headers/footers and extra columns
+[fix] datalayout and hierarchical components
+[fix] dynamic adding nested items in to a tree
+[fix] fix setting next visible tab when the last tab is removed
+[fix] gettings child views of submenu
+[fix] incorrect paging in the dataview
+[fix] keep master input focused after click in Suggest
+[fix] keepViews and addView in Multiview
+[fix] no-axis rendering in chart
+[fix] resizeColumn and dragColumn in datatable
+[fix] show-hide header after datatable init
+[fix] svg content: className is an object for svg
+
+### Version 3.3.2
+
+[fix] columnGroup feature and colspans
+[fix] refresh scroll state for a datatable inside a portlet
+[fix] adjusting sub-layouts on datatable resize
+
+
 Version 3.3 (April 2016)
 ================
 

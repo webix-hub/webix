@@ -2493,6 +2493,20 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
 }
+.webix_segment_N:first-child {
+  -webkit-border-top-left-radius: 0px;
+  -webkit-border-bottom-left-radius: 0px;
+  -webkit-border-top-right-radius: 0px;
+  -webkit-border-bottom-right-radius: 0px;
+  -moz-border-radius-topleft: 0px;
+  -moz-border-radius-bottomleft: 0px;
+  -moz-border-radius-topright: 0px;
+  -moz-border-radius-bottomright: 0px;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
 .webix_segment_0,
 .webix_segment_1,
 .webix_segment_N {
@@ -5810,6 +5824,32 @@ div.webix_inp_static,
 .webix_sparklines_item {
   fill: #3498db;
   stroke-width: 1;
+}
+.webix_sparklines_bar {
+  fill: #6dbcf0;
+}
+.webix_sparklines_bar_negative {
+  fill: #d86c79;
+}
+.webix_sparklines_area {
+  fill: #e5eef4;
+}
+.webix_sparklines_origin {
+  stroke: #888;
+  stroke-width: 1;
+}
+.webix_sparklines_event_area {
+  fill: transparent;
+}
+.webix_sparklines_line_chart .webix_sparklines_event_area:hover,
+.webix_sparklines_area_chart .webix_sparklines_event_area:hover,
+.webix_sparklines_splinearea_chart .webix_sparklines_event_area:hover {
+  fill: rgba(220, 220, 220, 0.4);
+  stroke: rgba(255, 255, 255, 0.6);
+}
+.webix_sparklines_pie_chart .webix_sparklines_event_area:hover,
+.webix_sparklines_bar_chart .webix_sparklines_event_area:hover {
+  fill: rgba(255, 255, 255, 0.3);
 }
 /*predefined styles for text lables inside a item*/
 .webix_strong {
