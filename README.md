@@ -1,6 +1,8 @@
 Webix UI v.3.3.17
 ================
 
+[![Join the chat at https://gitter.im/webix-hub/tracker](https://badges.gitter.im/webix-hub/tracker.svg)](https://gitter.im/webix-hub/tracker?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![npm version](https://badge.fury.io/js/webix.svg)](https://badge.fury.io/js/webix)
 
 http://webix.com
