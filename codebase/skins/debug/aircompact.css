@@ -29,6 +29,9 @@ button,
 	webix_layout_{type}
 	known types are: line, clean, wide, space;
 */
+.webix_abslayout {
+  position: relative;
+}
 .webix_abslayout > .webix_view {
   position: absolute;
 }
@@ -912,6 +915,7 @@ x\:ui {
   left: 3px;
   top: 3px;
   position: fixed;
+  white-space: nowrap;
   filter: alpha(opacity=0);
   opacity: 0;
 }
@@ -1502,6 +1506,11 @@ div.webix_modal_cover {
   background: #1e2022;
   cursor: crosshair;
   margin: -6px 0 0 -6px;
+}
+.webix_topcell {
+  position: relative;
+  background: #fff;
+  z-index: 1;
 }
 .webix_window {
   position: absolute;

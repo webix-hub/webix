@@ -8,6 +8,8 @@ webix.i18n.locales["en-US"]={
 	timeFormat:"%h:%i %A",
 	longDateFormat:"%d %F %Y",
 	fullDateFormat:"%m/%d/%Y %h:%i %A",
+	am:["am","AM"],
+	pm:["pm","PM"],
 
 	price:"${obj}",
 	priceSettings:{
@@ -31,10 +33,19 @@ webix.i18n.locales["en-US"]={
     },
 
     controls:{
-    	select:"Select"
+    	select:"Select",
+    	invalidMessage: "Invalid input value"
     },
     dataExport:{
 		page:"Page",
 		of:"of"
+    },
+    PDFviewer:{
+		of:"of",
+		automaticZoom:"Automatic Zoom",
+		actualSize:"Actual Size",
+		pageFit:"Page Fit",
+		pageWidth:"Page Width",
+		pageHeight:"Page Height"
     }
 };

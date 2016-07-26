@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.3.3.17
+webix UI v.3.4.0
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -8,6 +8,7 @@ This software is allowed to use under GPL or you need to obtain Commercial Licen
 .webix_view.webix_form{background-color:#f4f4f4}
 body{-webkit-tap-highlight-color:transparent!important}
 .webix_inp_static,button,input,select,textarea{outline:0}
+.webix_abslayout{position:relative}
 .webix_abslayout>.webix_view{position:absolute}
 .webix_layout_space,.webix_layout_wide{background-color:#fff}
 .webix_layout_accordion,.webix_layout_clean,.webix_layout_line,.webix_multiview{background:0 0}
@@ -162,7 +163,7 @@ x\:ui{display:none}
 .webix_dt_editor input,.webix_dt_editor select{width:100%;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;padding:1px 8px 0 9px;margin:0;border:1px solid gold;height:100%;font-family:Tahoma;font-size:15px;color:#555}
 .webix_dt_editor input[type=checkbox]{margin:6px 8px 4px 14px;height:auto;width:auto}
 .webix_dt_editor select{padding-right:0;padding-left:5px}
-.webix_clipbuffer{width:1px;height:1px;left:3px;top:3px;position:fixed;filter:alpha(opacity=0);opacity:0}
+.webix_clipbuffer{width:1px;height:1px;left:3px;top:3px;position:fixed;white-space:nowrap;filter:alpha(opacity=0);opacity:0}
 .webix_message_area{position:fixed;right:5px;width:250px;z-index:1000}
 .webix_info{min-width:120px;font-family:Tahoma,Arial;z-index:10000;overflow:hidden;margin:5px 5px 10px;-webkit-transition:all .5s ease;-moz-transition:all .5s ease;-o-transition:all .5s ease;transition:all .5s ease}
 .webix_no_transition{-webkit-transition:none;-moz-transition:none;transition:none}
@@ -255,6 +256,7 @@ div.webix_modal_cover{background-color:#000;cursor:default;filter:alpha(opacity=
 .webix_area_selection_bottom,.webix_area_selection_top{height:2px}
 .webix_area_selection_left,.webix_area_selection_right{width:2px}
 .webix_area_selection_handle{position:absolute;width:6px;height:6px;border:1px solid #fff;background:#555;cursor:crosshair;margin:-6px 0 0 -6px}
+.webix_topcell{position:relative;background:#fff;z-index:1}
 .webix_window{position:absolute;box-shadow:1px 3px 4px #c8c8c8}
 .webix_win_body{overflow:hidden}
 .webix_win_body,.webix_win_body>.webix_view,.webix_win_body>.webix_view .webix_cal_month,.webix_win_content,.webix_window{border-radius:0}

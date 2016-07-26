@@ -30,10 +30,19 @@ webix.i18n.locales["it-IT"] = {
     },
 
     controls:{
-    	select:"Selezionare"
+    	select:"Selezionare",
+    	invalidMessage:"Valore di input non valido"
     },
     dataExport:{
 		page:"Pagina",
 		of:"di"
+    },
+    PDFviewer:{
+		of:"di",
+		automaticZoom:"Automatik  Zoom",
+		actualSize:"Dimensione reale",
+		pageFit:"Dimensioni della pagina",
+		pageWidth:"Larghezza della pagina",
+		pageHeight:"Altezza della pagina"
     }
 };

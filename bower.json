@@ -1,6 +1,6 @@
 {
   "name": "webix",
-  "version": "3.3.17",
+  "version": "3.4.0",
   "description": "Javascript components library for mobile and desktop browsers",
   "main": [
     "codebase/webix.js",

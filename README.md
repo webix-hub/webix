@@ -1,8 +1,9 @@
-Webix UI v.3.3.17
+Webix UI v.3.4.0
 ================
 
 [![npm version](https://badge.fury.io/js/webix.svg)](https://badge.fury.io/js/webix)
 [![Join the chat at https://gitter.im/webix-hub/webix](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/webix-hub/webix) 
+
 
 http://webix.com
 

@@ -30,10 +30,19 @@ webix.i18n.locales["ja-JP"]={
 	},
 
 	controls:{
-		select:"選択する"
+		select:"選択する",
+		invalidMessage: "無効な入力値"
 	},
 	dataExport:{
 		page:"ページ",
 		of:"から"
+    },
+    PDFviewer:{
+		of:"から",
+		automaticZoom:"自動ズーム",
+		actualSize:"実サイズ",
+		pageFit:"ページサイズ",
+		pageWidth:"ページ幅",
+		pageHeight:"ページの高さ"
     }
 };

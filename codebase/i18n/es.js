@@ -30,10 +30,19 @@ webix.i18n.locales["es-ES"] = {
     },
 
     controls:{
-    	select:"Seleccione"
+    	select:"Seleccione",
+    	invalidMessage: "Valor de entrada no válido"
     },
     dataExport:{
 		page:"Página",
 		of:"de"
+    },
+    PDFviewer:{
+		of:"de",
+		automaticZoom:"Zoom automático",
+		actualSize:"Tamaño real",
+		pageFit:"Tamaño de página",
+		pageWidth:"Ancho de página",
+		pageHeight:"Altura de la página"
     }
 };

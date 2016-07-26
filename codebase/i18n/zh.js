@@ -30,11 +30,20 @@ webix.i18n.locales["zh-CN"] = {
     },
 
     controls:{
-    	select:"选择"
+    	select:"选择",
+    	invalidMessage: "无效的输入值"
     },
     dataExport:{
 		page:"页",
 		of:"从"
+    },
+    PDFviewer:{
+		of:"从",
+		automaticZoom:"自动变焦",
+		actualSize:"实际尺寸",
+		pageFit:"页面大小",
+		pageWidth:"页面宽度",
+		pageHeight:"页面高度"
     }
 
 };

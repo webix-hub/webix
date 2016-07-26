@@ -25,10 +25,19 @@ webix.i18n.locales["fr-FR"]={
 	},
 
 	controls:{
-		select:"Sélectionner"
+		select:"Sélectionner",
+		invalidMessage:"Valeur d'entrée invalide"
 	},
 	dataExport:{
 		page:"Page",
 		of:"sur"
+    },
+    PDFviewer:{
+		of:"sur",
+		automaticZoom:"Zoom automatique",
+		actualSize:"Taille actuelle",
+		pageFit:"Taille de la page",
+		pageWidth:"Largeur de la page",
+		pageHeight:"Hauteur de page"
     }
 };

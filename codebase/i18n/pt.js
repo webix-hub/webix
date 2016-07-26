@@ -31,10 +31,19 @@ webix.i18n.locales["pt-BR"] = {
 		today: "Hoje"
    },
 	controls:{
-		select:"Selecionar"
+		select:"Selecionar",
+		invalidMessage: "Valor de entrada inválido"
 	},
 	dataExport:{
 		page:"Página",
 		of:"de"
+    },
+    PDFviewer:{
+		of:"de",
+		automaticZoom:"Zoom automático",
+		actualSize:"Tamanho atual",
+		pageFit:"Tamanho da página",
+		pageWidth:"Largura da página",
+		pageHeight:"Altura da página"
     }
 };

@@ -1,4 +1,4 @@
-	webix.i18n.locales["be-BY"]={
+webix.i18n.locales["be-BY"]={
 	groupDelimiter:" ",
 	groupSize:3,
 	decimalDelimiter:",",
@@ -30,10 +30,19 @@
 	},
 
 	controls:{
-    	select:"Выбраць"
+    	select:"Выбраць",
+    	invalidMessage:"Няправільнае значэнне"
     },
     dataExport:{
 		page:"Старонка",
 		of:"з"
+    },
+    PDFviewer:{
+		of:"з",
+		automaticZoom:"Аўтаматычны зум",
+		actualSize:"Сапраўдны памер",
+		pageFit:"Памер старонкі",
+		pageWidth:"Шырыня старонкі",
+		pageHeight:"Вышыня старонкі"
     }
 };

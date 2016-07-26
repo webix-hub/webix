@@ -25,10 +25,19 @@ webix.i18n.locales["ru-RU"]={
 	},
 
     controls:{
-    	select:"Выбрать"
+    	select:"Выбрать",
+    	invalidMessage: "Неправильное значение"
     },
     dataExport:{
 		page:"Страница",
 		of:"из"
+    },
+    PDFviewer:{
+		of:"из",
+		automaticZoom:"Автоматический зум",
+		actualSize:"Настоящий размер",
+		pageFit:"Размер страницы",
+		pageWidth:"Ширина страницы",
+		pageHeight:"Высота страницы"
     }
 };

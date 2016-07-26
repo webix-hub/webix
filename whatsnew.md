@@ -1,25 +1,15 @@
-### Version 3.3.17
+Version 3.4 (July 2016)
+================
 
-[fix] border-radius of context menu
-[fix] compressed lib and custom properties on data objects
-[fix] creating export scheme with multiple headers/footers and extra columns
-[fix] datalayout and hierarchical components
-[fix] dynamic adding nested items in to a tree
-[fix] fix setting next visible tab when the last tab is removed
-[fix] gettings child views of submenu
-[fix] incorrect paging in the dataview
-[fix] keep master input focused after click in Suggest
-[fix] keepViews and addView in Multiview
-[fix] no-axis rendering in chart
-[fix] resizeColumn and dragColumn in datatable
-[fix] show-hide header after datatable init
-[fix] svg content: className is an object for svg
+### Major features
 
-### Version 3.3.2
+- "Frozen" rows in datatable
+- Patterns for text inputs
+- Area, Spline, Pie and Bar sparklines
+- "Month" and "year" time pickers
+- Webix Remote
 
-[fix] columnGroup feature and colspans
-[fix] refresh scroll state for a datatable inside a portlet
-[fix] adjusting sub-layouts on datatable resize
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_3_3.html)
 
 
 Version 3.3 (April 2016)
