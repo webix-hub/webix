@@ -45,5 +45,29 @@ webix.i18n.locales["pt-BR"] = {
 		pageFit:"Tamanho da página",
 		pageWidth:"Largura da página",
 		pageHeight:"Altura da página"
+    },
+    aria:{
+		increaseValue:"Aumentar o valor",
+		decreaseValue:"Diminuir o valor",
+		navMonth:["Mês anterior", "Próximo mês"],
+		navYear:["Ano anterior", "Próximo ano"],
+		navDecade:["Década anterior", "Próxima década"],
+		removeItem:"Remover elemento",
+		pages:["Primeira página", "Página anterior", "Próxima página", "Última página"],
+		page:"Página",
+		headermenu:"Menu de títulos",
+		openGroup:"Grupo coluna aberta",
+		closeGroup:"Fechar grupo de colunas",
+		closeTab:"Fechar tab",
+		showTabs:"Mostre mais tabs",
+		resetTreeMap:"Мoltar à vista original",
+		navTreeMap:"Upar",
+		nextTab:"Próximo tab",
+		prevTab:"Anterior tab",
+		multitextSection:"Adicionar elemento",
+		multitextextraSection:"Remover elemento",
+		showChart:"Exposição chart",
+		hideChart:"Esconder chart",
+		resizeChart:"Redimensionar chart"
     }
 };

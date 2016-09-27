@@ -44,5 +44,29 @@ webix.i18n.locales["ja-JP"]={
 		pageFit:"ページサイズ",
 		pageWidth:"ページ幅",
 		pageHeight:"ページの高さ"
+    },
+    aria:{
+		increaseValue:"増加値",
+		decreaseValue:"数字を小さく",
+		navMonth:["前の月", "来月"],
+		navYear:["前年", "来年"],
+		navDecade:["前の十年", "次の10年"],
+		removeItem:"要素を削除します",
+		pages:["一ページ目", "前のページ", "次のページ", "最後のページ"],
+		page:"ページ",
+		headermenu:"ヘッダメニュー",
+		openGroup:"オープン列グループ",
+		closeGroup:"閉じる列グループ",
+		closeTab:"タブを閉じます",
+		showTabs:"複数のタブを表示します",
+		resetTreeMap:"元の表示に戻ります",
+		navTreeMap:"レベルパック",
+		nextTab:"次のタブ",
+		prevTab:"前のタブ",
+		multitextSection:"要素を追加します。",
+		multitextextraSection:"要素を削除します",
+		showChart:"靴チャート",
+		hideChart:"隠すチャート",
+		resizeChart:"グラフのサイズを変更"
     }
 };

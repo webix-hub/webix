@@ -47,5 +47,29 @@ webix.i18n.locales["en-US"]={
 		pageFit:"Page Fit",
 		pageWidth:"Page Width",
 		pageHeight:"Page Height"
+    },
+    aria:{
+		increaseValue:"Increase value",
+		decreaseValue:"Decrease value",
+		navMonth:["Previous month", "Next month"],
+		navYear:["Previous year", "Next year"],
+		navDecade:["Previous decade", "Next decade"],
+		removeItem:"Remove item",
+		pages:["First page", "Previous page", "Next page", "Last page"],
+		page:"Page",
+		headermenu:"Header menu",
+		openGroup:"Open column group",
+		closeGroup:"Close column group",
+		closeTab:"Close tab",
+		showTabs:"Show more tabs",
+		resetTreeMap:"Reset tree map",
+		navTreeMap:"Level up",
+		nextTab:"Next tab",
+		prevTab:"Previous tab",
+		multitextSection:"Add section",
+		multitextextraSection:"Remove section",
+		showChart:"Show chart",
+		hideChart:"Hide chart",
+		resizeChart:"Resize chart"
     }
 };

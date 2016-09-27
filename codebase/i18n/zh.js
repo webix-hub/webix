@@ -44,6 +44,30 @@ webix.i18n.locales["zh-CN"] = {
 		pageFit:"页面大小",
 		pageWidth:"页面宽度",
 		pageHeight:"页面高度"
+    },
+    aria:{
+		increaseValue:"增加值",
+		decreaseValue:"减少值",
+		navMonth:["前一个月", "下个月"],
+		navYear:["上年", "明年"],
+		navDecade:["过去十年", "下一个十年"],
+		removeItem:"删除元素",
+		pages:["第一页", "上一页", "下一页", "最后一页"],
+		page:"页",
+		headermenu:"标题菜单",
+		openGroup:"打开栏目组",
+		closeGroup:"关闭栏目组",
+		closeTab:"关闭标签",
+		showTabs:"显示更多选项卡",
+		resetTreeMap:"回到原来的视图",
+		navTreeMap:"升级",
+		nextTab:"下一个标签",
+		prevTab:"前一个标签",
+		multitextSection:"加元",
+		multitextextraSection:"删除元素",
+		showChart:"擦鞋图",
+		hideChart:"隐藏图表",
+		resizeChart:"调整图"
     }
 
 };

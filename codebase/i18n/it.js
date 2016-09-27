@@ -44,5 +44,29 @@ webix.i18n.locales["it-IT"] = {
 		pageFit:"Dimensioni della pagina",
 		pageWidth:"Larghezza della pagina",
 		pageHeight:"Altezza della pagina"
+    },
+    aria:{
+		increaseValue:"Aumentare il valore",
+		decreaseValue:"Riduzione valore",
+		navMonth:["Il mese scorso", "Il prossimo mese"],
+		navYear:["L'anno scorso", "L'anno prossimo"],
+		navDecade:["Decennio precedente", "Prossimo decennio"],
+		removeItem:"Rimuovere l'elemento",
+		pages:["Prima pagina", "Pagina precedente", "Pagina successiva", "Ultima pagina"],
+		page:"Pagina",
+		headermenu:"Menu del titolo",
+		openGroup:"Aperto gruppo di colonne",
+		closeGroup:"Chiudi gruppo di colonne",
+		closeTab:"Chiudi tab",
+		showTabs:"Mostra di più tabs",
+		resetTreeMap:"Tornare alla vista originale",
+		navTreeMap:"Livello superiore",
+		nextTab:"Tab prossimo",
+		prevTab:"Tab precedente",
+		multitextSection:"Aggiungi elemento",
+		multitextextraSection:"Rimuovere l'elemento",
+		showChart:"Mostrare chart",
+		hideChart:"Nascondere chart",
+		resizeChart:"Ridimensionare chart"
     }
 };

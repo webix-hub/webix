@@ -1,3 +1,18 @@
+Version 4.0 (September 2016)
+================
+
+### Major features
+
+- ARIA compatibility
+- Keyboard navigation for all widgets
+- High-contrast theme
+- DateRange control
+- FlexLayout control
+- Google Map control
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_4_0.html)
+
+
 Version 3.4 (July 2016)
 ================
 
