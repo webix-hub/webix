@@ -18,13 +18,6 @@
 body {
   -webkit-tap-highlight-color: transparent !important;
 }
-textarea,
-input,
-select,
-button,
-.webix_inp_static {
-  outline: none;
-}
 /*
 	webix_layout_{type}
 	known types are: line, clean, wide, space;
@@ -172,6 +165,27 @@ x\:ui {
 }
 .webix_view_align {
   background: transparent;
+}
+/*Focusing*/
+.webix_view div:focus,
+.webix_view span:focus,
+.webix_view a.webix_list_item:focus,
+.webix_view.webix_window:focus {
+  outline-color: #aeaeae;
+  outline-style: dotted;
+  outline-width: 1px;
+}
+textarea,
+input,
+select,
+button,
+.webix_view div.webix_inp_static:focus {
+  outline: none;
+}
+.webix_view div:active,
+.webix_view span:active,
+.webix_view a.webix_list_item:active {
+  outline: none;
 }
 .webix_resize_area {
   position: absolute;
@@ -945,6 +959,7 @@ x\:ui {
   z-index: 20000;
   border-radius: 0px;
   border: 1px solid #ffffff;
+  outline: none;
 }
 .webix_popup_title {
   border-top-left-radius: -1px;
@@ -2079,18 +2094,19 @@ div.webix_modal_cover {
 .webix_cal_range_start,
 .webix_cal_range_end,
 .webix_cal_event.webix_cal_range_start,
-.webix_cal_event.webix_cal_range_end {
+.webix_cal_event.webix_cal_range_end,
+.webix_cal_body .webix_cal_today.webix_cal_range_start,
+.webix_cal_body .webix_cal_today.webix_cal_range_end {
   background-color: #e18429;
   color: #ffffff;
 }
-.webix_cal_body .webix_cal_today.webix_cal_range_start {
-  background-color: #e18429;
-}
 .webix_cal_outside.webix_cal_range,
 .webix_cal_body .webix_cal_outside.webix_cal_range_start,
-.webix_cal_body .webix_cal_outside.webix_cal_range_end {
+.webix_cal_body .webix_cal_outside.webix_cal_range_end,
+.webix_cal_body .webix_cal_outside.webix_cal_today.webix_cal_range_start,
+.webix_cal_body .webix_cal_outside.webix_cal_today.webix_cal_range_end {
   background-color: transparent;
-  color: #555555;
+  color: #bbbbbb;
 }
 .webix_daterange .webix_cal_icons {
   text-align: right;

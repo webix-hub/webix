@@ -1,13 +1,12 @@
 /*
 @license
-webix UI v.4.0.0
+webix UI v.4.0.8
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
 .webix_view{font-family:'PT Sans',Tahoma;font-size:15px;color:#666;cursor:default;overflow:hidden;border:0 solid #ddd;background-color:#fff;white-space:normal;-webkit-appearance:none}
 .webix_view.webix_form{background-color:#fff}
 body{-webkit-tap-highlight-color:transparent!important}
-.webix_inp_static,button,input,select,textarea{outline:0}
 .webix_abslayout{position:relative}
 .webix_abslayout>.webix_view{position:absolute}
 .webix_layout_space,.webix_layout_wide{background-color:#ddd}
@@ -60,6 +59,8 @@ x\:ui{display:none}
 .webix_flexlayout{display:flex!important;flex-wrap:wrap;flex-direction:row;overflow:hidden;box-sizing:border-box}
 .webix_flexlayout>div{display:block!important}
 .webix_view_align{background:0 0}
+.webix_view a.webix_list_item:focus,.webix_view div:focus,.webix_view span:focus,.webix_view.webix_window:focus{outline:#bfbfbf dotted 1px}
+.webix_view a.webix_list_item:active,.webix_view div.webix_inp_static:focus,.webix_view div:active,.webix_view span:active,button,input,select,textarea{outline:0}
 .webix_resize_area{position:absolute;top:0;left:0;width:100%;height:100%}
 .webix_resize_handle_x .webix_handle_content,.webix_resize_handle_y .webix_handle_content{width:100%;height:100%;background:rgba(100,100,100,.1);border:1px dotted #ebebeb}
 .webix_resize_handle_x{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;cursor:e-resize;width:1px;height:100%;position:absolute;z-index:2;top:0}
@@ -209,7 +210,7 @@ x\:ui{display:none}
 .webix_info{min-width:120px;font-family:Tahoma,Arial;z-index:10000;overflow:hidden;margin:5px 5px 10px;-webkit-transition:all .5s ease;-moz-transition:all .5s ease;-o-transition:all .5s ease;transition:all .5s ease}
 .webix_no_transition{-webkit-transition:none;-moz-transition:none;transition:none}
 .webix_info.hidden{height:0;min-height:0;padding-top:0;padding-bottom:0;border-width:0;margin-top:0;margin-bottom:0;overflow:hidden}
-.webix_modal_box{overflow:hidden;display:inline-block;min-width:250px;width:250px;text-align:center;position:fixed;background-color:#fff;box-shadow:0 3px 6px #c8c8c8;font-family:'PT Sans',Tahoma;z-index:20000;border-radius:0}
+.webix_modal_box{overflow:hidden;display:inline-block;min-width:250px;width:250px;text-align:center;position:fixed;background-color:#fff;box-shadow:0 3px 6px #c8c8c8;font-family:'PT Sans',Tahoma;z-index:20000;border-radius:0;outline:0}
 .webix_popup_title{border-top-left-radius:-1px;border-top-right-radius:-1px;border-width:0;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAoCAMAAAAIaGBFAAAAhFBMVEVwcHBubm5sbGxqampoaGhmZmZlZWVjY2NhYWFfX19dXV1bW1taWlpYWFhWVlZUVFRSUlJRUVFPT09NTU1LS0tJSUlHR0dGRkZERERCQkJAQEA+Pj49PT09PT0+Pj5AQEBBQUFDQ0NERERGRkZHR0dJSUlKSkpMTExMTEw5OTk5OTk5OTkny8YEAAAAQklEQVQImQXBCRJCAAAAwKVSQqdyjSPXNP7/QLsIhA6OTiJnF7GrRCpzc/fw9PKW+/gqlCq1RqvTG/yMJrPF6m/bAVEhAxxnHG0oAAAAAElFTkSuQmCC);background:-webkit-linear-gradient(top,#707070 1%,#3d3d3d 70%,#4c4c4c 97%,#393939 97%);background:-moz-linear-gradient(top,#707070 1%,#3d3d3d 70%,#4c4c4c 97%,#393939 97%)}
 .webix_button,.webix_info,.webix_popup_button{cursor:pointer}
 .webix_popup_text{overflow:hidden}
@@ -461,9 +462,8 @@ div.webix_modal_cover{background-color:#000;cursor:default;filter:alpha(opacity=
 .webix_daterange .webix_range_left .webix_cal_next_button:hover,.webix_daterange .webix_range_right .webix_cal_prev_button:hover{cursor:default}
 .webix_cal_range_start{border-radius:3px 0 0 3px}
 .webix_cal_range_end{border-radius:0 3px 3px 0}
-.webix_cal_event.webix_cal_range_end,.webix_cal_event.webix_cal_range_start,.webix_cal_range_end,.webix_cal_range_start{background-color:#27ae60;color:#fff}
-.webix_cal_body .webix_cal_today.webix_cal_range_start{background-color:#27ae60}
-.webix_cal_body .webix_cal_outside.webix_cal_range_end,.webix_cal_body .webix_cal_outside.webix_cal_range_start,.webix_cal_outside.webix_cal_range{background-color:transparent;color:#666}
+.webix_cal_body .webix_cal_today.webix_cal_range_end,.webix_cal_body .webix_cal_today.webix_cal_range_start,.webix_cal_event.webix_cal_range_end,.webix_cal_event.webix_cal_range_start,.webix_cal_range_end,.webix_cal_range_start{background-color:#27ae60;color:#fff}
+.webix_cal_body .webix_cal_outside.webix_cal_range_end,.webix_cal_body .webix_cal_outside.webix_cal_range_start,.webix_cal_body .webix_cal_outside.webix_cal_today.webix_cal_range_end,.webix_cal_body .webix_cal_outside.webix_cal_today.webix_cal_range_start,.webix_cal_outside.webix_cal_range{background-color:transparent;color:#ccc}
 .webix_daterange .webix_cal_icons{text-align:right;padding:0 4px}
 .webix_daterange .webix_cal_icons .webix_cal_icon{border-top:1px solid #ddd}
 .webix_daterange .webix_cal_time{display:none}
@@ -1393,7 +1393,10 @@ label.webix_required:after{padding-left:4px;content:"*";color:red}
 .webix_list_item.webix_group_back{color:#4a4a4a;background:#d2e3ef;border-bottom:1px solid #b0cee3}
 .webix_dataview_item{border-right-color:#ebebeb}
 .webix_view .webix_pager_item{padding:auto 6px;font-family:'PT Sans',Tahoma;border:1px solid #3498db;outline:0;color:#fff;background:#3498db;border-bottom:1px solid #2386c8;font-size:15px}
+.webix_view .webix_pager_item:hover{background-color:#268fd5}
+.webix_view .webix_pager_item:focus{background-color:#2489cc}
 .webix_view .webix_pager_item_selected{font-size:15px;padding:auto 6px;font-family:'PT Sans',Tahoma;border:1px solid #3498db;outline:0;background:#27ae60;color:#fff;border-color:#27ae60;border-bottom:1px solid #209150;box-shadow:none}
+.webix_view .webix_pager_item_selected:focus,.webix_view .webix_pager_item_selected:hover{background-color:#219552}
 .webix_view .webix_pager_item,.webix_view .webix_pager_item_selected{-webkit-border-radius:6px;-moz-border-radius:6px;border-radius:6px}
 .webix_list .webix_unit_header{font-weight:400;text-shadow:none;background:#d2e3ef;font-size:15px;color:#4a4a4a}
 .webix_view .webix_tree_close,.webix_view .webix_tree_open{background-image:none;font-family:FontAwesome;font-size:14px;text-align:center;color:#666}
@@ -1468,6 +1471,8 @@ div.webix_item_tab.webix_selected{padding-top:2px}
 .webixtype_danger:hover{background-color:#ca4635}
 .webixtype_danger:focus{background-color:#c14433}
 .webixtype_danger:active{background-color:#c14433;box-shadow:inset 0 3px 5px rgba(0,0,0,.125)}
+.webixtype_next:focus,.webixtype_next:focus+.webixtype_next_arrow,.webixtype_prev:focus,.webixtype_prev:focus+.webixtype_prev_arrow{background-color:#2489cc}
+.webixtype_next:hover,.webixtype_next:hover+.webixtype_next_arrow,.webixtype_prev:hover,.webixtype_prev:hover+.webixtype_prev_arrow{background-color:#268fd5}
 .webix_el_box .webixtype_form{font-size:15px;padding:auto 6px;font-family:'PT Sans',Tahoma;border:1px solid #3498db;outline:0;background:#27ae60;color:#fff;border-color:#27ae60;border-bottom:1px solid #209150;box-shadow:none}
 .webix_inp_counter_next:hover,.webix_inp_counter_prev:hover,.webix_segment_0:hover,.webix_segment_1:hover,.webix_segment_N:hover,.webixbutton:hover,.webixtype_base:hover{background-color:#268fd5}
 .webix_inp_counter_next:active,.webix_inp_counter_prev:active,.webix_segment_0:active,.webix_segment_1:active,.webix_segment_N:active,.webixbutton:active,.webixtype_base:active{background-color:#2489cc;box-shadow:inset 0 3px 5px rgba(0,0,0,.125)}
@@ -1505,6 +1510,8 @@ a:active .webix_custom_radio,a:focus .webix_custom_radio{border:1px solid #3498d
 .webix_cal_event{color:#3498db}
 .webix_cal_outside{font-weight:400;color:#bbb}
 .webix_cal_footer .webix_cal_done,.webix_time_footer .webix_cal_done{font-size:15px;padding:auto 6px;font-family:'PT Sans',Tahoma;border:1px solid #3498db;outline:0;color:#fff;background:#3498db;border-bottom:1px solid #2386c8}
+.webix_cal_footer .webix_cal_done:hover,.webix_time_footer .webix_cal_done:hover{background-color:#268fd5}
+.webix_cal_footer .webix_cal_done:focus,.webix_time_footer .webix_cal_done:focus{background-color:#2489cc}
 .webix_cal_month{line-height:20px;text-align:center;font-size:17px;font-weight:700}
 .webix_view>.webix_cal_header div{font-size:12px}
 .webix_cal_month_name{font-size:14px;font-weight:400}

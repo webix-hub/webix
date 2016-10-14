@@ -1,3 +1,23 @@
+Version 4.0.8 (October 2016)
+================
+
+- fix performance of updateItem for DataLayout
+- fix setState doesn't work correctly for hidden DataTable
+- fix rendering of hidden views in case of datalayout
+- fix rangechart: mouseup outside document.body
+- fix no padding case for charts
+- fix multicombo disabled
+- fix getValue() for an "empty" option
+- fix rendering of very long dataviews
+- fix many small issues in daterange
+- fix refreshing window with a "position" defined after the window's been moved
+- fix keynav for colorboard and colorpicker
+- fix issues with outline (aria)
+- fix 0-hour label for "en" locale
+- fix clear api for pdfviewer
+- fix dragscroll for views with custom item height
+
+
 Version 4.0 (September 2016)
 ================
 

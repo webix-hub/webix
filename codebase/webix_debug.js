@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.4.0.0
+webix UI v.4.0.8
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="4.0.0";
+webix.version="4.0.8";
 webix.codebase="./";
 webix.name = "core";
 webix.cdn = "//cdn.webix.com";
@@ -7311,6 +7311,11 @@ webix.protoUI({
 		// hidden_setter handling
 		if(config.modal)
 			this._modal = true;
+
+		this.attachEvent("onViewMoveEnd", function(){
+			if(this._settings.position)
+				delete this._settings.position;
+		});
 	},
 	_ignore_clicks:function(e){
 		var popups = webix.ui._popups;
@@ -8280,9 +8285,15 @@ webix.protoUI({
 		return false;
 	},
 	getValue:function(){
-		var value = this.getList().getSelectedId() || "";
-		return value.id || value;
+		var  value = this.getList().getSelectedId() || "";
+		value = value.id || value;
 
+		// check empty
+		var item = this.getList().getItem(value);
+		if(item && item.$empty)
+			return "";
+
+		return value;
 	},
 	setValue:function(value){
 		var list = this.getList();
@@ -14083,7 +14094,7 @@ webix.AutoScroll = {
 
 		var scroll = this.getScrollState();
 		var reset = false;
-		var sense = 40; //dnd auto-scroll sensivity
+		var sense = Math.max(this.type&&!isNaN(parseFloat(this.type.height))?this.type.height+5:0,40); //dnd auto-scroll sensivity
 
 		if (yscroll){
 			var config = this._settings;
@@ -14848,14 +14859,19 @@ webix.CopyPaste = {
 
 webix.KeysNavigation = {
     $init:function(){
-        this.attachEvent("onAfterRender", function(){
-
-            var sel = this.getSelectedId(true);
-            if(!sel.length || !this.getItemNode(sel[0])){
+        if(this.getSelectedId){
+             this.attachEvent("onAfterRender", function(){
+                var sel = this.getSelectedId(true);
+                if(!sel.length || !this.getItemNode(sel[0])){
+                    var node =  this._dataobj.querySelector("["+this._id+"]");
+                    if(node) node.setAttribute("tabindex", "0");
+                }
+            });
+            this.attachEvent("onAfterSelect", webix.once(function(){
                 var node =  this._dataobj.querySelector("["+this._id+"]");
-                if(node) node.setAttribute("tabindex", "0");
-            }
-        });
+                if(node) node.setAttribute("tabindex", "-1");
+            }));
+        }
     },
     _navigation_helper:function(mode){
         return function(view, e){
@@ -16997,7 +17013,7 @@ webix.VirtualRenderStack={
 				this._htmlmap[this.data.getIdByIndex(base+i)]=node.childNodes[i];
 			
 			//correct placeholders
-			var h = parseInt(holder_row.style.height,10);
+			var h = parseFloat(holder_row.style.height,10);
 			var delta = (t-holder)*viewport._y;
 			var delta2 = (h-delta-viewport._y);
 			
@@ -20872,6 +20888,10 @@ webix.extend(webix.ui.datatable, {
 
 				}
 			},
+			select:function(row_id, column_id, preserve){
+				webix.assert(this.data.exists(row_id), "Incorrect id in select command: "+row_id);
+				this._select({row:row_id, column:column_id}, preserve);
+			},
 			_selectRange:function(id,last){
 				this._extendAreaRange(id, last);
 			},
@@ -21670,7 +21690,10 @@ webix.DataState = {
 				dir:this._last_order
 			};
 		}
-		if (this._filter_elements) {
+
+		//this method will try to access the rendered values
+		//just ignore it if grid is not rendered yet
+		if (this._filter_elements && this._dtable_fully_ready) {
 			var filter = {};
 			var any_filter = 0;
 			for (var key in this._filter_elements) {
@@ -26677,38 +26700,38 @@ webix.extend(webix.ui.chart, {
 		var config,i,items,params,x0,x1,x2,y1,y2,y0,res1,res2;
 		params = this._calculateLineParams(ctx,data,point0,point1,sIndex);
 		config = this._settings;
+
 		if (data.length) {
 			x0 = (config.offset?point0.x+params.cellWidth*0.5:point0.x);
 			//finds items with data (excludes scale units)
 			items= [];
 			for(i=0; i < data.length;i++){
 				res2 = this._getPointY(data[i],point0,point1,params);
-				if(res2){
-					x2 = ((!i)?x0:params.cellWidth*i - 0.5 + x0);
-					y2 = (typeof res2 == "object"?res2.y0:res2);
-					if(i && this._settings.fixOverflow){
-						res1 = this._getPointY(data[i-1],point0,point1,params);
-						if(res1.out && res1.out == res2.out){
-							continue;
-						}
-						x1 = params.cellWidth*(i-1) - 0.5 + x0;
-						y1 = (typeof res1 == "object"?res1.y0:res1);
-
-						if(res1.out){
-							y0 = (res1.out == "min"?point1.y:point0.y);
-							items.push({x:this._calcOverflowX(x1,x2,y1,y2,y0),y:y0});
-						}
-						if(res2.out){
-							y0 = (res2.out == "min"?point1.y:point0.y);
-							items.push({x:this._calcOverflowX(x1,x2,y1,y2,y0),y:y0});
-						}
-
+				x2 = ((!i)?x0:params.cellWidth*i - 0.5 + x0);
+				y2 = (typeof res2 == "object"?res2.y0:res2);
+				if(i && this._settings.fixOverflow){
+					res1 = this._getPointY(data[i-1],point0,point1,params);
+					if(res1.out && res1.out == res2.out){
+						continue;
 					}
-					if(!res2.out)
-						items.push({x:x2, y: res2, index: i});
-				}
-			}
+					x1 = params.cellWidth*(i-1) - 0.5 + x0;
+					y1 = (typeof res1 == "object"?res1.y0:res1);
 
+					if(res1.out){
+						y0 = (res1.out == "min"?point1.y:point0.y);
+						items.push({x:this._calcOverflowX(x1,x2,y1,y2,y0),y:y0});
+					}
+					if(res2.out){
+						y0 = (res2.out == "min"?point1.y:point0.y);
+						items.push({x:this._calcOverflowX(x1,x2,y1,y2,y0),y:y0});
+					}
+
+				}
+
+				if(!res2.out)
+					items.push({x:x2, y: res2, index: i});
+
+			}
 			this._mapStart = point0;
 			for(i = 1; i <= items.length; i++){
 				//line start position
@@ -26728,8 +26751,10 @@ webix.extend(webix.ui.chart, {
 					}
 				}
 				//item
-				if(typeof items[i-1].index != "undefined")
+				if(typeof items[i-1].index != "undefined"){
 					this._drawItem(ctx,x1,y1,data[items[i-1].index],config.label(data[items[i-1].index]), sIndex, map, point0);
+
+				}
 			}
 
 		}
@@ -28476,6 +28501,8 @@ webix.protoUI({
 		return webix.ui.view.prototype.$getSize.call(this, dx,dy);
 	},
 	moveSelection:function(mode){
+		if(this.config.master) return; //in daterange
+
 		var date = webix.Date.copy(this.getSelectedDate() || this.getVisibleDate());
 		var css = this._zoom_logic[this._zoom_level]._keyshift(date, mode, this);
 		
@@ -29082,7 +29109,7 @@ webix.protoUI({
 				}
 				else if(selected ==  i)
 					css += " webix_selected";
-				var value = webix.Date.toFixed(enLocale&& i>12?i-12:i);
+				var value = webix.Date.toFixed(enLocale?(!i||i==12?12:i%12):i);
 				html += "<div aria-label='"+(value+(enLocale?(i<12?" am":" pm"):""))+"' role='gridcell'"+(!i?" colspan='24'":"")+" rowindex='1' tabindex='"+(selected==i?"0":"-1")+"' aria-selected='"+(selected==i?"true":"false")+"' class='webix_cal_block"+css+"' data-value='"+i+"' style='"+this._getCalSizesString(width,height)+(i%4===0&&!enLocale?"clear:both;":"")+"'>"+value+"</div>";
 			}
 			html += "</div>";
@@ -29340,7 +29367,7 @@ webix.protoUI({
 	}, 
 	locate:function(){ return null; }
 	
-}, webix.MouseEvents, webix.ui.view, webix.EventSystem);
+}, webix.KeysNavigation, webix.MouseEvents, webix.ui.view, webix.EventSystem);
 
 
 
@@ -29758,6 +29785,7 @@ webix.protoUI({
 			if(cell){
 				value =  cell.getAttribute("webix_val");
 				this.setValue(value);
+				this.callEvent("onSelect", [this._settings.value]);
 
 				var sel = this._viewobj.querySelector("div[tabindex='0']");
 				if(sel)  sel.focus();
@@ -29822,7 +29850,7 @@ webix.protoUI({
 		this.callEvent("onAfterRender",[]);
 	},
 	refresh:function(){ this.render(); }
-}, webix.ui.view, webix.EventSystem);
+}, webix.KeysNavigation, webix.ui.view, webix.EventSystem);
 
 
 webix.protoUI({
@@ -30107,8 +30135,12 @@ webix.protoUI({
 			this._back_queue.splice(this._back_queue.length-1,1);	
 		
 		if (cell._render_hash){
-			for (var i=0; i < cell._render_queue.length; i++)
-				webix.$$(cell._render_queue[i]).render();
+			for (var i=0; i < cell._render_queue.length; i++){
+				var subcell = webix.$$(cell._render_queue[i]);
+				//cell can be already destroyed
+				if (subcell)
+					subcell.render();
+			}
 				
 			cell._render_queue = [];
 			cell._render_hash = {};			
