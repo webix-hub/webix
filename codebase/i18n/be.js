@@ -68,5 +68,10 @@ webix.i18n.locales["be-BY"]={
 		showChart:"Паказаць графік",
 		hideChart:"Схаваць графік",
 		resizeChart:"Змяніць памер графіка"
+    },
+    richtext:{
+        underline: "Падкрэсліванне",
+        bold: "Паўтлусты",
+        italic: "Курсіў"
     }
 };

@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.4.0.8
+webix UI v.4.1.0
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -215,6 +215,7 @@ div.webix_modal_cover{background-color:#000;cursor:default;filter:alpha(opacity=
 .webix_column.webix_last>div,.webix_hs_center td.webix_last,.webix_hs_right td.webix_last{border-right-width:0}
 .webix_hs_right td.webix_first,.webix_ss_right .webix_column.webix_first>div{border-left:1px solid #c8c8c8}
 .webix_ss_left .webix_column.webix_last>div{border-right:1px solid #c8c8c8}
+.webix_last_topcell.webix_cell{border-bottom:1px solid #c8c8c8}
 .webix_column>div,.webix_table_cell{border-right:1px solid #c8c8c8;border-bottom:1px solid #c8c8c8;padding:0 10px}
 .webix_table_cell.webix_measure_size{padding-left:20px;padding-right:0}
 .webix_column{text-align:left}
@@ -411,6 +412,9 @@ input.webixtype_next{border-right-width:0;border-radius:4px 0 0 4px;-webkit-bord
 .webix_control .webix_disabled_box .webix_el_arrow,.webix_control .webix_disabled_box .webixtype_base,.webix_control .webix_disabled_box .webixtype_danger,.webix_control .webix_disabled_box .webixtype_form,.webix_control .webix_disabled_box .webixtype_next,.webix_control .webix_disabled_box .webixtype_prev{color:#aaa!important;background:#e9e9e9;background:-webkit-gradient(linear,left top,left bottom,color-stop(0,#fbfbfb),color-stop(100%,#e9e9e9));background:-webkit-linear-gradient(#fbfbfb,#e9e9e9);background:-moz-linear-gradient(#fbfbfb,#e9e9e9);background:-ms-linear-gradient(top,#fbfbfb,#e9e9e9);background:-o-linear-gradient(top,#fbfbfb,#e9e9e9);border-color:#d5d5d5!important}
 .webix_control .webix_disabled_box .webix_img_btn_text,.webix_disabled_view.webix_control .webix_icon,.webix_disabled_view.webix_control .webix_icon_btn,.webix_layout_toolbar.webix_toolbar .webix_disabled_view.webix_control .webix_disabled_box .webix_img_btn_text,.webix_layout_toolbar.webix_toolbar .webix_disabled_view.webix_control .webix_icon,.webix_layout_toolbar.webix_toolbar .webix_disabled_view.webix_control .webix_icon_btn{color:#aaa}
 .webixbutton{width:auto;height:auto;padding:8px 15px}
+.webix_richtext_editor{height:100%;margin:10px}
+.webix_template .webix_richtext_editor:focus{outline:0}
+.webix_richtext_container .webix_template{border:solid #ccc;border-width:0 1px 1px;border-radius:0 0 6px 6px}
 .webix_control{background:0 0}
 .webix_control button,.webix_control input,.webix_control textarea,.webix_el_label,.webix_inp_bottom_label,.webix_inp_label,.webix_inp_top_label{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;font-family:Verdana}
 .webix_el_box{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;padding:2px;height:100%;width:100%;font-size:12px;overflow:hidden}
@@ -551,6 +555,19 @@ label.webix_required:after{padding-left:4px;content:"*";color:red}
 .webix_progress_bottom .webix_progress_state{height:17px}
 .webix_progress_icon{width:100%;height:100%;position:absolute;top:0;left:0;z-index:20}
 .webix_progress_icon .webix_progress_state{font-family:FontAwesome;font-size:50px;position:absolute;left:50%;top:50%;margin-left:-25px;margin-top:-25px;display:inline-block;color:#787878}
+.webix_gage{height:100%;width:100%;transform:rotate(180deg)}
+.webix_gage_label{font-size:.9em;text-align:center;margin-top:10px}
+.webix_gage_placeholder{margin-top:-20px}
+.webix_gage_info{text-align:center;font-size:.5em;position:relative;margin:0 auto}
+.webix_gage_min_range{left:-74px}
+.webix_gage_max_range{right:-74px}
+.webix_gage_max_range,.webix_gage_min_range{display:inline-block;margin-top:20px;position:absolute;font-size:22px;text-align:center;width:150px}
+.webix_gage_range_info{font-size:1.2em}
+.webix_gage-value{font-size:2.5em;color:#404040}
+.webix_gage_gradient_point_animated{transition:transform 1.3s linear}
+.webix_gage_animated{stroke:#0f0;animation:gage_dash 1.3s linear forwards;transition:stroke 1.3s linear,stroke-dasharray 1.3s linear}
+.webix_gage_animated_first_load{stroke:#0f0;animation:gage_dash 1.3s linear forwards;transition:stroke 1.3s linear}
+@keyframes gage_dash{to{stroke-dashoffset:0}}
 .webix_organogram canvas{position:absolute}
 .webix_organogram_item{position:absolute;z-index:1;text-align:center;border-radius:4px;background-color:#e3f2fd;border:1px solid #bbdefb;padding:7px 7px 10px;box-sizing:border-box}
 .webix_organogram_item.webix_selected{background-color:#fffeb7;border-color:#fffeb7}

@@ -63,5 +63,10 @@ webix.i18n.locales["fr-FR"]={
 		showChart:"Montrer chart",
 		hideChart:"Cacher chart",
 		resizeChart:"Redimensionner chart"
+    },
+    richtext:{
+        underline: "Souligner",
+        bold: "Audacieux",
+        italic: "Italique"
     }
 };

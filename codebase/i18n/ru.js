@@ -63,5 +63,10 @@ webix.i18n.locales["ru-RU"]={
 		showChart:"Показать чарт",
 		hideChart:"Спрятать чарт",
 		resizeChart:"Изменить размер чарта"
+    },
+    richtext:{
+        underline: "Подчеркивание",
+        bold: "Жирный",
+        italic: "Курсив"
     }
 };

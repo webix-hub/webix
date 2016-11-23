@@ -68,5 +68,10 @@ webix.i18n.locales["es-ES"] = {
 		showChart:"Espectáculo chart",
 		hideChart:"Esconder chart",
 		resizeChart:"Cambiar el tamaño el chart"
+    },
+    richtext:{
+        underline: "Subrayar",
+        bold: "Negrita",
+        italic: "Itálico"
     }
 };

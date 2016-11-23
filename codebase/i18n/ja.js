@@ -68,5 +68,10 @@ webix.i18n.locales["ja-JP"]={
 		showChart:"靴チャート",
 		hideChart:"隠すチャート",
 		resizeChart:"グラフのサイズを変更"
+    },
+    richtext:{
+        underline: "アンダーライン",
+        bold: "大胆な",
+        italic: "イタリック"
     }
 };

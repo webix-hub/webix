@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.4.0.8
+webix UI v.4.1.0
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="4.0.8";
+webix.version="4.1.0";
 webix.codebase="./";
 webix.name = "core";
 webix.cdn = "//cdn.webix.com";
@@ -723,6 +723,10 @@ webix.env.svg = (function(){
 	return document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1");
 })();
 
+webix.env.svganimation = (function(){
+	return document.implementation.hasFeature("https://www.w3.org/TR/SVG11/feature#SVG-animation", "1.1");
+})();
+
 
 //html helpers
 webix.html={
@@ -763,17 +767,17 @@ webix.html={
 		return name;
 	},
 	addStyle:function(rule, group){
-		var style = group ? this._style_element[group] :this._style_element.default;
+		var style = group ? this._style_element[group] :this._style_element["default"];
 		if(!style){
 			style = document.createElement("style");
 			style.setAttribute("type", "text/css");
-			style.setAttribute("media", "screen");
+			style.setAttribute("media", "screen,print");
 			document.getElementsByTagName("head")[0].appendChild(style);
 
 			if (group)
 				this._style_element[group] = style;
 			else
-				this._style_element.default = style;
+				this._style_element["default"] = style;
 		}
 		/*IE8*/
 		if (style.styleSheet)
@@ -1089,6 +1093,7 @@ webix.editStop = function(){
 webix.debug_blacklist={
 	onmousemoving:1
 };
+
 /**
 
 Bazed on Promiz - A fast Promises/A+ library 
@@ -1350,8 +1355,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             list[i] = val
             done()
           }, function(val){
-            list[i] = val
-            done()
+            p.reject(val);
           }, function(){
             done()
           }, value)
@@ -2495,17 +2499,26 @@ webix.proxy.rest = {
 	},
 	_save_logic:function(view, update, dp, callback, ajax){
 		var url = this.source;
+		var query = "";
+		var mark = url.indexOf("?");
+
+		if (mark !== -1){
+			query = url.substr(mark);
+			url = url.substr(0, mark);
+		}
+
 		url += url.charAt(url.length-1) == "/" ? "" : "/";
 		var mode = update.operation;
+
 
 		var data = update.data;
 		if (mode == "insert") delete data.id;
 
 		//call rest URI
 		if (mode == "update"){
-			ajax.put(url + data.id, data, callback);
+			ajax.put(url + data.id + query, data, callback);
 		} else if (mode == "delete") {
-			ajax.del(url + data.id, data, callback);
+			ajax.del(url + data.id + query, data, callback);
 		} else {
 			ajax.post(url, data, callback);
 		}
@@ -3040,8 +3053,12 @@ webix.AtomDataLoader={
 		this.sync(data);
 	},
 	_parse:function(data){
-		var driver = this.data.driver;
-		var parsed = driver.getDetails(driver.getRecords(data)[0]);
+		var parsed, record,
+			driver = this.data.driver;
+
+		record = driver.getRecords(data)[0];
+		parsed = record?driver.getDetails(record):{};
+
 		if (this.setValues)
 			this.setValues(parsed);
 		else
@@ -4953,9 +4970,9 @@ webix.protoUI({
 		if (sizes[2]>y) y = sizes[2];
 
 		//maxWidth rule
-		if (!fullscreen && x>sizes[1]) x = sizes[1];
+		if ((!fullscreen || this._settings.width)  && x>sizes[1]) x = sizes[1];
 		//maxHeight rule
-		if (!fullscreen && y>sizes[3]) y = sizes[3];
+		if ((!fullscreen || this._settings.height) && y>sizes[3]) y = sizes[3];
 
 		this.$setSize(x,y);
 		if (webix._responsive_exception){
@@ -5416,7 +5433,7 @@ webix.protoUI({
 
 		webix.debug_size_box_end(this, self_size);
 
-		if (this._settings.responsive)
+		if (!this._vertical_orientation && this._settings.responsive)
 			self_size[0] = 0;
 
 		return self_size;
@@ -5493,15 +5510,19 @@ webix.protoUI({
 	},
 	_responsive_cells:function(x,y){
 		webix._responsive_tinkery = true;
-
 		if (x + this._paddingX*2 + this._margin * (this._cells.length-1)< this._desired_size[0]){
-			for (var i = 0; i < this._cells.length-1; i++){
+			var max = this._cells.length - 1;
+			for (var i = 0; i < max; i++){
 				var cell = this._cells[i];
-				if (!cell._responsive_marker && cell._settings.responsiveCell !== false){
-					this._responsive_hide(cell, this._settings.responsive);
-					webix.callEvent("onResponsiveHide", [cell._settings.id]);
-					webix._responsive_exception = true;
-					break;
+				if (!cell._responsive_marker){
+					if (cell._settings.responsiveCell !== false){
+						this._responsive_hide(cell, this._settings.responsive);
+						webix.callEvent("onResponsiveHide", [cell._settings.id]);
+						webix._responsive_exception = true;
+						break;
+					} else {
+						max = this._cells.length;
+					}
 				}
 			}
 		} else  if (this._responsive.length){
@@ -5520,7 +5541,7 @@ webix.protoUI({
 	_set_child_size:function(x,y){ 
 		webix._child_sizing_active = (webix._child_sizing_active||0)+1;
 
-		if (this._settings.responsive)
+		if (!this._vertical_orientation && this._settings.responsive)
 			this._responsive_cells(x,y);
 
 
@@ -5990,8 +6011,8 @@ webix.protoUI({
 		}
 
 		if (!this._x_align || this._p_align){
-			self_size[0] = size[0]+dy;
-			self_size[1] = size[1]+dy;
+			self_size[0] = size[0]+dx;
+			self_size[1] = size[1]+dx;
 		} else {
 			self_size[0] = (self_size[0] || size[0] ) +dy;
 			self_size[1] +=	dx;
@@ -6002,7 +6023,7 @@ webix.protoUI({
 			self_size[3] = size[3]+dy;
 		} else {
 			self_size[2] = (self_size[2] || size[2] ) +dy;
-			self_size[3] +=	dx;
+			self_size[3] +=	dy;
 		}
 
 		return self_size;
@@ -7940,7 +7961,10 @@ webix.protoUI({
 			if (this._settings.master){
 				master = webix.$$(this._settings.master);
 				node = master.getInputNode();
-				if (node && master.options_setter){
+				if(node && master.$setValueHere){
+					master.$setValueHere(data.value);
+				}
+				else if (node && master.options_setter){
 					text = this.getItemText(data.id);
 					if (webix.isUndefined(node.value))
 						node.innerHTML = text;
@@ -8113,7 +8137,7 @@ webix.protoUI({
 
 		// enter
 		if (code == 13)
-			return this._enter_key(this,list);
+			return this.$enterKey(this,list);
 
 		// up/down/right/left are used for navigation
 		if (this._navigate(e)) {
@@ -8201,7 +8225,7 @@ webix.protoUI({
 			}
 		}
 	},
-	_enter_key: function(popup,list) {
+	$enterKey: function(popup,list) {
 		var value;
 
 		if (popup.isVisible()) {
@@ -8285,14 +8309,16 @@ webix.protoUI({
 		return false;
 	},
 	getValue:function(){
-		var  value = this.getList().getSelectedId() || "";
+		var list = this.getList();
+		var  value = (list.getValue ? list.getValue() : list.getSelectedId()) || "";
 		value = value.id || value;
 
 		// check empty
-		var item = this.getList().getItem(value);
-		if(item && item.$empty)
-			return "";
-
+		if(list.getItem){
+			var item = list.getItem(value);
+			if(item && item.$empty)
+				return "";
+		}
 		return value;
 	},
 	setValue:function(value){
@@ -9702,7 +9728,10 @@ webix.protoUI({
 	 	return webix.$$(this._settings.popup);
 	},
 	getText:function(){
-		var node = this.getInputNode();
+		var value = this._settings.value,
+			node = this.getInputNode();
+		if(!node)
+			return value?this.getPopup().getItemText(value):"";
 		return typeof node.value == "undefined" ? (this.getValue()?node.innerHTML:"") : node.value;
 	},
 	$setValue:function(value){
@@ -10392,6 +10421,10 @@ webix.MapCollection = {
     $init:function(){
         this.$ready.push(this._create_scheme_init);
         this.attachEvent("onStructureUpdate", this._create_scheme_init);
+        this.attachEvent("onStructureLoad", function(){
+            if(!this._scheme_init_order.length)
+                this._create_scheme_init();
+        });
     },
     _create_scheme_init:function(order){
         var order = this._scheme_init_order = [];
@@ -10410,9 +10443,9 @@ webix.MapCollection = {
             }
         }
     },
-    _process_field_map:function(set){
-        for (var key in set)
-            this._scheme_init_order.push(this._process_single_map(key, set[key]));
+    _process_field_map:function(map){
+        for (var key in map)
+            this._scheme_init_order.push(this._process_single_map(key, map[key]));
     },
     _process_single_map:function(id, map, extra){
         var start = "";
@@ -14884,7 +14917,6 @@ webix.KeysNavigation = {
                 var name = tag.tagName;
                 if (name == "INPUT" || name == "TEXTAREA" || name == "SELECT") return true;
             }
-            webix.html.preventEvent(e);
 
             if (view && view.moveSelection && view.config.navigation && !view._in_edit_mode){
                 webix.html.preventEvent(e);
@@ -15910,15 +15942,6 @@ webix.protoUI({
 	name:"unitlist",
 	_id:"webix_item_id",
 	uniteBy_setter: webix.template,
-	sort_setter: function(config){
-		if(typeof(config)!="object")
-			config={};
-		this._mergeSettings(config,{
-			dir:"asc",
-			as:"string"
-		});
-		return config;
-	},
    	render:function(id,data,type,after){
 		var config = this._settings;
 		if (!this.isVisible(config.id))
@@ -17981,6 +18004,11 @@ webix.i18n.locales["en-US"]={
 		showChart:"Show chart",
 		hideChart:"Hide chart",
 		resizeChart:"Resize chart"
+    },
+    richtext:{
+        underline: "Underline",
+        bold: "Bold",
+        italic: "Italic"
     }
 };
 webix.i18n.setLocale("en-US");
@@ -19479,6 +19507,10 @@ webix.protoUI({
 	getText:function(row_id, column_id){
 		return this._getValue(this.getItem(row_id), this.getColumnConfig(column_id), 0);
 	},
+	getCss:function(row_id, column_id){
+		var item = this.getItem(row_id);
+		return this._getCss(this.getColumnConfig(column_id), item[column_id], item, row_id);
+	},
 	_getCss:function(config, value, item, id){
 		var css = "webix_cell";
 				
@@ -19650,9 +19682,12 @@ webix.protoUI({
 			if(css.indexOf("select") !==-1 ) aria += " aria-selected='true' tabindex='0'";
 			
 			var margin = item.$subopen ? "margin-bottom:"+item.$subHeight+"px;" : "";
+
 			if (top>=0){
 				if (top>0) margin+="top:"+top+"px;'";
 				css = "webix_topcell "+css;
+				if(i == this._settings.topSplit-1)
+					css = "webix_last_topcell "+css;
 			}
 			if (item.$height){
 				html = "<div"+aria+" class='"+css+"' style='height:"+item.$height+"px;"+margin+"'>"+value+"</div>";
@@ -22541,7 +22576,7 @@ webix.extend(webix.ui.datatable, {
 		document.body.appendChild(d);
 
 		var config = this._settings.columns[ind];
-		var max = -Infinity;
+		var max = config.minColumnWidth || -Infinity;
 		
 		//iterator other all loaded data is required
 		if (headers != "header")
@@ -23949,7 +23984,8 @@ webix.attachEvent("onDataTable", function(table){
 		"A": function(p, radius, angle0, angle1){
 			var x = p.x+Math.cos(angle1)*radius;
 			var y = p.y+Math.sin(angle1)*radius;
-			return  " A "+radius+" "+radius+" 0 0 1 "+x+" "+y;
+			var bigCircle = angle1-angle0 >= Math.PI;
+			return  " A "+radius+" "+radius+" 0 "+(bigCircle?1:0)+" 1 "+x+" "+y;
 		}
 	};
 	// points is an array of an array with two elements: {string} line type, {array}
@@ -24377,7 +24413,7 @@ webix.attachEvent("onDataTable", function(table){
 	Pie.prototype._getTotalValue = function(data){
 		var t=0;
 		for(var i = 0; i < data.length;i++)
-			t += data[i];
+			t += data[i]*1;
 		return  t;
 	};
 	Pie.prototype._getRatios = function(data){
@@ -24386,11 +24422,10 @@ webix.attachEvent("onDataTable", function(table){
 			prevSum = 0,
 			totalValue = this._getTotalValue(data);
 		for(i = 0; i < data.length;i++){
-			value = data[i];
+			value = data[i]*1;
 			ratios[i] = Math.PI*2*(totalValue?((value+prevSum)/totalValue):(1/data.length));
 			prevSum += value;
 		}
-
 		return ratios;
 	};
 
@@ -24651,7 +24686,7 @@ webix.protoUI({
 webix.Canvas = webix.proto({
 	$init:function(container){
 		this._canvas_labels = [];
-		this._canvas_name =  container.name;
+		this._canvas_series =  (!webix.isUndefined(container.series)?container.series:container.name);
 		this._obj = webix.toNode(container.container||container);
 		var width = container.width*(window.devicePixelRatio||1);
 		var height = container.height*(window.devicePixelRatio||1);
@@ -24735,7 +24770,6 @@ webix.Canvas = webix.proto({
 
 			//areas that correspond this canvas layer
 			areas = this._getMapAreas();
-
 			//removes areas of this canvas
 			while(areas.length){
 				areas[0].parentNode.removeChild(areas[0]);
@@ -24782,11 +24816,9 @@ webix.Canvas = webix.proto({
 	},
 	_getMapAreas:function(){
 		var res = [], areas, i;
-
 		areas = this._obj._htmlmap.getElementsByTagName("AREA");
-
 		for(i = 0; i < areas.length; i++){
-			if(areas[i].getAttribute("userdata") == this._canvas_name){
+			if(areas[i].getAttribute("userdata") == this._canvas_series){
 				res.push(areas[i]);
 			}
 		}
@@ -24991,7 +25023,7 @@ webix.protoUI({
 	},
 	_after_init_call:function(){
 		this.data.attachEvent("onStoreUpdated",webix.bind(function(){
-			this.render();
+			this.render.apply(this,arguments);
 		},this));
 	},
 	defaults:{
@@ -25066,7 +25098,7 @@ webix.protoUI({
 		webix.assert(this["$render_"+val], "Chart type is not supported, or extension is not loaded: "+val);
 		
 		if (typeof this._settings.offset == "undefined"){
-			this._settings.offset = !(val == "area" || val == "stackedArea");
+			this._settings.offset = !(val.toLowerCase().indexOf("area")!=-1);
 		}
 
         if(val=="radar"&&!this._settings.yAxis)
@@ -25109,12 +25141,14 @@ webix.protoUI({
 				this.canvases[c].clearCanvas();
 			}
 	},
-	render:function(){
+	render:function(id,data, type){
 		var bounds, i, data, map, temp;
 		if (!this.isVisible(this._settings.id))
 			return;
 
-		if (!this.callEvent("onBeforeRender",[this.data]))
+		data = this._getChartData();
+
+		if (!this.callEvent("onBeforeRender",[data, type]))
 			return;
 		if(this.canvases&&typeof this.canvases == "object"){
 			for(i in this.canvases){
@@ -25123,12 +25157,6 @@ webix.protoUI({
 		}
 		else
 			this.canvases = {};
-		/*if(this._legendObj){
-			for(i=0; i < this._legend_labels.length;i++)
-				this._legendObj.removeChild(this._legend_labels[i]);
-		}
-		this._legend_labels = [];
-		*/
 		
 		if(this._settings.legend){
 			if(!this.canvases["legend"])
@@ -25139,17 +25167,17 @@ webix.protoUI({
 				this._content_height
 			);
 		}
-		bounds = this._getChartBounds(this._content_width,this._content_height);
+
 		this._map = map = new webix.HtmlMap(this._id);
 		temp = this._settings;
 
-		if(this._series){
-			data = this._getChartData();
+		bounds =this._getChartBounds(this._content_width,this._content_height);
 
+		if(this._series){
 			for(i=0; i < this._series.length;i++){
 				this._settings = this._series[i];
 				if(!this.canvases[i])
-					this.canvases[i] = this._createCanvas(this._settings.ariaLabel+" "+i,"z-index:"+(2+i));
+					this.canvases[i] = this._createCanvas(this._settings.ariaLabel+" "+i,"z-index:"+(2+i),null,i);
 				this["$render_"+this._settings.type](
 					this.canvases[i].getCanvas(),
 					data,
@@ -25164,7 +25192,7 @@ webix.protoUI({
 		map.render(this._contentobj);
 		this._contentobj.lastChild.style.zIndex = 100;
 		this._applyBounds(this._contentobj.lastChild,bounds);
-		this.callEvent("onAfterRender",[]);
+		this.callEvent("onAfterRender",[data]);
 		this._settings = temp;
 	},
 	_applyBounds: function(elem,bounds){
@@ -25404,59 +25432,61 @@ webix.protoUI({
             config[arr[i]] = webix.template(config[arr[i]]);
         }
     },
-	_createCanvas: function(name,style,container){
-		return new webix.Canvas({container:(container||this._contentobj),name:name,style:(style||""), width: this._content_width, height:this._content_height });
+	_createCanvas: function(name,style,container, index){
+		var params = {container:(container||this._contentobj),name:name, series: index, style:(style||""), width: this._content_width, height:this._content_height };
+		return new webix.Canvas(params);
 	},
     _drawScales:function(data,point0,point1,start,end,cellWidth){
-	    var y = 0;
+	    var ctx, y = 0;
 	    if(this._settings.yAxis){
 		    if(!this.canvases["y"])
 		        this.canvases["y"] =  this._createCanvas("axis_y");
 
 		    y = this._drawYAxis(this.canvases["y"].getCanvas(),data,point0,point1,start,end);
 	    }
-	    if (this._settings.xAxis){
-		    if(!this.canvases["x"])
-		        this.canvases["x"] =  this._createCanvas("axis_x");
-		    this._drawXAxis(this.canvases["x"].getCanvas(),data,point0,point1,cellWidth,y);
-	    }
+		if (this._settings.xAxis){
+			if (!this.canvases["x"])
+				this.canvases["x"] = this._createCanvas("axis_x");
+			ctx = this.canvases["x"].getCanvas();
+			if(this.callEvent("onBeforeXAxis",[ctx,data,point0,point1,cellWidth,y]))
+				this._drawXAxis(ctx, data, point0, point1, cellWidth, y);
+		}
 	    return y;
 	},
 	_drawXAxis:function(ctx,data,point0,point1,cellWidth,y){
-		var x0 = point0.x-0.5;
-		var y0 = parseInt((y?y:point1.y),10)+0.5;
-		var x1 = point1.x;
-		var unitPos;
-		var center = true;
-		var labelY = this._settings.type == "stackedBar"?(point1.y+0.5):y0;
+		var i, unitPos,
+			config = this._settings,
+			x0 = point0.x-0.5,
+			y0 = parseInt((y?y:point1.y),10)+0.5,
+			x1 = point1.x,
+			center = true,
+			labelY = config.type == "stackedBar"?(point1.y+0.5):y0;
 
-		for(var i=0; i < data.length;i ++){
-
-			if(this._settings.offset === true)
+		for(i=0; i < data.length;i++){
+			if(config.offset === true)
 				unitPos = x0+cellWidth/2+i*cellWidth;
 			else{
-				unitPos = (i==data.length-1)?point1.x:x0+i*cellWidth;
+				unitPos = (i==data.length-1 && !config.cellWidth)?point1.x:x0+i*cellWidth;
 				center = !!i;
 			}
 			unitPos = Math.ceil(unitPos)-0.5;
 			/*scale labels*/
-			var top = ((this._settings.origin!="auto")&&(this._settings.type=="bar")&&(parseFloat(this._settings.value(data[i]))<this._settings.origin));
+			var top = ((config.origin!="auto")&&(config.type=="bar")&&(parseFloat(config.value(data[i]))<config.origin));
 			this._drawXAxisLabel(unitPos,labelY,data[i],center,top);
 			/*draws a vertical line for the horizontal scale*/
-
-			if((this._settings.offset||i)&&this._settings.xAxis.lines.call(this,data[i]))
+			if((config.offset||i||config.cellWidth)&&config.xAxis.lines.call(this,data[i]))
 				this._drawXAxisLine(ctx,unitPos,point1.y,point0.y,data[i]);
 		}
 
-		this.canvases["x"].renderTextAt(true, false, x0,point1.y+this._settings.padding.bottom-3,
-			this._settings.xAxis.title,
+		this.canvases["x"].renderTextAt(true, false, x0, point1.y + config.padding.bottom-3,
+			config.xAxis.title,
 			"webix_axis_title_x",
 			point1.x - point0.x
 		);
-		this._drawLine(ctx,x0,y0,x1,y0,this._settings.xAxis.color,1);
+		this._drawLine(ctx,x0,y0,x1,y0,config.xAxis.color,1);
 		/*the right border in lines in scale are enabled*/
-		if (!this._settings.xAxis.lines.call(this,{}) || !this._settings.offset) return;
-		this._drawLine(ctx,x1+0.5,point1.y,x1+0.5,point0.y+0.5,this._settings.xAxis.color,0.2);
+		if (!config.xAxis.lines.call(this,{}) || !config.offset) return;
+		this._drawLine(ctx,x1+0.5,point1.y,x1+0.5,point0.y+0.5,config.xAxis.color,0.2);
 	},
 	_drawYAxis:function(ctx,data,point0,point1,start,end){
 		var step;
@@ -26707,30 +26737,31 @@ webix.extend(webix.ui.chart, {
 			items= [];
 			for(i=0; i < data.length;i++){
 				res2 = this._getPointY(data[i],point0,point1,params);
-				x2 = ((!i)?x0:params.cellWidth*i - 0.5 + x0);
-				y2 = (typeof res2 == "object"?res2.y0:res2);
-				if(i && this._settings.fixOverflow){
-					res1 = this._getPointY(data[i-1],point0,point1,params);
-					if(res1.out && res1.out == res2.out){
-						continue;
-					}
-					x1 = params.cellWidth*(i-1) - 0.5 + x0;
-					y1 = (typeof res1 == "object"?res1.y0:res1);
+				if(res2 || res2=="0"){
+					x2 = ((!i)?x0:params.cellWidth*i - 0.5 + x0);
+					y2 = (typeof res2 == "object"?res2.y0:res2);
+					if(i && this._settings.fixOverflow){
+						res1 = this._getPointY(data[i-1],point0,point1,params);
+						if(res1.out && res1.out == res2.out){
+							continue;
+						}
+						x1 = params.cellWidth*(i-1) - 0.5 + x0;
+						y1 = (typeof res1 == "object"?res1.y0:res1);
 
-					if(res1.out){
-						y0 = (res1.out == "min"?point1.y:point0.y);
-						items.push({x:this._calcOverflowX(x1,x2,y1,y2,y0),y:y0});
-					}
-					if(res2.out){
-						y0 = (res2.out == "min"?point1.y:point0.y);
-						items.push({x:this._calcOverflowX(x1,x2,y1,y2,y0),y:y0});
+						if(res1.out){
+							y0 = (res1.out == "min"?point1.y:point0.y);
+							items.push({x:this._calcOverflowX(x1,x2,y1,y2,y0),y:y0});
+						}
+						if(res2.out){
+							y0 = (res2.out == "min"?point1.y:point0.y);
+							items.push({x:this._calcOverflowX(x1,x2,y1,y2,y0),y:y0});
+						}
+
 					}
 
+					if(!res2.out)
+						items.push({x:x2, y: res2, index: i});
 				}
-
-				if(!res2.out)
-					items.push({x:x2, y: res2, index: i});
-
 			}
 			this._mapStart = point0;
 			for(i = 1; i <= items.length; i++){
@@ -26902,7 +26933,10 @@ webix.extend(webix.ui.chart, {
 
 		/*a space available for a single item*/
 		//params.cellWidth = Math.round((point1.x-point0.x)/((!this._settings.offset&&this._settings.yAxis)?(data.length-1):data.length));
-		params.cellWidth =(point1.x-point0.x)/((!this._settings.offset)?(data.length-1):data.length);
+		if(this._settings.cellWidth)
+			params.cellWidth = Math.min(point1.x-point0.x, this._settings.cellWidth);
+		else
+			params.cellWidth = (point1.x-point0.x)/((!this._settings.offset)?(data.length-1):data.length);
 		/*scales*/
 		var yax = !!this._settings.yAxis;
 
@@ -27628,7 +27662,7 @@ webix.extend(webix.ui.chart, {
 			x0 = (config.offset?point0.x+params.cellWidth*0.5:point0.x);
 			for(i=0; i < data.length;i ++){
 				y = this._getPointY(data[i],point0,point1,params);
-				if(y){
+				if(y || y=="0"){
 					x = ((!i)?x0:params.cellWidth*i - 0.5 + x0);
 					items.push({x:x,y:y,index:i});
 				}
@@ -27701,7 +27735,7 @@ webix.extend(webix.ui.chart, {
 	_getSplineYPoint:function(x,xi,i,a,b,c,d){
 		return a[i] + (x - xi)*(b[i] + (x-xi)*(c[i]+(x-xi)*d[i]));
 	}
-});	
+});
 webix.extend(webix.ui.chart,{
 	/**
 	*   renders an area chart
@@ -27787,6 +27821,9 @@ webix.extend(webix.ui.chart,{
 			this._path(ctx,path);
 			ctx.fill();
 
+			ctx.lineWidth = 1;
+			ctx.globalAlpha =1;
+
 			//border
 			if(config.border){
 				ctx.lineWidth = config.borderWidth||1;
@@ -27800,8 +27837,7 @@ webix.extend(webix.ui.chart,{
 				ctx.stroke();
 
 			}
-			ctx.lineWidth = 1;
-			ctx.globalAlpha =1;
+
 
 		}
 	},
@@ -28393,6 +28429,333 @@ webix.extend(webix.ui.chart, {
     }
 });
 
+webix.extend(webix.ui.chart,{
+	/**
+	 *   renders an splineArea chart
+	 *   @param: ctx - canvas object
+	 *   @param: data - object those need to be displayed
+	 *   @param: width - the width of the container
+	 *   @param: height - the height of the container
+	 *   @param: sIndex - index of drawing chart
+	 */
+	$render_splineArea:function(ctx, data, point0, point1, sIndex, map){
+		var color, i,items,j,mapRect,params,sParams,
+			x,x0,x1,x2,y,y1,y2,
+			config = this._settings,
+			path = [];
+
+		params = this._calculateLineParams(ctx,data,point0,point1,sIndex);
+		mapRect = (config.eventRadius||Math.floor(params.cellWidth/2));
+		/*array of all points*/
+		items = [];
+
+		if (data.length) {
+			/*getting all points*/
+			x0 = point0.x;
+			for(i=0; i < data.length;i ++){
+				y = this._getPointY(data[i],point0,point1,params);
+				if(y || y=="0"){
+					x = ((!i)?x0:params.cellWidth*i - 0.5 + x0);
+					items.push({x:x,y:y,index:i});
+					map.addRect(data[i].id,[x-mapRect-point0.x,y-mapRect-point0.y,x+mapRect-point0.x,y+mapRect-point0.y],sIndex);
+				}
+			}
+			
+			sParams = this._getSplineParameters(items);
+
+			for(i =0; i< items.length; i++){
+				x1 = items[i].x;
+				y1 = items[i].y;
+				if(i<items.length-1){
+					x2 = items[i+1].x;
+					y2 = items[i+1].y;
+					for(j = x1; j < x2; j++){
+						var sY1 = this._getSplineYPoint(j,x1,i,sParams.a,sParams.b,sParams.c,sParams.d);
+						if(sY1<point0.y)
+							sY1=point0.y;
+						if(sY1>point1.y)
+							sY1=point1.y;
+						var sY2 = this._getSplineYPoint(j+1,x1,i,sParams.a,sParams.b,sParams.c,sParams.d);
+						if(sY2<point0.y)
+							sY2=point0.y;
+						if(sY2>point1.y)
+							sY2=point1.y;
+						path.push([j,sY1]);
+						path.push([j+1,sY2]);
+					}
+					path.push([x2,y2]);
+				}
+			}
+
+			color = this._settings.color.call(this,data[0]);
+
+			if(path.length){
+				path.push([x2,point1.y]);
+				path.push([path[0][0],point1.y]);
+			}
+
+			//filling area
+			ctx.globalAlpha = this._settings.alpha.call(this,data[0]);
+			ctx.fillStyle = color;
+			ctx.beginPath();
+			this._path(ctx,path);
+			ctx.fill();
+			ctx.lineWidth = 1;
+			ctx.globalAlpha =1;
+
+			// draw line
+			if(config.border){
+				ctx.lineWidth = config.borderWidth||1;
+				if(config.borderColor)
+					ctx.strokeStyle =  config.borderColor.call(this,data[0]);
+				else
+					this._setBorderStyles(ctx,color);
+				ctx.beginPath();
+				path.splice(path.length-3);
+				this._path(ctx,path);
+				ctx.stroke();
+			}
+		}
+	}
+});
+
+(function(){
+	var animateDuration = 400,
+		cellWidth = 30;
+
+	webix.extend(webix.ui.chart, {
+		dynamic_setter: function(value){
+			if(value)
+				init(this);
+			return value;
+		}
+	});
+
+	/**
+	 * Sets event handlers and properties for a stock chart
+	 * @param {object} chart - chart view
+	 */
+	function init(chart){
+		if(chart._stockRenderHandler)
+			return;
+		var config = chart._settings;
+
+		if(!config.cellWidth)
+			config.cellWidth = cellWidth;
+		if(!config.animateDuration)
+			config.animateDuration = animateDuration;
+		config.offset = false;
+
+		chart._stockRenderHandler = chart.attachEvent("onBeforeRender", function(data, type){
+			var bounds = chart._getChartBounds(chart._content_width, chart._content_height);
+			resizeStockCanvases(chart);
+			filterStockData(data, bounds.start, bounds.end, config.cellWidth);
+			if(type == "add")
+				startAnimation(chart);
+		});
+		chart._stockXAxisHandler = chart.attachEvent("onBeforeXAxis", function(ctx,data,point0,point1,cellWidth,y){
+			drawXAxis(chart,ctx,data,point0,point1,cellWidth,y);
+			return false;
+		});
+	}
+
+	/**
+	 * Starts stock animation
+	 * @param {object} chart - chart view
+	 */
+	function startAnimation(chart){
+		var cellWidth = chart._settings.cellWidth;
+		if(chart._stockAnimationOffset != cellWidth){
+			chart._stockAnimationOffset = cellWidth;
+			chart.render();
+		}
+
+		chart._stockAnimationOffset = 0;
+		chart._stockAnimationStart = null;
+
+		if(window.requestAnimationFrame)
+			window.requestAnimationFrame(function(t){
+				animate(chart,t);
+			});
+
+		if(!chart._stockAnimateHandler)
+			chart._stockAnimateHandler = chart.attachEvent("onAfterRender", function(data){
+				applyStockOffset(chart, data);
+			});
+	}
+
+	/**
+	 * Animates a chart
+	 * @param {object} chart - chart view
+	 * @param {number} timestamp - timestamp
+	 */
+	function animate(chart, timestamp){
+		var progress,
+			duration = chart._settings.animateDuration,
+			cellWidth = chart._settings.cellWidth;
+
+		if(cellWidth && chart.count() > 1){
+			if (!chart._stockAnimationStart)
+				chart._stockAnimationStart = timestamp;
+			progress = timestamp - chart._stockAnimationStart;
+			chart._stockAnimationOffset = Math.min(Math.max(progress/duration*cellWidth,1), cellWidth);
+			chart.render();
+			if (progress < duration)
+				window.requestAnimationFrame(function(t){
+					animate(chart,t);
+				});
+		}
+	}
+
+	/**
+	 * Applies animation offset to "series" and "x-axis" canvases
+	 * @param {object} chart - chart view
+	 * @param {object} data - data array
+	 */
+	function applyStockOffset(chart, data){
+		var count = chart.count(),
+			bounds = chart._getChartBounds(chart._content_width,chart._content_height),
+			cellWidth = chart._settings.cellWidth,
+			offset = chart._stockAnimationOffset || 0,
+			isScroll = (data.length < count || (data.length-1)*cellWidth > bounds.end.x-bounds.start.x);
+
+		function setCanvasOffset(canvas, x0, x1, skipRight){
+			var ctx = canvas.getCanvas(),
+				elem = canvas._canvas,
+				labels = canvas._canvas_labels;
+
+			// if we need to display less values than they are
+			if(offset && (data.length < count || (data.length-1)*cellWidth > x1-x0)){
+				// move canvas to the left
+				elem.style.left = - offset + "px";
+				if(data.length > 1){
+					setLabelsOffset(labels, offset);
+					// clear out of the scale parts
+					ctx.clearRect(0, 0, x0+offset, elem.offsetHeight);
+					ctx.clearRect(x1+offset, 0, elem.offsetWidth, elem.offsetHeight);
+				}
+			}
+			// animation for the right part (added item)
+			else{
+				elem.style.left = "0px";
+				if(!skipRight && offset!= cellWidth)
+					ctx.clearRect(x0+(data.length-1)*cellWidth-cellWidth+offset, 0, elem.offsetWidth, elem.offsetHeight);
+			}
+
+			// show label for the last label after finishing animation
+			if(labels.length>1 && offset && offset != cellWidth)
+				labels[labels.length-1].style.display = "none";
+		}
+
+		eachStockCanvas(chart,function(name, canvas){
+			setCanvasOffset(canvas, bounds.start.x,  bounds.end.x, name == "x");
+		});
+
+		setHtmlMapSizes(chart,bounds, isScroll?offset:0);
+	}
+
+	function setLabelsOffset(labels, offset){
+		if(labels.length){
+			labels[0].style.display = "none";
+			for(var i = 1; i< labels.length; i++)
+				labels[i].style.left = labels[i].offsetLeft - offset + "px";
+		}
+	}
+
+	/**
+	 * Gets visible chart data
+	 * @param {object} data - an array with all chart data
+	 * @param {object} point0 - a top left point of a plot
+	 * @param {object} point1 - a bottom right point of a plot
+	 * @param {number} cellWidth - a unit width
+	 */
+	function filterStockData(data, point0, point1, cellWidth){
+		if(cellWidth && data.length){
+			var limit = Math.ceil((point1.x - point0.x)/cellWidth);
+			if(data.length > limit+1)
+				data.splice(0, data.length - limit-1);
+		}
+	}
+
+	/**
+	 * Calls a function for "series" and "x-axis" canvases
+	 * @param {object} chart - chart view
+	 * @param {function} func - function to call
+	 */
+	function eachStockCanvas(chart, func){
+		if(chart.canvases){
+			for(var i=0; i < chart._series.length;i++)
+				if (chart.canvases[i])
+					func(i,chart.canvases[i]);
+
+			if (chart.canvases["x"])
+				func("x",chart.canvases["x"]);
+		}
+	}
+
+	/**
+	 * Set sizes for animated canvases
+	 * @param {object} chart - chart view
+	 */
+	function resizeStockCanvases(chart){
+		eachStockCanvas(chart, function(name, canvas){
+			canvas._resizeCanvas(chart._content_width+2*chart._settings.cellWidth, chart._content_height);
+		});
+	}
+
+	/**
+	 * Set sizes for an html map of a chart
+	 * @param {object} chart - a chart view
+	 * @param {object} bounds - start and end points of a plot
+	 * @param {number} offset - an offset to apply
+	 */
+	function setHtmlMapSizes(chart, bounds, offset){
+		chart._contentobj._htmlmap.style.left = (bounds.start.x - offset)+"px";
+		chart._contentobj._htmlmap.style.width = (bounds.end.x-bounds.start.x+offset)+"px";
+	}
+
+	/**
+	 * Renders lines and labels of an x-axis
+	 * @param {object} chart - a chart view
+	 * @param {object} ctx - a canvas Context
+	 * @param {object} data - a data array
+	 * @param {object} point0 - a top left point of a plot
+	 * @param {object} point1 - a bottom right point of a plot
+	 * @param {number} cellWidth - a width of a unit
+	 * @param {number} y - the vertical position of an "x-axis" line
+	 */
+	function drawXAxis(chart, ctx, data,point0,point1,cellWidth,y){
+		var center, i, isScroll,unitPos,
+			config = chart._settings,
+			x0 = point0.x-0.5,
+			y0 = parseInt((y?y:point1.y),10)+0.5,
+			x1 = point1.x;
+
+		if(!config.dynamic)
+			return false;
+
+		isScroll = ((data.length-1)*cellWidth > x1-x0 || data.length < chart.count());
+
+		for(i=0; i < data.length;i++){
+			unitPos = x0+i*cellWidth ;
+			center = isScroll?i>1:!!i;
+			unitPos = Math.ceil(unitPos)-0.5;
+			//scale labels
+			chart._drawXAxisLabel(unitPos,y0,data[i],center);
+			//draws a vertical line for the horizontal scale
+			if(i && config.xAxis.lines.call(chart, data[i]))
+				chart._drawXAxisLine(ctx,unitPos,point1.y,point0.y,data[i]);
+
+		}
+
+		chart.canvases["x"].renderTextAt(true, false, x0, point1.y + config.padding.bottom-3,
+			config.xAxis.title,
+			"webix_axis_title_x",
+			point1.x - point0.x
+		);
+		chart._drawLine(ctx,x0,y0,x1+ (isScroll?chart._stockAnimationOffset:0),y0,config.xAxis.color,1);
+	}
+})();
 
 /*
 	UI:Calendar
@@ -29203,12 +29566,11 @@ webix.protoUI({
 		this._zoom_logic[this._zoom_level]._setContent(next, value, this);
 
 		var zoom = this._zoom_level-(this._fixed?0:1);
-		var prevZoom = this._zoom_level;
         next = this._correctDate(next);
         if(this._checkDate(next)){
 			this._changeZoomLevel(zoom, next);
 			var type = this._settings.type;
-			if(type == "month" && prevZoom !=2 || type == "year")
+			if(type == "month" || type == "year")
 				this._selectDate(next);
 		}
 	},
@@ -33070,8 +33432,9 @@ webix.UploadDriver = {
 			item.status = 'transfer';
 
 			if(this.getSwfObject()){
-				var url = this._get_active_url();
-				this.getSwfObject().upload(id, url, this._settings.formData||{});
+				var url = this._get_active_url(item);
+				var details = webix.extend(item.formData||{},this._settings.formData||{});
+				this.getSwfObject().upload(id, url, details);
 			}
 			return true;
 
@@ -33242,10 +33605,10 @@ webix.UploadDriver = {
 			formData.append(this.config.inputName, item.file);
 
 			var headers = {};
-			var details = this._settings.formData || {};
+			var details = webix.extend(item.formData||{},this._settings.formData||{});
 
 			var xhr = new XMLHttpRequest();
-			var url = this._get_active_url();
+			var url = this._get_active_url(item);
 			if(webix.callEvent("onBeforeAjax",["POST", url, details, xhr, headers, formData])){
 				for (var key in details)
 					formData.append(key, details[key]);
@@ -33343,6 +33706,12 @@ webix.protoUI({
 		if (value)
 			webix.delay(function(){
 				var view = webix.$$(this._settings.link);
+				if (!view){
+					var top = this.getTopParentView();
+					if (top.$$)
+						view = top.$$(this._settings.link);
+				}
+
 				if (view.sync && view.filter)
 					view.sync(this.files);
 				else if (view.setValues)
@@ -33386,9 +33755,9 @@ webix.protoUI({
 		}
 	},
 
-	_get_active_url:function(){
+	_get_active_url:function(item){
 		var url = this._settings.upload;
-		var urldata = this._settings.urlData;
+		var urldata = webix.extend(item.urlData||{},this._settings.urlData||{});
 		if (url && urldata){
 			var subline = [];
 			for (var key in urldata)
@@ -33848,11 +34217,14 @@ webix.protoUI({
         this._get_slider_handle().setAttribute("aria-valuenow", this._settings.value);
     },
     refresh:function(){
-        this._set_value_now();
-        if(this._settings.title)
-            this._get_slider_handle().setAttribute("aria-label", this._settings.label+" "+this._settings.title(this._settings, this));
+		var handle =  this._get_slider_handle();
+		if(handle){
+			this._set_value_now();
+			if(this._settings.title)
+				handle.setAttribute("aria-label", this._settings.label+" "+this._settings.title(this._settings, this));
 
-        this._set_inner_size();
+			this._set_inner_size();
+		}
     },
     $setValue:function(){
         this.refresh();
@@ -35542,3 +35914,183 @@ function getPdfData(scheme, data, options, callback){
 }
 
 })();
+
+webix.protoUI({
+	name: "richtext",
+	defaults:{
+		label:"",
+		labelWidth:80,
+		labelPosition:"left"
+	},
+	$init: function(config) {
+		this.$ready.unshift(this._setLayout);
+	},
+	getInputNode:function(){
+		return this.$view.querySelector(".webix_richtext_editor"); 
+	},
+	_button:function(name){
+		return {
+			view: "toggle",
+			type: "iconButton",
+			icon: name, name: name, id:name,
+			label: webix.i18n.richtext[name],
+			autowidth: true, 
+			action:name,
+			click: this._add_data
+		};
+	},
+	_setLayout: function() {
+		var top = this;
+
+		var editField = {
+			view: "template",
+            css: "webix_richtext_container",
+            borderless: true,
+			template: "<div class='webix_richtext_editor' contenteditable='true'>"+this.getValue()+"</div>",
+			on: {
+				onAfterRender: function() {
+					webix.event(
+						top.getInputNode(),
+						"input",
+						function(){
+							this.config.value = this.getInputNode().innerHTML;
+						},
+						{ bind: top, id:"_rtxt_"+this.config.id }
+					);
+					webix.event( 
+						top.getInputNode(),
+						"keyup",
+						function(){
+						  top._getselection();
+					});
+				}
+			},
+			onClick: {
+				webix_richtext_editor: function() {
+					top._getselection();
+				}
+			}
+		};
+
+		var editorToolbar = {
+			view: "toolbar",
+			id:"toolbar",
+			elements: [
+				this._button("underline"),
+				this._button("bold"),
+				this._button("italic"),
+				{}
+			]
+		};
+
+		var rows = [
+			editorToolbar,
+			editField
+		];
+
+		if (this.config.labelPosition === "top" || !this.config.labelWidth){
+			editorToolbar.elements.push({
+				view:"label", label: this.config.label, align:"right"
+			});
+			this.rows_setter(rows);
+		} else {
+			this.config.borderless = true;
+			this.cols_setter([{ 
+				template: (this.config.label || " "),
+				width: this.config.labelWidth
+			}, {
+				rows:rows
+			}]);
+		}
+	},
+	_getselection: function() {
+		var top = this.getTopParentView();
+		var bar = top.$$("toolbar");
+		var sel;
+
+		bar.setValues({
+			italic:false, underline:false, bold:false
+		});
+
+		if(window.getSelection) {
+			sel = window.getSelection();
+		} else {
+			sel = document.selection.createRange();
+		}
+
+		for (var i = 0; i < sel.rangeCount; ++i) {
+			var range = sel.getRangeAt(i);
+			if (this.$view.contains(this.getInputNode())){
+				if (document.queryCommandState("bold")) {
+					top.$$("bold").setValue(true);
+				} 
+				if (document.queryCommandState("underline")) {
+					top.$$("underline").setValue(true);
+				}
+				if (document.queryCommandState("italic")) {
+					top.$$("italic").setValue(true);
+				}
+			}
+		}
+	},
+	refresh: function() {
+		this.getInputNode().innerHTML = this.config.value;
+	},
+	_execCommandOnElement:function(el, commandName) {
+		var sel;
+
+		if(window.getSelection()) {
+			sel = window.getSelection();
+		} else {
+			sel = document.selection.createRange();
+		}
+
+		for (var i = 0; i < sel.rangeCount; ++i) {
+			var range = sel.getRangeAt(i);
+			if (!sel.isCollapsed) {
+				document.execCommand(commandName, false, '');
+			} else {
+				var textValue = sel.focusNode.textContent;
+				var focusEl = sel.focusNode;
+				var focustext = sel.anchorOffset;
+				var wordBegining = textValue.substring(0, focustext).match(/[A-Za-z]*$/)[0];
+				var wordEnd = textValue.substring(focustext).match(/^[A-Za-z]*/)[0];
+
+				var startWord = focustext - wordBegining.length;
+				var endWord = focustext + wordEnd.length;
+
+				range.setStart(focusEl, startWord);
+				range.setEnd(focusEl, endWord);
+				sel.removeAllRanges();
+
+				window.getSelection().addRange(range);
+				document.execCommand(commandName, false, '');
+			}   
+		}
+	},
+	_add_data:function() {
+		var style = this.config.action;
+		var top = this.getTopParentView();
+		var editableElement = top.getInputNode();
+
+		if(this.$view.contains(this.getInputNode())){
+			top._execCommandOnElement(editableElement, this.config.action);
+		}
+	},
+	focus: function() {
+		var editableElement = this.$view.querySelector(".webix_richtext_editor");
+		editableElement.focus();
+	},
+	setValue: function(value) {
+		var old = this.config.value;
+		this.config.value = value || "";
+
+		if (old !== value)
+			this.callEvent("onChange", [value, old]);
+
+		this.refresh();
+	},
+	getValue: function() {
+		return this.config.value || "";
+	}
+}, webix.IdSpace, webix.ui.layout);

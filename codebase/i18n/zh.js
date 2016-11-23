@@ -68,6 +68,10 @@ webix.i18n.locales["zh-CN"] = {
 		showChart:"擦鞋图",
 		hideChart:"隐藏图表",
 		resizeChart:"调整图"
+    },
+    richtext:{
+        underline: "强调",
+        bold: "胆大",
+        italic: "斜体"
     }
-
 };
