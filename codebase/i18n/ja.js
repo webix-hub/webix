@@ -46,11 +46,17 @@ webix.i18n.locales["ja-JP"]={
 		pageHeight:"ページの高さ"
     },
     aria:{
+    	calendar:"カレンダー",
 		increaseValue:"増加値",
 		decreaseValue:"数字を小さく",
 		navMonth:["前の月", "来月"],
 		navYear:["前年", "来年"],
 		navDecade:["前の十年", "次の10年"],
+		dateFormat:"%Y年%m月%d日",
+		monthFormat:"%Y年%m月",
+		yearFormat:"%Y年",
+		hourFormat:"営業時間: %H",
+		minuteFormat:"分: %i",
 		removeItem:"要素を削除します",
 		pages:["一ページ目", "前のページ", "次のページ", "最後のページ"],
 		page:"ページ",

@@ -1,3 +1,15 @@
+Version 4.2 (February 2017)
+================
+
+### Major features
+
+- VueJs integration
+- ability to upload Folders
+- export to CSV for all widgets
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_4_2.html)
+
+
 Version 4.1 (November 2016)
 ================
 

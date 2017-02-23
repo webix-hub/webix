@@ -279,8 +279,6 @@ body.webix_full_screen {
   background-color: #268fd5;
 }
 .webix_header > div .webix_icon_button {
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
 }
 .webix_header > div .webix_img_btn_top .webix_img_btn_text,
@@ -607,8 +605,6 @@ button,
   background-color: #268fd5;
 }
 .webix_accordionitem_header .webix_icon_button {
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
 }
 .webix_accordionitem_header .webix_img_btn_top .webix_img_btn_text,
@@ -717,8 +713,6 @@ button,
   user-select: none;
 }
 .webix_nav_item div {
-  -webkit-border-radius: 50%;
-  -moz-border-radius: 50%;
   border-radius: 50%;
   display: block;
   height: 8px;
@@ -1651,11 +1645,6 @@ div.webix_modal_cover {
   padding: 0 10px;
   border-bottom: 1px solid #ebebeb;
 }
-/* FF and IE do not consider padding-right in scrollWidth*/
-.webix_table_cell.webix_measure_size {
-  padding-left: 20px;
-  padding-right: 0;
-}
 .webix_column {
   text-align: left;
 }
@@ -2008,8 +1997,6 @@ div.webix_modal_cover {
   background-color: #268fd5;
 }
 .webix_win_head > .webix_view > .webix_template .webix_icon_button {
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
 }
 .webix_win_head > .webix_view > .webix_template .webix_img_btn_top .webix_img_btn_text,
@@ -2675,8 +2662,6 @@ div.webix_modal_cover {
   background-color: #268fd5;
 }
 .webix_property_label_line .webix_icon_button {
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
 }
 .webix_property_label_line .webix_img_btn_top .webix_img_btn_text,
@@ -3132,12 +3117,13 @@ input.webixtype_next {
 }
 .webix_richtext_editor {
   height: 100%;
-  margin: 10px;
 }
 .webix_template .webix_richtext_editor:focus {
   outline: none;
 }
 .webix_richtext_container .webix_template {
+  padding: 10px;
+  overflow-x: auto;
   border: solid #ccc;
   border-width: 0px 1px 1px;
   border-radius: 0px 0px 6px 6px;
@@ -3608,8 +3594,6 @@ label.webix_required:after {
   display: inline-block;
   margin: 3px;
   float: left;
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
 }
 .webix_multicombo_tag {
@@ -3676,8 +3660,6 @@ label.webix_required:after {
   box-sizing: border-box;
 }
 .webixtype_bottom .webix_item_tab {
-  -webkit-border-radius: 0;
-  -moz-border-radius: 0;
   border-radius: 0;
 }
 .webix_item_tab.webix_selected {
@@ -4023,8 +4005,6 @@ label.webix_required:after {
   background-color: #268fd5;
 }
 .webix_layout_toolbar .webix_icon_button {
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
 }
 .webix_layout_toolbar .webix_img_btn_top .webix_img_btn_text,
@@ -4215,8 +4195,6 @@ label.webix_required:after {
   background-color: #268fd5;
 }
 .webix_toolbar.webix_layout_subbar .webix_icon_button {
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
 }
 .webix_toolbar.webix_layout_subbar .webix_img_btn_top .webix_img_btn_text,
@@ -4322,6 +4300,7 @@ label.webix_required:after {
   left: 0px;
   width: 100%;
   text-align: center;
+  pointer-events: none;
 }
 .webix_fieldset fieldset {
   border: 1px solid #c4c4c4;
@@ -4338,8 +4317,6 @@ label.webix_required:after {
   height: 100%;
   padding-top: 13px;
   float: left;
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
   border-radius: 5px;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -4420,8 +4397,6 @@ label.webix_required:after {
   z-index: 1;
 }
 .webix_rangeslider .webix_slider_box .webix_slider_right {
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
   border-radius: 5px;
 }
 .webix_slider_alt .webix_slider_box .webix_slider_left {
@@ -4516,9 +4491,9 @@ label.webix_required:after {
 }
 .webix_gage_info {
   text-align: center;
-  font-size: 0.5em;
+  font-size: 0.7em;
   position: relative;
-  margin: 0 auto;
+  margin: 0 auto 10px auto;
 }
 .webix_gage_min_range {
   left: -74px;
@@ -4531,15 +4506,15 @@ label.webix_required:after {
   display: inline-block;
   margin-top: 20px;
   position: absolute;
-  font-size: 22px;
   text-align: center;
   width: 150px;
 }
 .webix_gage_range_info {
   font-size: 1.2em;
+  line-height: 1;
 }
 .webix_gage-value {
-  font-size: 2.5em;
+  font-size: 2.2em;
   color: #404040;
 }
 .webix_gage_gradient_point_animated {
@@ -6851,8 +6826,6 @@ label.webix_required:after {
   background-color: #268fd5;
 }
 .webix_layout_toolbar.webix_toolbar .webix_icon_button {
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
 }
 .webix_layout_toolbar.webix_toolbar .webix_img_btn_top .webix_img_btn_text,
@@ -6895,8 +6868,6 @@ label.webix_required:after {
   border-width: 0;
 }
 .webix_layout_space > .webix_toolbar {
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
   border-radius: 4px;
 }
 .webix_view.webix_layout_accordion {
@@ -7015,14 +6986,10 @@ label.webix_required:after {
 }
 .webix_layout_space > .webix_view,
 .webix_layout_wide > .webix_view {
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
   border-radius: 4px;
 }
 .webix_layout_space .webix_layout_accordion .webix_accordionitem,
 .webix_layout_wide .webix_layout_accordion .webix_accordionitem {
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
   border-radius: 4px;
 }
 .webix_view .webix_win_head {
@@ -7099,8 +7066,6 @@ label.webix_required:after {
 .webix_dtable .webix_ss_filter input {
   height: 32px;
   vertical-align: middle;
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
 }
 .webix_ss_sort_asc,
@@ -7180,8 +7145,6 @@ label.webix_required:after {
 }
 .webix_view .webix_pager_item,
 .webix_view .webix_pager_item_selected {
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
 }
 .webix_list .webix_unit_header {
@@ -7277,8 +7240,6 @@ label.webix_required:after {
 .webix_el_combo input,
 .webix_el_colorpicker input,
 .webix_el_datepicker input {
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
 }
 .webix_el_search input:focus,
@@ -7298,8 +7259,6 @@ label.webix_required:after {
 .webix_el_datepicker .webix_inp_static,
 .webix_el_colorpicker .webix_inp_static,
 .webix_el_dbldatepicker .webix_inp_static {
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
   padding-right: 28px;
   white-space: nowrap;
@@ -7321,8 +7280,6 @@ label.webix_required:after {
 }
 .webix_el_select select,
 .webix_el_textarea textarea {
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
 }
 .webix_el_combo span.webix_input_icon,
@@ -7337,8 +7294,6 @@ label.webix_required:after {
   width: 24px;
 }
 .webix_el_text .webix_inp_static {
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
   white-space: nowrap;
 }

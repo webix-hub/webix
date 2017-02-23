@@ -46,11 +46,17 @@ webix.i18n.locales["be-BY"]={
 		pageHeight:"Вышыня старонкі"
     },
     aria:{
+		calendar:"Каляндар",
 		increaseValue:"Павялічыць значэнне",
 		decreaseValue:"Паменшыць значэнне",
 		navMonth:["Папярэдні месяц", "Наступны месяц"],
 		navYear:["Папярэдні год", "Наступны год"],
 		navDecade:["Папярэднія дзесяць год", "Наступныя дзесяць год"],
+		dateFormat:"%d %F %Y",
+		monthFormat:"%F %Y",
+		yearFormat:"%Y",
+		hourFormat:"Hours: %h",
+		minuteFormat:"Гадзіны: %i",
 		removeItem:"Прыбраць элемент",
 		pages:["Першая старонка", "Папярэдняя старонка", "Наступная старонка", "Апошняя старонка"],
 		page:"Старонка",

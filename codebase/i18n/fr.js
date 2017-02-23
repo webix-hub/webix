@@ -41,11 +41,17 @@ webix.i18n.locales["fr-FR"]={
 		pageHeight:"Hauteur de page"
     },
     aria:{
+		calendar:"Сalendrier",
 		increaseValue:"Augmenter la valeur",
 		decreaseValue:"Diminution de la valeur",
 		navMonth:["Le mois précédent", "Le mois prochain"],
 		navYear:["Année précédente", "L'année prochaine"],
 		navDecade:["Décennie précédente", "Suivant décennie"],
+		dateFormat:"%d %F %Y",
+		monthFormat:"%F %Y",
+		yearFormat:"%Y",
+		hourFormat:"Heures: %H",
+		minuteFormat:"Minutes: %i",
 		removeItem:"Retirer l'élément",
 		pages:["Première page", "Page précédente", "Page suivante", "Dernière page"],
 		page:"Page",

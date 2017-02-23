@@ -46,11 +46,17 @@ webix.i18n.locales["zh-CN"] = {
 		pageHeight:"页面高度"
     },
     aria:{
+		calendar:"日历",
 		increaseValue:"增加值",
 		decreaseValue:"减少值",
 		navMonth:["前一个月", "下个月"],
 		navYear:["上年", "明年"],
 		navDecade:["过去十年", "下一个十年"],
+		dateFormat:"%Y'年'%m'月'%j'日'",
+		monthFormat:"%Y'年'%m'月",
+		yearFormat:"%Y'年",
+		hourFormat:"小时: %G",
+		minuteFormat:"分钟: %i",
 		removeItem:"删除元素",
 		pages:["第一页", "上一页", "下一页", "最后一页"],
 		page:"页",

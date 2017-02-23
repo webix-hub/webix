@@ -41,11 +41,17 @@ webix.i18n.locales["ru-RU"]={
 		pageHeight:"Высота страницы"
     },
     aria:{
+		calendar:"Календарь",
 		increaseValue:"Увеличить значение",
 		decreaseValue:"Уменьшить значение",
 		navMonth:["Предыдущий месяц", "Следующий месяц"],
 		navYear:["Предыдущий год", "Следующий год"],
 		navDecade:["Предыдущие десять лет", "Следующие десять лет"],
+		dateFormat:"%d %F %Y",
+		monthFormat:"%F %Y",
+		yearFormat:"%Y",
+		hourFormat:"Часы: %H",
+		minuteFormat:"Минуты: %i",
 		removeItem:"Удалить элемент",
 		pages:["Первая страница", "Предыдущая страница", "Следующая страница", "Последняя страница"],
 		page:"Страница",

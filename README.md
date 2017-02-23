@@ -1,4 +1,4 @@
-Webix UI v.4.1.0
+Webix UI v.4.2.0
 ================
 
 [![npm version](https://badge.fury.io/js/webix.svg)](https://badge.fury.io/js/webix)
@@ -41,4 +41,4 @@ Starting from Webix 2.4, it possible to use a FLOSS Exception to the GPL License
 You can buy a commercial license and support subscription at http://webix.com
 
 
-(c) XB Software Ltd. 2013 - 2016
+(c) XB Software Ltd. 2013 - 2017

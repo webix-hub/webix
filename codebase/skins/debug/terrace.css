@@ -347,8 +347,6 @@ button,
   user-select: none;
 }
 .webix_nav_item div {
-  -webkit-border-radius: 50%;
-  -moz-border-radius: 50%;
   border-radius: 50%;
   display: block;
   height: 8px;
@@ -1263,11 +1261,6 @@ div.webix_modal_cover {
   border-right: 1px solid transparent;
   border-bottom: 1px solid #e6e6e6;
   padding: 0 20px;
-}
-/* FF and IE do not consider padding-right in scrollWidth*/
-.webix_table_cell.webix_measure_size {
-  padding-left: 40px;
-  padding-right: 0;
 }
 .webix_column {
   text-align: left;
@@ -2354,12 +2347,13 @@ input.webixtype_next {
 }
 .webix_richtext_editor {
   height: 100%;
-  margin: 10px;
 }
 .webix_template .webix_richtext_editor:focus {
   outline: none;
 }
 .webix_richtext_container .webix_template {
+  padding: 10px;
+  overflow-x: auto;
   border: solid #ccc;
   border-width: 0px 1px 1px;
   border-radius: 0px 0px 6px 6px;
@@ -2805,8 +2799,6 @@ label.webix_required:after {
   display: inline-block;
   margin: 3px;
   float: left;
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
   border-radius: 6px;
 }
 .webix_multicombo_tag {
@@ -2874,8 +2866,6 @@ label.webix_required:after {
   box-sizing: border-box;
 }
 .webixtype_bottom .webix_item_tab {
-  -webkit-border-radius: 0;
-  -moz-border-radius: 0;
   border-radius: 0;
 }
 .webix_item_tab.webix_selected {
@@ -3104,6 +3094,7 @@ label.webix_required:after {
   left: 0px;
   width: 100%;
   text-align: center;
+  pointer-events: none;
 }
 .webix_fieldset fieldset {
   border: 1px solid #b5b5b5;
@@ -3120,8 +3111,6 @@ label.webix_required:after {
   height: 100%;
   padding-top: 9px;
   float: left;
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
   border-radius: 5px;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -3196,8 +3185,6 @@ label.webix_required:after {
   z-index: 1;
 }
 .webix_rangeslider .webix_slider_box .webix_slider_right {
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
   border-radius: 5px;
 }
 .webix_slider_alt .webix_slider_box .webix_slider_left {
@@ -3285,9 +3272,9 @@ label.webix_required:after {
 }
 .webix_gage_info {
   text-align: center;
-  font-size: 0.5em;
+  font-size: 0.7em;
   position: relative;
-  margin: 0 auto;
+  margin: 0 auto 10px auto;
 }
 .webix_gage_min_range {
   left: -74px;
@@ -3300,15 +3287,15 @@ label.webix_required:after {
   display: inline-block;
   margin-top: 20px;
   position: absolute;
-  font-size: 22px;
   text-align: center;
   width: 150px;
 }
 .webix_gage_range_info {
   font-size: 1.2em;
+  line-height: 1;
 }
 .webix_gage-value {
-  font-size: 2.5em;
+  font-size: 2.2em;
   color: #404040;
 }
 .webix_gage_gradient_point_animated {
@@ -5456,8 +5443,6 @@ label.webix_required:after {
 /*[L]*/
 .webix_layout_wide > .webix_view,
 .webix_layout_space > .webix_view {
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
   border-radius: 3px;
 }
 .webix_layout_wide .webix_layout_accordion .webix_accordionitem:first-child,
