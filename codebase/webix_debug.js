@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.4.2.0
+webix UI v.4.2.4
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="4.2.0";
+webix.version="4.2.4";
 webix.codebase="./";
 webix.name = "core";
 webix.cdn = "//cdn.webix.com";
@@ -8108,7 +8108,7 @@ webix.protoUI({
 		return obj;
 	},
 	_preselectMasterOption: function(data){
-		var master, node, text;
+		var master, node, text = "";
 
 		if (data){
 			if (this._settings.master){
@@ -8120,8 +8120,8 @@ webix.protoUI({
 				else if (node){
 					if(master.options_setter)
 						text = this.getItemText(data.id);
-					else if(data.value && master._get_visible_text)
-						text = master._get_visible_text(data.value);
+					else if(data.value)
+						text = master._get_visible_text ? master._get_visible_text(data.value) : data.value.toString();
 
 					if (webix.isUndefined(node.value))
 						node.innerHTML = text;
@@ -10090,6 +10090,7 @@ webix.protoUI({
 		}
 	},
 	$compareValue:function(oldvalue, value){
+		if(!oldvalue && !value) return true;
 		return webix.Date.equal(oldvalue, value);
 	},
 	$setValue:function(value){
@@ -13413,6 +13414,7 @@ webix.SelectionModel={
 		this.data.attachEvent("onStoreUpdated",webix.bind(this._data_updated,this));
 		this.data.attachEvent("onStoreLoad", webix.bind(this._data_loaded,this));
 		this.data.attachEvent("onAfterFilter", webix.bind(this._data_filtered,this));
+		this.data.attachEvent("onSyncApply", webix.bind(this._select_check,this));
 		this.data.attachEvent("onIdChange", webix.bind(this._id_changed,this));
 		this.$ready.push(this._set_noselect);
 	},
@@ -13439,16 +13441,14 @@ webix.SelectionModel={
 				this._selected.splice(i,1);
 				this.callEvent("onSelectChange",[id]);
 			}
-		}	
+		}
 	},
 	//helper - linked to onStoreUpdated
 	_data_updated:function(id,obj,type){
 		if (type == "delete"){				//remove selection from deleted items
 			if (this.loadBranch){
 				//hierarchy, need to check all
-				for (var i = this._selected.length - 1; i >= 0; i--)
-					if (!this.exists(this._selected[i]))
-						this._selected.splice(i,1);
+				this._select_check();
 			} else
 				this._selected.remove(id);
 		}
@@ -13461,6 +13461,11 @@ webix.SelectionModel={
 			this.data.each(function(obj){
 				if (obj && obj.$selected) this.select(obj.id);
 			}, this);
+	},
+	_select_check:function(){
+		for (var i = this._selected.length - 1; i >= 0; i--)
+			if (!this.exists(this._selected[i]))
+				this._selected.splice(i,1);
 	},
 	//helper - changes state of selection for some item
 	_select_mark:function(id,state,refresh,need_unselect){
@@ -14790,7 +14795,10 @@ webix.DragItem={
 	_getDragItemPos: function(pos,e){
 		if (this.getItemNode){
 			var id = this.locate(e, true);
-			return id?webix.html.offset(this.getItemNode(id)):null;
+			//in some case, node may be outiside of dom ( spans in datatable for example )
+			//so getItemNode can return null
+			var node = id ? this.getItemNode(id) : null;
+			return node ? webix.html.offset(node) : node;
 		}
 	},
 	//called when drag action started
@@ -15360,7 +15368,7 @@ webix.KeysNavigation = {
             if(this.getSubMenu && this.getSubMenu(selected))
                 this._mouse_move_activation(selected, this.getItemNode(selected));
 
-            if(!this._settings.clipboard){
+            if(!this.config.clipboard){
                 var node = this.getItemNode(selected);
                 if(node) node.focus();
             }
@@ -20720,6 +20728,7 @@ webix.extend(webix.ui.datatable, {
 				};
 
 				this.data.attachEvent("onStoreUpdated",webix.bind(this._data_updated,this));
+				this.data.attachEvent("onSyncApply", webix.bind(this._data_synced, this));
 				this.data.attachEvent("onClearAll", webix.bind(this._data_cleared,this));
 				this.data.attachEvent("onAfterFilter", webix.bind(this._data_filtered,this));
 				this.data.attachEvent("onIdChange", webix.bind(this._id_changed,this));
@@ -20747,6 +20756,12 @@ webix.extend(webix.ui.datatable, {
 			_data_updated:function(id, obj, type){
 				if (type == "delete") 
 					this.unselect(id);
+			},
+			_data_synced:function(){
+				for (var i = this._selected_areas.length-1; i >=0 ; i--){
+					if (!this.exists(this._selected_areas[i].row))
+						this._selected_areas.splice(i,1);
+				}
 			},
 			_reinit_selection:function(){
 				//list of selected areas
@@ -21095,6 +21110,9 @@ webix.extend(webix.ui.datatable, {
 
 				this._render_header_and_footer();
 				this._finalize_select();
+			},
+			_data_synced:function(){
+				//do nothing, as columns are not changed
 			}
 		},
 		area: {
@@ -21166,6 +21184,10 @@ webix.extend(webix.ui.datatable, {
 				//ctrl-selection is not supported yet, so ignoring the preserve flag
 				this.addSelectArea(cell,cell,false);
 				return true;
+			},
+			_data_synced:function(){
+				if(this._selected_areas.length)
+					this.refreshSelectArea();
 			}
 		}
 	}
@@ -21572,6 +21594,7 @@ webix.extend(webix.ui.datatable, {
 				var column = this._columns[obj.cind];
 				var oldwidth = column.width;
 				delete column.fillspace;
+				delete column.adjust;
 				this._setColumnWidth(obj.cind, oldwidth + newsize, true, true);
 				this._updateColsSizeSettings();
 			}
@@ -22760,7 +22783,6 @@ webix.extend(webix.ui.datatable, {
 		this.attachEvent("onResize", this._resizeColumns);
 	},
 	_adjustColumns:function(){
-		if (!this.count()) return;
 
 		var resize = false;
 		var cols = this._columns;
@@ -22831,7 +22853,7 @@ webix.extend(webix.ui.datatable, {
 				}
 			}, this);
 
-		if (headers && headers != "data"){
+		if (headers != "data"){
 			for (var i=0; i<config.header.length; i++){
 				var header = config.header[i];
 				if (header){
@@ -34612,18 +34634,29 @@ webix.protoUI({
 	getBody:function(){
 		return this._body_view;
 	},
-	$getSize:function(x,y){
+	$getSize:function(x, y){
 		webix.debug_size_box_start(this, true);
+
 		x+=18; y+=30;
-		var t = this._last_body_size = this._body_view.$getSize(x,y);
-		webix.debug_size_box_end(this, t);
-		return t;
+		
+		var t = this._body_view.$getSize(x, y);
+		var s = this._last_body_size = webix.ui.view.prototype.$getSize.call(this, x, y);
+
+		//inner content minWidth > outer
+		if (s[0] < t[0]) s[0] = t[0];
+		if (s[2] < t[2]) s[2] = t[2];
+		//inner content maxWidth < outer
+		if (s[1] > t[1]) s[1] = t[1];
+		if (s[3] > t[3]) s[3] = t[3];
+
+		webix.debug_size_box_end(this, s);
+		return s;
 	},
 	$setSize:function(x,y){
 		if (webix.ui.view.prototype.$setSize.call(this, x,y)){
-			y = Math.min(this._last_body_size[3], y);
 			x = Math.min(this._last_body_size[1], x);
-			this._body_view.$setSize(x-18,y-30);
+			y = Math.min(this._last_body_size[3], y);
+			this._body_view.$setSize(x -18,y -30);
 		}
 	}
 }, webix.ui.view);
@@ -36541,35 +36574,39 @@ webix.protoUI({
 		this.getInputNode().innerHTML = this.config.value;
 	},
 	_execCommandOnElement:function(el, commandName) {
-		var sel;
+		var sel, selText;
 
 		if(window.getSelection()) {
 			sel = window.getSelection();
+			selText = sel.toString().length;
 		} else {
 			sel = document.selection.createRange();
+			selText = sel.text.length;
 		}
 
-		for (var i = 0; i < sel.rangeCount; ++i) {
-			var range = sel.getRangeAt(i);
-			if (!sel.isCollapsed) {
-				document.execCommand(commandName, false, '');
-			} else {
-				var textValue = sel.focusNode.textContent;
-				var focusEl = sel.focusNode;
-				var focustext = sel.anchorOffset;
-				var wordBegining = textValue.substring(0, focustext).match(/[A-Za-z]*$/)[0];
-				var wordEnd = textValue.substring(focustext).match(/^[A-Za-z]*/)[0];
+		if(selText > 0) {
+			for (var i = 0; i < sel.rangeCount; ++i) {
+				var range = sel.getRangeAt(i);
+				if (!sel.isCollapsed) {
+					document.execCommand(commandName, false, '');
+				} else {
+					var textValue = sel.focusNode.textContent;
+					var focusEl = sel.focusNode;
+					var focustext = sel.anchorOffset;
+					var wordBegining = textValue.substring(0, focustext).match(/[A-Za-z]*$/)[0];
+					var wordEnd = textValue.substring(focustext).match(/^[A-Za-z]*/)[0];
 
-				var startWord = focustext - wordBegining.length;
-				var endWord = focustext + wordEnd.length;
+					var startWord = focustext - wordBegining.length;
+					var endWord = focustext + wordEnd.length;
 
-				range.setStart(focusEl, startWord);
-				range.setEnd(focusEl, endWord);
-				sel.removeAllRanges();
+					range.setStart(focusEl, startWord);
+					range.setEnd(focusEl, endWord);
+					sel.removeAllRanges();
 
-				window.getSelection().addRange(range);
-				document.execCommand(commandName, false, '');
-			}   
+					window.getSelection().addRange(range);
+					document.execCommand(commandName, false, '');
+				}   
+			}
 		}
 	},
 	_add_data:function() {
