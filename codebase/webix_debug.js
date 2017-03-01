@@ -666,7 +666,7 @@ webix.env = {};
 		webix.env.mobile = true;
 	if (webix.env.mobile || navigator.userAgent.indexOf("iPad")!=-1 || navigator.userAgent.indexOf("Android")!=-1)
 		webix.env.touch = true;
-	if (navigator.userAgent.indexOf('Opera')!=-1)
+	if (navigator.userAgent.indexOf('Opera')!=-1 || navigator.userAgent.indexOf('OPR')!=-1)
 		webix.env.isOpera=true;
 	else{
 		//very rough detection, but it is enough for current goals
