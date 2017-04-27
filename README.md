@@ -1,4 +1,4 @@
-Webix UI v.4.2.4
+Webix UI v.4.3.0
 ================
 
 [![npm version](https://badge.fury.io/js/webix.svg)](https://badge.fury.io/js/webix)

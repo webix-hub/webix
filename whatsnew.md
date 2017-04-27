@@ -1,3 +1,15 @@
+Version 4.3 (April 2017)
+================
+
+### Major features
+
+- BulletChart integration
+- DoubleList and FormInput widgets
+- compatibility with ReactJS
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_4_3.html)
+
+
 Version 4.2 (February 2017)
 ================
 
