@@ -1588,6 +1588,7 @@ div.webix_modal_cover {
 }
 .webix_richfilter {
   margin-top: 1px;
+  line-height: 32px;
 }
 .webix_ss_filter select {
   padding: 3px;
@@ -2735,7 +2736,6 @@ div.webix_modal_cover {
 /*style used by tooltip's container*/
 .webix_tooltip {
   display: none;
-  white-space: pre;
   position: absolute;
   z-index: 10000;
   background-color: #ffffff;
@@ -7287,6 +7287,9 @@ label.webix_required:after {
   background: #ededed;
   padding-left: 13px;
 }
+.webix_invalid .webix_list {
+  background: #f8e2e2;
+}
 @font-face {
   font-family: 'PT Sans';
   font-style: normal;
@@ -8511,6 +8514,109 @@ a:active .webix_custom_radio {
 .webix_sparklines_pie_chart .webix_sparklines_event_area:hover,
 .webix_sparklines_bar_chart .webix_sparklines_event_area:hover {
   fill: rgba(255, 255, 255, 0.3);
+}
+/* print css rules*/
+.webix_ui_print {
+  display: none;
+}
+body.webix_print {
+  margin-top: 0px;
+}
+@media print {
+  body.webix_print {
+    overflow: visible !important;
+    background-color: none !important;
+  }
+  body.webix_print > * {
+    display: none;
+  }
+  body.webix_print * {
+    visibility: hidden;
+  }
+  .webix_ui_print {
+    display: block !important;
+    margin: 0 0 0 0!important;
+    visibility: visible !important;
+  }
+  .webix_ui_print * {
+    visibility: visible !important;
+  }
+  .webix_print_noscroll {
+    height: auto !important;
+    width: auto !important;
+  }
+  .webix_print_noscroll,
+  .webix_print_noscroll .webix_scroll_cont {
+    overflow: visible !important;
+  }
+  .webix_print_pagebreak {
+    page-break-after: always;
+  }
+  .webix_print_header,
+  .webix_print_footer {
+    display: block !important;
+    margin: 20px 0px;
+    text-align: center;
+    height: auto !important;
+    visibility: visible !important;
+  }
+  .webix_print_header *,
+  .webix_print_footer * {
+    visibility: visible !important;
+  }
+  /*datatable specific*/
+  .webix_table_print {
+    display: table;
+    visibility: visible !important;
+    table-layout: fixed;
+    width: 100%;
+    border: 1px solid #ebebeb;
+    margin-bottom: 20px;
+    position: initial;
+  }
+  .webix_table_print td {
+    overflow: hidden;
+  }
+  .webix_table_print tr {
+    page-break-inside: avoid;
+  }
+  .webix_table_print .webix_cell {
+    display: table-cell !important;
+    border-right: 1px solid #ebebeb;
+    border-bottom: 1px solid #ebebeb;
+    padding: 0px 10px;
+    white-space: nowrap;
+  }
+  .webix_table_print .webix_header_cell {
+    display: table-cell;
+    font-size: 15px;
+    color: #4a4a4a;
+    background: #d2e3ef;
+    border-right: 1px solid #b0cee3;
+    border-bottom: 1px solid #b0cee3;
+  }
+  .webix_table_print .webix_footer_cell {
+    display: table-cell;
+    background: #fafafa;
+    border-right: 1px solid #ebebeb;
+    border-top: 1px solid #ebebeb;
+    border-bottom: 1px solid #ebebeb;
+  }
+  .webix_table_print .webix_cell.webix_dtable_span {
+    position: initial !important;
+    white-space: normal;
+  }
+  .webix_table_print.borderless,
+  .webix_table_print.borderless .webix_cell {
+    border: none;
+  }
+  /* x-list specific*/
+  .webix_table_print.webix_view.webix_list-x {
+    white-space: normal;
+  }
+  .webix_table_print.webix_view.webix_list-x .webix_list_item {
+    display: table-cell;
+  }
 }
 /*predefined styles for text lables inside a item*/
 .webix_strong {

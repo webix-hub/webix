@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.4.3.0
+webix UI v.4.4.0
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -51,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="4.3.0";
+webix.version="4.4.0";
 webix.codebase="./";
 webix.name = "core";
 webix.cdn = "//cdn.webix.com";
@@ -76,7 +76,7 @@ webix.extend = function(base, source, force){
 	
 	//copy methods, overwrite existing ones in case of conflict
 	for (var method in source)
-		if (!base[method] || force)
+		if ((!(method in base)) || force)
 			base[method] = source[method];
 		
 	//in case of defaults - preffer top one
@@ -1408,6 +1408,20 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       return new promise(null, null)
     },
 
+    reject:function(v){
+      var t = this.defer();
+      t.state = "rejected";
+      t.val = v;
+      return t;
+    },
+
+    resolve:function(v){
+      var t = this.defer();
+      t.state = "resolved";
+      t.val = v;
+      return t;
+    },
+
     // calls a function and resolved as a promise
     fcall: function() {
       var def = new promise()
@@ -2332,11 +2346,11 @@ webix.template = function(str){
 			});
 			str.replace(/#([^#'";, ]+)#/gi,function(search,s,pos){
 				if(s.charAt(0)=="!"){
+					s = s.substr(1);
 					temp_res.push({pos: pos, str: search, fn: function(obj,common){
-						s = s.substr(1);
 						if(s.indexOf(".")!= -1)
 							obj = webix.CodeParser.collapseNames(obj); // apply complex properties
-						return webix.template.escape(obj[s.substr(1)]);
+						return webix.template.escape(obj[s]);
 					}});
 				}
 				else{
@@ -2876,7 +2890,7 @@ webix.ajax.prototype={
 		}
 
 		//add extra params to the url
-		if (typeof params == "object" && !(window.FormData && params instanceof window.FormData)){
+		if (typeof params == "object" && !(window.FormData && (params instanceof window.FormData))){
 			if (json_mode)
 				params = this.stringify(params);
 			else {
@@ -3114,7 +3128,9 @@ webix.AtomDataLoader={
 	load:function(url,call){
 		var details = arguments[2] || null;
 
-		this.callEvent("onBeforeLoad",[]);
+		if(!this.callEvent("onBeforeLoad",[]))
+			return webix.promise.reject();		
+
 		if (typeof call == "string"){	//second parameter can be a loading type or callback
 			//we are not using setDriver as data may be a non-datastore here
 			this.data.driver = webix.DataDriver[call];
@@ -3171,7 +3187,9 @@ webix.AtomDataLoader={
 		if (data && data.sync && this.sync)
 			return this._syncData(data);
 
-		this.callEvent("onBeforeLoad",[]);
+		if(!this.callEvent("onBeforeLoad",[]))
+			return webix.promise.reject();
+
 		this.data.driver = webix.DataDriver[type||"json"];
 		this._onLoad(data,null);
 	},
@@ -3245,7 +3263,8 @@ webix.AtomDataLoader={
 		if (typeof url == "function")
 			return url.call(this, (data.id||data), data);
 		url = url+(url.indexOf("?")==-1?"?":"&")+"action=get&id="+encodeURIComponent(data.id||data);
-		this.callEvent("onBeforeLoad",[]);
+		if(!this.callEvent("onBeforeLoad",[])) 
+			return false;
 		webix.ajax(url, function(text,xml,loader){
 			this._ignore_feed=true;
 			var driver = webix.DataDriver.json;
@@ -4769,18 +4788,6 @@ webix.ui._fixHeight = function (){
 	webix.Touch.limit(false);
 };
 webix.ui.resize = function(){
-	// check for virtual keyboard
-	if(webix.env.touch && ( webix.edit_open_time && (new Date())-webix.edit_open_time < 750 || webix._focus_time && (new Date())-webix._focus_time < 750)){
-		//workaround for android chrome bug with scrolling to the focused input if overflow:hidden on container
-		if(webix.env.isWebKit && document.activeElement){
-			var wactiv = webix.$$(document.activeElement);
-			if (wactiv && wactiv.getInputNode && document.activeElement.scrollIntoView){
-				document.activeElement.scrollIntoView();
-				return;
-			}
-		}
-	}
-
 	webix.UIManager.applyChanges();
 	webix.callEvent("onClick",[]);
 	if (!webix.ui.$freeze)
@@ -4798,7 +4805,20 @@ webix.ui.each = function(parent, logic, master, include){
 		}
 	}
 };
-webix.event(window, "resize", webix.ui.resize);
+webix.event(window, "resize", function() {
+	// check for virtual keyboard
+	if(webix.env.touch && ( webix.edit_open_time && (new Date())-webix.edit_open_time < 750 || webix._focus_time && (new Date())-webix._focus_time < 750)){
+		//workaround for android chrome bug with scrolling to the focused input if overflow:hidden on container
+		if(webix.env.isWebKit && document.activeElement){
+			var wactiv = webix.$$(document.activeElement);
+			if (wactiv && wactiv.getInputNode && document.activeElement.scrollIntoView)
+				document.activeElement.scrollIntoView();
+		}
+		return;
+	} else {
+		webix.ui.resize();
+	}
+});
 
 ui._delays = {};
 ui.delay = function(config){
@@ -6557,7 +6577,8 @@ webix.MouseEvents={
 		var id = null;
 		var found = false;
 		//loop through all parents
-		while (trg && trg.parentNode && trg != this._viewobj.parentNode){
+		//we need to check for this._viewobj as some handler can destroy the view
+		while (trg && trg.parentNode && this._viewobj && trg != this._viewobj.parentNode){
 			if (!found && trg.getAttribute){													//if element with ID mark is not detected yet
 				id = trg.getAttribute(this._id);							//check id of current one
 				if (id){
@@ -7027,7 +7048,7 @@ webix.DragControl={
 		webix.DragControl._saved_event = e;
 
 		webix.DragControl._webix_drag_mm = webix.event(document.body,webix.env.mouse.move,webix.DragControl._startDrag);
-		webix.DragControl._webix_drag_mu = webix.event(document.body,webix.env.mouse.up,webix.DragControl._preStartFalse);
+		webix.DragControl._webix_drag_mu = webix.event(document,webix.env.mouse.up,webix.DragControl._preStartFalse);
 
 		//need to run here, or will not work in IE
 		webix.html.addCss(document.body,"webix_noselect", 1);
@@ -7053,7 +7074,7 @@ webix.DragControl={
 		
 		webix.DragControl.sendSignal("start"); //useless for now
 		webix.DragControl._webix_drag_mm = webix.event(document.body,webix.env.mouse.move,webix.DragControl._moveDrag);
-		webix.DragControl._webix_drag_mu = webix.event(document.body,webix.env.mouse.up,webix.DragControl._stopDrag);
+		webix.DragControl._webix_drag_mu = webix.event(document,webix.env.mouse.up,webix.DragControl._stopDrag);
 		webix.DragControl._moveDrag(e);
 
 		if (webix.env.touch)
@@ -7444,12 +7465,14 @@ webix.Modality = {
 		    	this._modal_cover.style.zIndex = zIndex-1;
 		    	this._viewobj.style.zIndex = zIndex;
 		        document.body.appendChild(this._modal_cover);
+		        document.body.style.overflow = "hidden";
 				webix._event( this._modal_cover, "click", webix.bind(this._ignore_clicks, this));
 	        }
 	    }
 	    else {
 	        if (this._modal_cover){
 	            webix.html.remove(this._modal_cover);
+	            document.body.style.overflow = "visible";
 
 	            //restore topmost modal layer
 	        	//set delay, as current window closing may have not finished click event
@@ -7887,11 +7910,13 @@ webix.protoUI({
 			dy += 1;
 
 		var size =  this._body_cell.$getSize(0,0);
+		var headMinWidth = 0;
 		if (this._head_cell){
 			var head_size = this._head_cell.$getSize(0,0);
 			if (head_size[3]==head_size[2])
 				this._settings.headHeight = head_size[3];
 			dy += this._settings.headHeight;
+			headMinWidth = head_size[0];
 		}
 
 		if (this._settings.fullscreen){
@@ -7904,6 +7929,9 @@ webix.protoUI({
 		var self_size = webix.ui.view.prototype.$getSize.call(this, 0, 0);
 
 		//use child settings if layout's one was not defined
+		if (headMinWidth && size[1] > 100000)
+			size[0] = Math.max(headMinWidth, size[0]);
+
 		self_size[1] = Math.min(self_size[1],(size[1]>=100000&&self_size[1]>=100000?Math.max(size[0], 300):size[1])+dx);
 		self_size[3] = Math.min(self_size[3],(size[3]>=100000&&self_size[3]>=100000?Math.max(size[2], 200):size[3])+dy);
 
@@ -8188,6 +8216,15 @@ webix.protoUI({
 			return webix.$$(this._settings.master).getValue();
 		return null;
 	},
+	getItemId:function(text){
+		var list = this.getList();
+		var type = list.type;
+		for (var key in list.data.pull){
+			var obj = list.getItem(key);
+			if (this._settings.filter.call(this, obj, text))
+				return obj.id;
+		}
+	},
 	getItemText:function(id){
 		var item = this.getList().getItem(id);
 
@@ -8271,7 +8308,7 @@ webix.protoUI({
 			node = webix.toNode(input);
 
 		webix._event(node,"keydown",function(e){
-			if (node != document.body || this.isVisible())
+			if ((node != document.body || this.isVisible()) && (input.config ? (!input.config.readonly) : (!node.getAttribute("readonly"))))
 				this._suggestions(e);
 		},{bind:this});
 		
@@ -9261,7 +9298,8 @@ webix.protoUI({
 		if(div_start){
 			html += div_start;
 		} else {
-			html += this._baseInputHTML("input")+"id='" + id + "' type='"+(config.type||this.name)+"'"+(config.editable?" role='combobox'":"")+" value='" + webix.template.escape(config.text || this._pattern(config.value)||"") + "' style='width: " + inputWidth + "px; text-align: " + inputAlign + ";'";
+			var value =  webix.template.escape(config.text || this._pattern(config.value)|| ( config.value ===0 ?"0":"") );
+			html += this._baseInputHTML("input")+"id='" + id + "' type='"+(config.type||this.name)+"'"+(config.editable?" role='combobox'":"")+" value='" + value + "' style='width: " + inputWidth + "px; text-align: " + inputAlign + ";'";
 			var attrs = config.attributes;
 			if (attrs)
 				for(var prop in attrs)
@@ -9519,19 +9557,20 @@ webix.protoUI({
 	$setValue:function(value){
 		var input = this.getInputNode();
 		var obj = this._settings;
-		var text = (value ? obj.onLabel : obj.offLabel) || obj.label;
+		var isPressed = (value && value != "0");
+		var text = (isPressed ? obj.onLabel : obj.offLabel) || obj.label;
 		
-		input.setAttribute("aria-pressed", value?"true":false);
+		input.setAttribute("aria-pressed", isPressed?"true":false);
 		input.value = text;
 		if (input.lastChild)
 			input.lastChild.nodeValue = " "+text;
 
 		//icon or image button
 		if(input.firstChild && input.firstChild.nodeName ==="SPAN" && obj.onIcon && obj.offIcon && obj.onIcon !==obj.offIcon)
-			input.firstChild.className = input.firstChild.className.replace((value?obj.offIcon:obj.onIcon),  (value?obj.onIcon:obj.offIcon));
+			input.firstChild.className = input.firstChild.className.replace((isPressed?obj.offIcon:obj.onIcon),  (isPressed?obj.onIcon:obj.offIcon));
 		
 		var parent = input.parentNode;
-		if(value)
+		if(isPressed)
 			webix.html.addCss(parent, "webix_pressed");
 		else
 			webix.html.removeCss(parent, "webix_pressed");
@@ -9545,11 +9584,13 @@ webix.protoUI({
 	},
 	defaults:{
 		template:function(obj, common){
-			var css = obj.value ? " webix_pressed" : "";
-			obj.label = (obj.value ? obj.onLabel : obj.offLabel) || obj.label;
-			obj.icon = (obj.value ? obj.onIcon : obj.offIcon) || obj.icon;
+			var isPressed = (obj.value && obj.value != "0");
+			var css = isPressed ? " webix_pressed" : "";
+
+			obj.label = (isPressed ? obj.onLabel : obj.offLabel) || obj.label;
+			obj.icon = (isPressed ? obj.onIcon : obj.offIcon) || obj.icon;
 			var html =  "<div class='webix_el_box"+css+"' style='width:"+obj.awidth+"px; height:"+obj.aheight+"px'>"+common.$renderInput(obj, common)+"</div>";
-			html = html.replace(/(button)\s*(?=\w)/, "$1"+(" aria-pressed='"+(obj.value?"true":"false")+"' "));
+			html = html.replace(/(button)\s*(?=\w)/, "$1"+(" aria-pressed='"+(isPressed?"true":"false")+"' "));
 			return html;
 		}
 	},
@@ -9602,7 +9643,7 @@ webix.protoUI({
 			var id = "x"+webix.uid();
 
 			var html = common._baseInputHTML("textarea")+"style='width:"+common._get_input_width(obj)+"px;'";
-			html +=" id='"+id+"' name='"+name+"' class='webix_inp_textarea'>"+common._pattern(obj.value||"")+"</textarea>";
+			html +=" id='"+id+"' name='"+name+"' class='webix_inp_textarea'>"+common._pattern(obj.value|| (obj.value ===0?"0":""))+"</textarea>";
 
 			return common.$renderInput(obj, html, id);
 		},
@@ -10966,6 +11007,7 @@ webix.DataLoader=webix.proto({
 		
 		//list of all active ajax requests
 		this._ajax_queue = webix.toArray();
+		this._feed_last = {};
 
 		this.data = new webix.DataStore();
 
@@ -10977,13 +11019,14 @@ webix.DataLoader=webix.proto({
 		this.data.owner = config.id;
 	},
 	_feed:function(from,count,callback){
-				//allow only single request at same time
-				if (this._load_count)
-					return (this._load_count=[from,count,callback]);	//save last ignored request
-				else
-					this._load_count=true;
-				this._feed_last = [from, count];
-				this._feed_common.call(this, from, count, callback);
+		//allow only single request at same time
+		if (this._load_count)
+			return (this._load_count=[from,count,callback]);	//save last ignored request
+		else
+			this._load_count=true;
+		this._feed_last.from = from;
+		this._feed_last.count = count;
+		this._feed_common.call(this, from, count, callback);
 	},
 	_feed_common:function(from, count, callback, url, details){
 		var state = null,
@@ -11034,16 +11077,19 @@ webix.DataLoader=webix.proto({
 			}
 
 			url += params.join("&");
-
-			this.load(url, final_callback);
+			if (this._feed_last.url !== url){
+				this._feed_last.url = url;
+				this.load(url, final_callback);
+			} else {
+				this._load_count = false;
+			}
 		}
 	},
 	_feed_callback:function(){
 		//after loading check if we have some ignored requests
 		var temp = this._load_count;
-		var last = this._feed_last;
 		this._load_count = false;
-		if (typeof temp =="object" && (temp[0]!=last[0] || temp[1]!=last[1]))
+		if (typeof temp =="object")
 			this.data.feed.apply(this, temp);	//load last ignored request
 	},
 	//loads data from external URL
@@ -11079,8 +11125,8 @@ webix.DataLoader=webix.proto({
 	},
 	_maybe_loading_already:function(count, from){
 		var last = this._feed_last;
-		if(this._load_count && last){
-			if (last[0]<=from && (last[1]+last[0] >= count + from )) return true;
+		if(this._load_count && last.url){
+			if (last.from<=from && (last.count+last.from >= count + from )) return true;
 		}
 		return false;
 	},
@@ -11175,6 +11221,7 @@ webix.DataLoader=webix.proto({
 		}
 		if (!soft){
 			this._load_count = false;
+			this._feed_last = {};
 			this._ajax_queue = webix.toArray();
 			this.waitData = webix.promise.defer();
 		}
@@ -12068,6 +12115,9 @@ webix.DataStore.prototype={
 				
 				a = a.toString().toLowerCase(); b=b.toString().toLowerCase();
 				return a>b?1:(a<b?-1:0);
+			},
+			"raw":function(a,b){
+				return a>b?1:(a<b?-1:0);
 			}
 		},
 		_by:function(prop, method){
@@ -12616,8 +12666,10 @@ webix.protoUI({
 			
 			if(positionX - this._settings.dx > this._contentobj.offsetWidth)
 				positionX = pos.x;
-			else 
+			else {
 				positionX = (pos.x - (this._settings.dx * 2)) - this._contentobj.offsetWidth;
+				if(positionX <= 0) positionX = 0;
+			}
 
 			if(positionY - this._settings.dy > this._contentobj.offsetHeight)
 				positionY = pos.y;
@@ -13101,7 +13153,8 @@ webix.protoUI({
 	src_setter:function(value){
 		this._not_render_me = true;
 		
-		this.callEvent("onBeforeLoad",[]);
+		if(!this.callEvent("onBeforeLoad",[])) 
+			return "";
 		webix.ajax(value, webix.bind(function(text){
 			this._settings.template = webix.template(text);
 			this._render_me();
@@ -13179,8 +13232,9 @@ webix.protoUI({
 		this.src_setter(value);
 	},
 	src_setter:function(value){
+		if(!this.callEvent("onBeforeLoad",[])) 
+			return "";
 		this.getIframe().src = value;
-		this.callEvent("onBeforeLoad",[]);
 		return value;
 	},
 	getIframe:function(){
@@ -13848,7 +13902,7 @@ webix.TreeDataLoader = {
 	//load next set of data rows
 	loadBranch:function(id, callback, url){
 		id = id ||0;
-		this.data.url = this.data.url || url;
+		this.data.url = url || this.data.url;
 		if (this.callEvent("onDataRequest", [id,callback,this.data.url]) && this.data.url)
 			this.data.feed.call(this, id, 0, callback, url);
 	},
@@ -13966,15 +14020,15 @@ webix.TreeStore = {
 			delete this.branch[old];
 		}
 		var parent = this.getItem(old).$parent;
-		if (parent !== "0"){
+		if (parent != "0"){
 			var index = webix.PowerArray.find.call(this.branch[parent], old);
 			this.branch[parent][index] = newid;
 		}
 		return webix.DataStore.prototype.changeId.call(this, old, newid);
 	},
-	clearAll:function(){
+	clearAll:function(soft){
 		this.branch = { 0:[] };
-		webix.DataStore.prototype.clearAll.call(this);	
+		webix.DataStore.prototype.clearAll.call(this, soft);	
 	},
 	getPrevSiblingId:function(id){
 		var order = this.branch[this.getItem(id).$parent];
@@ -14646,6 +14700,10 @@ webix.DragOrder={
 			//this type of dnd is limited to the self
 			if (view && view == this){
 				var id = this.locate(html, true);
+				// sometimes 'mousedown' on item is followed by 'mousemove' on empty area and item caanot be located
+				if(!id && webix.DragControl._saved_event)
+					id = this.locate(webix.DragControl._saved_event, true);
+				
 				var start_id = webix.DragControl.getContext().start;
 				this._auto_scroll_force = true;
 				if (id){
@@ -16038,6 +16096,266 @@ webix.NavigationButtons = {
 
 
 
+(function(){
+
+	webix.env.printPPI = 96;
+	webix.env.printMargin = 0.75*webix.env.printPPI;
+
+	var ppi = webix.env.printPPI;
+	var margin = webix.env.printMargin;
+	var papers = { "a4":"A4", "a3":"A3", "letter":"letter"};
+	var fits = { page:true, data:true};
+	var modes = { portrait:true, landscape:true};
+
+	var sizes = {//inches, real size is value*ppi
+		"A3": { width: 11.7, height: 16.5 },
+		"A4": { width: 8.27, height:11.7 },
+		"letter": { width: 8.5, height:11 }
+	};
+
+	webix.print = function(id, options){
+
+        var view = webix.$$(id);
+		if (view && view.$printView)
+			view = view.$printView();
+
+		webix.assert(view, "non-existing view for printing");
+		if(!view) return;
+
+		view.callEvent("onBeforePrint", [options]);
+
+		options = _checkOptions(options);
+		_beforePrint(options);
+
+		//try widget's custom logic first, sometimes it may deny 
+		if(!view.$customPrint || view.$customPrint(options) === true) 
+			_print(view, options);
+ 
+		_afterPrint(options);
+	};
+
+	/*processing print options*/
+	function _checkOptions(options){
+		
+		options = options || {};
+        options.paper = papers[(options.paper || "").toLowerCase()] || "A4";
+        options.mode = modes[options.mode] ? options.mode : "portrait";
+        options.fit = fits[options.fit] ? options.fit: "page";
+		options.scroll = options.scroll || false;
+        options.size = sizes[options.paper];
+
+		options.margin = (options.margin || options.margin === 0) ? options.margin : {};
+        margin = isNaN(options.margin*1) ? margin : options.margin;
+        options.margin = {
+        	top:(options.margin.top || options.margin.top === 0) ? options.margin.top: margin, 
+        	bottom:(options.margin.bottom || options.margin.bottom === 0) ? options.margin.bottom: margin, 
+        	right:(options.margin.right || options.margin.right === 0) ? options.margin.right: margin, 
+        	left:(options.margin.left || options.margin.left === 0) ? options.margin.left: margin
+        };
+
+        return options;
+	}
+
+	/*preparing printing environment*/
+	function _beforePrint(options){
+		webix.html.addCss(document.body,"webix_print");
+
+		if(options.docHeader) _getHeaderFooter("Header", options);
+		if(options.docFooter) _getHeaderFooter("Footer", options);
+
+		/* static print styles are located at 'css/print.less'*/
+		var cssString = "@media print { "+
+			"@page{ size:"+options.paper+" "+options.mode+";"+
+				"margin-top:"+options.margin.top+"px;margin-bottom:"+options.margin.bottom+
+				"px;margin-right:"+options.margin.right+"px;margin-left:"+options.margin.left+
+			"px;}"+
+		"}";
+		webix.html.addStyle(cssString, "print");
+	}
+
+	/*cleaning environment*/
+	function _afterPrint(options){
+		webix.html.removeCss(document.body, "webix_print");
+		webix.html.removeStyle("print");
+
+		if(options.docHeader) webix.html.remove(options.docHeader);
+		if(options.docFooter) webix.html.remove(options.docFooter);
+	}
+
+	/*common print actions */
+	function _print(view, options){
+		var doc = view.$view.cloneNode(true);
+		webix.html.insertBefore(doc, options.docFooter, document.body);
+
+		webix.html.addCss(doc,"webix_ui_print");
+		if(!options.scroll && ((view.data && view.data.pull) || view.getBody))
+			webix.html.addCss(doc, "webix_print_noscroll");
+
+		window.print();
+
+		webix.html.remove(doc);
+	}
+	/*custom header nad footer*/
+	function _getHeaderFooter(group, options){
+		var header =  webix.html.create("div", { 
+			"class":"webix_view webix_print_"+group.toLowerCase(),
+			"style":"height:0px;visibility:hidden;"
+		}, options["doc"+group]);
+
+		if(group ==="Header")
+			webix.html.insertBefore(header, document.body.firstChild);
+		else
+			document.body.appendChild(header);
+
+		options["doc"+group] = header;
+	}
+
+})();
+
+webix.CustomPrint = {
+	$customPrint:function(options, htmlOnly){
+		if(this._prePrint(options, htmlOnly))
+			return true;
+
+		var tableData = this._getTableArray(options);
+		var table = this._getTableHTML(tableData, options);
+
+		if(htmlOnly)
+			return table;
+
+		var doc = webix.html.create("div", { "class":"webix_ui_print"});
+		doc.appendChild(table);
+
+		webix.html.insertBefore(doc, options.docFooter, document.body);
+		window.print();
+		
+		webix.html.remove(doc);
+	},
+	_prePrint:function(options, htmlOnly){
+		if(!htmlOnly && (this.config.layout =="y" || options.scroll || this.config.prerender || this.config.autoheight)) return true;
+		
+		if(this.config.layout =="x")
+			webix.extend(options || {}, {xCount:this.count(), nobreaks:true}, true);
+	},
+	_getPageWidth:function(options){
+		if(options.fit =="page") return Infinity;
+
+		var size = options.size;
+		var width = size[options.mode == "portrait"?"width":"height"];
+		
+		return Math.min(width*webix.env.printPPI-2*webix.env.printMargin);
+	},
+	_getTableArray:function(options, base, start){
+		var maxWidth = this._getPageWidth(options);
+		var xCount = options.xCount || this._getVisibleRange()._dx;
+
+		var tableArray = [];
+		var colrow = [];
+		var width = 0;
+		
+		var newTableStart, rownum, colnum;
+
+		start = start || 0;
+		base = base || [];
+
+		for(var i = 0; i<this.data.order.length;){
+			var obj = this.data.pull[this.data.order[i]];
+			rownum = parseInt(i/xCount);
+			colnum = i-(rownum*xCount);
+
+			if(obj && colnum>=start){
+				width += this.type.width;
+				
+				//start a new table, if cells do not fit page width
+				if(width > maxWidth && colnum>start){ // 'colnum>start' ensures that a single long cell will have to fit the page
+					newTableStart = colrow.length+start;
+					tableArray.push(colrow);
+					i = i+(xCount-colrow.length);
+					colrow = [];
+					width = 0;
+					continue;
+				}
+
+				var cellValue = this.type.template(obj, this.type);
+				var className = this._itemClassName;
+				
+				var style  = {
+					display:"table-cell",
+					height:this.type.height + "px",
+					width:this.type.width + "px"
+				};
+				//push a cell to a row
+				colrow.push({
+					txt: cellValue,
+					className: className+" "+(obj.$css || ""),
+					style: style
+				});
+				//push a row to a table and start a new row
+				if((i+1)%xCount === 0){
+					tableArray.push(colrow);
+					colrow = [];
+					width = 0;
+				}
+			}
+			i++;
+		}
+
+		base.push(tableArray);
+
+		if(newTableStart)
+			this._getTableArray(options, base, newTableStart);	
+
+		return base;
+	},
+	_getTableHTML:function(tableData, options){
+		
+		var container = webix.html.create("div");
+
+		tableData.forEach(webix.bind(function(table, i){
+
+			var tableHTML = webix.html.create("table", {
+				"class":"webix_table_print "+this.$view.className,
+				"style":"border-collapse:collapse"
+			});
+
+			table.forEach(function(row){
+				var tr = webix.html.create("tr");
+
+				row.forEach(function(column){
+					var td = webix.html.create("td");
+
+
+					if (column.txt) td.innerHTML = column.txt;
+					if (column.className) td.className = column.className;
+					if (column.style) {
+						var keys = Object.keys(column.style);
+						keys.forEach(function(key){
+							if (column.style[key])
+								td.style[key] = column.style[key];
+						});
+					}
+					if(column.span){
+						if(column.span.colspan > 1)
+							td.colSpan = column.span.colspan;
+						if(column.span.rowspan > 1)
+							td.rowSpan = column.span.rowspan;
+					}
+					tr.appendChild(td);
+				});
+				tableHTML.appendChild(tr);
+			});
+			container.appendChild(tableHTML);
+
+			if(!options.nobreaks && i+1 < tableData.length){
+				var br = webix.html.create("DIV", {"class":"webix_print_pagebreak"});
+				container.appendChild(br);
+			}
+			
+		}, this));
+
+		return container;
+	}
+};
 
 
 
@@ -16045,6 +16363,7 @@ webix.NavigationButtons = {
 webix.protoUI({
 	name:"list",
 	_listClassName : "webix_list",
+	_itemClassName:"webix_list_item",
 	$init:function(config){
 		webix.html.addCss(this._viewobj, this._listClassName + (((config.layout||this.defaults.layout) == "x")?"-x":"") );
 		this.data.provideApi(this,true);
@@ -16168,7 +16487,7 @@ webix.protoUI({
 	$skin:function(){
 		this.type.height = webix.skin.$active.listItemHeight;
 	}
-}, webix.KeysNavigation, webix.DataMove, webix.DragItem, webix.MouseEvents, webix.SelectionModel, webix.Scrollable, webix.ui.proto, webix.CopyPaste);
+}, webix.CustomPrint, webix.KeysNavigation, webix.DataMove, webix.DragItem, webix.MouseEvents, webix.SelectionModel, webix.Scrollable, webix.ui.proto, webix.CopyPaste);
 
 webix.protoUI({
 	name:"grouplist",
@@ -17608,6 +17927,7 @@ webix.VirtualRenderStack={
 };
 
 
+
 webix.protoUI({
 	name:"dataview",
 	$init:function(config){
@@ -17640,6 +17960,7 @@ webix.protoUI({
 		navigation:true
 	},
 	_id:"webix_f_id",
+	_itemClassName:"webix_dataview_item",
 	on_click:{
 		webix_dataview_item:function(e,id){ 
 			if (this._settings.select){
@@ -17728,8 +18049,7 @@ webix.protoUI({
 				this.render();
 		}
 	}
-}, webix.DataMove, webix.DragItem, webix.MouseEvents, webix.KeysNavigation, webix.SelectionModel, webix.Scrollable, webix.ui.proto);
-
+}, webix.DataMove, webix.DragItem, webix.MouseEvents, webix.KeysNavigation, webix.SelectionModel, webix.Scrollable, webix.CustomPrint, webix.ui.proto);
 
 
 
@@ -18198,7 +18518,7 @@ webix.Date={
 					else if( a ==  "%S")
 						set[6]=temp[i]||0;
 					else if( a ==  "%c"){
-						var reg = /(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)/g;
+						var reg = /(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(\+.*|)/g;
 						var res = reg.exec(date);
 						set[0]= (res[1]||0)*1; if (set[0]<30) set[0]+=2000;
 						set[1]= (res[2]||1)-1;
@@ -18258,7 +18578,7 @@ webix.Date={
 					splt+= "if(res[1]){ var t = res[1].split(':');";
 					splt+= "set[3]= t[0]||0;";
 					splt+= "set[4]= t[1]||0;";
-					splt+= "set[5]= t[2]||0;}";
+					splt+= "set[5]= parseInt(t[2])||0;}";
 					break;
 				default:
 					break;
@@ -19344,7 +19664,7 @@ webix.protoUI({
 
 		node = node.target||node.srcElement||node;
 		while (node && node.getAttribute){
-			if (node.getAttribute("view_id"))
+			if (node === this.$view)
 				break;
 			var cs = webix.html._getClassName(node).toString();
 
@@ -19387,9 +19707,16 @@ webix.protoUI({
 
 		return { rind:row, cind:column };
 	},
+	_correctScrollSize:function(){
+		var center = -this._center_width;
+		for (var i=0; i<this._columns.length; i++)
+			center += this._columns[i].width;
+		this._scrollLeft = Math.min(this._scrollLeft, Math.max(0, center));
+	},
 	_updateColsSizeSettings:function(silent){
 		if (!this._dtable_fully_ready) return;
 
+		this._correctScrollSize();
 		this._set_columns_positions();
 		this._set_split_sizes_x();
 		this._render_header_and_footer();
@@ -19401,7 +19728,7 @@ webix.protoUI({
 		return this._setColumnWidth( this.getColumnIndex(col), width, skip_update);
 	},
 	_setColumnWidth:function(col, width, skip_update, by_user){
-		if (isNaN(width)) return;
+		if (isNaN(width) || col < 0) return;
 		var column = this._columns[col];
 
 		if (column.minWidth && width < column.minWidth)
@@ -19558,7 +19885,7 @@ webix.protoUI({
 		var t = this._scrollLeft;
 		
 		var xind = this._settings.leftSplit;
-		while (t>0){
+		while (t>0 && this._columns.length - 1 > xind){
 			t-=this._columns[xind].width;
 			xind++;
 		}
@@ -19630,14 +19957,15 @@ webix.protoUI({
 			var dep = Math.ceil(t/rowHeight);
 			t-=dep*rowHeight;
 			xend+=dep;
-
-			if (xend>end)
-				xend = end;
-		} else
+		} else {
 			while (t>0 && xend<end){
 				t-=this._getHeightByIndex(xend);
 				xend++;
 			}
+		}
+
+		if (xend>end)
+			xend = end;
 
 		return [xind, xend, xdef];
 	},
@@ -19979,9 +20307,7 @@ webix.protoUI({
 				col.node.style.top = "0px";
 		} else {
 			this._render_scroll_shift = yr[2];
-			if (yr[2] != col._yr2){
-				col.node.style.top = yr[2]+"px";
-			}
+			col.node.style.top = yr[2]+"px";
 		}
 
 		if (!force  && (col._yr0 == yr[0] && col._yr1 == yr[1]) && (!this._settings.topSplit || col._render_scroll_shift==this._render_scroll_shift)) return 0;
@@ -20550,7 +20876,7 @@ webix.ui.datafilter = {
 			webix._event(select, "change", this._on_change);
 		},
 		render:function(master, config){  
-			if (this.init) this.$init(config);
+			if (this.init) this.init(config);
 			config.css = "webix_ss_filter"; return ""; },
 		_on_change:function(e, node, value){ 
 			webix.$$(this._comp_id).filterByAll();
@@ -20761,7 +21087,11 @@ webix.extend(webix.ui.datatable,{
 				values.push({ id:obj[id], value:obj[value] });
 			}
 		}, this, true);
-		values.sort(function(a,b){ return a.value > b.value ? 1 : -1;  });
+
+		if (values.length){
+			var type = typeof values[0].value === "string" ? "string" : "raw";
+			values.sort( this.data.sorting.create({ as:type, by:"value", dir:"asc" }) );
+		}
 	},
 	_runServerFilter: function(name){
 		this.loadNext(0,0,{
@@ -20954,8 +21284,12 @@ webix.extend(webix.ui.datatable, {
 				return true;
 			},
 			_clear_selection:function(){
-				if (!this._selected_areas.length) return false; 
+				if (!this._selected_areas.length) return false;
 
+				for (var i=0; i<this._selected_areas.length; i++){
+					if (!this.callEvent("onBeforeUnSelect", [this._selected_areas[i]])) return false;
+				}
+				
 				for (var i=0; i<this._selected_rows.length; i++)
 					this.data.removeMark(this._selected_rows[i], "webix_selected");
 				
@@ -20964,8 +21298,12 @@ webix.extend(webix.ui.datatable, {
 					for (var i = 0; i < cols.length; i++) {
 						cols[i].$selected = null;
 					}
-					
+
+				var data = this._selected_areas;
 				this._reinit_selection();
+				for (var i=0; i<data.length; i++){
+					this.callEvent("onAfterUnSelect", [data[i]]);
+				}
 				return true;
 			},
 			unselectAll:function(){
@@ -21111,8 +21449,16 @@ webix.extend(webix.ui.datatable, {
 				}
 				
 				this._silent_selection = true;
-				for (var i=row_start_ind; i<=row_end_ind; i++)
-					this.select(this.getIdByIndex(i), preserve);
+				for (var i=row_start_ind; i<=row_end_ind; i++){
+					var id = this.getIdByIndex(i);
+					if (!id){
+						if (row_id)
+							this.select(row_id);
+						break;
+					}
+					this.select(id, preserve);
+				}
+
 				this._silent_selection = false;
 				this._finalize_select();
 			}
@@ -21895,7 +22241,7 @@ webix.TablePaste = {
 
 		return value;
 	},
-
+	templateCopy_setter: webix.template,
 	_sel_to_clip: function() {
 		if (!this.getEditor || !this.getEditor()){
 			var data = this._get_sel_text();
@@ -21906,9 +22252,11 @@ webix.TablePaste = {
 
 	_get_sel_text: function() {
 		var data = [];
+		var filter = this._settings.templateCopy;
 		this.mapSelection(function(value, row, col, row_ind, col_ind) {
 			if (!data[row_ind]) data[row_ind] = [];
-			data[row_ind].push(value);
+			var newvalue = filter ? filter(value, row, col) : value;
+			data[row_ind].push(newvalue);
 			return value;
 		});
 
@@ -22022,7 +22370,7 @@ webix.storage.cookie = {
 			(( webix.env.https ) ? ";secure" : "");
 		}
 	},
-	_get_cookie:function(check_name){
+	getRaw:function(check_name){
 		// first we'll split this cookie up into name/value pairs
 		// note: document.cookie only returns name=value, not the other components
 		var a_all_cookies = document.cookie.split( ';' );
@@ -22058,7 +22406,7 @@ webix.storage.cookie = {
 	},
 	get:function(name){
 		if(name && window.JSON){
-			var json = this._get_cookie(name);
+			var json = this.getRaw(name);
 			if(!json)
 				return null;
 			return webix.DataDriver.json.toObject(unescape(json));
@@ -22066,7 +22414,7 @@ webix.storage.cookie = {
 			return null;
 	},
 	remove:function(name, domain){
-		if(name && this._get_cookie(name)) 
+		if(name && this.getRaw(name)) 
 			document.cookie = name + "=" + (( domain ) ? ";domain=" + domain : "") + ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
 	},
 	clear:function(domain){
@@ -22087,8 +22435,9 @@ webix.DataState = {
 			scroll:this.getScrollState()
 		};
 		for(var i = 0; i < cols_n; i++){
-			settings.ids.push(columns[i].id);
-			settings.size.push(columns[i].width);
+			var col = columns[i];
+			settings.ids.push(col.id);
+			settings.size.push((col.fillspace || col.adjust) ? -1 : col.width);
 		}
 
 		settings.order = [].concat(this._hidden_column_order.length ? this._hidden_column_order : settings.ids);
@@ -22162,8 +22511,12 @@ webix.DataState = {
 		if (obj.size){
 			var cols_n = Math.min(obj.size.length, columns.length);
 			for(var i = 0; i < cols_n; i++){
-				if(columns[i] && columns[i].width != obj.size[i])
+				var col = columns[i];
+				if(col && obj.size[i] > 0 && col.width != obj.size[i]){
+					delete col.fillspace;
+					delete col.adjust;
 					this._setColumnWidth( i, obj.size[i], true);
+				}
 			}
 		}
 		
@@ -22523,8 +22876,16 @@ var t = webix.Touch = {
 		var scroll = webix.html.create("DIV", {
 			"class":"webix_scroll_"+mode
 		},"");
-		
+
 		scroll.style[dim] = Math.max((py*py/dy-7),10) +"px";
+		if (t._scroll_stat.left) 
+			if (mode === "x")
+				scroll.style.left = t._scroll_stat.left+"px";
+			else
+				scroll.style.right = (-t._scroll_stat.left)+"px";
+		if (t._scroll_stat.hidden)
+			scroll.style.visibility = "hidden";
+
 		t._scroll_node.parentNode.appendChild(scroll);
 		
 		return scroll;
@@ -22715,7 +23076,7 @@ var t = webix.Touch = {
 };
 
 
-webix.ready(function(){
+function touchInit(){
 	if (webix.env.touch){
 		t.$init();
 		//not full screen mode
@@ -22724,8 +23085,31 @@ webix.ready(function(){
 
 		if (window.MSCSSMatrix)
 			webix.html.addStyle(".webix_view{ -ms-touch-action: none; }");
+	} else {
+		var id = webix.event(document.body, "touchstart", function(ev){
+			if (ev.touches.length && ev.touches[0].radiusX > 4){
+				webix.env.touch = true;
+				setMouse(mouse);
+				touchInit();
+				for (var key in webix.ui.views){
+					var view = webix.ui.views[key];
+					if (view && view.$touch)
+						view.$touch();
+				}
+			}
+			webix.eventRemove(id);
+		}, { capture: true });
 	}
-});
+}
+
+function setMouse(mouse){
+	mouse.down = "touchstart";
+	mouse.move = "touchmove";
+	mouse.up   = "touchend";
+	mouse.context = t._get_context;
+}
+
+webix.ready(touchInit);
 
 
 var mouse = webix.env.mouse = { down:"mousedown", up:"mouseup", 
@@ -22739,12 +23123,9 @@ if (window.navigator.pointerEnabled){
 	mouse.down = "MSPointerDown";
 	mouse.move = "MSPointerMove";
 	mouse.up   = "MSPointerUp";
-} else if (webix.env.touch){
-	mouse.down = "touchstart";
-	mouse.move = "touchmove";
-	mouse.up   = "touchend";
-	mouse.context = t._get_context;
-}
+} else if (webix.env.touch)
+	setMouse(mouse);
+	
 
 
 })();
@@ -22755,33 +23136,33 @@ webix.attachEvent("onDataTable", function(table, config){
 	if (webix.env.touch){
 		webix.Touch.$init();
 		config.scrollSize = 0;
-		webix.extend(table, (config.prerender===true)?table._touchNative:table._touch);
 
 		// needed to show datatable scroll
 		if(webix.Touch._disabled)
 			webix.Touch.limit();
 
-		table.defaults.scrollAlignY = false;
-
-		table._body.setAttribute("touch_scroll","xy");
-
-		table.$ready.push(function(){
-			var scrollMode = "";
-			var config = this._settings;
-			if (!config.autowidth && config.scrollX !== false)
-				scrollMode += "x";
-			if (!config.autoheight && config.scrollY !== false)
-				scrollMode += "y";
-			this._body.setAttribute("touch_scroll", scrollMode);
-		});
-		
-		webix.Touch._init_scroll_node(table._body.childNodes[1].firstChild);
-		webix.Touch._set_matrix(table._body.childNodes[1].firstChild, 0,0,"0ms");
-		table._sync_scroll(0,0,"0ms");
+		table.$ready.push(table.$touch);
 	}
 });
 
 webix.extend(webix.ui.datatable, {
+	$touch:function(){
+		var config = this._settings;
+		config.scrollAlignY = false;
+
+		webix.extend(this, (config.prerender===true)?this._touchNative:this._touch);
+		
+		var scrollMode = "";
+		if (!config.autowidth && config.scrollX !== false)
+			scrollMode += "x";
+		if (!config.autoheight && config.scrollY !== false)
+			scrollMode += "y";
+		this._body.setAttribute("touch_scroll", scrollMode);
+		
+		webix.Touch._init_scroll_node(this._body.childNodes[1].firstChild);
+		webix.Touch._set_matrix(this._body.childNodes[1].firstChild, 0,0,"0ms");
+		this._sync_scroll(0,0,"0ms");
+	},
 	_touchNative:{
 		_scrollTo_touch:function(x,y){
 			webix.Touch._set_matrix(this._body.childNodes[1].firstChild, 0,0,"0ms");
@@ -22827,13 +23208,18 @@ webix.extend(webix.ui.datatable, {
 			elastic:false
 		},
 		$init:function(){
+			//if the result column's width < container's width,
+			this.attachEvent("onAfterColumnHide", function(){
+				this._scrollTo_touch(0, 0);
+			});
 			this.attachEvent("onBeforeScroll", function(){
 				var t = webix.Touch;
 				t._scroll_node = this._body.childNodes[1].firstChild;
 				t._get_sizes(t._scroll_node);
+				t._scroll_stat.left = this._scrollLeft;
+				t._scroll_stat.hidden = this._x_scroll._settings.scrollVisible || this._y_scroll._settings.scrollVisible;
 				t._scroll_stat.dy = this._dtable_height;
 				t._scroll_master = this;
-
 			});
 			this.attachEvent("onAfterScroll", function(result){
 				//onAfterScroll may be triggered by some non-touch related logic
@@ -22846,29 +23232,39 @@ webix.extend(webix.ui.datatable, {
 				webix.Touch._fix_f = null;
 
 				this._scrollTop = 0;
+				this._scrollLeft = 0;
 
 				//ipad can delay content rendering if 3d transformation applied
 				//switch back to 2d
 				var temp = webix.Touch.config.translate;
 				webix.Touch.config.translate = "translate";
-				this._sync_scroll(result.e, 0, "0ms");
+				this._sync_scroll((this._x_scroll ? 0 : result.e), 0, "0ms");
 				webix.Touch.config.translate = temp;
 
-				this._scrollLeft = - result.e;
+				this._scrollLeft = -result.e;
 				this._scrollTop = -result.f;
+				this._correctScrollSize();
 
 				this.render();
 
-				if(isScrollX)
+				if(isScrollX){
+					if (this._x_scroll)
+						this._x_scroll.scrollTo(this._scrollLeft);
 					this.callEvent("onScrollX",[]);
-				if(isScrollY)
+				}
+				if(isScrollY){
+					if (this._y_scroll) 
+						this._y_scroll.scrollTo(this._scrollTop);
 					this.callEvent("onScrollY",[]);
+				}
 
 				return false;
 			});
 		},
 		_sync_scroll:function(x,y,t){
 			y += this._scrollTop;
+			x += this._scrollLeft;
+
 			webix.Touch._set_matrix(this._body.childNodes[1].firstChild, x, y, t);
 			if (this._settings.leftSplit)
 				webix.Touch._set_matrix(this._body.childNodes[0].firstChild,0,y,t);
@@ -22883,7 +23279,7 @@ webix.extend(webix.ui.datatable, {
 		},
 		_sync_pos:function(matrix){
 			matrix.f -= this._scrollTop;
-
+			matrix.e -= this._scrollLeft;
 		}
 	}
 });
@@ -22994,33 +23390,46 @@ webix.extend(webix.ui.datatable, {
 		this._adjustColumn(this.getColumnIndex(id), headers);
 	},
 	adjustRowHeight:function(id, silent){
-		var config = this.getColumnConfig(id);
-		var count = this.data.count();
+		if(id) {
+			var config = this.getColumnConfig(id);
+			var container;
+			var d = webix.html.create("DIV",{"class":"webix_table_cell webix_measure_size webix_cell"},"");
+			d.style.cssText = "width:"+config.width+"px; height:1px; visibility:hidden; position:absolute; top:0px; left:0px; overflow:hidden;";
+			this.$view.appendChild(d);
 
-		var container;
-		var d = webix.html.create("DIV",{"class":"webix_table_cell webix_measure_size webix_cell"},"");
-		d.style.cssText = "width:"+config.width+"px; height:1px; visibility:hidden; position:absolute; top:0px; left:0px; overflow:hidden;";
-		this.$view.appendChild(d);
-
-		if (d.offsetHeight < 1){
-			//hidden container, height detection is broken
-			//reattach to the body
-			container = this.$view.cloneNode(true);
-			document.body.appendChild(container);
-			container.appendChild(d);
-		}
-
-		this.data.each(function(obj){
-			//in case of dyn. mode - this can be undefined 
-			if (obj){
-				d.innerHTML = this._getValue(obj, config, 0);
-				obj.$height = Math.max(d.scrollHeight, this._settings.rowHeight);
+			if (d.offsetHeight < 1){
+				//hidden container, height detection is broken
+				//reattach to the body
+				container = this.$view.cloneNode(true);
+				document.body.appendChild(container);
+				container.appendChild(d);
 			}
-		}, this);
 
-		d = webix.html.remove(d);
-		if (container)
-			webix.html.remove(container);
+			this.data.each(function(obj){
+				//in case of dyn. mode - this can be undefined 
+				if (obj){
+					d.innerHTML = this._getValue(obj, config, 0);
+					obj.$height = Math.max(d.scrollHeight, this._settings.rowHeight);
+				}
+			}, this);
+
+			d = webix.html.remove(d);
+			if (container)
+				webix.html.remove(container);
+		} else {
+			var heightsArr = new Array(this.data.count()).join('0').split('');
+			var cols = this.config.columns;
+
+			for (var i = 0; i < cols.length; i++) {
+				this.adjustRowHeight(cols[i].id, true);
+				this.data.each(function(obj, index){
+					if (obj.$height > heightsArr[index]) {
+						heightsArr[index] = obj.$height;
+					}
+					obj.$height = heightsArr[index];
+				});
+			}
+		}
 
 		if (!silent)
 			this.refresh();
@@ -23070,7 +23479,7 @@ webix.extend(webix.ui.datatable,{
 
 		if (value.length > 0 && value.substr(0, 1) === '=') {
 			// calculate math value
-			if ((typeof(item[this._math_pref + col]) === 'undefined') || (_inner_call !== true))
+			if (!item[this._math_pref + col] || (_inner_call !== true))
 				item[this._math_pref + col] = item[col];
 			item[col] = this._calculate(value, row, col);
 			//this.updateItem(item);
@@ -23688,9 +24097,10 @@ webix.extend(webix.ui.datatable, {
 	},
 	_hideInitialColumns:function(){
 		var cols = this._columns;
-		this._getInitialSpans(cols);
 
 		for (var i = cols.length-1; i>=0; i--){
+			if(cols[i].header) this._getInitialSpans(cols, cols[i].header);
+			if(cols[i].footer) this._getInitialSpans(cols, cols[i].footer);
 			if (cols[i].hidden)
 				this.hideColumn(cols[i].id, true, true);
 			else if (cols[i].batch && this.config.visibleBatch && cols[i].batch!=this.config.visibleBatch){
@@ -23698,13 +24108,12 @@ webix.extend(webix.ui.datatable, {
 			}
 		}
 	},
-	_getInitialSpans:function(cols){
-		for(var i = 0; i<cols.length; i++)
-			for(var h = 0; h<cols[i].header.length;h++){
-				var line = cols[i].header[h];
-				if(line && line.colspan)
-					line.$colspan = line.colspan;
-			}
+	_getInitialSpans:function(cols, elements){
+		for(var h = 0; h<elements.length;h++){
+			var line = elements[h];
+			if(line && line.colspan)
+				line.$colspan = line.colspan;
+		}
 	},
 	moveColumn:function(id, index){
 		var start_index = this.getColumnIndex(id);
@@ -23737,6 +24146,7 @@ webix.extend(webix.ui.datatable, {
 		var horder = this._hidden_column_order;
 		var hhash = this._hidden_column_hash;
 		var column;
+		var span = 1;
 
 		if (mode!==false){
 			
@@ -23748,18 +24158,24 @@ webix.extend(webix.ui.datatable, {
 			if (index == -1) return;
 
 			this._init_horder();
+			var header = cols[index].header[0];
+			if (header)
+				header.$groupSpan = span = (header.colspan || 1);
 
 			if (index<this._settings.leftSplit)
-				this._settings.leftSplit--;
+				this._settings.leftSplit-=span;
 			if (index>=this._rightSplit)
-				this._settings.rightSplit--;
+				this._settings.rightSplit-=span;
 			else 
-				this._rightSplit--;
+				this._rightSplit-=span;
+			for (var i=index+span-1; i>=index; i--){
+				this._hideColumn(index);
+				column  = cols.splice(index, 1)[0];
+				hhash[column.id] = column;
+				column._yr0 = -1;
+				delete this._columns_pull[column.id];
+			}
 
-			this._hideColumn(index);
-			column  = hhash[id] = cols.splice(index, 1)[0];
-			column._yr0 = -1;
-			delete this._columns_pull[id];
 			this.callEvent("onAfterColumnHide", [id]);
 		} else {
 			column = hhash[id];
@@ -23770,46 +24186,63 @@ webix.extend(webix.ui.datatable, {
 
 			var prev = null;
 			var i = 0;
+			var hindex = 0;
 			for (; i<horder.length; i++){
-				if (horder[i] == id)
+				if (horder[i] == id){
+					hindex = i;
 					break;
+				}
 				if (!hhash[horder[i]])
 					prev = horder[i];
 			}
-			var index = prev?this.getColumnIndex(prev)+1:0;
 
-			webix.PowerArray.insertAt.call(cols,column, index);
-			delete column.hidden;
+			var index = prev?this.getColumnIndex(prev)+1:0;
+			var header = column.header[0];
+			if (header){
+				header.colspan = header.$groupSpan || header.colspan;
+				delete header.$groupSpan;
+				span = (header.colspan || 1);
+			}
+			
 
 			if (i<this._hidden_split[0])
-				this._settings.leftSplit++;
+				this._settings.leftSplit+=span;
 			if (i>=this._hidden_split[1])	
-				this._settings.rightSplit++;
+				this._settings.rightSplit+=span;
 			else
-				this._rightSplit++;
-							
-			delete hhash[id];
-			this._columns_pull[id] = column;
+				this._rightSplit+=span;
+
+			for (var i=hindex+span-1; i>=hindex; i--){
+				var column = hhash[horder[i]];
+				webix.PowerArray.insertAt.call(cols, column, index);
+				delete column.hidden;		
+				delete hhash[column.id];
+				this._columns_pull[column.id] = column;
+			}
+
 			this.callEvent("onAfterColumnShow", [id]);
 		}
-		this._fixColspansHidden(column, mode !== false ? 0 : 1);
+		if (span === 1){
+			if(column.header) this._fixColspansHidden(column, mode !== false ? 0 : 1, "header");
+			if(column.footer) this._fixColspansHidden(column, mode !== false ? 0 : 1, "footer");
+		}
 		if (!silent)
 			this._refresh_columns();
 	},
-	_fixColspansHidden:function(config, mod){
-		for (var i = config.header.length - 1; i >= 0; i--) {
+	_fixColspansHidden:function(config, mod, elName){
+		for (var i = config[elName].length - 1; i >= 0; i--) {
 			var ind = this._hidden_column_order;
 			var spanSource, isHidden = false, spanSize = 0;
 
 			for (var j = 0; j < ind.length; j++) {
 				var config = this.getColumnConfig(ind[j]);
-				var header = config.header[i];
+				var el = config[elName][i];
 				if (!this.isColumnVisible(ind[j])){
 					//hidden column
-					if (header && header.$colspan && spanSize <= 0){
+					if (el && el.$colspan && spanSize <= 0){
 						//start of colspan in hidden
-						spanSize = header.colspan = header.$colspan;
-						isHidden = spanSource = header;
+						spanSize = el.colspan = el.$colspan;
+						isHidden = spanSource = el;
 					}
 					if (spanSource && spanSize > 0){
 						//hidden column in colspan, decrease colspan size
@@ -23819,12 +24252,12 @@ webix.extend(webix.ui.datatable, {
 					//visible column
 					if (isHidden && spanSize > 0 && spanSource && spanSource.colspan > 0){
 						//bit start of colspan is hidden
-						header = config.header[i] = spanSource;
-						spanSource = header;
-					} else if (header && header.$colspan && spanSize <= 0){
+						el = config.el[i] = spanSource;
+						spanSource = el;
+					} else if (el && el.$colspan && spanSize <= 0){
 						//visible start of colspan
-						spanSize = header.colspan = header.$colspan;
-						spanSource = header;
+						spanSize = el.colspan = el.$colspan;
+						spanSource = el;
 					}
 					isHidden = null;
 				}
@@ -23926,7 +24359,7 @@ webix.extend(webix.ui.datatable, {
 		//change defaults in case of multiselection
 		if(t.length>1 && this._settings.select !=="cell"){
 			t = t.sort(webix.bind(function(a, b){
-				if(a.row>b.row || this.getColumnIndex(a.column)>this.getColumnIndex(b.column)) return 1;
+				if(this.getIndexById(a.row)>this.getIndexById(b.row) || this.getColumnIndex(a.column)>this.getColumnIndex(b.column)) return 1;
 				else return -1;
 			}, this));
 				if (mode == "up" || mode == "left" || mode =="top" || mode =="pgup")
@@ -24613,7 +25046,7 @@ webix.attachEvent("onDataTable", function(table){
 		if(config.origin !== false){
 			var minValue = Math.min.apply(null,data);
 			var maxValue = Math.max.apply(null,data);
-			var origin = config.origin||0;
+			var origin = config.origin||-0.000001;
 			if(origin >= maxValue){
 				pos = y;
 			}
@@ -24640,6 +25073,9 @@ webix.attachEvent("onDataTable", function(table){
 	Bar.prototype.getPoints = function(data, width, height){
 		var config = this.config;
 		var minValue = Math.min.apply(null,data);
+		if (config.origin < minValue) 
+			minValue = config.origin;
+
 		var maxValue = Math.max.apply(null,data);
 		var result = [];
 		var x = config.paddingX;
@@ -24651,7 +25087,7 @@ webix.attachEvent("onDataTable", function(table){
 		height = (height||100)-y*2;
 		if(data.length){
 			var unitX = width/data.length;
-			var yNum = maxValue - minValue;
+			var yNum = config.scale || (maxValue - minValue);
 			barWidth = Math.min(unitX-margin,barWidth);
 			margin = unitX-barWidth;
 			var minHeight = 0;
@@ -24738,6 +25174,9 @@ webix.attachEvent("onDataTable", function(table){
 	Line.prototype.getPoints = function(data, width, height) {
 		var config = this.config;
 		var minValue = Math.min.apply(null,data);
+		if (typeof config.origin !== "undefined")
+			minValue = Math.min(config.origin, minValue);
+
 		var maxValue = Math.max.apply(null,data);
 		var result = [];
 		var x = config.paddingX||0;
@@ -24750,7 +25189,7 @@ webix.attachEvent("onDataTable", function(table){
 				result.push({x: width/2+x, y: height/2+x});
 			else{
 				var unitX = width/(data.length-1);
-				var yNum = maxValue - minValue;
+				var yNum = config.scale || (maxValue - minValue);
 				var unitY = (height- minHeight)/(yNum?yNum:1);
 				if(!yNum)
 					height /= 2;
@@ -25023,6 +25462,233 @@ webix.attachEvent("onDataTable", function(table){
 
 
 
+webix.extend(webix.ui.datatable, {
+	_prePrint:function(options, htmlOnly){
+		if(options.scroll && !htmlOnly) return true;
+
+		options.header = webix.isUndefined(options.header)?(this.config.header?true:false):options.header;
+		options.footer = webix.isUndefined(options.footer)?(this.config.footer?true:false):options.footer;
+		options.xCorrection = options.xCorrection || 0; //spreadsheet
+	},
+	_findIndex:function(arr, func){
+		var result = -1;
+		for(var i =0; result<0 && i < arr.length; i++){
+			if(func(arr[i]))
+				result = i;
+		}
+		return result;
+	},
+	_getTableHeader:function(base, columns, group){
+
+		var spans = {}, start = 0;
+
+		base.forEach(webix.bind(function(tableArray, tid){
+			var row = tableArray[0], headerArray = [], length = row.length;
+
+			row.forEach(webix.bind(function(cell, cid){
+				var column = columns[cid+start];
+
+				for(var h  = 0; h< column[group].length; h++){
+					var header = column[group][h];
+
+					if(!header && !(spans[tid] && spans[tid][h])) continue;
+					
+					header = webix.copy(header || {text:""});
+					
+					if(spans[tid] && spans[tid][h] && cid ===0){
+						header.colspan = spans[tid][h];
+						spans[tid][h] = 0;
+					}
+
+					if(header.colspan){
+						var colspan = Math.min(header.colspan, (length-cid));
+						spans[tid+1] = spans[tid+1] || {};
+						spans[tid+1][h] = header.colspan-colspan;
+						header.colspan = colspan;
+					}
+					if(header.rowspan && length === 1){
+						header.height = (header.height || this.config.headerRowHeight)*header.rowspan;
+						header.rowspan = null;
+					}
+					
+					var hcell = {
+						txt:header.text || (header.contentId?this.getHeaderContent(header.contentId).getValue():""),
+						className:"webix_hcell "+"webix_"+group+"_cell "+(header.css || ""),
+						style:{
+							height:(header.height || this.config.headerRowHeight)+"px",
+							width:header.colspan?"auto":column.width + "px"
+						},
+						span:(header.colspan || header.rowspan) ? {colspan:header.colspan || 1, rowspan:header.rowspan || 1}:null
+					};
+					headerArray[h] = headerArray[h] || [];
+					headerArray[h][cid] = hcell;
+				}
+			}, this));
+			if(group =="header")
+				base[tid] = headerArray.concat(tableArray);
+			else
+				base[tid] = tableArray.concat(headerArray);
+			start+=length;
+		}, this));
+
+		return base;
+	},
+	_getTableArray:function (options, base, start){ 
+
+		var columns = this.config.columns;
+		var sel = this.getSelectedId(true);
+		var maxWidth = this._getPageWidth(options);
+		
+		var rightRestriction = 0;
+		var bottomRestriction = 0;
+		var tableArray = [];
+		var newTableStart = 0;
+
+		start = start || (0 + options.xCorrection);
+		base = base || [];
+
+		this.eachRow(webix.bind(function(row){
+			var width = 0;
+			var rowItem = this.getItem(row);
+			var rowIndex = this.getIndexById(row);
+
+			var colrow = [];
+			var datarow = false;
+
+			for(var c=start; c<columns.length; c++){
+				var column = columns[c].id;
+				var colIndex = this.getColumnIndex(column)-start;
+
+				if(columns[c]){
+					width += columns[c].width;
+
+					if(width > maxWidth && c>start){ // 'c>start' ensures that a single long column will have to fit the page
+						newTableStart = c; break; }
+
+					if(options.data !=="selection" || (options.data=="selection" && this._findIndex(sel, function(obj){
+						return obj.column == column && obj.row == row;
+					})!==-1)){
+
+						var span = this.getSpan(row, column);
+						//check span from previous table
+						if(span && this.getColumnIndex(column) === start){
+							var spanStart = this.getColumnIndex(span[1]);
+							if(spanStart < start){
+								span[2] = span[2] - (start-spanStart);
+								span[4] = span[4] ? span[4] : (rowItem[span[1]] ? this.getText(row, span[1]) : null);
+								span[1] = column;
+							}
+						}
+							
+						if(!span  || (span && span[0] == row && span[1] == column)){
+							var cellValue = span && span[4] ? span[4] : (rowItem[column] ? this.getText(row, column) : "");
+							var className = this.getCss(row, column)+" "+(columns[c].css || "")+(span? (" webix_dtable_span "+ (span[5] || "")):"" );
+							
+							var style  = {
+								height:span && span[3] > 1? "auto": ((rowItem.$height || this.config.rowHeight) + "px"),
+								width: span && span [2] > 1? "auto": columns[c].width + "px"
+							};
+
+							colrow.push({
+								txt: cellValue, className: className, style: style,
+								span: (span ? {colspan:span[2], spanStart:this.getColumnIndex(span[1]), rowspan:span[3]}:null)
+							});
+
+							if (cellValue) {
+								rightRestriction = Math.max(colIndex+1, rightRestriction);
+								bottomRestriction = Math.max(rowIndex+1, bottomRestriction);
+							}
+							datarow = datarow || !!cellValue;
+						}
+						else if(span){
+							colrow.push({$inspan:true});
+							rightRestriction = Math.max(colIndex+1, rightRestriction);
+							bottomRestriction = Math.max(rowIndex+1, bottomRestriction);
+						}
+					}
+				}
+			}
+
+			if(!options.skiprows || datarow)
+				tableArray.push(colrow);
+		}, this));
+
+		if(bottomRestriction && rightRestriction){
+			if(options.trim){
+				tableArray.length = bottomRestriction;
+				tableArray = tableArray.map(function(item){
+					for(var i = item.length-1; i>=0; i--){
+						if(item[i].span && item[i].span.colspan){
+							item[i].span.colspan = Math.min(item[i].span.colspan, item.length-i);
+							break;
+						}
+					}
+					item.length = rightRestriction;
+					return item;
+				});
+			}	
+			base.push(tableArray);
+		}
+
+		if(newTableStart) 
+			this._getTableArray(options, base, newTableStart);
+		else{
+			if(options.header)
+				base = this._getTableHeader(base, columns, "header");
+			if(options.footer)
+				base = this._getTableHeader(base, columns, "footer");
+		}
+
+		return base;
+	},
+	_getTableHTML:function(tableData, options){
+		
+		var container = webix.html.create("div");
+
+		tableData.forEach(webix.bind(function(table, i){
+
+			var tableHTML = webix.html.create("table", {
+				"class":"webix_table_print "+this.$view.className+(options.borderless?" borderless":""),
+				"style":"border-collapse:collapse"
+			});
+
+			table.forEach(function(row){
+				var tr = webix.html.create("tr");
+
+				row.forEach(function(cell, i){
+					if(!cell.$inspan){
+						var td = webix.html.create("td");
+
+						td.innerHTML = cell.txt;
+						td.className = cell.className;
+						
+						for(var key in cell.style)
+							td.style[key] = cell.style[key];
+						
+						if(cell.span){
+							td.colSpan = cell.span.colspan;
+							td.rowSpan = cell.span.rowspan;
+						}
+						tr.appendChild(td);	
+					}
+						
+				});
+				tableHTML.appendChild(tr);
+			});
+			container.appendChild(tableHTML);
+
+			if(i+1 < tableData.length){
+				var br = webix.html.create("DIV", {"class":"webix_print_pagebreak"});
+				container.appendChild(br);
+			}
+			
+		}, this));
+
+		return container;
+	}
+});
+
+webix.extend(webix.ui.datatable, webix.CustomPrint);
 
 
 
@@ -25407,6 +26073,13 @@ webix.HtmlMap = webix.proto({
 		points.push(Math.floor(y*ky)); 
 		
 		return this.addPoly(id,points,userdata);
+	},
+	hide:function(obj, data, mode){
+		if (obj.querySelectorAll){
+			var nodes = obj.querySelectorAll("area[userdata=\""+data+"\"]");
+			for (var i = 0; i < nodes.length; i++)
+				nodes[i].style.display = mode?"none":"";
+		}
 	},
 	render:function(obj){
 		var d = webix.html.create("DIV");
@@ -26159,6 +26832,7 @@ webix.protoUI({
 			legend.values[series].$hidden = true;
 			this._drawLegend();
 		}
+		this._map.hide(this._contentobj, series, true);
 	},
 	showSeries:function(series){
 		this.canvases[series].showCanvas();
@@ -26167,6 +26841,7 @@ webix.protoUI({
 			delete legend.values[series].$hidden;
 			this._drawLegend();
 		}
+		this._map.hide(this._contentobj, series, false);
 	},
 	/**
 	*   renders legend block
@@ -30507,9 +31182,7 @@ webix.protoUI({
 		return this._viewobj.firstChild;
 	},
 	setValue:function(value){
-		if(!value)
-			return;
-		if(value.charAt(0) != "#")
+		if(value && value.toString().charAt(0) != "#")
 			value = '#' + value;
 
 		var oldvalue = this._settings.value;
@@ -31274,6 +31947,11 @@ webix.protoUI({
 	name:"menu",
 	_listClassName:"webix_menu",
 	$init:function(config){
+		this.data._scheme_init = webix.bind(function(obj){
+			if (obj.disabled)
+				this.data.addMark(obj.id, "webix_disabled", true, 1, true);
+		}, this);
+
 		if (config.autowidth){
 			this._autowidth_submenu = true;
 			delete config.autowidth;
@@ -31448,7 +32126,7 @@ webix.protoUI({
 		//hide previously opened sub-menu
 		if (this._open_sub_menu && data.submenu != this._open_sub_menu)
 			this._hide_sub_menu(true);
-			
+
 		//show submenu
 		if (data.submenu&&!this.config.hidden){
 
@@ -32114,6 +32792,22 @@ webix.protoUI({
 
 		var lw = webix.isUndefined(obj.labelWidth) ? this.defaults.labelWidth : obj.labelWidth;
 		obj.paddingX = lw - this._inputPadding*2 + this._inputSpacing* 2;
+	},
+	setBottomText: function(text) {
+		var config = this._settings;
+		if (typeof text != "undefined"){
+			if (config.bottomLabel == text) return;
+			config.bottomLabel = text;
+		}
+		var message = (config.invalid ? config.invalidMessage : "") || config.bottomLabel;
+		if(this._invalidMessage) {
+			webix.html.remove(this._invalidMessage);
+		}
+		if(message) {
+			this.$view.style.position = "relative";
+			this._invalidMessage = webix.html.create("div", { class:"webix_inp_bottom_label", role:config.invalid?'alert':"", "aria-relevant":'all', style:"position:absolute; bottom:0px; padding:2px; background: white; left:"+this._settings.labelWidth+"px; " }, message);
+			this._viewobj.appendChild(this._invalidMessage);
+		}
 	}
 }, webix.ui.fieldset);
 
@@ -32451,7 +33145,7 @@ webix.protoUI({
 
 })();
 (function(){
-	var google;
+	var google, script;
 	webix.protoUI({
 		name:"google-map",
 		$init:function(config){
@@ -32465,33 +33159,38 @@ webix.protoUI({
 		getMap:function(waitMap){
 			return waitMap?this._waitMap:this._map;
 		},
+		_getCallBack:function(prev){
+			return webix.bind(function(){
+				if (typeof prev === "function") prev();
+
+				google = google || window.google;
+				this._initMap.call(this);
+			}, this);
+		},
 		render:function(){
 			if(typeof window.google=="undefined"||typeof window.google.maps=="undefined"){
-				var name = "webix_callback_"+webix.uid();
-				window[name] = webix.bind(function(){
-					google = window.google;
-					this._initMap.call(this,true);
-				},this);
+				if(!script){
+					script = document.createElement("script");
+					script.type = "text/javascript";
 
-				var script = document.createElement("script");
-				script.type = "text/javascript";
+					var config = this._settings;
+					var src = config.src || "//maps.google.com/maps/api/js";
+					src += (src.indexOf("?")===-1 ? "?" :"&");
+					
+					if (config.key)
+						src += "&key="+config.key;
+					if (config.libraries)
+						src += "&libraries="+config.libraries;
 
-				var config = this._settings;
-				var src = config.src || "//maps.google.com/maps/api/js";
-				src += (src.indexOf("?")===-1 ? "?" :"&")+"callback="+name;
-				
-				if (config.key)
-					src += "&key="+config.key;
-				if (config.libraries)
-					src += "&libraries="+config.libraries;
-
-				script.src = src;
-				document.getElementsByTagName("head")[0].appendChild(script);
+					script.src = src;
+					document.getElementsByTagName("head")[0].appendChild(script);
+				}
+				script.onload = this._getCallBack(script.onload);
 			}
-			else
-				this._initMap();
+			else //there's a custom link to google api in document head
+				(this._getCallBack())();
 		},
-		_initMap:function(define){
+		_initMap:function(){
 			var c = this.config;
 			if(this.isVisible(c.id)){
 				this._map = new google.maps.Map(this._contentobj, {
@@ -32571,11 +33270,11 @@ webix.protoUI({
 							break;
 					}
 				},
-				clearAll:function(){
+				clearAll:function(soft){
 					this.data.each(function(obj){
 						obj.$marker.setMap(null);
 					});
-					this.data.clearAll();
+					this.data.clearAll(soft);
 				},
 				showItem:function(id){
 					var item = this.getItem(id);
@@ -33981,7 +34680,8 @@ webix.protoUI({
 	defaults:{
 		scrollSpeed:"300ms",
 		type: "clean",
-		navigation: {}
+		navigation: {},
+		animate:true
 	},
 	$init:function(config){
 		this._viewobj.className += " webix_carousel";
@@ -33991,7 +34691,24 @@ webix.protoUI({
 		this.$ready.unshift(this._initLayout);
 		this.$ready.push(this._after_init_call);
 	},
-
+	addView: function(view, index){
+		var t = this._layout.addView(view, index);
+		this._fix_after_view_add();
+		return t;
+	},
+	removeView: function(id){
+		this._layout.removeView(id);
+		this._fix_after_view_add();
+	},
+	_replace: function(new_view,target_id){
+		this._layout._replace(new_view, target_id);
+		this._fix_after_view_add();
+	},
+	_fix_after_view_add: function(){
+ 		this._cells = this._layout._cells;
+ 		this._renderPanel();
+ 		this.setActiveIndex(Math.min(this._active_cell, this._cells.length-1));
+	},
 	_initLayout: function(){
 		if(this._layout && this._layout.destructor)
 			this._layout.destructor();
@@ -34102,7 +34819,7 @@ webix.protoUI({
 			this._renderPanel();
 	},
 	scrollTo:function(x,y){
-		if (webix.Touch && webix.animate.isSupported())
+		if (webix.Touch && webix.animate.isSupported() && this._settings.animate)
 			webix.Touch._set_matrix(this._contentobj, x,y, this._settings.scrollSpeed||"100ms");
 		else{
 			this._contentobj.style.marginLeft = x+"px";
@@ -34570,7 +35287,10 @@ webix.protoUI({
 	},
 	$cssName:"button",
 	_allowsClear:true,
-
+	on_click:{
+		//don't fire extra onItemClick events, visible button will do it
+		"webix_hidden_upload":function(){ return false; }
+	},
 	//will be redefined by upload driver
 	send:function(){},
 	fileDialog:function(){},
@@ -34886,20 +35606,26 @@ webix.ui.fullScreen = function(){
 webix.history = {
 	track:function(id, url){
 		this._init_state(id, url);
-
-		var view = webix.$$(id);
 		
-		var handler = function(){
-			if (webix.history._ignored) return;
+		if (this._aHandler)
+			webix.$$(this._aViewId).detachEvent(this._aHandler);
 
-			if (view.getValue)
-				webix.history.push(id, view.getValue());
-		};
+		if (id){
+			this._aViewId = id;
+			var view = webix.$$(id);
+			
+			var handler = function(){
+				if (webix.history._ignored) return;
 
-		if (view.getActiveId)
-			view.attachEvent("onViewChange", handler);
-		else
-			view.attachEvent("onChange", handler);
+				if (view.getValue)
+					webix.history.push(id, view.getValue());
+			};
+
+			if (view.getActiveId)
+				this._aHandler = view.attachEvent("onViewChange", handler);
+			else
+				this._aHandler = view.attachEvent("onChange", handler);
+		}
 	},
 	_set_state:function(view, state){
 		webix.history._ignored = 1;
@@ -35309,7 +36035,7 @@ webix.ActiveContent = {
 			// for inputs only
 			if(target.tagName != "BUTTON"){
 				var el = webix.$$(ev);
-				if (el !== this && el.getValue  && el.setValue){
+				if (el && el !== this && el.getValue  && el.setValue){
 					el.getNode(ev);
 
 					var newvalue = el.getValue();
@@ -35620,7 +36346,6 @@ webix.protoUI({ name:"abslayout" },webix.ui.NonGPL);
 webix.protoUI({
 	name:"sidemenu",
 	defaults: {
-		padding:0,
 		animate: true,
 		position: "left",
 		width: 200,
@@ -35628,6 +36353,9 @@ webix.protoUI({
 	},
 	$init:function(){
 		this.$view.className += " webix_sidemenu";
+	},
+	$skin:function(){
+		this.defaults.padding = 0;
 	},
 	position_setter: function(value){
 		var prevPosition = this._settings.position;
@@ -35917,15 +36645,12 @@ webix.toCSV = function(id, options){
     var data = getCsvData(result, scheme);
     var filename =  (options.filename || "Data")+".csv";
 
-    var blob = new Blob([data], { type: "text/csv" });
+    var blob = new Blob(["\uFEFF" + data], { type: "text/csv" });
     webix.html.download(blob, filename);
 };
 
 function getCsvData(data, scheme) {
-	var result = [[]];
-	for (var i=0; i < scheme.length; i++)
-		result[0][i] = (scheme[i].header.join(" ")||"").replace(/<[^>]*>/gi,"");
-    return webix.csv.stringify(result.concat(data));
+    return webix.csv.stringify(data);
 }
 
 var font;
@@ -35995,6 +36720,27 @@ function getExportScheme(view, options){
     if (options.id)
         scheme.push({ id:"id", width:50, header:" ", template:function(obj){ return obj.id; }});
 
+    if (options.flatTree){
+        var flatKey = options.flatTree.id;
+        var copy = [].concat(options.flatTree.columns);
+        var fill = [];
+        var fillMode = !!options.flatTree.fill;
+        for (var i = 1; i <= copy.length; i++)
+            copy[i-1].template = (function(i, c){ 
+                return function(obj){ 
+                    return obj.$level == i ? (fill[i]=obj[flatKey]) : ((fillMode && i<obj.$level)?fill[i]:""); 
+                };
+            })(i);
+
+        var index = 0;
+        for (var i = columns.length-1; i >= 0; i--)
+            if (columns[i].id === flatKey)
+                index = i;
+
+        columns = [].concat(columns.slice(0,index)).concat(copy).concat(columns.slice(index+1));
+    }
+
+        
     for (var j = 0; j < columns.length; j++) {
         var column = columns[j];
         var key = column.id;
@@ -36081,11 +36827,11 @@ function getExportData(view, options, scheme){
     }
 
     var isTree = (view.data.name == "TreeStore");
-    var treeline = options.plainOutput ? "" : " - ";
+    var treeline = (options.flatTree || options.plainOutput) ? "" : " - ";
 
     view.data.each(function(item){
         if(item){ //dyn loading
-             var line = [];
+            var line = [];
             for (var i = 0; i < scheme.length; i++){
                 var column = scheme[i];
                 var cell = column.template(item, view.type, item[column.id], column, i);
@@ -36095,6 +36841,9 @@ function getExportData(view, options, scheme){
                         cell = cell.replace(/<div class=.webix_tree_none.><\/div>/, treeline);
                     cell = cell.replace(htmlFilter, "");
                 }
+                //remove end/start spaces(ex.hierarchy data)
+                if (typeof cell === "string" && options._export_mode === "csv")
+                    cell = cell.trim();
                 //for multiline data
                 if (typeof cell === "string" && (options._export_mode === "excel" || options._export_mode === "csv")){
                 	cell = cell.replace(/<br\s*\/?>/mg,"\n");
@@ -36112,7 +36861,7 @@ function getExportData(view, options, scheme){
             var footers  = [];
             for(var i = 0; i<scheme.length; i++){
                 var footer = scheme[i].footer[f];
-                if (filterHTML) footer = scheme[i].footer[f] = footer.replace(htmlFilter, "");
+                if (filterHTML) footer = scheme[i].footer[f] = footer.toString().replace(htmlFilter, "");
                 footers.push(footer);
             }
             if(options._export_mode === "excel") data.push(footers);
@@ -36327,6 +37076,7 @@ function getPdfData(scheme, data, options, callback){
 
 })();
 
+
 webix.protoUI({
 	name: "richtext",
 	defaults:{
@@ -36507,6 +37257,7 @@ webix.protoUI({
 		this.refresh();
 	},
 	getValue: function() {
-		return this.config.value || "";
+		var value = this.config.value;
+		return value || (value ===0?"0":"");
 	}
 }, webix.IdSpace, webix.ui.layout);

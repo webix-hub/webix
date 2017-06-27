@@ -25,7 +25,7 @@ webix.i18n.locales["it-IT"] = {
 		hours: "Orario",
 		minutes: "Minuti",
 		done:"Pronto",
-		clear: "Chiara",
+		clear: "Pulisci",
 		today: "Oggi"
     },
 

@@ -1,3 +1,13 @@
+Version 4.4 (June 2017)
+================
+
+### Major features
+
+- webix.print API
+- Query Builder widget
+- Demos for .Net, NodeJS and PHP
+
+
 Version 4.3 (April 2017)
 ================
 
