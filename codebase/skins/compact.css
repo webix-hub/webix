@@ -1,7 +1,7 @@
 /*
 @license
 webix UI v.4.4.0
-This software is allowed to use under GPL or you need to obtain Commercial License 
+This software is allowed to use under GPL or you need to obtain Commercial License
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
 .webix_view{font-family:'PT Sans',Tahoma;font-size:13px;color:#666;-webkit-font-smoothing:antialiased;cursor:default;overflow:hidden;border:0 solid #ddd;background-color:#fff;white-space:normal;-webkit-appearance:none}
@@ -1512,8 +1512,8 @@ label.webix_required:after{padding-left:4px;content:"*";color:red}
 .webix_dbllist button:last-child{margin-left:5%}
 .webix_dbllist .bottom_label{font-size:10px;text-transform:uppercase;background:#ededed;padding-left:13px}
 .webix_invalid .webix_list{background:#f8e2e2}
-@font-face{font-family:'PT Sans';font-style:normal;font-weight:400;src:local('PT Sans'),local('PTSans-Regular'),url(../fonts/PTS-webfont.eot) format('embedded-opentype'),url(../fonts/PTS-webfont.woff) format('woff'),url(../fonts/PTS-webfont.ttf) format('truetype')}
-@font-face{font-family:'PT Sans';font-style:normal;font-weight:700;src:local('PT Sans Bold'),local('PTSans-Bold'),url(../fonts/PTS-bold.eot) format('embedded-opentype'),url(../fonts/PTS-bold.woff) format('woff'),url(../fonts/PTS-bold.ttf) format('truetype')}
+@font-face{font-family:'PT Sans';font-style:normal;font-weight:400;src:local('PT Sans'),local('PTSans-Regular'),url(../fonts/PTS-webfont.woff) format('woff')}
+@font-face{font-family:'PT Sans';font-style:normal;font-weight:700;src:local('PT Sans Bold'),local('PTSans-Bold'),url(../fonts/PTS-bold.woff) format('woff')}
 .mainFont{font-family:'PT Sans',Tahoma;font-size:13px;color:#666}
 .webix_layout_toolbar.webix_toolbar{color:#fff;font-size:16px;background:#3498db}
 .webix_layout_toolbar.webix_toolbar .webix_el_button,.webix_layout_toolbar.webix_toolbar .webix_el_label,.webix_layout_toolbar.webix_toolbar .webix_inp_label{color:#fff}

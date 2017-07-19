@@ -7293,13 +7293,13 @@ label.webix_required:after {
   font-family: 'PT Sans';
   font-style: normal;
   font-weight: 400;
-  src: local('PT Sans'), local('PTSans-Regular'), url('../../fonts/PTS-webfont.eot') format('embedded-opentype'), url('../../fonts/PTS-webfont.woff') format('woff'), url('../../fonts/PTS-webfont.ttf') format('truetype');
+  src: local('PT Sans'), local('PTSans-Regular'), url('../../fonts/PTS-webfont.woff') format('woff');
 }
 @font-face {
   font-family: 'PT Sans';
   font-style: normal;
   font-weight: 700;
-  src: local('PT Sans Bold'), local('PTSans-Bold'), url('../../fonts/PTS-bold.eot') format('embedded-opentype'), url('../../fonts/PTS-bold.woff') format('woff'), url('../../fonts/PTS-bold.ttf') format('truetype');
+  src: local('PT Sans Bold'), local('PTSans-Bold'), url('../../fonts/PTS-bold.woff') format('woff');
 }
 .mainFont {
   font-family: 'PT Sans', Tahoma;
