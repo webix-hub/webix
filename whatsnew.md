@@ -1,3 +1,23 @@
+Version 5.0 (September 2017)
+================
+
+### New tools
+
+- Webix Jet 1.0 
+
+
+### Major features
+
+- Hint widget
+- GeoChart control
+- Vertical slider control
+- Export to Excel includes styles
+- Export to CSV for all widgets
+- Improved accessibility and keyboard navigation
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_5_0.html)
+
+
 Version 4.4 (June 2017)
 ================
 
@@ -7,6 +27,7 @@ Version 4.4 (June 2017)
 - Query Builder widget
 - Demos for .Net, NodeJS and PHP
 
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_4_4.html)
 
 Version 4.3 (April 2017)
 ================
@@ -252,13 +273,13 @@ Version 1.9
 Version 1.8
 ================
 
-###Responsive Layouts and Tabbar
+### Responsive Layouts and Tabbar
 
 - Layout view can be hidden or moved if there's not enough space for them on the screen. [Check details](desktop/responsive_layout.md).
 - Tabbar tabs can be moved to a related popup if there're not enoght space for them on the screen. [Check details](desktop/responsive_tabbar.md).
 
 
-###Disabling dates in Calendar
+### Disabling dates in Calendar
 
 Calendar dates can be disabled to prevent their selection. [Check details](desktop/calendar.md#blockdates).
 

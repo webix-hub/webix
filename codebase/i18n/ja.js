@@ -79,5 +79,9 @@ webix.i18n.locales["ja-JP"]={
         underline: "アンダーライン",
         bold: "大胆な",
         italic: "イタリック"
+    },
+    combo:{
+    	selectAll:"すべて選択",
+    	unselectAll:"すべての選択を解除する"
     }
 };

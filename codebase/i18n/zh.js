@@ -79,5 +79,9 @@ webix.i18n.locales["zh-CN"] = {
         underline: "强调",
         bold: "粗體",
         italic: "斜体"
+    },
+    combo:{
+        selectAll:"全选",
+        unselectAll:"全部取消选择"
     }
 };

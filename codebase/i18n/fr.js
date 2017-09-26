@@ -74,5 +74,9 @@ webix.i18n.locales["fr-FR"]={
         underline: "Souligner",
         bold: "Gras",
         italic: "Italique"
+    },
+    combo:{
+    	selectAll:"Tout sélectionner",
+    	unselectAll:"Tout déselectionner"
     }
 };

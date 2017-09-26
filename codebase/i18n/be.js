@@ -79,5 +79,9 @@ webix.i18n.locales["be-BY"]={
         underline: "Падкрэсліванне",
         bold: "Паўтлусты",
         italic: "Курсіў"
+    },
+    combo:{
+    	selectAll:"Абраць усё",
+    	unselectAll:"Ачысціць ўсе"
     }
 };

@@ -74,5 +74,9 @@ webix.i18n.locales["ru-RU"]={
         underline: "Подчеркивание",
         bold: "Жирный",
         italic: "Курсив"
+    },
+    combo:{
+        selectAll:"Выбрать все",
+        unselectAll:"Сброс выбора"
     }
 };

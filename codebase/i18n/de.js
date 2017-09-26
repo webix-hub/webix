@@ -79,5 +79,9 @@ webix.i18n.locales["de-DE"] = {
         underline: "Unterstreichen",
         bold: "Fettgedruckt",
         italic: "Kursiv"
+    },
+    combo:{
+        selectAll:"Alles auswählen",
+        unselectAll:"Alles wiederufen"
     }
 };

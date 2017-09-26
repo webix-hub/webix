@@ -82,5 +82,9 @@ webix.i18n.locales["en-US"]={
         underline: "Underline",
         bold: "Bold",
         italic: "Italic"
+    },
+    combo:{
+    	selectAll:"Select all",
+    	unselectAll:"Unselect all"
     }
 };

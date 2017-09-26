@@ -80,5 +80,9 @@ webix.i18n.locales["pt-BR"] = {
         underline: "Sublinhado",
         bold: "Negrito",
         italic: "itálico"
+    },
+    combo:{
+    	selectAll:"Selecionar tudo",
+    	unselectAll:"Desmarque todos"
     }
 };
