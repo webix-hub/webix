@@ -1,3 +1,15 @@
+Version 5.1 (November 2017)
+================
+### Major features
+
+- Numeric format for inputs and numeric data editors
+- Multiple dates selection in Calendar and DatePicker 
+- GridLayout component 
+- The gridlayout-based Dashboard widget 
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_5_1.html)
+
+
 Version 5.0 (September 2017)
 ================
 

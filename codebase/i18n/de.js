@@ -82,6 +82,6 @@ webix.i18n.locales["de-DE"] = {
     },
     combo:{
         selectAll:"Alles auswählen",
-        unselectAll:"Alles wiederufen"
+        unselectAll:"Alles widerrufen"
     }
 };

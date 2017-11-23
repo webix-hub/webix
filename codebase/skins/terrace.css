@@ -1,6 +1,6 @@
 /*
 @license
-webix UI v.5.0.0
+webix UI v.5.1.0
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -105,13 +105,14 @@ x\:ui{display:none}
 .webix_list_item.webix_disabled{color:#8b949e}
 .webix_list_item.webix_disabled .webix_submenu_icon{visibility:hidden}
 .webix_view.webix_pager{padding:2px 0;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;background-color:transparent}
-.webix_pager_item,.webix_pager_item_selected{padding:0 6px;text-align:center;height:100%;width:32px;border:1px solid #cecece;margin:0 2px;cursor:pointer;background-color:#fff;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;font-family:Arial;font-size:13px}
+.webix_pager_item,.webix_pager_item_selected{padding:0 6px;text-align:center;height:100%;width:auto;min-width:32px;border:1px solid #cecece;margin:0 2px;cursor:pointer;background-color:#fff;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;font-family:Arial;font-size:13px}
 .webix_pager_item_selected{cursor:default;background-color:#fff3a1;border:1px solid #e6e6e6}
 .webix_animation .webix_ss_header{position:relative;z-index:10}
 .webix_animation .webix_ss_footer,.webix_animation .webix_vscroll_x{position:absolute;bottom:0;z-index:10}
 .webix_allow_selection{-moz-user-select:text;-webkit-user-select:text;user-select:text}
 .webix_dataview_item{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;padding:2px 10px;line-height:23px;cursor:pointer;border-bottom:1px solid #e6e6e6;text-align:left;border-right:1px solid #e6e6e6}
 .webix_dataview_item.webix_selected{color:#2f2f2f;background:#fff3a1;border-bottom:1px solid #e6e6e6;border-right:1px solid #e6e6e6}
+.webix_dataview_item.webix_invalid{background-color:#fee}
 .webix_chart{position:relative;font-family:Arial;font-size:13px;color:#454544;overflow:hidden;z-index:1}
 .webix_chart canvas{position:absolute}
 .webix_canvas_text{position:absolute;text-align:center;overflow:hidden;white-space:nowrap;font-size:12px;z-index:100}
@@ -263,13 +264,14 @@ div.webix_modal_cover{background-color:#000;cursor:default;filter:alpha(opacity=
 .webix_point_bottom{background-position:0 0}
 .webix_point_right{background-position:0 -22px}
 .webix_point_left{background-position:0 -9px}
-.webix_resize_handle{position:absolute;width:15px;height:15px;bottom:0;line-height:15px;right:-1px;text-align:center;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAMAAAAMCGV4AAAABlBMVEUAAAAAAAClZ7nPAAAAAXRSTlMAQObYZgAAABZJREFUeAFjIAUwUshlpJDLSIhLGAAACQ4AFk79JaMAAAAASUVORK5CYII=);cursor:nw-resize}
+.webix_resize_handle{position:absolute;z-index:2;width:15px;height:15px;bottom:0;line-height:15px;right:-1px;text-align:center;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAMAAAAMCGV4AAAABlBMVEUAAAAAAAClZ7nPAAAAAXRSTlMAQObYZgAAABZJREFUeAFjIAUwUshlpJDLSIhLGAAACQ4AFk79JaMAAAAASUVORK5CYII=);cursor:nw-resize}
 .webix_resize_frame{position:absolute;filter:alpha(opacity=10);opacity:.1;background:#f3efe7;display:block;border:1px solid #d1c2a3;box-shadow:1px 3px 6px #000}
 .webix_resize_cursor{cursor:nw-resize}
 .webix_tree .webix_scroll_cont>.webix_tree_leaves{padding:9px 10px 9px 9px}
 .webix_tree_item{clear:both;height:22px;line-height:22px;white-space:nowrap}
 .webix_tree_item.webix_selected{background:0 0}
 .webix_tree_item.webix_selected span{padding:4px 10px 4px 4px;margin-left:-4px;color:#2f2f2f;background:#fff3a1}
+.webix_tree_item.webix_invalid{background-color:#fee}
 .webix_tree_checkbox{margin:1px 0 0;padding:0;float:left;vertical-align:middle;height:100%;width:13px}
 .webix_indeterminate{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gcCCSwfRyGesAAAAAxpVFh0Q29tbWVudAAAAAAAvK6ymQAAAExJREFUKM9jLCgo+M9AAmBhYGBgaGtrY+Tk5MSrsLCwkIGBgeE/EwOJgGQNLMgcJSUlBgYGBnQ/Md67d498G+jsB6hbGQfWSYykJg0AUMsPVoNrFX0AAAAASUVORK5CYII=);background-repeat:no-repeat;background-position:left center;height:100%;width:13px;margin-top:0!important}
 .webix_measure_size input,.webix_measure_size select,.webix_measure_size textarea{width:5px}
@@ -1320,11 +1322,13 @@ label.webix_required:after{padding-left:4px;content:"*";color:red}
 .webix_barcode .webix_canvas_text{font-size:13px;padding:0 2px;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
 .portlet_drag{position:absolute;z-index:1;top:5px;right:5px;width:18px;opacity:.5;cursor:pointer}
 .portlet_in_drag{opacity:.4}
-.portlet_marker,.portlet_markerbottom,.portlet_markerleft,.portlet_markerright,.portlet_markertop{opacity:.5;background:#9169BE;position:absolute;transition:top .5s,left .5s,width .5s,height .5s;top:0;left:0;width:100%;height:100%}
+.portlet_marker,.portlet_markerbottom,.portlet_markerleft,.portlet_markerright,.portlet_markertop{opacity:.5;background:#9169BE;position:absolute;z-index:2;transition:top .5s,left .5s,width .5s,height .5s;top:0;left:0;width:100%;height:100%}
 .portlet_markertop{height:50%}
 .portlet_markerbottom{height:50%;top:50%}
 .portlet_markerleft{width:50%}
 .portlet_markerright{width:50%;left:50%}
+.panel_icon{position:absolute;z-index:1;top:5px;right:5px;width:18px;opacity:.5;cursor:pointer}
+.panel_target{position:absolute;background:rgba(120,120,120,.84);box-shadow:0 0 10px 5px #666;z-index:3}
 .webix_popup.webix_sidemenu.webix_sidemenu_left{border-width:0 1px 0 0;box-shadow:2px 0 2px rgba(0,0,0,.05)}
 .webix_sidemenu_left.webix_animate{transition:left .6s}
 .webix_popup.webix_sidemenu.webix_sidemenu_right{left:auto;border-width:0 0 0 1px;box-shadow:-2px 0 2px rgba(0,0,0,.05)}
