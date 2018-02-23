@@ -24,10 +24,6 @@ webix.i18n.locales["fr-FR"]={
 		today: "Aujourd'hui"
 	},
 
-	controls:{
-		select:"Sélectionner",
-		invalidMessage:"Valeur d'entrée invalide"
-	},
 	dataExport:{
 		page:"Page",
 		of:"sur"
@@ -76,6 +72,7 @@ webix.i18n.locales["fr-FR"]={
         italic: "Italique"
     },
     combo:{
+    	select:"Sélectionner",
     	selectAll:"Tout sélectionner",
     	unselectAll:"Tout déselectionner"
     }

@@ -29,10 +29,6 @@ webix.i18n.locales["es-ES"] = {
 		today: "Hoy"
     },
 
-    controls:{
-    	select:"Seleccione",
-    	invalidMessage: "Valor de entrada no válido"
-    },
     dataExport:{
 		page:"Página",
 		of:"de"
@@ -81,6 +77,7 @@ webix.i18n.locales["es-ES"] = {
         italic: "Itálico"
     },
     combo:{
+    	select:"Seleccionar",
         selectAll:"Seleccionar todo",
         unselectAll:"Deselecciona todo"
     }

@@ -24,10 +24,6 @@ webix.i18n.locales["ru-RU"]={
 		today: "Сегодня"
 	},
 
-    controls:{
-    	select:"Выбрать",
-    	invalidMessage: "Неправильное значение"
-    },
     dataExport:{
 		page:"Страница",
 		of:"из"
@@ -76,6 +72,7 @@ webix.i18n.locales["ru-RU"]={
         italic: "Курсив"
     },
     combo:{
+    	select:"Выбрать",
         selectAll:"Выбрать все",
         unselectAll:"Сброс выбора"
     }

@@ -1,3 +1,17 @@
+Version 5.2 (February 2018)
+=================
+### Major features
+
+- Dynamic rendering for the List widget
+- New Switch Button Form control
+- Vertical mode and a moving title for the RangeSlider control
+- The Sidebar widget is added to the main library
+- New styling for the Pivot complex widget
+- Improved performance of the Kanban Board complex widget
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_5_2.html)
+
+
 Version 5.1 (November 2017)
 ================
 ### Major features

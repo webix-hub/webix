@@ -29,10 +29,6 @@ webix.i18n.locales["zh-CN"] = {
 		today: "今天"
     },
 
-    controls:{
-    	select:"选择",
-    	invalidMessage: "无效的输入值"
-    },
     dataExport:{
 		page:"页",
 		of:"从"
@@ -81,6 +77,7 @@ webix.i18n.locales["zh-CN"] = {
         italic: "斜体"
     },
     combo:{
+    	select:"选择",
         selectAll:"全选",
         unselectAll:"全部取消选择"
     }

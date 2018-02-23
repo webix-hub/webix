@@ -30,10 +30,7 @@ webix.i18n.locales["pt-BR"] = {
 		clear: "Limpar",
 		today: "Hoje"
    },
-	controls:{
-		select:"Selecionar",
-		invalidMessage: "Valor de entrada inválido"
-	},
+
 	dataExport:{
 		page:"Página",
 		of:"de"
@@ -82,6 +79,7 @@ webix.i18n.locales["pt-BR"] = {
         italic: "itálico"
     },
     combo:{
+    	select:"Selecionar",
     	selectAll:"Selecionar tudo",
     	unselectAll:"Desmarque todos"
     }

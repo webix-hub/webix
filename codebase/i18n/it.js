@@ -29,10 +29,6 @@ webix.i18n.locales["it-IT"] = {
 		today: "Oggi"
     },
 
-    controls:{
-		select:"Selezionare",
-		invalidMessage:"Valore di input non valido"
-    },
     dataExport:{
 		page:"Pagina",
 		of:"di"
@@ -81,6 +77,7 @@ webix.i18n.locales["it-IT"] = {
         italic: "Corsivo"
     },
     combo:{
+    	select:"Selezionare",
     	selectAll:"Seleziona tutto",
     	unselectAll:"Deseleziona tutto"
     }
