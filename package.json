@@ -1,0 +1,33 @@
+{
+  "name": "webix",
+  "version": "2.5.15",
+  "description": "Javascript components library for mobile and desktop browsers",
+  "main": "codebase/webix.js",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webix-hub/tracker.git"
+  },
+  "keywords": [
+    "components",
+    "widgets",
+    "library",
+    "mobile",
+    "grid",
+    "tree",
+    "chart",
+    "ajax",
+    "layout"
+  ],
+  "author": "XB Software",
+  "license": "GPL",
+  "bugs": {
+    "url": "https://github.com/webix-hub/tracker/issues"
+  },
+  "homepage": "https://webix.com",
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}
