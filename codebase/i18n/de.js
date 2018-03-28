@@ -31,15 +31,15 @@ webix.i18n.locales["de-DE"] = {
 
     dataExport:{
 		page:"Seite",
-		of:"aus"
+		of:"von"
     },
     PDFviewer:{
-		of:"aus",
-		automaticZoom:"Automatisch Zoom",
-		actualSize:"Aktuelles Ausmaß",
-		pageFit:"Seite Ausmaß",
-		pageWidth:"Seite Breite",
-		pageHeight:"Seite Höhe"
+		of:"von",
+		automaticZoom:"Automatischer Zoom",
+		actualSize:"Tatsächliche Größe",
+		pageFit:"Ganze Seite",
+		pageWidth:"Seitenbreite",
+		pageHeight:"Seitenhöhe"
     },
     aria:{
     	calendar:"Kalender",
@@ -47,29 +47,29 @@ webix.i18n.locales["de-DE"] = {
 		decreaseValue:"Wert verringern",
 		navMonth:["Vorheriger Monat", "Nächsten Monat"],
 		navYear:["Vorheriges Jahr", "Nächstes Jahr"],
-		navDecade:["Zurück Jahrzehnt", "Als nächstes Jahrzehnt"],
+		navDecade:["Vorheriges Jahrzehnt", "Nächstes Jahrzehnt"],
 		dateFormat:"%j. %F %Y",
 		monthFormat:"%F %Y",
 		yearFormat:"%Y",
 		hourFormat:"Stunden: %H",
 		minuteFormat:"Minuten: %i",
 		removeItem:"Element entfernen",
-		pages:["Erste Seite", "Vorherige Seite", "Folgeseite", "Letzte Seite"],
+		pages:["Erste Seite", "Vorherige Seite", "Nächste Seite", "Letzte Seite"],
 		page:"Seite",
 		headermenu:"Titelmenü",
-		openGroup:"Öffnen Spaltengruppe ",
-		closeGroup:"Schließen Spaltengruppe ",
+		openGroup:"Öffne Spaltengruppe ",
+		closeGroup:"Schließe Spaltengruppe ",
 		closeTab:"Tab schließen",
 		showTabs:"Weitere Tabs",
 		resetTreeMap:"Zurück zur ursprünglichen Ansicht",
-		navTreeMap:"Aufleveln",
-		nextTab:"Weiter tab",
-		prevTab:"Zurück tab",
+		navTreeMap:"Höheres Level",
+		nextTab:"Nächstes Tab",
+		prevTab:"Vorheriges Tab",
 		multitextSection:"Element hinzufügen",
 		multitextextraSection:"Element entfernen",
 		showChart:"Chart anzeigen",
 		hideChart:"Chart verstecken",
-		resizeChart:"Chart Größe ändern"
+		resizeChart:"Chartgröße ändern"
     },
     richtext:{
         underline: "Unterstreichen",
@@ -79,6 +79,6 @@ webix.i18n.locales["de-DE"] = {
     combo:{
     	select:"Auswählen",
         selectAll:"Alles auswählen",
-        unselectAll:"Alles widerrufen"
+        unselectAll:"Auswahl aufheben"
     }
 };
