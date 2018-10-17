@@ -80,5 +80,9 @@ webix.i18n.locales["ja-JP"]={
     	select:"選択する",
     	selectAll:"すべて選択",
     	unselectAll:"すべての選択を解除する"
+    },
+    message:{
+    	ok:"OK",
+    	cancel:"取り消す"
     }
 };

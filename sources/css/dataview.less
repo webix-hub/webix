@@ -1,0 +1,52 @@
+@import "pager.less";
+
+/*helper for allowing selection*/
+.webix_allow_selection{
+	#box > .select;
+}
+
+/*default item in dataview*/
+.webix_dataview_item{
+	.webix_list_item;
+	border-right:1px solid @lightBorderColor;
+}
+
+/*default item in selected state*/
+.webix_dataview_item.webix_selected{
+	.selectLine;
+	border-bottom:1px solid @selectBorderColor;
+	border-right:1px solid @selectBorderColor;
+}
+
+.webix_dataview_item.webix_invalid{
+	background-color: #ffeeee;
+}
+
+.webix_dataview_item.tiles{
+	border: none;
+	padding: 4px;
+	.webix_dataview_inner_item{
+		border: 1px solid @dataBorderColor;
+		padding: @listPaddingY @listPaddingX;
+		height: 100%;
+	}
+	&.webix_selected, &.webix_drag_over{
+		background: transparent;
+	}
+	&.webix_selected .webix_dataview_inner_item{
+		background-color: @selectColor;
+	}
+	&.webix_drag_over .webix_dataview_inner_item{
+		.webix_drag_over;
+	}
+	&.webix_focused:focus{
+		background: transparent;
+		.webix_dataview_inner_item{
+			.dataFocusStyle();
+		}
+	}
+}
+
+.webix_dataview .webix_scroll_cont{
+	box-sizing:border-box;
+}

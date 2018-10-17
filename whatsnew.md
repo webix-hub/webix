@@ -1,5 +1,41 @@
+Version 6.0 (October 2018)
+==================
+
+### Major features
+
+- New Material skin and its compact version
+- ES6-based toolchain for code building
+- Possibility to create a custom Webix build with necessary widgets both in GPL and PRO versions
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_6_0.html)
+
+Version 5.4 (June 2018)
+==================
+
+### Major features
+
+- GraphQL support
+- Ability to draw various graphs in the Scatter Chart (points, lines, shapes)
+- Handy interface for working with number formats in SpreadSheet
+- WJet utility for faster prototyping with Webix Jet
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_5_4.html)
+
+Version 5.3 (April 2018)
+=================
+
+### Major features
+
+- Multiple updates and improvements in Webix SpreadSheet
+- Enhanced compatibility of Jet views with Webix widgets
+- Ability to select custom icon packs for stylesheets
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_5_3.html)
+
+
 Version 5.2 (February 2018)
 =================
+
 ### Major features
 
 - Dynamic rendering for the List widget
@@ -11,18 +47,17 @@ Version 5.2 (February 2018)
 
 [Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_5_2.html)
 
-
 Version 5.1 (November 2017)
 ================
+
 ### Major features
 
 - Numeric format for inputs and numeric data editors
-- Multiple dates selection in Calendar and DatePicker 
+- Multiple selection in Calendar and DatePicker 
 - GridLayout component 
 - The gridlayout-based Dashboard widget 
 
 [Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_5_1.html)
-
 
 Version 5.0 (September 2017)
 ================
@@ -158,7 +193,7 @@ Version 3.1
 - TreeMap widget
 - autowidth for menu and buttons
 
-[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_3_1.html)  
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_3_1.html)
 
 
 Version 3.0
@@ -299,13 +334,13 @@ Version 1.9
 Version 1.8
 ================
 
-### Responsive Layouts and Tabbar
+###Responsive Layouts and Tabbar
 
 - Layout view can be hidden or moved if there's not enough space for them on the screen. [Check details](desktop/responsive_layout.md).
 - Tabbar tabs can be moved to a related popup if there're not enoght space for them on the screen. [Check details](desktop/responsive_tabbar.md).
 
 
-### Disabling dates in Calendar
+###Disabling dates in Calendar
 
 Calendar dates can be disabled to prevent their selection. [Check details](desktop/calendar.md#blockdates).
 
@@ -333,7 +368,7 @@ Default skin changed to flat ( you still can use the old skin by using skins/air
 Compact skin changed to flat theme as well ( old one renamed to skins/aircompact.css )  
 
 
-### Improvements in API
+### Improvments in API
 - text sorting mode for datatable
 - autoheight property for "property" view
 - ability to edit math formulas in the datatable
@@ -358,7 +393,7 @@ onError event replaced with two new events - onBeforeSaveError and onAfterSaveEr
 - drag-n-drop on touch devices
 
 
-### Improvements in Server side integrations
+### Improvments in Server side integrations
 - full support of REST API
 - data in components can be updated from server side
 - client side code can't be broken by server side errors anymore
@@ -380,13 +415,13 @@ Version 1.5
 - new skin for mobile UI
 - functionality of desktop UI adapted to touch events and gestures
 
-### Improvements in DataTable
+### Improvments in DataTable
 - adjustRowHeight method added to datatable
 - fillspace can be used for multiple columsn
 - richselect can be used as editor in the datatable
 - checkboxes can have checkValue and uncheckValue options
  
-### Improvements in Angular and Backbone 
+### Improvments in Angular and Backbone 
 
 - [angular] webix-ui is compatible with ng-repeat
 - [angular] webix-data works for options in combo and select

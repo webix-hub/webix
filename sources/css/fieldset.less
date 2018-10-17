@@ -1,0 +1,30 @@
+.webix_fieldset{
+	fieldset{
+		border:1px solid  darken(@borderColor,10%);
+		margin:0px;
+		padding:5px 8px;
+	}
+	legend{
+		color: @fontColor;
+		font-size:12px;
+		padding:0px 8px;
+		text-transform:uppercase;
+	}
+}
+
+.webix_forminput{
+	fieldset{
+		border:none;
+		margin:0px;
+		padding:0px;
+	}
+	legend{
+		color:@fontColor;
+		line-height: @inputHeight - 2*@skin_input_y_padding;
+		padding:@skin_input_y_padding @skin_input_x_padding*2.5;
+		#box > .sizing;
+		font-family: @fontFamily;
+		float:left;
+		padding-right:@skin_content_padding * 0.75;
+	}
+}

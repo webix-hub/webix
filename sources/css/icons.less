@@ -1,0 +1,89 @@
+.webix_icon, .webix_icon_btn, .webix_input_icon {
+	display: inline-block;
+	font-family: @iconFamily;
+	font-style: normal;
+	font-weight: normal;
+	line-height: 1;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	transform: translate(0, 0);
+}
+
+.webix_icon, .webix_input_icon{
+	font-size: 17px;
+	display: inline-block;
+	width: 20px;
+}
+
+.webix_input_icon{
+	float:right;
+	font-size:19px;
+	color:#888;
+}
+.webix_icon_button{
+	background-color: transparent;
+	border: none;
+	padding:0;
+	cursor: pointer;
+	position: relative;
+}
+.webix_icon_button .webix_icon{
+	font-size:20px;
+	height:23px;
+	width:21px;
+	display: inline-block;
+
+	text-align:center;
+	color: @iconFontColor;
+}
+.webix_icon_btn{
+	font-size:17px;
+	display: inline-block;
+	text-align: center;
+	width: 24px;
+	color: @iconFontColor;
+}
+.webix_el_iconBbutton .webix_icon_btn{
+	text-align: center;
+	width:100%;
+	padding:5px 0px;
+}	
+
+.webix_el_icon{
+	cursor: pointer;
+}
+
+.webix_badge {
+	background-color: #ff8839;
+	color: @backColor;
+
+	border-radius: 50%;
+	font-size: 12px;
+	height: 22px;
+	min-width: 22px;
+
+	box-sizing: border-box;
+
+	padding: 0 4px;
+	text-align: center;
+	line-height: 22px;
+
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+.webix_list_item .webix_badge{
+	position: static;
+	float:right;
+	margin: @listPaddingY+2 -5px 0 @listPaddingX;
+}
+
+.webixtype_base .webix_badge{
+  	top: 50%;
+  	margin-top:-11px;
+  	margin-right:8px;
+}
+
+.webix_el_toggle .webix_badge{
+	margin:7px;
+  }

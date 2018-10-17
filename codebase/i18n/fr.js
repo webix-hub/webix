@@ -75,5 +75,9 @@ webix.i18n.locales["fr-FR"]={
     	select:"Sélectionner",
     	selectAll:"Tout sélectionner",
     	unselectAll:"Tout déselectionner"
+    },
+    message:{
+    	ok:"OK",
+    	cancel:"Annuler"
     }
 };

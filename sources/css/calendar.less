@@ -1,0 +1,290 @@
+@cal_padding: 17px;
+@cal_cellwidth: 32px;
+@cal_cellheight: 23px;
+
+@cal_button_width: 9px;
+@cal_button_height: 15px;
+@cal_button_left: (@cal_cellwidth - @cal_button_width)/2;
+@cal_button_top: (@cal_cellheight - @cal_button_height)/2;
+
+
+//-------------------------------------------///
+//             SKY, SKYWIDE, WEB SKINS       ///
+//-------------------------------------------///
+
+@eventBg: hsl(hue(@selectColor),100%, 93%);
+// background mixins
+.calendarHeaderBG(){
+}
+.calendarEventBG(){
+}
+.calendarDayBG(){
+}
+.calendarTodayBG(){
+
+}
+.skinning_month(){
+
+}
+.skinning_header(){
+
+}
+//-------------------------------------------///
+//                Terrace SKIN               ///
+//-------------------------------------------///
+.skinning_header () when  (@skin = "terrace"){
+    div{
+        color: lighten(@fontColor,20);
+    }
+}
+.skining_body () when (@skin = "terrace"){
+    .webix_cal_day{
+        border-radius: 3px;
+    }
+    .webix_cal_event{
+        color: #ff9000;
+    }
+
+}
+//-------------------------------------------///
+//                Glamour SKIN               ///
+//-------------------------------------------///
+.skining_body () when (@skin = "glamour"){
+	.webix_cal_event{
+		color: @alterColor;
+	}
+
+}
+
+
+.webix_cal_month{
+    height:22px;
+    line-height:20px;
+    text-align:center;
+
+    position:relative;
+
+    font-size:14px;
+    font-weight:bold;
+    padding-top: @cal_padding;
+    padding-bottom: 5px;
+
+    .skinning_month;
+
+    // anti bootstrap
+    box-sizing: content-box;
+}
+.webix_cal_prev_button, .webix_cal_next_button{
+	cursor:     pointer;
+	position:   absolute;
+	top: @cal_padding;
+	width: 30px;
+	height: 28px;
+
+	background-repeat:no-repeat;
+	background-position: @cal_button_left @cal_button_top;
+	#box > .noselect;
+}
+.webix_cal_prev_button {
+	left:       @cal_padding;
+	#image > .prevButtonImage;
+}
+.webix_cal_next_button {
+	right:      @cal_padding;
+	#image > .nextButtonImage;
+}
+
+.webix_view > .webix_cal_header{
+    margin:0px @cal_padding 10px @cal_padding;
+    height:auto;
+
+    div{
+        float:left;
+        text-align:center;
+        height:19px;
+        font-size:11px;
+        color: @fontColor;
+        border-bottom:@borderColor 1px solid ;
+        margin-bottom:7px;
+    }
+    .skinning_header;
+
+
+}
+.webix_cal_body{
+    margin:0px @cal_padding 0px @cal_padding;
+    .webix_cal_row{
+        clear:both;
+    }
+    .webix_cal_row > div{
+        float:left;
+        text-align:center;
+        height:100%;
+    }
+	.webix_selected, .webix_cal_select,  .webix_cal_select.webix_cal_today{
+	    color: @selectFontColor;
+        background: @selectColor;
+    }
+
+    .skining_body;
+}
+.webix_cal_day, .webix_cal_week_num{
+	/*line-height: 29px;*/
+	cursor:pointer;
+	font-size:12px;
+	color: @fontColor;
+	#box > .noselect;
+}
+.webix_cal_week_num{
+	color: lighten(@fontColor, 35%);
+	cursor:default;
+	margin-right:0px;
+	border-right:1px solid @borderColor;
+}
+.webix_cal_event{
+	font-weight: bold;
+	color: #C66200;
+}
+
+.webix_cal_outside{
+	color: lighten(@fontColor, 40%);
+}
+
+.webix_cal_inactive{
+	background:#888;
+}
+.webix_cal_inactive{
+    background:#888;
+}
+.webix_cal_day_disabled, .webix_cal_day_disabled.webix_cal_event{
+	color: lighten(@fontColor, 40%);
+	background: darken(@backColor, 6%);
+}
+.webix_hours, .webix_minutes{
+	.webix_cal_day_disabled, .webix_cal_day_disabled.webix_cal_event{
+		background: @backColor;
+		font-weight:normal;
+		text-decoration: line-through;
+	}
+}
+
+
+//zoom to month and year
+.webix_cal_month_name{
+    cursor:pointer;
+	#box > .noselect;
+}
+.webix_cal_block{
+    float:left;
+    text-align:center;
+    cursor:pointer;
+	#box > .noselect;
+	//#box > .sizing;
+}
+.webix_selected{
+	background: @selectColor;
+	color: @selectFontColor;
+}
+//timepicker
+.webix_cal_footer{
+    text-align: center;
+    font-size:12px;
+    color:#444;
+	margin: 4px @cal_padding;
+	padding-top: 2px;
+    cursor: pointer;
+	//border-top: #CECECE 1px solid;
+	.calTimepicker;
+}
+.webix_cal_icons{
+	float: right;
+	padding: 4px 4px;
+}
+.webix_cal_time{
+	padding: 2px 4px;
+}
+
+.webix_cal_time_icons{
+	float: left;
+}
+.webix_cal_icons .webix_cal_icon{
+	text-align: center;
+	padding:2px 4px;
+}
+.webix_cal_icon, .webix_cal_time, .webix_cal_month_name{
+	&:hover{
+		text-decoration: underline;
+		color: @mainColor;
+	}
+	&:focus{
+		color: @mainColor;
+	}
+}
+.webix_cal_month_name.webix_readonly:hover{
+	text-decoration: none;
+	color: @fontColor;
+	cursor:default;
+}
+// time view
+.webix_time_header{
+	padding: @cal_padding @cal_padding 1px @cal_padding;
+	.webix_cal_hours, .webix_cal_minutes{
+		display: inline-block;
+		font-size:14px;
+		text-align: center;
+		height:26px;
+		line-height:22px;
+		#box > .sizing;
+
+		//box-shadow: 0 1px 1px #FFFFFF inset;
+		.calendarHeaderBG();
+		border-bottom: 1px solid @borderColor;
+	}
+	.webix_cal_minutes{
+		padding-left:1px;
+		border-left: none;
+	}
+	.webix_cal_hours{
+		border-right: none !important;
+	}
+}
+.webix_cal_body{
+	.webix_hours{
+		float:left;
+		border-right: 1px solid @borderColor;
+		padding-right:1px;
+	}
+
+	.webix_minutes{
+		float:left;
+		padding-left:1px;
+	}
+}
+.webix_cal_block_empty{
+	float:left;
+	text-align: center;
+}
+.webix_time_footer{
+	text-align: center;
+	font-size:12px;
+	padding: 7px @cal_padding 0 @cal_padding;
+	cursor: pointer;
+}
+.webix_cal_done{
+	margin-top: 3px;
+	padding: 2px 7px;
+	font-size:12px;
+	border-radius:@skin_input_radius;
+	border:1px solid @borderColor;
+	.skinBlueButton();
+	float:right;
+}
+
+.webix_cal_blurred_hours{
+	background-color: darken(@backColor,3%);
+}
+
+
+
+
+

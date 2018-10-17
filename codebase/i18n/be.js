@@ -80,5 +80,9 @@ webix.i18n.locales["be-BY"]={
     	select:"Абраць",
     	selectAll:"Абраць усё",
     	unselectAll:"Ачысціць ўсе"
+    },
+    message:{
+    	ok:"ОК",
+    	cancel:"Адмена"
     }
 };

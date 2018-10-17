@@ -75,5 +75,9 @@ webix.i18n.locales["ru-RU"]={
     	select:"Выбрать",
         selectAll:"Выбрать все",
         unselectAll:"Сброс выбора"
+    },
+    message:{
+    	ok:"OK",
+    	cancel:"Отмена"
     }
 };

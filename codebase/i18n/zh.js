@@ -80,5 +80,9 @@ webix.i18n.locales["zh-CN"] = {
     	select:"选择",
         selectAll:"全选",
         unselectAll:"全部取消选择"
+    },
+    message:{
+    	ok:"好",
+    	cancel:"取消"  
     }
 };

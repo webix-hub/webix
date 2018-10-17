@@ -1,0 +1,1566 @@
+//-------------------------------------------///
+//                  Basis                    ///
+//-------------------------------------------///
+
+@skin : "compact";
+
+//basic colors
+//@mainColor : #1d7c9c;
+@mainColor : #3498db;
+@alterColor: #D2E3EF;//#a4b4bf;//#afc1cd;
+
+
+
+@selectColor: #27ae60;//#b4e1ff;//#d7eaf6;//#bcffd8; ////#fea223; #80cea7;//
+
+
+@backColor: #fff; //#F4F4F4;
+@foreColor: #666666;
+@fontColor: @foreColor;
+@altFontColor: #4A4A4A;
+
+@layoutColor: #DDDDDD;
+@spaceLayoutColor: @layoutColor;//#ecf0f1;//#cdd9e0;
+@wideLayoutColor: @layoutColor;
+@lightBgColor: hsl(hue(@mainColor),saturation(@mainColor) - 22,lightness(@mainColor) + 35);
+
+
+
+//basis font
+@fontSize: 13px;
+//@import url(http://fonts.googleapis.com/css?family=PT+Sans&subset=cyrillic,latin-ext,cyrillic-ext,latin);
+@font-face {
+	font-family: 'PT Sans';
+	font-style: normal;
+	font-weight: 400;
+	src: local('PT Sans'), local('PTSans-Regular'),  url('fonts/PTS-webfont.woff') format('woff');
+}
+@font-face {
+	font-family: 'PT Sans';
+	font-style: normal;
+	font-weight: 700;
+	src: local('PT Sans Bold'), local('PTSans-Bold'), url('fonts/PTS-bold.woff') format('woff');
+}
+
+@fontFamily: 'PT Sans', Tahoma;
+.mainFont{
+	font-family:  @fontFamily;
+	font-size: @fontSize;
+	color: @fontColor;
+}
+@barFontSize: 16px;
+
+// tabs and accordion headers
+@inactiveBarColor: #A4B4BF;
+@inactiveBarFontColor: #FFFFFF;
+
+.darkActiveRule(@color){
+	background-color: darken(@color,6%);
+}
+.darkFocusRule(@color){
+	background-color: darken(@color,6%);	
+}
+.darkHoverRule(@color){
+	background-color: darken(@color,4%);
+}
+.darkHoverRuleA(){
+	background-color: rgba(0,0,0,0.05);
+}
+
+.darkActiveRuleA(){
+	background-color: rgba(0,0,0,0.07);
+}
+
+//-------------------------------------------///
+//            Sync with skin.js              ///
+//-------------------------------------------///
+
+@barHeight: 34px;
+@tabRadius: 4px;
+@rowHeight: 24px;
+@inputHeight: 30px;
+@listItemHeight: 28px;
+@unitHeaderHeight:20px;
+@propertyItemHeight:24px;
+@menuMargin: 0px;
+@menuHeight: 28px;
+//-------------------------------------------///
+//                View, layout              ///
+//-------------------------------------------///
+
+//view, layout
+@templatePadding: 5px;
+@lightBorderColor:	#ebebeb;
+@borderColor: @spaceLayoutColor;
+
+@layoutIcons: "corners";
+
+@barFontColor: #fff;
+
+
+
+.layoutBarFont(){
+	color: @barFontColor;
+	font-size: @barFontSize;
+
+}
+
+/*[L]*/ @darkerBG:darken(@backColor, 9);
+/*[L]*/ @darkestBG:darken(@backColor, 24);
+
+@barButtonColor: @mainColor;//@backColor;
+@barButtonActiveColor: darken(@barButtonColor,4%);
+.barButton(@fColor: @barFontColor, @color: transparent, @shadowColor: darken(@mainColor,10%)){
+	border-color: darken(@fColor,15%);
+	background-color: @color;
+	color: @fColor;
+//box-shadow: 0 1px darken(@shadowColor,8%); //darken(@buttonColor,10%) darken(@buttonColor,10%)    darken(@buttonColor,10%);
+}
+.barButtonHover(@fColor: @barFontColor, @color: @barButtonColor, @shadowColor: darken(@mainColor,10%)){
+
+	color: @fColor;
+	.darkHoverRuleA;//box-shadow: 0 1px darken(@shadowColor,10%); //darken(@buttonColor,10%) darken(@buttonColor,10%)    darken(@buttonColor,10%);
+}
+.barButtonActive(@fColor: @barFontColor, @color: @barButtonColor, @shadowColor: darken(@mainColor,10%)){
+
+	.darkActiveRuleA;
+	color: @fColor;
+	.activeShadow;
+
+}
+.barButtonFocus(@fColor: @barFontColor, @color: @barButtonColor, @shadowColor: darken(@mainColor,10%)){
+	.darkActiveRuleA;
+	color: @fColor;
+}
+
+.layoutBarBG(){
+	.layoutBarFont;
+	background: @mainColor;
+
+// buttons in bars:
+
+	.webix_el_button, .webix_el_label, .webix_inp_label{
+		color: @barFontColor;
+	}
+	.webix_el_label{
+		font-size: @barFontSize;
+	}
+/*.webix_el_button input, .webix_el_toggle input {
+	   border: none;
+
+   }*/
+	.webixtype_base, .webixtype_prev, .webixtype_next,
+	.webix_inp_counter_next, .webix_inp_counter_prev,
+	.webix_segment_0, .webix_segment_1, .webix_segment_N{
+		.barButton;
+	}
+	.webix_el_arrow.webixtype_next_arrow{
+		border-left: none;
+		border-bottom: none;
+	}
+	.webix_el_arrow.webixtype_prev_arrow{
+		border-right: none;
+		border-bottom: none;
+	}
+	.webixtype_base:hover,
+	.webix_inp_counter_next:hover, .webix_inp_counter_prev:hover,
+	.webix_segment_0:hover, .webix_segment_1:hover, .webix_segment_N:hover{
+		.barButtonHover;
+	}
+	.webixtype_base:active,
+	.webix_inp_counter_next:active, .webix_inp_counter_prev:active,
+	.webix_segment_0:active, .webix_segment_1:active, .webix_segment_N:active{
+		.barButtonActive;
+
+	}
+	.webixtype_base:focus,
+	.webix_inp_counter_next:focus, .webix_inp_counter_prev:focus,
+	.webix_segment_0:focus, .webix_segment_1:focus, .webix_segment_N:focus{
+		.barButtonFocus;
+	}
+	.webix_inp_static, input[type=text]{
+		border-color: @backColor;
+	}
+	.webix_inp_static:focus, input[type=text]:focus{
+		border-color: @backColor;
+		box-shadow: none;
+	}
+	.webix_input_icon{
+		.barButton;
+		color: @fontColor;
+	}
+	.webix_input_icon:hover{
+		background-color: rgba(0,0,0,0);
+		color: @fontColor;
+	}
+	.webix_input_icon:active, .webix_input_icon:focus{
+		background-color: rgba(0,0,0,0);
+		color: @fontColor;
+	}
+	.webix_pressed{
+		.webixtype_base, .webixtype_prev, .webixtype_next, .webix_el_arrow,
+		.webix_inp_counter_next, .webix_inp_counter_prev, .webix_input_icon,
+		.webix_segment_0, .webix_segment_1, .webix_segment_N{
+			.barButtonActive;
+		}
+	}
+	.webix_selected.webix_segment_0, .webix_selected.webix_segment_1, .webix_selected.webix_segment_N{
+		.barButton(@selectFontColor, @selectColor,@selectColor);
+	}
+	.webix_selected.webix_segment_0:hover, .webix_selected.webix_segment_1:hover, .webix_selected.webix_segment_N:hover{
+		background-color: darken(@selectColor,3%);
+	}
+	.webix_selected.webix_segment_0:active, .webix_selected.webix_segment_1:active, .webix_selected.webix_segment_N:active{
+		background-color: darken(@selectColor,5%);
+	}
+	.webix_selected.webix_segment_0:focus, .webix_selected.webix_segment_1:focus, .webix_selected.webix_segment_N:focus{
+		background-color: darken(@selectColor,5%);
+	}
+	.webix_segment_1, .webix_segment_N, .webix_selected.webix_segment_1, .webix_selected.webix_segment_N{
+		margin-left: 0;
+		border-left: none;
+
+	}
+
+/*.webixtype_prev:active, .webixtype_next:active, .webixtype_base:active, .webix_inp_counter_next:active, .webix_inp_counter_prev:active{
+	   background-color: @barButtonActiveColor;
+   }*/
+	.webix_img_btn:active, .webix_img_btn_top:active{
+		.darkActiveRule(@barButtonColor);
+		.activeShadow;
+	}
+	.webix_img_btn:focus, .webix_img_btn_top:focus{
+		.darkFocusRule(@barButtonColor);
+	}
+	.webix_img_btn:hover, .webix_img_btn_top:hover{
+		.darkHoverRule(@barButtonColor);
+	}
+	.webix_icon_button{
+		#border > .radius(@skin_input_radius);
+	}
+	.webix_img_btn_top .webix_img_btn_text, .webix_img_btn_top .webix_icon, .webix_el_icon, .webix_img_btn, .webix_icon_btn, .webix_icon_button{
+		color: @barFontColor ;
+	}
+	.webix_img_btn_abs .webix_icon, .webix_img_btn_abs .webix_img_btn_text{
+		color: @barFontColor;
+	}
+	.webix_img_btn_abs{
+		color: @barFontColor ;
+	}
+	.webix_el_box .webix_img_btn_abs:active{
+		.darkActiveRule(@barButtonColor);
+		.activeShadow;
+	}
+	.webix_el_icon .webix_icon_button:focus{
+		.darkFocusRule(@barButtonColor);
+	}
+	.webix_el_box .webix_img_btn_abs:hover,.webix_el_icon .webix_icon_button:hover{
+		.darkHoverRule(@barButtonColor)
+	}
+
+	.webix_control{
+		border-color: @mainColor;
+	}
+	.webix_icon_button .webix_icon{
+		font-size: 23px;
+		height: 27px;
+		width: 27px;
+		color: @barFontColor ;
+	}
+	.webix_img_btn, .webix_img_btn_top{
+		border-width:0;
+	}
+
+}
+.webix_layout_toolbar.webix_toolbar{
+	.layoutBarBG;
+}
+.webix_layout_space > .webix_toolbar{
+	#border > .radius(@layoutRadius);
+}
+
+
+.lightBarStyle(){
+	.mainFont;
+	background-color: @lightBgColor;
+}
+
+
+.webix_view.webix_layout_accordion{
+	background-color: @spaceLayoutColor;
+}
+/*.webix_layout_accordion > .webix_accordionitem > .webix_accordionitem_header,
+.webix_layout_space > .webix_accordionitem > .webix_accordionitem_header,
+.webix_layout_wide > .webix_accordionitem > .webix_accordionitem_header{
+	#border > .top(@layoutRadius);
+}
+.webix_layout_accordion > .webix_accordionitem.collapsed,
+.webix_layout_space > .webix_accordionitem.collapsed,
+.webix_layout_wide > .webix_accordionitem.collapsed{
+	#border > .radius(@layoutRadius);
+}
+.webix_layout_accordion > .webix_accordionitem > .webix_accordionitem_body,
+.webix_layout_space > .webix_accordionitem > .webix_accordionitem_body,
+.webix_layout_wide > .webix_accordionitem > .webix_accordionitem_body{
+	#border > .bottom(@layoutRadius);
+}*/
+
+@accordionLeftMargin: (@barHeight - 18)/2;
+@accordionTopMargin: (@barHeight - 17)/2;
+.webix_accordionitem .webix_accordionitem_button{
+	float:right;
+	position:relative;
+	height:19px;
+	width:19px;
+	margin: (@barHeight - 17)/2 (@barHeight - 18)/2;
+}
+.webix_accordionitem .webix_accordionitem_header{
+	&:hover, &:focus{
+		background-color:darken(@mainColor, 4%);
+	}
+}
+.webix_accordionitem.collapsed .webix_accordionitem_button{
+	float:right;
+	position:relative;
+	height:19px;
+	width:19px;
+	margin-top: (@barHeight - 17)/2 - 1;
+}
+.webix_accordionitem.horizontal.collapsed, .webix_accordionitem.collapsed {
+	background-color: @inactiveBarColor;
+	.webix_accordionitem_header{
+		background-color: @inactiveBarColor;
+		color: @inactiveBarFontColor;
+		.webix_accordionitem_button{
+			color: @inactiveBarFontColor;
+		}
+		&:hover, &:focus{
+			background-color:darken(@inactiveBarColor, 3%);
+		}
+	}
+
+}
+
+// "awesome font" arrows
+
+.webix_accordionitem .webix_accordionitem_header{
+	.webix_accordionitem_button{
+		color: @barFontColor;
+		background-image: none;
+		font-family: @iconFamily;
+		font-size: 24px;
+		text-align: center;
+		width: 24px;
+		height: @barHeight;
+		margin: 0 @barHeight/2-12 0 @barHeight/2-12;
+
+	}
+	.webix_accordionitem_button:before{
+		content: '\F002';	//left
+	}
+}
+
+
+
+.webix_accordionitem .webix_accordionitem_header.collapsed .webix_accordionitem_button:before{
+	content: '\F004';	//down
+}
+.webix_accordionitem.horizontal:last-child > .webix_accordionitem_header .webix_accordionitem_button:before {
+	content: '\F003';	//right
+}
+.webix_accordionitem.horizontal.collapsed:last-child > .webix_accordionitem_header .webix_accordionitem_button:before{
+	content: '\F001';	//down
+}
+.webix_accordionitem.vertical > .webix_accordionitem_header{
+	.webix_accordionitem_button{
+		height: @barHeight - 3;
+		margin: 0px @barHeight/2-12 0 @barHeight/2-12;
+	}
+	.webix_accordionitem_button:before{
+		content: '\F004'; //up
+	}
+}
+.webix_accordionitem.vertical > .webix_accordionitem_header.collapsed .webix_accordionitem_button:before{
+	content: '\F001'; //down
+}
+
+
+//resizer
+.resizerXBG(){
+	#gradient > .v3(@backColor, @darkerBG, @darkestBG);
+}
+.resizerYBG(){
+	#gradient > .h3(@backColor, @darkerBG, @darkestBG);
+}
+
+
+
+
+.webix_toolbar.webix_layout_toolbar{
+
+}
+.webix_toolbar.webix_layout_subbar{
+	background: transparent;
+	.webix_view{
+		color: @fontColor ;
+	}
+
+}
+
+.webix_el_tabbar + .webix_multiview{
+	background-color: @backColor;
+}
+
+
+@layoutRadius: 4px;
+.webix_view.rounded_top{
+	#border > .top(@layoutRadius);
+}
+.webix_view.rounded_right{
+	#border > .right(@layoutRadius);
+}
+.webix_view.rounded_bottom{
+	#border > .bottom(@layoutRadius);
+}
+.webix_view.rounded_left{
+	#border > .left(@layoutRadius);
+}
+
+//*****************//
+//* round borders *//
+//*****************//
+.webix_layout_space > .webix_view, .webix_layout_wide > .webix_view{
+	#border > .radius(@layoutRadius);
+
+}
+
+
+.webix_layout_space, .webix_layout_wide{
+	.webix_layout_accordion .webix_accordionitem{
+		#border > .radius(@layoutRadius);
+	}
+}
+
+//-------------------------------------------///
+//                Window                     ///
+//-------------------------------------------///
+
+@windowRadius: 0px;
+.webix_view .webix_win_head{
+	border-bottom: 1px solid @borderColor;
+}
+.webix_view .webix_win_head > .webix_view > .webix_template{
+	color: @fontColor;
+	background: @backColor;
+	box-shadow: 0 -2px @mainColor inset;
+}
+.webix_modal_box{
+	.webix_popup_title{
+		color: @fontColor;
+		background: @backColor;
+		font-size: @fontSize;
+		text-shadow: none;
+	}
+}
+.webix_popup_text{
+	box-shadow: 0 3px @mainColor inset;
+	font-size: @fontSize;
+}
+.webix_alert-warning, .webix_confirm-warning{
+	.webix_popup_text{
+		box-shadow: 0 3px #ffd21a inset;
+	}
+}
+.webix_alert-error, .webix_confirm-error{
+	.webix_popup_text{
+		box-shadow: 0 3px #ff391b inset;
+	}
+}
+
+.webix_view.webix_popup{
+	border: 1px solid @borderColor;
+}
+.webix_modal_box {
+	border: 1px solid @borderColor;
+}
+.confirmButton{
+	.skinBlueButton;
+	text-shadow: none;
+	color: @selectFontColor;
+}
+.confirmButtonActive{
+	.darkFocusRule(@formButtonColor);
+}
+.alertButtonActive{
+	.darkFocusRule(@buttonColor);
+}
+
+//-------------------------------------------///
+//                Data components            ///
+//-------------------------------------------///
+
+//data
+@dataHeaderBorderColor: darken(@dataHeaderBgColor, 9%);
+@dataBorderColor: darken(@backColor,8%);
+@dataPadding: 10px;
+@dataHeaderFontSize: @fontSize;
+@dataHeaderBgColor: @alterColor;
+@selectBorderColor: @dataBorderColor;
+@selectFontColor: #FFFFFF;
+.selectLine(){
+	color: @selectFontColor;
+	background: @selectColor;
+}
+.selectXLine(){
+	border-bottom:1px solid @selectBorderColor;
+//	border-top:1px solid @selectBorderColor;
+}
+.selectYLine(){
+	border-left:1px solid @selectBorderColor;
+	border-right:1px solid @selectBorderColor;
+}
+
+.dataHeaderBg(){
+	background: @dataHeaderBgColor;
+}
+.dataHeaderFont(){
+	font-size: @dataHeaderFontSize;
+//color:@barFontColor;
+	color:@altFontColor;
+}
+@dataHeaderBordersStyle: 1px solid @dataHeaderBorderColor;//@mainColor ;
+.dataHeaderBorders(){
+	border-right: @dataHeaderBordersStyle;
+//border-top: @dataHeaderBordersStyle;
+	border-bottom: @dataHeaderBordersStyle;
+}
+
+.webix_dtable{
+
+	.webix_ss_left .webix_column.webix_last>div{
+		border-right: 1px solid darken(@borderColor,5%);
+	}
+	.webix_ss_right .webix_column.webix_first>div{
+		border-left: 1px solid darken(@borderColor,5%);
+	}
+	.webix_last_topcell{
+		border-bottom:1px solid darken(@borderColor,5%);
+	}
+	.webix_hs_right td.webix_first {
+		border-left: @dataHeaderBordersStyle;
+	}
+	.webix_hcell.webix_ss_filter {
+		padding: 0px 5px;
+	}
+	.webix_ss_filter select, .webix_ss_filter input {
+		height: @inputHeight - 2*@skin_input_y_padding;
+		vertical-align: middle;
+		#border > .radius(@skin_input_radius);
+	}
+	.webix_richfilter{
+		margin-top:2px;
+	}
+}
+.webix_ss_sort_asc, .webix_ss_sort_desc {
+	font-size: 14px;
+	font-family: @iconFamily;
+	top:50%;
+	line-height: 1px;
+	bottom: auto;
+	float: none;
+	width: 12px;
+}
+.webix_ss_sort_asc:before{
+	content: '\F004';
+}
+.webix_ss_sort_desc:before{
+	content: '\F001';
+}
+/*.webix_ss_header tr:nth-child(2) td{
+	border-top: 1px solid transparent ;
+}*/
+
+.dtBodyCell{
+	border-bottom: 1px solid @dataBorderColor ;
+
+}
+
+.evenLine(){
+
+}
+
+.webix_dtable .webix_ss_vscroll_header{
+	border-bottom:  @dataHeaderBordersStyle;
+}
+// do not highlight borders for edited item
+.webix_view .webix_dt_editor{
+	input, select{
+		border:1px solid @buttonColor;
+	}
+}
+
+.dataItemStyle{
+	border-color: @dataBorderColor ;
+}
+
+
+
+.webix_list_item.webix_group_back{
+	color: @altFontColor;
+	background: @alterColor;
+	border-bottom: 1px solid @dataHeaderBorderColor;
+
+}
+.webix_dataview_item{
+	border-right-color: @dataBorderColor;
+}
+.webix_dataview_item.tiles.webix_selected .webix_dataview_inner_item{
+	background-color:lighten(@selectColor, 50%);
+	color:@fontColor;
+	border-color:@selectColor;
+}
+.webix_view .webix_pager_item{
+	.buttonBackground;
+	font-size: @fontSize;
+	&:hover{
+		.darkHoverRule(@buttonBgColor);
+	}
+	&:focus{
+		.darkFocusRule(@buttonBgColor);
+	}
+}
+.webix_view .webix_pager_item_selected{
+	.skinBlueButton;
+}
+.webix_view{
+	.webix_pager_item,.webix_pager_item_selected{
+		#border > .radius(@skin_input_radius);
+	}
+}
+
+
+
+.webix_list .webix_unit_header{
+	font-weight: normal;
+	text-shadow: none;
+	.dataHeaderBg();
+	.dataHeaderFont();
+}
+
+@listPaddingX: 10px;
+@listPaddingY:  2px;
+@treeItemHeight: 22px;
+@treeIconSize:	18px;
+
+
+.webix_view .webix_tree_open, .webix_view .webix_tree_close{
+	background-image: none;
+	font-family: @iconFamily;
+	font-size: 14px;
+	text-align:center;
+	color: @fontColor;
+	line-height: @treeItemHeight;
+}
+
+.webix_view .webix_tree_open:before{
+	content: "\F026"; //open folder
+}
+.webix_view .webix_tree_close:before{
+	content: "\F025"; //close folder
+}
+
+
+// Menu
+
+.webix_menu-x, .webix_view.webix_menu{
+	.webix_submenu_icon{
+		width:6px;
+		height: auto;
+		font-size: 14px;
+		font-family: @iconFamily;
+		line-height: 1px;
+		margin-top: 3px;
+	}
+}
+.xMenuItems(){
+	border: none;
+	background: transparent;
+
+	.webix_list_item{
+		border-right: 1px solid #fff;
+		border-left: 0px;
+		background: @mainColor;
+		color: #fff;
+		font-size: @fontSize;
+		.webix_submenu_icon:before{
+			content: '\F001';
+		}
+		.webix_icon_btn{
+			color: #fff;
+			text-align: left;
+		}
+	}
+
+	.webix_list_item:hover, .webix_list_item:active, .webix_list_item:focus{
+		.darkHoverRule(@mainColor);
+	}
+	.webix_list_item:first-child{
+		#border > .corners(@borderRadius,0,0,@borderRadius);
+	}
+	.webix_list_item:last-child{
+		border-right: none;
+		#border > .corners(0,@borderRadius,@borderRadius,0);
+	}
+
+}
+
+.webix_menu.webix_view{
+	.webix_list_item:hover, .webix_list_item:active, .webix_list_item:focus{
+		.darkHoverRule(@backColor);
+
+	}
+	.webix_list_item{
+		.webix_submenu_icon:before{
+			content: '\F003';
+		}
+
+	}
+	.webix_list_item.webix_selected{
+		background: @selectColor;
+	}
+}
+
+//property
+.webix_property{
+	.webix_property_label, .webix_property_value{
+		border-color: @dataBorderColor;
+	}
+	.webix_property_line.webix_focused,
+	.webix_property_line:focus{
+		div{ 
+			background-color:#f6f6f6;
+		}
+	}
+}
+
+// drag-n-drop
+.webix_drag_over, .webix_drop_zone{
+	background-color: #f4f4f4;
+}
+
+//-------------------------------------------///
+//                   Controls                ///
+//-------------------------------------------///
+
+@buttonColor:  #3498db;// #3db1ff;
+@saturatedButtonBgColor: @alterColor;
+@buttonBgColor: @buttonColor;
+@buttonFontColor: #fff;
+@inputBorderColor: darken(@backColor,20%);
+@optionHeight: 23px;
+
+//Tabbar
+@tabbarBorderColor:	@borderColor;
+@tabbarSelectBorderColor:	#fff;
+@tabBorderRadius: @layoutRadius;
+@borderRadius: 4px;
+@tabBorderRadius: 4px;
+
+.webix_view button, .webix_view input[type=button]{
+	-webkit-appearance: none;
+}
+
+.altBackColor(@color: @backColor) when (lightness(@color) < 50%){
+	background-color: lighten(@color, 15%);
+}
+.altBackBorderColor(@color: @backColor) when (lightness(@color) < 50%){
+	border-color: lighten(@color, 15%);
+}
+
+.inputStyle(@color: @backColor, @borderColor: @inputBorderColor){
+//background: @color;
+	background: lighten(@color,8%);
+	font-family: @fontFamily;
+	padding-top: 0px;
+	border-color: @borderColor;
+/*.altBackColor;
+   .altBackBorderColor;*/
+}
+
+.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
+	span.webix_input_icon{
+		background-color: @buttonColor;
+		color: @buttonFontColor;
+		#border > .corners(0,@skin_input_radius,@skin_input_radius,0);
+
+	}
+}
+
+.focusStyle{
+	border: 1px solid @buttonColor;
+	box-shadow: 0 0 1px @buttonColor inset;
+}
+
+.webix_el_search, .webix_el_combo{
+	input{
+		padding-right: 28px;
+	}
+
+}
+.webix_el_search, .webix_el_text, .webix_el_combo{
+	input{
+		#border > .radius(@skin_input_radius);
+	}
+	input:focus{
+		.focusStyle;
+	}
+}
+.webix_el_counter{
+	input[type=text]:focus{
+		border-top: 1px solid @buttonColor;
+		border-bottom: 1px solid @buttonColor;
+		box-shadow: 0 0 1px @buttonColor inset;
+	}
+}
+.webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
+	input, .webix_inp_static{
+		#border > .radius(@skin_input_radius);
+		padding-right: 28px;
+	}
+	input:focus, .webix_inp_static:focus{
+		.focusStyle;
+	}
+}
+.webix_el_textarea{
+	textarea:focus{
+		.focusStyle;
+	}
+}
+
+
+.webix_el_select select, .webix_el_textarea textarea{
+	#border > .radius(@skin_input_radius);
+}
+.webix_el_combo, .webix_el_richselect{
+	span.webix_input_icon{
+		width: 21px;
+		padding-left:8px;
+	}
+}
+.webix_el_datepicker, .webix_el_dbldatepicker, .webix_el_colorpicker, .webix_el_search{
+	span.webix_input_icon{
+		width: 24px;
+	}
+}
+// multiselect combo
+.webix_el_text .webix_inp_static{
+	#border > .radius(@skin_input_radius);
+	white-space: nowrap;
+}
+.webix_focused .webix_inp_static{
+	.focusStyle;
+}
+.webix_multilist .fa-check-square{
+	color: @buttonColor;
+}
+
+.buttonStyle{
+	color: @buttonFontColor;
+	font-size: @fontSize;
+	padding:auto 6px;
+	font-family: @fontFamily;
+	border: 1px solid @buttonBgColor;
+	border-bottom: 1px solid darken(@buttonBgColor,4%);
+	outline: none;
+}
+
+.webix_el_colorpicker div.webix_inp_static div{
+	margin: 2.5px -20px 0px -5px;
+}
+
+div.webix_inp_static,.webix_el_textarea textarea {
+	.inputStyle;
+}
+.webix_el_textarea .webix_el_box textarea {
+	padding-top: 2px;
+}
+.webix_el_select select{
+	font-family: @fontFamily;
+	border-color: @borderColor;
+	.altBackColor;
+	.altBackBorderColor;
+}
+.webix_el_checkbox input{
+	border-color: @borderColor
+}
+
+.webix_el_counter{
+	.webix_inp_counter_value{
+		width: 40px;
+		.inputStyle;
+	}
+	.webix_inp_counter_prev, .webix_inp_counter_next{
+		background: @buttonBgColor;
+		width: 29px;
+		.buttonStyle;
+		font-weight: bold;
+		font-family: "Courier New",Courier,monospace;
+	}
+	.webix_inp_counter_prev{
+		font-size: 20px;
+
+	}
+	.webix_inp_counter_next{
+		font-size: 20px;
+	}
+}
+.webix_inp_label, .webix_inp_top_label, .webix_label_right, .webix_el_label{
+	text-transform: none;
+	font-size: @formFontSize;
+
+}
+
+
+.webix_view.webix_control.webix_el_tabbar{
+	background: transparent;
+	.webix_all_tabs{
+		padding: 0;
+		.webix_item_tab:first-child {
+			border-left-width: 0;
+		}
+	}
+	.webix_after_all_tabs{
+		border: none;
+	}
+}
+div.webix_item_tab{
+
+	border-color: @inactiveBarColor;
+	padding-top: 3px;
+	font-size: @barFontSize;
+}
+div.webix_item_tab.webix_selected{
+	padding-top: 2px;
+}
+
+@tabbarBgColor: @mainColor;
+@selectTabBgColor: darken(@tabbarBgColor,8%);
+@activeTabBgColor: darken(@tabbarBgColor,4%);
+@selectTabFontColor: @barFontColor;
+@bottomTabBorderColor: lighten(@tabbarBgColor,10%);
+.webixtype_bottom{
+	.webix_item_tab, .webix_item_tab.webix_selected{
+		border-color: @tabbarBgColor;
+		border-right: 1px solid  @bottomTabBorderColor;
+		background:  @tabbarBgColor;
+		color: @inactiveBarFontColor;
+		padding-top: 0;
+	}
+	.webix_item_tab:last-child, .webix_item_tab.webix_selected:last-child{
+		border-right: 1px solid  @bottomTabBorderColor;
+	}
+	.webix_item_tab.webix_selected{
+		background: @selectTabBgColor;
+		color: @selectTabFontColor;
+		&:hover, &:focus{
+			background-color: darken(@selectTabBgColor, 3%);
+		}
+	}
+}
+.webix_el_tabbar .webixtype_icon{
+	background: @tabbarBgColor;
+	.webix_item_tab{
+		white-space: nowrap;
+	}
+	.webix_img_btn{
+		#box > .sizing;
+		margin: 0 auto;
+		color: @barFontColor;
+		text-align: center;
+		.webix_icon_btn{
+			color: @barFontColor;
+		}
+	}
+	.webix_img_btn{
+		.webix_icon_btn{
+			#box > .sizing;
+			font-size: 24px;
+			margin: 0 3px;
+			height: 100%;
+			line-height: inherit;
+			margin: 0 3px;
+			vertical-align: top;
+			width: 100%;
+		}
+	}
+	.webix_item_tab.webix_selected{
+		background: @selectTabBgColor;
+
+	}
+}
+.webix_el_tabbar .webixtype_iconTop,.webix_el_tabbar .webixtype_image{
+	#box > .sizing;
+	.webix_icon{
+		color: @barFontColor;
+		font-size: 18px;
+		top: 1px;
+	}
+	.webix_item_tab{
+		font-size: @fontSize;
+		padding-top: 2px;
+		padding-bottom: 2px;
+	}
+	.webix_img_btn_top .webix_icon{
+		margin-top: 2px;
+	}
+	.webix_img_btn_text{
+		bottom: 0px;
+		font-size: @fontSize;
+	}
+	.webix_item_tab.webix_selected{
+		background: @selectTabBgColor;
+		box-shadow: 0 0 0 1px @tabbarBgColor inset;
+		.webix_img_btn_text{
+			color: @selectTabFontColor;
+		}
+		.webix_icon{
+			color: @selectTabFontColor;
+		}
+		.webix_icon_btn{
+			background-color: @selectTabBgColor;
+		}
+		.webix_img_btn{
+			color: @selectTabFontColor;
+		}
+	}
+}
+
+.webix_el_tabbar .webixtype_icon, .webix_el_tabbar .webixtype_iconTop, .webix_el_tabbar .webixtype_image{
+	background: @mainColor;
+	.webix_tab_filler{
+		border-bottom-color: @tabbarBgColor;
+	}
+	.webix_item_tab{
+		padding: 0;
+		border-radius: 0;
+
+	}
+
+	.webix_item_tab{
+		color: @barFontColor;
+		background: @tabbarBgColor;
+		border-color: @tabbarBgColor;
+		border-bottom: 1px solid @tabbarBgColor;
+	}
+	.webix_item_tab .webix_img_btn{
+		color: @selectTabFontColor;
+	}
+
+}
+.webix_tab_more_icon:hover{
+	color: darken(@fontColor,10%);
+}
+.webix_el_tabbar .webixtype_icon, .webix_el_tabbar .webixtype_iconTop,
+.webix_el_tabbar .webixtype_image, .webix_el_tabbar .webixtype_bottom{
+	.webix_tab_more_icon{
+		background: @tabbarBgColor;
+		.webix_icon{
+			color: @barFontColor;
+		}
+	}
+}
+.webix_el_tabbar .webixtype_icon, .webix_el_tabbar .webixtype_iconTop,
+.webix_el_tabbar .webixtype_image{
+	.webix_tab_more_icon:hover{
+		.darkHoverRule(@tabbarBgColor);
+	}
+}
+
+
+.webix_tab_filler:first-child{
+	border-right:0;
+};
+.passiveBarBG{
+	background: @inactiveBarColor;
+	color: @inactiveBarFontColor;
+}
+.activeBarBG(){
+	background: @mainColor;
+	color: @barFontColor;
+	border-color: @mainColor;
+}
+.webix_all_tabs{
+	padding-left: 1px;
+	padding-right: 1px;
+}
+.webix_after_all_tabs{
+	background: @mainColor;
+}
+
+
+
+
+.buttonBackground(){
+	.buttonStyle;
+	color: @buttonFontColor;
+	background: @buttonBgColor;
+	border-bottom: 1px solid darken( @buttonColor, 7%);
+}
+
+
+@formButtonColor: @selectColor;
+.skinBlueButton(){
+	.buttonStyle;
+	background: @selectColor;
+	color: @selectFontColor;
+	border-color: @formButtonColor;
+	border-bottom: 1px solid darken( @formButtonColor, 7%);
+	box-shadow: none;
+}
+.skinBlueButtonActive(){
+}
+
+//@saturatedButtonActiveColor: darken(@formButtonColor,3%);
+.webix_el_box .webixtype_form:active{
+	.darkActiveRule(@formButtonColor);
+	.activeShadow;
+}
+.webix_el_box .webixtype_form:focus{
+	.darkFocusRule(@formButtonColor);
+}
+.webix_el_box .webixtype_form:hover{
+	.darkHoverRule(@formButtonColor)
+}
+// red button
+@dangerColor: #ce5545;
+.skinRedButton(){
+	background: @dangerColor;
+	border: 1px solid @dangerColor;
+	border-bottom: 1px solid darken(@dangerColor,10%);
+	color: #fff;
+}
+.webixtype_danger:hover{
+	.darkHoverRule(@dangerColor);
+}
+.webixtype_danger:focus{
+	.darkFocusRule(@dangerColor);
+}
+.webixtype_danger:active{
+	.darkActiveRule(@dangerColor);
+	.activeShadow;
+}
+
+.webixtype_prev:focus, .webixtype_prev:focus  +.webixtype_prev_arrow,
+.webixtype_next:focus, .webixtype_next:focus  +.webixtype_next_arrow{
+	.darkFocusRule(@buttonBgColor);
+}
+
+.webixtype_prev:hover, .webixtype_prev:hover  +.webixtype_prev_arrow,
+.webixtype_next:hover, .webixtype_next:hover  +.webixtype_next_arrow{
+	.darkHoverRule(@buttonBgColor);
+}
+
+/*.webix_img_btn:active, .webix_img_btn_top:active{
+	background-color:rgba(100,100,100,0.1);
+};*/
+
+
+//@buttonActiveColor: lighten(@buttonBgColor,4%);//saturate(lighten(@mainColor, 45%),3%);
+
+
+.webix_el_box .webixtype_form {
+	color: @fontColor;
+	.skinBlueButton;
+}
+
+
+.webixbutton:hover, .webixtype_base:hover,
+.webix_inp_counter_next:hover, .webix_inp_counter_prev:hover,
+.webix_segment_0:hover, .webix_segment_1:hover, .webix_segment_N:hover{
+	.darkHoverRule(@buttonBgColor);
+}
+.webixbutton:active, .webixtype_base:active,
+.webix_inp_counter_next:active, .webix_inp_counter_prev:active,
+.webix_segment_0:active, .webix_segment_1:active, .webix_segment_N:active{
+	.darkActiveRule(@buttonBgColor);
+	.activeShadow;
+}
+
+.webix_el_text .webix_input_icon:hover, .webix_el_text .webix_input_icon:active{
+	color: @buttonBgColor;
+	background: inherit;
+	cursor:pointer;
+}
+
+.webixbutton:focus, .webixtype_base:focus,
+.webix_inp_counter_next:focus, .webix_inp_counter_prev:focus,
+.webix_segment_0:focus, .webix_segment_1:focus, .webix_segment_N:focus{
+	.darkFocusRule(@buttonBgColor);
+}
+.webix_selected.webix_segment_0:hover, .webix_selected.webix_segment_1:hover, .webix_selected.webix_segment_N:hover{
+	.darkHoverRule(@selectColor);
+}
+.webix_selected.webix_segment_0:active, .webix_selected.webix_segment_1:active, .webix_selected.webix_segment_N:active{
+	.darkActiveRule(@selectColor);
+}
+.webix_selected.webix_segment_0:focus, .webix_selected.webix_segment_1:focus, .webix_selected.webix_segment_N:focus{
+	.darkFocusRule(@selectColor);
+}
+
+// segmented button
+.webix_all_segments{
+	.webix_segment_1, .webix_segment_N{
+		margin-left: 1px;
+		border-left: none;
+	}
+}
+.segmentActive(){
+	border-color: @selectColor;
+}
+
+.confirmStyle(){
+	.skinBlueButton;
+
+}
+.altSliderStyle(){
+	.webix_slider_left{
+		border: 1px solid @inputBorderColor;
+		background: @buttonColor;
+	}
+	.webix_slider_right{
+		border-color: @inputBorderColor;
+	}
+	.webix_slider_handle{
+		background-color: @backColor;
+		border: 1px solid @inputBorderColor;
+		top:(@inputHeight - 12)/2;
+		height: 12px;
+	}
+}
+.sliderStyle(){
+	padding-top:(@inputHeight - 4)/2;
+	margin-top:-12px;
+	.webix_slider_left{
+		height: 6px;
+		border: 1px solid @inputBorderColor;
+		background: @buttonColor;
+	}
+	.webix_slider_right{
+		height: 6px;
+		border-color: @inputBorderColor;
+	}
+	.webix_slider_handle{
+		width: 12px;
+		height: 12px;
+		border: 1px solid @inputBorderColor;
+		background-color: @backColor;
+		top:(@inputHeight - 12)/2;
+	}
+}
+
+.webix_slider_vertical .webix_slider_box {
+	margin-top:-10px;
+	.webix_slider_left, .webix_slider_right{
+		width:6px;
+	}	
+	.webix_slider_handle{
+		left:6px;
+	}
+}
+.webix_slider_vertical.webix_slider_alt .webix_slider_handle{
+	left:3px;
+	height:11px;
+}
+.webix_rangeslider {
+	.webix_slider_title_box{
+		height:16px;
+		margin-top:-1px;
+	}
+	.webix_slider_title{
+		height:14px;
+	}
+}
+
+
+.webix_switch_box {
+	margin-top:1px;
+	height: 22px;
+	.webix_switch_handle{
+  		height:20px;
+  		width:20px;
+	}
+}
+
+// icon inside a button
+.buttonIconStyle(){
+	color: @buttonFontColor;
+}
+.activeShadow{
+	box-shadow: inset 0 3px 5px rgba(0,0,0,0.125)
+}
+.toggleShadow{
+	box-shadow: inset 0 3px 5px rgba(0,0,0,0.18)
+}
+.webix_el_toggle{
+	.webix_pressed .webix_img_btn, .webix_pressed .webix_img_btn_top{
+		.activeShadow;
+	}
+	.webix_el_box.webix_pressed{
+		.webixtype_base, .webix_img_btn_abs{
+			.activeShadow;
+			.darkActiveRule(@buttonBgColor);
+		}
+	}
+}
+
+.webix_img_btn_abs_top .webix_icon{
+	font-size: 22px;
+}
+
+.webix_img_btn:hover,.webix_img_btn_top:hover{
+	.darkHoverRuleA;
+}
+.webix_img_btn:active,.webix_img_btn_top:active{
+	.darkActiveRuleA;
+	.activeShadow;
+}
+.webix_img_btn:focus,.webix_img_btn_top:focus{
+	.darkActiveRuleA;
+}
+/*
+.webix_el_box .webix_img_btn_abs:active + input, .webix_el_box .webix_img_btn_abs + input:active{
+	.darkActiveRule(@buttonBgColor);
+}
+.webix_el_box .webix_img_btn_abs:hover + input, .webix_el_box .webix_img_btn_abs + input:hover{
+	.darkHoverRule(@buttonBgColor);
+}*/
+
+.webix_view .webix_fieldset{
+	fieldset{
+		border:1px solid  darken(@dataBorderColor,5%);
+	}
+	legend{
+		color: lighten(@fontColor,7%);
+	}
+}
+
+.webix_control.webix_el_search span {
+	.altBackColor;
+}
+
+// disabled controls
+@disabledColor: #eee;
+@disabledFontColor: #aaa;
+.inputDisabled(){
+	color: @disabledFontColor;
+	background: @disabledColor;
+}
+.buttonDisabled(){
+	color: @disabledFontColor;
+	background: darken(@disabledColor,2%);
+	border: 1px solid darken(@disabledColor,2%);
+	text-shadow: none;
+}
+
+@checkColor: @formButtonColor;
+// checkbox
+
+.webix_custom_checkbox:before{
+	content: "\F020";
+	color: @buttonColor;
+	font-family: @iconFamily;
+
+	font-size: 16px;
+	height: 14px;
+	display: block;
+	line-height: 13px;
+ 	//padding-left: 1px;
+	width: 14px;
+}
+.webix_checkbox_0 .webix_custom_checkbox:before{
+	visibility:hidden;
+}
+
+.webix_custom_checkbox{
+	float: left;
+	position: relative;
+	top: 50%;
+	width:auto;
+	margin-top: -7px;
+	padding:0;
+//margin-top: (@inputHeight - 4- 13 - 2)/2;
+	height:15px;
+	width:15px;
+	border:1px solid @inputBorderColor;
+	border-radius: 3px;
+	background-color: lighten(@backColor,8%);
+}
+.webix_custom_checkbox:focus{
+	border-color: @buttonColor;
+}
+a:focus .webix_custom_checkbox, a:active .webix_custom_checkbox{
+	.focusStyle;
+}
+
+
+// radio
+@radioSize: 15px;
+.webix_el_radio{
+	.webix_custom_radio:before{
+		content: " ";
+		background-color: lighten(@backColor,8%);
+	}
+	.webix_custom_radio:before{
+		content: " ";
+		margin: (@radioSize - 9)/2;
+		border-radius: 50%;
+		display: block;
+		width: 7px;
+		#box > .sizing;
+		height: 7px;
+		background-color: @buttonColor;
+	}
+	.webix_radio_0 .webix_custom_radio:before{
+		visibility:hidden;
+	}
+	.webix_custom_radio{
+		display: block;
+		height: @radioSize;
+		width: @radioSize;
+		padding:0;
+		border:1px solid @inputBorderColor;
+		border-radius: 50%;
+		background-color: lighten(@backColor,8%);
+	}
+	.webix_custom_radio:focus{
+		border-color: @buttonColor;
+	}
+
+	.webix_label_right{
+		color: @fontColor;
+		font-size: @fontSize;
+	}
+}
+a:focus .webix_custom_radio, a:active .webix_custom_radio{
+	.focusStyle;
+}
+//input margin
+@skin_input_radius: 6px;
+@skin_input_y_padding: 3px;
+@formFontSize: @fontSize;
+@iconFontColor: #606060;
+
+//-------------------------------------------///
+//                   Calendar                ///
+//-------------------------------------------///
+.webix_cal_body{
+
+	.webix_cal_today{
+	/*background-color: transparent;
+			color: @fontColor;*/
+		#box > .sizing;
+		border: 1px solid @selectColor;
+		border-radius: @skin_input_radius;
+		span{
+		/*#box > .sizing;
+					border: 1px solid @selectColor;*/
+		}
+	}
+	.webix_cal_day, .webix_cal_week_num {
+		font-size: (@fontSize - 2);
+	}
+	.webix_cal_select,  .webix_cal_select.webix_cal_today{
+	/*background: transparent;
+			color: @fontColor;*/
+		border-radius: @skin_input_radius;
+	}
+
+	.webix_cal_today span, .webix_cal_select span, .webix_cal_select.webix_cal_today span{
+
+	//border-radius: @skin_input_radius;
+
+	}
+	.webix_selected, .webix_cal_event.webix_cal_select{
+		color: @buttonFontColor;
+		border-radius: @skin_input_radius;
+		background: @selectColor;
+	}
+}
+.webix_cal_event {
+	color: @buttonColor;
+}
+.webix_cal_outside{
+	font-weight: normal;
+	color: #bbb;
+}
+.webix_time_footer, .webix_cal_footer{
+	.webix_cal_done{
+		.buttonBackground();
+	}
+	.webix_cal_done:hover{
+		.darkHoverRule(@buttonBgColor);
+	}
+	.webix_cal_done:focus{
+		.darkFocusRule(@buttonBgColor);
+	}
+}
+
+.webix_cal_month {
+	line-height: 20px;
+	text-align: center;
+	font-size: 17px;
+	font-weight: bold;
+}
+
+.webix_view > .webix_cal_header div {
+	font-size: 12px;
+}
+.webix_cal_month_name{
+	font-size: (@fontSize - 1);
+	font-weight: normal;
+}
+
+//Daterange
+.webix_cal_range{
+	background-color:lighten(@selectColor, 48%);
+}
+
+
+// Progress
+.webix_progress_top .webix_progress_state, .webix_progress_bottom .webix_progress_state{
+	background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%,
+	transparent 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.1) 75%,
+	transparent 75%, transparent);
+}
+.webix_progress_top .webix_progress_state{
+	background-size: 10px 10px;
+}
+.webix_progress_bottom .webix_progress_state{
+	background-size: 14px 14px;
+}
+
+.webix_accordionitem_label .webix_icon{
+	font-size: 17px;
+	width:25px;
+}
+.webix_item_tab  .webix_icon{
+	width: 30px;
+	font-size: 17px;
+}
+
+//Focusing
+.dataFocusStyle(){
+	background:lighten(@selectColor, 50%);
+}
+.webix_view .webix_item_tab:focus,
+.webix_view .webix_cal_next_button:focus,
+.webix_view .webix_cal_prev_button:focus{
+	outline-color:lighten(@fontColor, 35%);
+	outline-style:dotted;
+	outline-width:1px;
+}
+
+//for skin autodetection
+.webix_skin_mark{
+	height: 210px;
+}

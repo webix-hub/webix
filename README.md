@@ -1,9 +1,7 @@
-Webix UI v.5.2.0
+Webix UI v.6.0.3
 ================
 
 [![npm version](https://badge.fury.io/js/webix.svg)](https://badge.fury.io/js/webix)
-[![Join the chat at https://gitter.im/webix-hub/webix](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/webix-hub/webix) 
-
 
 http://webix.com
 
@@ -13,14 +11,15 @@ If you don't know where to start - check
 - http://docs.webix.com/desktop__getting_started.html
 - http://forum.webix.com
 
-### Examples
 
-- [Admin Dashboard](http://webix.com/demos/material/admin-app/#!/app/forms)
-- [Third party apps created with Webix](https://github.com/webix-hub/tracker/wiki/list-of-apps-using-webix)
+### Demos
+
+Check https://webix.com/demos
 
 ### License terms
 
-The Webix UI library is licensed under the [GPL v3 license](http://www.gnu.org/licenses/old-licenses/gpl-3.0.html). 
+Webix UI library is licensed under "GPL v3" licence
+http://www.gnu.org/licenses/old-licenses/gpl-3.0.html
 
 Starting from Webix 2.4, it possible to use a FLOSS Exception to the GPL License. This allows to use Webix in your applications distributed under MIT, BSD and other open source licenses. 
 
@@ -40,5 +39,10 @@ Starting from Webix 2.4, it possible to use a FLOSS Exception to the GPL License
 
 You can buy a commercial license and support subscription at http://webix.com
 
+If you have questions about functionality of the component 
+or have some issue with API and behavior of the component,
+you can get help at http://forum.webix.com
 
-(c) XB Software Ltd. 2013 - 2017
+
+
+(c) XB Software Ltd. 2017

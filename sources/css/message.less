@@ -1,0 +1,215 @@
+.webix_message_area{
+	position:fixed;
+	right:5px;
+	width:250px;
+	z-index:1000;
+}
+
+.webix_info{
+	min-width: 120px;
+
+	padding:4px 4px 4px 20px;
+	font-family:Tahoma, Arial;
+	z-index: 10000;
+	overflow: hidden;
+
+	margin:5px;
+	margin-bottom:10px;
+
+	-webkit-transition: all .5s ease;
+    -moz-transition: all .5s ease;
+    -o-transition: all .5s ease;
+    transition: all .5s ease;
+}
+.webix_no_transition{
+	-webkit-transition: none;
+    -moz-transition: none;
+    transition: none;
+}
+.webix_info.hidden{
+	height:0px;
+	min-height: 0px;
+	padding-top:0px;
+	padding-bottom:0px;
+	border-width:0px;
+	margin-top:0px;
+	margin-bottom:0px;
+	overflow:hidden;
+}
+
+.webix_modal_box{
+	overflow:hidden;
+	display: inline-block;
+	min-width: 250px;
+	width: 250px;
+	text-align: center;
+	position:fixed;
+
+	background-color: @backColor;
+
+	box-shadow: 0px 3px 6px #c8c8c8;
+
+	font-family: @fontFamily;
+
+	z-index:20000;
+
+	border-radius: @windowRadius;
+	border: 1px solid #ffffff;
+	outline:none;
+}
+
+.webix_popup_title{
+	border-top-left-radius: @windowRadius - 1;
+	border-top-right-radius: @windowRadius - 1;
+
+	border-width:0px;
+
+	background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAoCAMAAAAIaGBFAAAAhFBMVEVwcHBubm5sbGxqampoaGhmZmZlZWVjY2NhYWFfX19dXV1bW1taWlpYWFhWVlZUVFRSUlJRUVFPT09NTU1LS0tJSUlHR0dGRkZERERCQkJAQEA+Pj49PT09PT0+Pj5AQEBBQUFDQ0NERERGRkZHR0dJSUlKSkpMTExMTEw5OTk5OTk5OTkny8YEAAAAQklEQVQImQXBCRJCAAAAwKVSQqdyjSPXNP7/QLsIhA6OTiJnF7GrRCpzc/fw9PKW+/gqlCq1RqvTG/yMJrPF6m/bAVEhAxxnHG0oAAAAAElFTkSuQmCC);
+	background-image: -webkit-linear-gradient(top, #707070 1%, #3d3d3d 70%, #4c4c4c 97%, #393939 97%);
+	background-image: -moz-linear-gradient(top, #707070 1%, #3d3d3d 70%, #4c4c4c 97%, #393939 97%);
+}
+
+.webix_info, .webix_popup_button, .webix_button{
+	cursor:pointer;
+}
+
+.webix_popup_text{
+	overflow:hidden;
+}
+
+.webix_popup_controls{
+	border-radius:6px;
+	padding:5px 10px 10px;
+}
+@modalButtonHeight: @inputHeight - (@skin_input_y_padding * 2) - 2;
+
+.webix_popup_button, .webix_button{
+	height:@modalButtonHeight;
+	line-height:@modalButtonHeight;
+
+	display: inline-block;
+	margin: 0 5px;
+	border-radius: @skin_input_radius;
+}
+.webix_popup_button{
+	min-width: 100px;
+}
+
+div.webix_modal_cover {
+	background-color:#000;
+	cursor:default;
+
+	filter:progid:DXImageTransform.Microsoft.Alpha(opacity=10);
+	opacity: 0.1;
+
+	position: fixed;
+	z-index:19999;
+	left: 0px;		top: 0px;
+	width: 100%;	height: 100%;
+
+	border: none;
+	zoom: 1;
+}
+
+.webix_info img, .webix_modal_box img{
+	float:left;
+	margin-right:20px;
+}
+
+.webix_alert_error .webix_popup_title, .webix_confirm_error .webix_popup_title{
+	background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAsCAIAAAArRUU2AAAATklEQVR4nIWLuw2AMBBDjVuQiBT2oWbRDATrnB0KQOJoqPzRe3BrHI6dcBASYREKovtK6/6DsDOX+stN+3H1YX9ciRgnYq5EWYhS2dftBIuLT4JyIrPCAAAAAElFTkSuQmCC);
+}
+.webix_alert_error, .webix_confirm_error {
+	border: 1px solid #ff0000;
+}
+
+/*Skin section*/
+.webix_button, .webix_popup_button{
+	font-size: @fontSize;
+	.buttonBackground;
+	outline: none;
+}
+
+.webix_popup_button.confirm{
+	.confirmButton;
+}
+
+.webix_button:active, .webix_popup_button.confirm:active, .webix_popup_button:active{
+	.activeShadow;
+}
+
+@formButtonColor:@selectColor;
+
+.webix_popup_button{
+	&.confirm:hover{
+		.darkHoverRule(@formButtonColor);
+	}
+	&.confirm:focus{
+		.darkFocusRule(@formButtonColor);
+	}
+	&.confirm:active{
+		.darkActiveRule(@formButtonColor);
+	}
+	&:hover{
+		.darkHoverRule(@buttonColor);
+	}
+	&:focus{
+		.darkFocusRule(@buttonColor);
+	}
+	&:active{
+		.darkActiveRule(@buttonColor);
+	}
+}
+
+
+.webix_popup_title{
+	color:#fff;
+	text-shadow: 1px 1px #000;
+	height:40px; line-height:40px;
+	font-size:20px;
+}
+.webix_popup_text{
+	margin:0 0 5px 0;
+	padding-top: 25px;
+	font-size: @fontSize;
+	color: @fontColor;
+	min-height:60px;
+}
+
+.webix_info, .webix_error, .webix_success{
+	font-size: @fontSize;
+	color: #333;
+	box-shadow: 0px 0px 10px #888;
+
+	padding:0px;
+
+  	background-color:#FFF;
+	border-radius:3px;
+	border:1px solid #ffffff;
+}
+.webix_info div{
+	padding:5px 10px 5px 10px;
+	background-color: #fff;
+
+	border-radius:3px;
+	border:1px solid #B8B8B8;
+}
+.webix_error{
+	background-color: #d81b1b;
+	border:1px solid #ff3c3c;
+	box-shadow: 0px 0px 10px #000;
+}
+.webix_error div{
+	background-color: #d81b1b;
+	border:1px solid #940000;
+	color:#FFF;
+}
+.webix_success{
+	background-color: #209150;
+	border:1px solid #00d244;
+}
+.webix_success div{
+	background-color: #27ae60;
+	border:1px solid #209150;
+	color:#FFF;
+}
