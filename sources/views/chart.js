@@ -536,7 +536,7 @@ const api = {
 		this._drawLine(ctx,x0,y0,x1,y0,config.xAxis.color,1);
 		/*the right border in lines in scale are enabled*/
 		if (!config.xAxis.lines.call(this,{}) || !config.offset) return;
-		this._drawLine(ctx,x1+0.5,point1.y,x1+0.5,point0.y+0.5,config.lineColor.call(this,{}).color,1);
+		this._drawLine(ctx,x1+0.5,point1.y,x1+0.5,point0.y+0.5,config.xAxis.lineColor.call(this,{}),1);
 	},
 	_drawYAxis:function(ctx,data,point0,point1,start,end){
 		var step;

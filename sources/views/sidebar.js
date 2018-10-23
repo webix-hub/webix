@@ -28,7 +28,10 @@ const api = {
 		this.$ready.push(this._initContextMenu);
 
 		this.data._scheme_init = function(obj){
-			if (obj.data) obj.menu = copy(obj.data);
+			if (obj.data)
+				obj.menu = copy(obj.data);
+			else if (obj.item) //xml child records, can be {} or []
+				obj.menu = copy(obj.item.length?obj.item:[obj.item]);
 		};
 	},
 	on_context:{},

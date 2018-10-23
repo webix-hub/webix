@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.6.0.3
+ * webix UI v.6.0.5
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -904,7 +904,7 @@
 	  var origin = Date.prototype.toJSON;
 
 	  Date.prototype.toJSON = function () {
-	    i18n.parseFormatStr(this);
+	    return i18n.parseFormatStr(this);
 	  };
 
 	  var result;
@@ -16258,7 +16258,7 @@
 	  }
 	};
 
-	var version$1 = "6.0.3";
+	var version$1 = "6.0.5";
 	var name$1 = "core";
 
 	var errorMessage = "non-existing view for export";
@@ -16495,7 +16495,7 @@
 	    // in other cases we don't have built-in data templates
 
 	    var rawColumn = raw && isTable;
-	    var sourceColumn = view._columns_pull[_key2];
+	    var sourceColumn = view._columns_pull && view._columns_pull[_key2];
 
 	    if (isTable) {
 	      // when these's no column to take raw data from, or custom template defined - ignore raw mode
@@ -29963,12 +29963,6 @@
 	    }
 
 	    this.canvases["x"].renderTextAt(true, false, x0, point1.y + this._settings.padding.bottom - 3, this._settings.xAxis.title, "webix_axis_title_x", point1.x - point0.x);
-	    /*the right border in lines in scale are enabled*/
-
-	    if (!axis.lines.call(this, {})) {
-	      this._drawLine(ctx, x0, point0.y - 0.5, x1, point0.y - 0.5, this._settings.xAxis.color, 0.2);
-	    }
-
 	    return yAxisStart;
 	  },
 	  _correctBarHParams: function _correctBarHParams(ctx, x, y, value, unit, barWidth, minValue) {
@@ -32182,7 +32176,7 @@
 
 	    if (!config.xAxis.lines.call(this, {}) || !config.offset) return;
 
-	    this._drawLine(ctx, x1 + 0.5, point1.y, x1 + 0.5, point0.y + 0.5, config.lineColor.call(this, {}).color, 1);
+	    this._drawLine(ctx, x1 + 0.5, point1.y, x1 + 0.5, point0.y + 0.5, config.xAxis.lineColor.call(this, {}), 1);
 	  },
 	  _drawYAxis: function _drawYAxis(ctx, data, point0, point1, start, end) {
 	    var step;
@@ -34448,10 +34442,13 @@
 	  },
 	  on_mouse_move: {},
 	  type: {
+	    _submenu: function _submenu(obj) {
+	      return obj.submenu || obj.data || obj.item;
+	    },
 	    css: "menu",
 	    width: "auto",
 	    aria: function aria(obj, common, marks) {
-	      return "role=\"menuitem\"" + (marks && marks.webix_selected ? " aria-selected=\"true\" tabindex=\"0\"" : "tabindex=\"-1\"") + (obj.submenu || obj.data ? "aria-haspopup=\"true\"" : "") + (marks && marks.webix_disabled ? " aria-disabled=\"true\"" : "");
+	      return "role=\"menuitem\"" + (marks && marks.webix_selected ? " aria-selected=\"true\" tabindex=\"0\"" : "tabindex=\"-1\"") + (common._submenu(obj) ? "aria-haspopup=\"true\"" : "") + (marks && marks.webix_disabled ? " aria-disabled=\"true\"" : "");
 	    },
 	    templateStart: function templateStart(obj, common, mark) {
 	      if (obj.$template === "Separator" || obj.$template === "Spacer") {
@@ -34459,7 +34456,7 @@
 	      }
 
 	      var link = (obj.href ? " href='" + obj.href + "' " : "") + (obj.target ? " target='" + obj.target + "' " : "");
-	      return list.api.type.templateStart(obj, common, mark).replace(/^<div/, "<a " + link) + ((obj.submenu || obj.data) && common.subsign ? "<div class='webix_submenu_icon'></div>" : "");
+	      return list.api.type.templateStart(obj, common, mark).replace(/^<div/, "<a " + link) + (common._submenu(obj) && common.subsign ? "<div class='webix_submenu_icon'></div>" : "");
 	    },
 	    templateEnd: function templateEnd(obj) {
 	      return obj.$template === "Separator" || obj.$template === "Spacer" ? "</div>" : "</a>";
@@ -34523,7 +34520,7 @@
 
 	    if (this._open_sub_menu && data.submenu != this._open_sub_menu) this._hide_sub_menu(true); //show submenu
 
-	    if (data.submenu || data.data && !this.config.hidden) {
+	    if (this.type._submenu(data) && !this.config.hidden) {
 	      var sub = this._get_submenu(data);
 
 	      if (this.data.getMark(id, "webix_disabled")) return;
@@ -34580,7 +34577,7 @@
 	  _create_sub_menu: function _create_sub_menu(data) {
 	    var listConfig = {
 	      view: "submenu",
-	      data: data.submenu || data.data
+	      data: this.type._submenu(data)
 	    };
 
 	    var settings = this.getTopMenu()._settings.submenuConfig;
@@ -34925,7 +34922,8 @@
 	    this.$ready.push(this._initContextMenu);
 
 	    this.data._scheme_init = function (obj) {
-	      if (obj.data) obj.menu = copy(obj.data);
+	      if (obj.data) obj.menu = copy(obj.data);else if (obj.item) //xml child records, can be {} or []
+	        obj.menu = copy(obj.item.length ? obj.item : [obj.item]);
 	    };
 	  },
 	  on_context: {},

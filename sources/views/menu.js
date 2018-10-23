@@ -132,17 +132,20 @@ const api = {
 	},
 	on_mouse_move:{},
 	type:{
+		_submenu:function(obj){
+			return obj.submenu || obj.data || obj.item;
+		},
 		css:"menu",
 		width:"auto",
 		aria:function(obj, common, marks){
-			return "role=\"menuitem\""+(marks && marks.webix_selected?" aria-selected=\"true\" tabindex=\"0\"":"tabindex=\"-1\"")+(obj.submenu || obj.data?"aria-haspopup=\"true\"":"")+(marks && marks.webix_disabled?" aria-disabled=\"true\"":"");
+			return "role=\"menuitem\""+(marks && marks.webix_selected?" aria-selected=\"true\" tabindex=\"0\"":"tabindex=\"-1\"")+(common._submenu(obj)?"aria-haspopup=\"true\"":"")+(marks && marks.webix_disabled?" aria-disabled=\"true\"":"");
 		},
 		templateStart:function(obj, common, mark){
 			if (obj.$template === "Separator" || obj.$template === "Spacer"){
 				return "<div webix_l_id=\"#id#\" role=\"separator\" tabindex=\"-1\" class=\"webix_context_"+obj.$template.toLowerCase()+"\">";
 			}
 			var link = (obj.href?" href='"+obj.href+"' ":"")+(obj.target?" target='"+obj.target+"' ":"");
-			return list.api.type.templateStart(obj,common,mark).replace(/^<div/,"<a "+link)+(((obj.submenu||obj.data) && common.subsign)?"<div class='webix_submenu_icon'></div>":"");
+			return list.api.type.templateStart(obj,common,mark).replace(/^<div/,"<a "+link)+((common._submenu(obj) && common.subsign)?"<div class='webix_submenu_icon'></div>":"");
 		},
 		templateEnd: function(obj){
 			return (obj.$template === "Separator" || obj.$template === "Spacer")?"</div>":"</a>";
@@ -206,7 +209,7 @@ const api = {
 			this._hide_sub_menu(true);
 
 		//show submenu
-		if (data.submenu || data.data&&!this.config.hidden){
+		if (this.type._submenu(data)&&!this.config.hidden){
 
 			var sub  = this._get_submenu(data);
 			if(this.data.getMark(id,"webix_disabled"))
@@ -260,7 +263,7 @@ const api = {
 	_create_sub_menu : function(data){
 		var listConfig = {
 			view:"submenu",
-			data:data.submenu || data.data
+			data:this.type._submenu(data)
 		};
 
 		var settings = this.getTopMenu()._settings.submenuConfig;

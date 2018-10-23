@@ -4,7 +4,7 @@ import i18n from "./i18n.js";
 export function stringify(obj){
 	var origin = Date.prototype.toJSON;
 	Date.prototype.toJSON = function(){
-		i18n.parseFormatStr(this);
+		return i18n.parseFormatStr(this);
 	};
 
 	var result;

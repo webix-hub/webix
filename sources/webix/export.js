@@ -251,7 +251,7 @@ function getExportScheme(view, options){
 		// raw mode has sense only for datatable
 		// in other cases we don't have built-in data templates
 		var rawColumn = raw && isTable;
-		var sourceColumn = view._columns_pull[key];
+		var sourceColumn = view._columns_pull && view._columns_pull[key];
 		if (isTable){
 			// when these's no column to take raw data from, or custom template defined - ignore raw mode
 			if (column.template && (!sourceColumn || sourceColumn.template != column.template))

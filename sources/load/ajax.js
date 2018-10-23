@@ -1,5 +1,4 @@
-import { log } from "../webix/debug";
-import { assert } from "../webix/debug";
+import { log, assert } from "../webix/debug";
 import { isArray, toArray, extend } from "../webix/helpers";
 import { stringify } from "../webix/stringify";
 import { callEvent } from "../webix/customevents";

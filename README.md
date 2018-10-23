@@ -1,4 +1,4 @@
-Webix UI v.6.0.3
+Webix UI v.6.0.5
 ================
 
 [![npm version](https://badge.fury.io/js/webix.svg)](https://badge.fury.io/js/webix)
@@ -15,6 +15,7 @@ If you don't know where to start - check
 ### Demos
 
 Check https://webix.com/demos
+
 
 ### License terms
 

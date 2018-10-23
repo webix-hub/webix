@@ -250,7 +250,7 @@ const BarHChart = {
 			if(scaleParam.fixNum)  value = parseFloat(value).toFixed(scaleParam.fixNum);
 			var xi = Math.floor(x0+c*stepHeight)+ 0.5;/*canvas line fix*/
 
-			if(!(i==start&&this._settings.origin=="auto") &&axis.lines.call(this,i))
+			if(!(i==start&&this._settings.origin=="auto") && axis.lines.call(this,i))
 				this._drawLine(ctx,xi,y0,xi,point0.y,this._settings.xAxis.lineColor.call(this,i),1);
 			if(i == this._settings.origin) yAxisStart = xi+1;
 			/*correction for JS float calculation*/
@@ -268,10 +268,6 @@ const BarHChart = {
 			"webix_axis_title_x",
 			point1.x - point0.x
 		);
-		/*the right border in lines in scale are enabled*/
-		if (!axis.lines.call(this,{})){
-			this._drawLine(ctx,x0,point0.y-0.5,x1,point0.y-0.5,this._settings.xAxis.color,0.2);
-		}
 		return yAxisStart;
 	},
 	_correctBarHParams:function(ctx,x,y,value,unit,barWidth,minValue){

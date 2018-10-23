@@ -61,7 +61,8 @@ This software is allowed to use under GPL or you need to obtain Commercial Licen
 	if (mode === "min"){
 		plugins.push(uglify({
 			mangle:{
-				properties:{ regex:/^_/ }
+				properties:{ regex:/^_/ },
+				reserved:["log", "assert"]
 			},
 			compress: {
 				pure_funcs:["log", "assert"]
