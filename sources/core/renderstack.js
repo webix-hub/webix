@@ -102,9 +102,10 @@ const RenderStack ={
 
 		var html = this.getItemNode(id);
 		if (html&&this.scrollTo){
-			var txmin = Math.abs(this._contentobj.offsetLeft-html.offsetLeft);
+			var txmin = html.offsetLeft;
 			var txmax = txmin + html.offsetWidth;
-			var tymin = Math.abs(this._contentobj.offsetTop-html.offsetTop);
+			var tymin = html.offsetTop;
+
 			var tymax = tymin + html.offsetHeight;
 			var state = this.getScrollState();
 
@@ -113,7 +114,7 @@ const RenderStack ={
 				x = txmin;
 			var y = state.y;
 			if (y > tymin || y + this._content_height < tymax )
-				y = tymin - 5;
+				y = tymin;
 
 			this.scrollTo(x,y);
 			if(this._setItemActive)

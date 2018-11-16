@@ -24,8 +24,7 @@ if (!global.setImmediate && global.addEventListener)
 	});
 
 function nextTick(fn) {
-	/* global setImmediate */
-	if (global.setImmediate) setImmediate(fn);
+	if (global.setImmediate) global.setImmediate(fn);
 	// if inside of web worker
 	else if (global.importScripts || !global.addEventListener) setTimeout(fn);
 	else {

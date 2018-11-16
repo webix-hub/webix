@@ -78,7 +78,7 @@ const UIManager = {
 	_focus_action:function(view){
 		this._focus_was_there = this._focus_was_there || view._settings.id;
 	},
-	setFocus: function(view, only_api){
+	setFocus: function(view, only_api, tab){
 		//view can be empty
 		view = $$(view);
 		//unfocus if view is hidden
@@ -93,8 +93,10 @@ const UIManager = {
 		if (this._view && this._view.callEvent)
 			this._view.callEvent("onBlur", [this._view]);
 
-		if (view && view.callEvent)
+		if (view && view.callEvent){
 			view.callEvent("onFocus", [view, this._view]);
+			if(tab) view.callEvent("onTabFocus", [view, this._view]);
+		}
 		callEvent("onFocusChange", [view, this._view]);
 
 		if (this._view && this._view.blur && !only_api) this._view.blur();
@@ -251,7 +253,7 @@ const UIManager = {
 			}
 		} else
 			delay(function(){
-				UIManager.setFocus($$(document.activeElement), true);
+				UIManager.setFocus($$(document.activeElement), true, true);
 			},1);
 	},
 	getTop: function(id) {

@@ -25,12 +25,20 @@
 	border: none;
 	padding:0;
 	cursor: pointer;
+	vertical-align: middle;
+}
+.webix_el_icon .webix_el_box{
+	padding: 0;
+	margin: 0 auto;
+	text-align: center;
 	position: relative;
+	overflow: visible;
+	cursor: pointer;
 }
 .webix_icon_button .webix_icon{
 	font-size:20px;
-	height:23px;
-	width:21px;
+	height:20px;
+	width:20px;
 	display: inline-block;
 
 	text-align:center;
@@ -40,24 +48,16 @@
 	font-size:17px;
 	display: inline-block;
 	text-align: center;
-	width: 24px;
+	width: 20px;
+	margin-right: 4px;
 	color: @iconFontColor;
-}
-.webix_el_iconBbutton .webix_icon_btn{
-	text-align: center;
-	width:100%;
-	padding:5px 0px;
-}	
-
-.webix_el_icon{
-	cursor: pointer;
 }
 
 .webix_badge {
 	background-color: #ff8839;
 	color: @backColor;
 
-	border-radius: 50%;
+	border-radius: 11px;
 	font-size: 12px;
 	height: 22px;
 	min-width: 22px;
@@ -76,12 +76,6 @@
 	position: static;
 	float:right;
 	margin: @listPaddingY+2 -5px 0 @listPaddingX;
-}
-
-.webixtype_base .webix_badge{
-  	top: 50%;
-  	margin-top:-11px;
-  	margin-right:8px;
 }
 
 .webix_el_toggle .webix_badge{

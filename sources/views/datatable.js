@@ -1578,12 +1578,12 @@ const api = {
 		};
 
 		for (let i=0; i<this._settings.topSplit; i++)
-			html += this._render_single_cell(i, config, yr, state, -this._render_scroll_shift);
+			html += this._render_single_cell(i, config, yr, state, -this._render_scroll_shift, index);
 		// ignore not available rows in top-split area
 		this._data_request_flag = null;
 		
 		for (let i = Math.max(yr[0], this._settings.topSplit); i < yr[1]; i++)
-			html += this._render_single_cell(i, config, yr, state, -1);
+			html += this._render_single_cell(i, config, yr, state, -1, index);
 
 		// preserve target node for Safari wheel event
 		this._preserveScrollTarget(col.node);
@@ -1595,7 +1595,7 @@ const api = {
 		col._render_scroll_shift=this._render_scroll_shift;
 		return 1;
 	},
-	_render_single_cell:function(i, config, yr, state, top){
+	_render_single_cell:function(i, config, yr, state, top, index){
 		var id = this.data.order[i];
 		var item = this.data.getItem(id);
 		var html = "";
@@ -1616,8 +1616,20 @@ const api = {
 			}
 			var value = this._getValue(item, config, i);
 			var css = this._getCss(config, value, item, id);
+			var ariaSelect = " aria-selected='true' tabindex='0'";
 			
-			if(css.indexOf("select") !==-1 ) aria += " aria-selected='true' tabindex='0'";
+			if(css.indexOf("select") !==-1 ){
+				//in case of row/column selection - make only first cell focusable
+				if(css.indexOf("row") !==-1){
+					var xr = this._get_x_range();
+					if(xr[0] === index) aria += ariaSelect;
+				}
+				else if(css.indexOf("col") !==-1){
+					if(i === yr[0]) aria += ariaSelect;
+				}
+				else
+					aria += ariaSelect;
+			}
 			
 			var isOpen = !!item.$subopen;
 			var margin = isOpen ? "margin-bottom:"+item.$subHeight+"px;" : "";

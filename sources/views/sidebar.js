@@ -143,7 +143,7 @@ const api = {
 			var subMenuPos = (config.position == "left"?"right":"left");
 			var menuTemplate = function(obj) {
 				var icon = "wxi-angle-"+(config.position == "left"?"right":"left");
-				var arrow = obj.submenu||obj.data ? "<div class=\"webix_icon "+ icon+"\"></div>" : "";
+				var arrow = obj.submenu||obj.data||obj.item ? "<div class=\"webix_icon "+ icon+"\"></div>" : "";
 				return arrow+obj.value;
 			};
 

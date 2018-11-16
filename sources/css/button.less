@@ -42,7 +42,7 @@
 }
 
 
-.webix_el_button .webixtype_danger{
+.webix_el_button .webixtype_danger, .webix_el_toggle .webixtype_danger{
 	.skinRedButton();
 }
 
@@ -107,11 +107,6 @@ input.webixtype_next{
 	}
 
 }
-.webix_img_btn_abs{
-	.webix_icon{
-		margin-left: (@inputHeight - 22)/2;
-	}
-}
 .webix_img_btn_abs.webix_img_btn_abs_top, .webix_img_btn_top{
 	.webix_icon{
 		margin-left: -10px;
@@ -128,13 +123,13 @@ input.webixtype_next{
 }
 .webix_img_btn, .webix_img_btn_abs{
 	cursor:pointer;
- 	text-align: left;
 
  	background-repeat: no-repeat;
  	background-position: 2px center;
  	height: 100%;
 	.webix_icon{
 		.buttonIconStyle;
+		margin-right: 4px;
 	}
 
 	font-size: @fontSize;
@@ -144,8 +139,9 @@ input.webixtype_next{
 	.webix_image{
 		background-repeat: no-repeat;
 		background-position: center center;
-		float:left;
 		vertical-align: top;
+		display: inline-block;
+		margin-right: 4px;
 	}
 }
 .webix_img_btn_top .webix_image{
@@ -202,9 +198,9 @@ input.webixtype_next{
 	box-shadow: inset 0 3px 5px rgba(0,0,0,0.125);
 	background-color: rgba(0,0,0,0.05);
 };
-.webix_pressed .webix_img_btn_abs + input, .webix_pressed .webixtype_base{
+.webix_pressed .webix_img_btn_abs + input, .webix_pressed .webixtype_base,
+.webix_pressed button.webixtype_form, .webix_pressed button.webixtype_danger{
 	box-shadow: inset 0 3px 5px rgba(0,0,0,0.125);
-	//background-color: rgba(0,0,0,0.05);
 }
 
 .webix_view.webix_control{

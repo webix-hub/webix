@@ -130,7 +130,7 @@ const api = {
 			status: "client"
 		};
 
-		if (file.webkitRelativePath)
+		if (file && file.webkitRelativePath)
 			file_struct.name = file.webkitRelativePath;
 
 		if (extra)

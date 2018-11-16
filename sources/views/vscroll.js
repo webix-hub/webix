@@ -117,7 +117,7 @@ const api = {
 	},
 	activeArea:function(area, x_mode){
 		this._x_scroll_mode = x_mode;
-		_event(area,(env.isIE8 ? "mousewheel" : "wheel"),this._on_wheel,{bind:this});
+		_event(area,(env.isIE8 ? "mousewheel" : "wheel"),this._on_wheel,{bind:this, passive:false});
 		this._add_touch_events(area);
 	},
 

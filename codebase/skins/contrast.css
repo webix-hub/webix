@@ -170,12 +170,6 @@ x\:ui {
 .webix_view_align {
   background: transparent;
 }
-/*Focusing*/
-.webix_focused:focus {
-  background-color: #219051;
-  background: #b7efcf;
-  color: #393939;
-}
 .webix_view div,
 .webix_view span,
 .webix_view a.webix_list_item,
@@ -497,12 +491,19 @@ button,
   text-align: left;
   border-color: #4d4d4d;
 }
+.webix_list_item .webix_icon {
+  vertical-align: middle;
+  margin-right: 4px;
+}
 .webix_list_item.webix_invalid {
   background-color: #ffeeee;
 }
 .webix_list_item.webix_selected {
   color: #FFFFFF;
   background: #1F884C;
+}
+.webix_list_item.webix_selected:focus {
+  background: #196f3e;
 }
 .webix_list .webix_list_item.webix_selected {
   border-bottom: 1px solid #4d4d4d;
@@ -647,12 +648,19 @@ button,
   border-color: #4d4d4d;
   border-right: 1px solid #ebebeb;
 }
+.webix_dataview_item .webix_icon {
+  vertical-align: middle;
+  margin-right: 4px;
+}
 /*default item in selected state*/
 .webix_dataview_item.webix_selected {
   color: #FFFFFF;
   background: #1F884C;
   border-bottom: 1px solid #4d4d4d;
   border-right: 1px solid #4d4d4d;
+}
+.webix_dataview_item.webix_selected:focus {
+  background: #196f3e;
 }
 .webix_dataview_item.webix_invalid {
   background-color: #ffeeee;
@@ -673,16 +681,11 @@ button,
 .webix_dataview_item.tiles.webix_selected .webix_dataview_inner_item {
   background-color: #1F884C;
 }
+.webix_dataview_item.tiles.webix_selected:focus .webix_dataview_inner_item {
+  background-color: #1d8047;
+}
 .webix_dataview_item.tiles.webix_drag_over .webix_dataview_inner_item {
   background: transparent;
-}
-.webix_dataview_item.tiles.webix_focused:focus {
-  background: transparent;
-}
-.webix_dataview_item.tiles.webix_focused:focus .webix_dataview_inner_item {
-  background-color: #219051;
-  background: #b7efcf;
-  color: #393939;
 }
 .webix_dataview .webix_scroll_cont {
   box-sizing: border-box;
@@ -970,6 +973,10 @@ button,
 .webix_hcell.webix_ss_filter {
   padding: 3px 5px 3px 5px;
 }
+.webix_hcell .webix_tree_close,
+.webix_hcell .webix_tree_open {
+  margin-right: 5px;
+}
 .webix_ss_filter select,
 .webix_ss_filter input {
   width: 100%;
@@ -1122,6 +1129,11 @@ button,
   color: #FFFFFF;
   background: #1F884C;
 }
+.webix_column > div.webix_cell_select:focus,
+.webix_column > div.webix_column_select:focus,
+.webix_column > div.webix_row_select:focus {
+  background: #196f3e;
+}
 /*extra borders, for selection in cell mode*/
 .webix_column > div.webix_cell_select {
   border-bottom: 1px solid #4d4d4d;
@@ -1149,6 +1161,9 @@ button,
   color: #FFFFFF;
   background: #1F884C;
 }
+.webix_column > .webix_cell.webix_invalid.webix_cell_select:nth-child(even):focus {
+  background: #196f3e;
+}
 .webix_cell.webix_dtable_colrow,
 .webix_cell.webix_dtable_subrow,
 .webix_dtable_subview {
@@ -1165,6 +1180,9 @@ button,
 .webix_cell.webix_dtable_colrow.webix_selected {
   color: #FFFFFF;
   background: #1F884C;
+}
+.webix_cell.webix_dtable_colrow.webix_selected:focus {
+  background: #196f3e;
 }
 .webix_dtable_subrow {
   border-top: 1px solid #ebebeb;
@@ -1216,6 +1234,9 @@ button,
   color: #FFFFFF;
   background: #1F884C;
 }
+.webix_dtable_span.webix_selected:focus {
+  background: #196f3e;
+}
 .webix_hcell span.webix_input_icon {
   background-color: #6e6e6e;
 }
@@ -1253,6 +1274,10 @@ button,
 .webix_dtable .webix_resize_handle_y .webix_handle_content {
   border: none;
   background-color: #191919;
+}
+.webix_dtable_focused .webix_column > div.webix_row_select,
+.webix_dtable_focused .webix_column > div.webix_column_select {
+  background: #196f3e;
 }
 .webix_window {
   position: absolute;
@@ -1378,6 +1403,9 @@ button,
   margin-left: -4px;
   color: #FFFFFF;
   background: #1F884C;
+}
+.webix_tree_item.webix_selected span:focus {
+  background: #196f3e;
 }
 .webix_tree_item.webix_invalid {
   background-color: #ffeeee;
@@ -1749,8 +1777,6 @@ button,
 .webix_property_line.webix_focused div,
 .webix_property_line:focus div {
   background-color: #219051;
-  background: #b7efcf;
-  color: #393939;
 }
 .webix_property_label,
 .webix_property_value {
@@ -2044,6 +2070,9 @@ div.webix_modal_cover {
   height: 15px;
   cursor: default;
 }
+.webix_color_row div[aria-selected="true"]:focus div {
+  box-shadow: inset 0 0 15px #fff;
+}
 .webix_color_selector {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -2254,6 +2283,7 @@ div.webix_modal_cover {
   height: auto;
   overflow: hidden;
   clear: both;
+  position: relative;
 }
 .webix_scroll_touch_ie {
   touch-action: none;
@@ -2324,7 +2354,8 @@ div.webix_modal_cover {
   border-color: #28b263;
   box-shadow: none;
 }
-.webix_el_button .webixtype_danger {
+.webix_el_button .webixtype_danger,
+.webix_el_toggle .webixtype_danger {
   background: #ce5545;
   border: 1px solid #ce5545;
   border-bottom: 1px solid #b13e2f;
@@ -2408,9 +2439,6 @@ input.webixtype_next {
   top: 8px;
   left: 50%;
 }
-.webix_img_btn_abs .webix_icon {
-  margin-left: 8px;
-}
 .webix_img_btn_abs.webix_img_btn_abs_top .webix_icon,
 .webix_img_btn_top .webix_icon {
   margin-left: -10px;
@@ -2426,7 +2454,6 @@ input.webixtype_next {
 .webix_img_btn,
 .webix_img_btn_abs {
   cursor: pointer;
-  text-align: left;
   background-repeat: no-repeat;
   background-position: 2px center;
   height: 100%;
@@ -2435,6 +2462,7 @@ input.webixtype_next {
 .webix_img_btn .webix_icon,
 .webix_img_btn_abs .webix_icon {
   color: #fff;
+  margin-right: 4px;
 }
 .webix_img_btn_abs,
 .webix_img_btn {
@@ -2444,8 +2472,9 @@ input.webixtype_next {
 .webix_img_btn .webix_image {
   background-repeat: no-repeat;
   background-position: center center;
-  float: left;
   vertical-align: top;
+  display: inline-block;
+  margin-right: 4px;
 }
 .webix_img_btn_top .webix_image {
   background-repeat: no-repeat;
@@ -2495,7 +2524,9 @@ input.webixtype_next {
   background-color: rgba(0, 0, 0, 0.05);
 }
 .webix_pressed .webix_img_btn_abs + input,
-.webix_pressed .webixtype_base {
+.webix_pressed .webixtype_base,
+.webix_pressed button.webixtype_form,
+.webix_pressed button.webixtype_danger {
   box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 }
 .webix_view.webix_control .webix_disabled_box .webixtype_base,
@@ -2817,6 +2848,11 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
   background: #1F884C;
   border-color: #28b263;
 }
+.webix_segment_0.webix_selected:focus,
+.webix_segment_1.webix_selected:focus,
+.webix_segment_N.webix_selected:focus {
+  background: #196f3e;
+}
 .webix_inp_static {
   border: 1px solid #818181;
   background: white;
@@ -3123,6 +3159,9 @@ legend.webix_required:after {
   border-bottom-width: 1px ;
   color: #FFFFFF;
   background: #1F884C;
+}
+.webixtype_bottom .webix_item_tab.webix_selected:focus {
+  background: #196f3e;
 }
 .webix_before_all_tabs {
   width: 100%;
@@ -3629,9 +3668,6 @@ legend.webix_required:after {
   width: auto;
   white-space: nowrap;
 }
-.webix_el_box .webix_switch_box {
-  margin-top: 4px;
-}
 .webix_switch_toggle {
   position: absolute;
   visibility: hidden;
@@ -3639,9 +3675,10 @@ legend.webix_required:after {
 .webix_switch_box {
   display: block;
   position: relative;
-  cursor: pointer;
+  top: 50%;
+  margin-top: -12px;
   height: 24px;
-  width: 60px;
+  cursor: pointer;
   background-color: #f1f1f1;
   border: 1px solid #818181;
   border-radius: 60px;
@@ -4411,12 +4448,20 @@ body.webix_print {
   border: none;
   padding: 0;
   cursor: pointer;
+  vertical-align: middle;
+}
+.webix_el_icon .webix_el_box {
+  padding: 0;
+  margin: 0 auto;
+  text-align: center;
   position: relative;
+  overflow: visible;
+  cursor: pointer;
 }
 .webix_icon_button .webix_icon {
   font-size: 20px;
-  height: 23px;
-  width: 21px;
+  height: 20px;
+  width: 20px;
   display: inline-block;
   text-align: center;
   color: #e2e2a7;
@@ -4425,21 +4470,14 @@ body.webix_print {
   font-size: 17px;
   display: inline-block;
   text-align: center;
-  width: 24px;
+  width: 20px;
+  margin-right: 4px;
   color: #e2e2a7;
-}
-.webix_el_iconBbutton .webix_icon_btn {
-  text-align: center;
-  width: 100%;
-  padding: 5px 0px;
-}
-.webix_el_icon {
-  cursor: pointer;
 }
 .webix_badge {
   background-color: #ff8839;
   color: #393939;
-  border-radius: 50%;
+  border-radius: 11px;
   font-size: 12px;
   height: 22px;
   min-width: 22px;
@@ -4455,11 +4493,6 @@ body.webix_print {
   position: static;
   float: right;
   margin: 4px -5px 0 10px;
-}
-.webixtype_base .webix_badge {
-  top: 50%;
-  margin-top: -11px;
-  margin-right: 8px;
 }
 .webix_el_toggle .webix_badge {
   margin: 7px;
@@ -4990,9 +5023,13 @@ body.webix_print {
 .webix_property .webix_property_value {
   border-color: #4d4d4d;
 }
+.webix_property .webix_property_line.webix_focused div,
 .webix_property .webix_property_line:focus div {
   background-color: #313131;
   color: #fff;
+}
+.webix_tree_item.webix_selected:focus span {
+  background-color: #196f3e;
 }
 .webix_drag_over,
 .webix_drop_zone,
@@ -5106,7 +5143,7 @@ textarea.webix_invalid {
 .webix_focused .webix_inp_static {
   box-shadow: 0 0 0 1px #fff;
 }
-.webix_multilist .fa-check-square {
+.webix_multilist .wxi-checkbox-marked {
   color: #fff;
 }
 .buttonStyle {
@@ -5496,6 +5533,16 @@ div.webix_item_tab.webix_selected:focus {
   background-color: rgba(255, 255, 255, 0.25);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
+.webix_el_toggle .webix_pressed .webixtype_danger {
+  background-color: rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  background-color: #d97a6d;
+}
+.webix_el_toggle .webix_pressed .webixtype_form {
+  background-color: rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  background-color: #28b263;
+}
 .webix_el_toggle .webix_el_box.webix_pressed .webixtype_base,
 .webix_el_toggle .webix_el_box.webix_pressed .webix_img_btn_abs {
   background-color: rgba(255, 255, 255, 0.25);
@@ -5685,6 +5732,11 @@ a:active .webix_custom_radio {
   color: #fff;
   border-radius: 2px;
   background: #1F884C;
+}
+.webix_cal_body .webix_selected:focus,
+.webix_cal_body .webix_cal_select:focus,
+.webix_cal_body .webix_cal_event.webix_cal_select:focus {
+  background: #196f3e;
 }
 .webix_cal_day_disabled,
 .webix_cal_day_disabled.webix_cal_event {

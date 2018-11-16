@@ -12,11 +12,14 @@
 	font-size: 0;
 }
 
-.webix_color_row   div{
+.webix_color_row div{
 	display: inline-block;
 	width: 15px;
 	height: 15px;
 	cursor: default;
+}
+.webix_color_row div[aria-selected="true"]:focus div{
+	box-shadow:inset 0 0 15px #fff;
 }
 .webix_color_selector{
 	#box > .sizing;

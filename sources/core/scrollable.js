@@ -69,7 +69,7 @@ const Scrollable= {
 		} else {
 			this._scroll_y = mode;
 		}
-		this._settings.scroll = dir;
+		this._settings.scroll = mode?dir:mode;
 	},
 	getScrollState:function(){
 		if (Touch.$active){

@@ -207,11 +207,13 @@ const markup = {
 		this._attrs_to_json(el, json, html);
 
 		if (subs.length){
-			if (json.stack)
+			if (json.stack){
 				json[json.stack] = subs;
-			else if (this._view_has_method(json.view, "setValues"))
+			} else if (json.subui){
+				json[json.subui] = subs[0];
+			} else if (this._view_has_method(json.view, "setValues")){
 				json["elements"] = subs;
-			else if (json.view == "rows"){
+			} else if (json.view == "rows"){
 				json.view = "layout";
 				json.rows = subs;
 			} else if (json.view == "cols"){
@@ -221,8 +223,9 @@ const markup = {
 				json["cells"] = subs;
 			} else if (this._view_has_method(json.view, "getBody")){
 				json.body = subs.length == 1 ? subs[0] : { rows:subs };
-			} else
+			} else {
 				json["rows"] = subs;
+			}
 		} else if (!htmltable && !has_tags){
 			if (html && !json.template && (!json.view || json.view == "template")){
 				json.view = "template";

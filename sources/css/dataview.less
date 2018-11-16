@@ -36,14 +36,11 @@
 	&.webix_selected .webix_dataview_inner_item{
 		background-color: @selectColor;
 	}
+	&.webix_selected:focus .webix_dataview_inner_item{
+		background-color: darken(@selectColor, 2%);
+	}
 	&.webix_drag_over .webix_dataview_inner_item{
 		.webix_drag_over;
-	}
-	&.webix_focused:focus{
-		background: transparent;
-		.webix_dataview_inner_item{
-			.dataFocusStyle();
-		}
 	}
 }
 

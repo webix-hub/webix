@@ -1,5 +1,4 @@
-import {preventEvent, addCss, removeCss} from "../webix/html";
-import {once} from "../webix/helpers";
+import {preventEvent} from "../webix/html";
 import UIManager from "../core/uimanager";
 import {$$} from "../ui/core";
 import {assert} from "../webix/debug";
@@ -7,27 +6,24 @@ import {assert} from "../webix/debug";
 
 const KeysNavigation = {
 	$init:function(){
-		if(this.getSelectedId){
+		if(this.getSelectedId)
 			this.attachEvent("onAfterRender", this._set_focusable_item);
-			this.attachEvent("onAfterSelect", once(function(id){
-				if(this.count()>1 && this._dataobj && this.data.order[0] != id){
-					var node =  this._dataobj.querySelector("["+this._id+"]");
-					if(node){
-						node.setAttribute("tabindex", "-1");
-						removeCss(node, "webix_focused");
-					}
-				}
-			}));
+		if(this.moveSelection)
+			this.attachEvent("onTabFocus", this._set_item_focus);
+	},
+	_set_item_focus:function(){
+		if(this.getSelectedId){
+			var sel = this.getSelectedId(true);
+			if(!sel.length || !this.getItemNode(sel[0]))
+				this.moveSelection("down"); //select and show
 		}
 	},
 	_set_focusable_item:function(){
 		var sel = this.getSelectedId(true);
 		if(!sel.length || !this.getItemNode(sel[0])){
 			var node =  this._dataobj.querySelector("["+this._id+"]");
-			if(node) {
+			if(node)
 				node.setAttribute("tabindex", "0");
-				addCss(node, "webix_focused");
-			}
 		}
 	},
 	_navigation_helper:function(mode){

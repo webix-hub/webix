@@ -1,5 +1,5 @@
 import {bind, extend} from "../../webix/helpers";
-import {addCss} from "../../webix/html";
+import {addCss, removeCss} from "../../webix/html";
 import {assert} from "../../webix/debug";
 
 
@@ -8,15 +8,19 @@ import {assert} from "../../webix/debug";
 const Mixin = {
 	$init:function(){
 		this.attachEvent("onAfterScroll", this._set_focusable_item);
+		this.attachEvent("onFocus", function(){
+			addCss(this.$view, "webix_dtable_focused");
+		});
+		this.attachEvent("onBlur", function(){
+			removeCss(this.$view,"webix_dtable_focused");
+		});
 	},
 	_set_focusable_item:function(){
 		var sel = this._getVisibleSelection();
 		if(!sel){
 			var node =  this._dataobj.querySelector(".webix_cell");
-			if(node){
+			if(node)
 				node.setAttribute("tabindex", "0");
-				addCss(node, "webix_focused");
-			}
 		}
 	},
 	_getVisibleSelection:function(){

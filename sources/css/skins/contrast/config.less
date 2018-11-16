@@ -69,11 +69,12 @@
 .darkHoverRuleA(){
 	background-color: rgba(0,0,0,0.05);
 }
-
 .darkActiveRuleA(){
 	background-color: rgba(0,0,0,0.07);
 }
-
+.selectFocusRule(){
+	background: darken(@selectColor, 6%);
+}
 .invalidStyle{
 	color: #fea5a8;
 	background-color: lighten(@backColor,8%);
@@ -386,6 +387,9 @@
 .selectLine(){
 	color: @selectFontColor;
 	background: @selectColor;
+	&:focus{
+		.selectFocusRule();
+	}
 }
 .selectXLine(){
 	border-bottom:1px solid @selectBorderColor;
@@ -623,10 +627,18 @@
 	.webix_property_label, .webix_property_value{
 		border-color: @dataBorderColor;
 	}
-	.webix_property_line:focus div{
-		background-color:darken(@backColor, 3%);
-		color:@fontColor;
+	.webix_property_line.webix_focused,
+	.webix_property_line:focus{
+		div{ 
+			background-color:darken(@backColor, 3%);
+			color:@fontColor;
+		}
 	}
+}
+
+//tree
+.webix_tree_item.webix_selected:focus span{
+	background-color:darken(@selectColor, 6%);
 }
 
 // drag-n-drop
@@ -756,7 +768,7 @@
 	.focusStyle;
 }
 
-.webix_multilist .fa-check-square{
+.webix_multilist .wxi-checkbox-marked{
 	color: @fontColor;
 }
 
@@ -1224,6 +1236,14 @@ div.webix_item_tab.webix_selected{
 	.webix_pressed .webix_img_btn, .webix_pressed .webix_img_btn_top{
 		.activeShadow;
 	}
+	.webix_pressed .webixtype_danger{
+		.activeShadow;
+		.darkHoverRule(@dangerColor);
+	}
+	.webix_pressed .webixtype_form{
+		.activeShadow;
+		.darkHoverRule(@formButtonColor);
+	}
 	.webix_el_box.webix_pressed{
 		.webixtype_base, .webix_img_btn_abs{
 			.activeShadow;
@@ -1442,6 +1462,11 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 		border-radius: @skin_input_radius;
 		background: @selectColor;
 	}
+	.webix_selected, .webix_cal_select, .webix_cal_event.webix_cal_select{
+		&:focus{
+	        .selectFocusRule();
+		}
+	}
 }
 .webix_cal_day_disabled, .webix_cal_day_disabled.webix_cal_event{
 	color: darken(@fontColor, 20%);
@@ -1636,11 +1661,6 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 	}
 }
 
-//Focusing
-.dataFocusStyle(){
-	background:lighten(@selectColor, 50%);
-	color:@backColor;
-}
 .webix_view .webix_cal_next_button:focus,
 .webix_view .webix_cal_prev_button:focus{
 	outline-color:lighten(@fontColor, 35%);

@@ -34,6 +34,10 @@ const api = {
 		this.$view.setAttribute("role", "grid");
 		this._viewobj.setAttribute("aria-readonly", "true");
 	},
+	_set_item_focus:function(){
+		if(!this.getValue())
+			this.moveSelection("up");
+	},
 	_findIndex:function(value){
 		var pal = this._settings.palette;
 		value = (value || "").toUpperCase();
@@ -212,7 +216,7 @@ const api = {
 				ind.row = this._viewobj.lastChild.querySelectorAll(".webix_color_row").length-1;
 				ind.col = this._viewobj.lastChild.childNodes[ind.row].childNodes.length-1;
 			}
-
+			ind.row = Math.max(ind.row, 0);
 			if(ind.row>=0)
 				cell = this._viewobj.lastChild.childNodes[ind.row].childNodes[ind.col];
 			if(cell){

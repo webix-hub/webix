@@ -24,7 +24,10 @@ var nav_controls = {
 
 const TextPattern = {
 	$init:function(config){
-		if(config.pattern || (config.format && !this.format_setter)){
+		var pattern =  this.defaults.pattern || config.pattern;
+		var format = this.defaults.format || config.format;
+
+		if(pattern || (format && !this.format_setter)){
 			this.attachEvent("onKeyPress", function(code, e){
 				if(e.ctrlKey || e.altKey || this._custom_format)
 					return;
@@ -51,11 +54,11 @@ const TextPattern = {
 					return this._matchPattern(value);
 			};
 
-			if (config.format){
-				if (typeof config.format === "object"){
-					this._custom_format = config.format;
+			if (format){
+				if (typeof format === "object"){
+					this._custom_format = format;
 				} else {
-					var format = Number.getConfig(config.format);
+					format = Number.getConfig(format);
 					this._custom_format = {
 						parse : function(value){ return Number.parse(value, format); },
 						edit : function(value){ return Number.format(value, format); },

@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.6.0.5
+ * webix UI v.6.0.9
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -934,8 +934,7 @@
 	});
 
 	function nextTick(fn) {
-	  /* global setImmediate */
-	  if (global.setImmediate) setImmediate(fn); // if inside of web worker
+	  if (global.setImmediate) global.setImmediate(fn); // if inside of web worker
 	  else if (global.importScripts || !global.addEventListener) setTimeout(fn);else {
 	      queueId++;
 	      queue[queueId] = fn;
@@ -2729,178 +2728,6 @@
 	  }
 	};
 
-	var proxy$8 = {
-	  $proxy: true,
-	  storage: env.local,
-	  cache: false,
-	  local: false,
-	  data: "",
-	  _is_offline: function _is_offline() {
-	    if (!this.cache && !env.offline) {
-	      callEvent("onOfflineMode", []);
-	      env.offline = true;
-	    }
-	  },
-	  _is_online: function _is_online() {
-	    if (!this.cache && env.offline) {
-	      env.offline = false;
-	      callEvent("onOnlineMode", []);
-	    }
-	  },
-	  load: function load(view, callback) {
-	    var mycallback = {
-	      error: function error() {
-	        //assuming offline mode
-	        var text = this.getCache() || this.data;
-	        var loader = {
-	          responseText: text
-	        };
-
-	        var data = ajax.prototype._data(loader);
-
-	        this._is_offline();
-
-	        ajax.$callback(view, callback, text, data, loader);
-	      },
-	      success: function success(text, data, loader) {
-	        this._is_online();
-
-	        ajax.$callback(view, callback, text, data, loader);
-	        this.setCache(text);
-	      }
-	    }; //in cache mode - always load data from cache
-
-	    if (this.cache && this.getCache()) mycallback.error.call(this);else {
-	      //else try to load actual data first
-	      if (this.source.$proxy) this.source.load(this, mycallback);else ajax(this.source, mycallback, this);
-	    }
-	  },
-	  getCache: function getCache() {
-	    return this.storage.get(this._data_name());
-	  },
-	  clearCache: function clearCache() {
-	    this.storage.remove(this._data_name());
-	  },
-	  setCache: function setCache(text) {
-	    this.storage.put(this._data_name(), text);
-	  },
-	  _data_name: function _data_name() {
-	    if (this.source.$proxy) return this.source.source + "_$proxy$_data";else return this.source + "_$proxy$_data";
-	  },
-	  save: function save(master, data, view, callback) {
-	    if (!env.offline && !this.cache) {
-	      if (this.source.$proxy) {
-	        this.source.save(master, data, view, callback);
-	      } else {
-	        ajax().post(this.source, data.data, callback);
-	      }
-	    }
-	  },
-	  saveAll: function saveAll(view, update, dp, callback) {
-	    this.setCache(view.serialize());
-
-	    if (this.cache || env.offline) {
-	      ajax.$callback(view, callback, "", update);
-	    }
-	  },
-	  result: function result(id, master, dp, text, data) {
-	    for (var i = 0; i < data.length; i++) {
-	      dp.processResult({
-	        id: data[i].id,
-	        status: data[i].operation
-	      }, {}, {});
-	    }
-	  }
-	};
-
-	var proxy$9 = {
-	  init: function init() {
-	    exports.extend(this, proxy$8);
-	  },
-	  cache: true
-	};
-
-	var proxy$a = {
-	  init: function init() {
-	    exports.extend(this, proxy$8);
-	  },
-	  cache: true,
-	  local: true,
-	  data: []
-	};
-
-	function unbox(data) {
-	  if (!data || !_typeof(data) === "object" || Array.isArray(data)) return data;
-	  var lkey = "";
-	  var count = 0;
-
-	  for (var key in data) {
-	    count++;
-	    if (count == 2) return data;
-	    lkey = key;
-	  }
-
-	  return data[lkey];
-	}
-
-	var GraphQL = {
-	  $proxy: true,
-	  save: function save(data) {
-	    return this.load(data);
-	  },
-	  load: function load(view, callback) {
-	    var params = {
-	      query: this.source
-	    };
-
-	    if (arguments.length === 1) {
-	      params.variables = view;
-	      view = this;
-	    }
-
-	    return ajax().bind(view).headers({
-	      "Content-type": "application/json"
-	    }).post(this.url, params).then(function (data) {
-	      var flat = unbox(data.json().data);
-	      if (callback) ajax.$callback(view, callback, "", flat, -1);
-	      return flat;
-	    });
-	  }
-	};
-
-	function proxy$b(name, source, extra) {
-	  assert(proxy$b[name], "Invalid proxy name: " + name);
-	  var copy$$1 = copy(proxy$b[name]);
-	  copy$$1.source = source;
-	  if (extra) exports.extend(copy$$1, extra, true);
-	  if (copy$$1.init) copy$$1.init();
-	  return copy$$1;
-	}
-
-	proxy$b.$parse = function (value) {
-	  if (typeof value == "string" && value.indexOf("->") != -1) {
-	    var parts = value.split("->");
-	    return proxy$b(parts[0], parts[1]);
-	  }
-
-	  return value;
-	};
-
-	proxy$b.binary = proxy;
-	proxy$b.connector = proxy$1;
-	proxy$b.debug = proxy$2;
-	proxy$b.faye = proxy$3;
-	proxy$b.indexdb = indexdb;
-	proxy$b.json = proxy$5;
-	proxy$b.post = proxy$6;
-	proxy$b.rest = proxy$4;
-	proxy$b.sync = proxy$7;
-	proxy$b.offline = proxy$8;
-	proxy$b.cache = proxy$9;
-	proxy$b.local = proxy$a;
-	proxy$b.local = proxy$a;
-	proxy$b.GraphQL = GraphQL;
-
 	var jsarray = {
 	  //parse jsarray string to jsarray object if necessary
 	  toObject: function toObject(data) {
@@ -3370,6 +3197,300 @@
 	  htmltable: htmltable,
 	  excel: excel
 	};
+
+	var storage = {};
+
+	storage.prefix = function (scope, storage) {
+	  scope = scope + ".";
+	  return {
+	    put: function put(name, data) {
+	      return storage.put(scope + name, data);
+	    },
+	    get: function get(name) {
+	      return storage.get(scope + name);
+	    },
+	    remove: function remove(name) {
+	      return storage.remove(scope + name);
+	    }
+	  };
+	};
+
+	storage.local = {
+	  put: function put(name, data) {
+	    if (name && window.JSON && window.localStorage) {
+	      window.localStorage.setItem(name, stringify(data));
+	    }
+	  },
+	  get: function get(name) {
+	    if (name && window.JSON && window.localStorage) {
+	      var json = window.localStorage.getItem(name);
+	      if (!json) return null;
+	      return DataDriver.json.toObject(json);
+	    } else return null;
+	  },
+	  remove: function remove(name) {
+	    if (name && window.JSON && window.localStorage) {
+	      window.localStorage.removeItem(name);
+	    }
+	  },
+	  clear: function clear() {
+	    window.localStorage.clear();
+	  }
+	};
+	storage.session = {
+	  put: function put(name, data) {
+	    if (name && window.JSON && window.sessionStorage) {
+	      window.sessionStorage.setItem(name, stringify(data));
+	    }
+	  },
+	  get: function get(name) {
+	    if (name && window.JSON && window.sessionStorage) {
+	      var json = window.sessionStorage.getItem(name);
+	      if (!json) return null;
+	      return DataDriver.json.toObject(json);
+	    } else return null;
+	  },
+	  remove: function remove(name) {
+	    if (name && window.JSON && window.sessionStorage) {
+	      window.sessionStorage.removeItem(name);
+	    }
+	  },
+	  clear: function clear() {
+	    window.sessionStorage.clear();
+	  }
+	};
+	storage.cookie = {
+	  put: function put(name, data, domain, expires) {
+	    if (name && window.JSON) {
+	      document.cookie = name + "=" + escape(stringify(data)) + (expires && expires instanceof Date ? ";expires=" + expires.toUTCString() : "") + (domain ? ";domain=" + domain : "") + (env.https ? ";secure" : "");
+	    }
+	  },
+	  getRaw: function getRaw(check_name) {
+	    // first we'll split this cookie up into name/value pairs
+	    // note: document.cookie only returns name=value, not the other components
+	    var a_all_cookies = document.cookie.split(";");
+	    var a_temp_cookie = "";
+	    var cookie_name = "";
+	    var cookie_value = "";
+	    var b_cookie_found = false; // set boolean t/f default f
+
+	    for (var i = 0; i < a_all_cookies.length; i++) {
+	      // now we'll split apart each name=value pair
+	      a_temp_cookie = a_all_cookies[i].split("="); // and trim left/right whitespace while we're at it
+
+	      cookie_name = a_temp_cookie[0].replace(/^\s+|\s+$/g, ""); // if the extracted name matches passed check_name
+
+	      if (cookie_name == check_name) {
+	        b_cookie_found = true; // we need to handle case where cookie has no value but exists (no = sign, that is):
+
+	        if (a_temp_cookie.length > 1) {
+	          cookie_value = unescape(a_temp_cookie[1].replace(/^\s+|\s+$/g, ""));
+	        } // note that in cases where cookie is initialized but no value, null is returned
+
+
+	        return cookie_value;
+	      }
+
+	      a_temp_cookie = null;
+	      cookie_name = "";
+	    }
+
+	    if (!b_cookie_found) {
+	      return null;
+	    }
+
+	    return null;
+	  },
+	  get: function get(name) {
+	    if (name && window.JSON) {
+	      var json = this.getRaw(name);
+	      if (!json) return null;
+	      return DataDriver.json.toObject(unescape(json));
+	    } else return null;
+	  },
+	  remove: function remove(name, domain) {
+	    if (name && this.getRaw(name)) document.cookie = name + "=" + (domain ? ";domain=" + domain : "") + ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
+	  },
+	  clear: function clear(domain) {
+	    var cookies = document.cookie.split(";");
+
+	    for (var i = 0; i < cookies.length; i++) {
+	      document.cookie = /^[^=]+/.exec(cookies[i])[0] + "=" + (domain ? ";domain=" + domain : "") + ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
+	    }
+	  }
+	};
+
+	var proxy$8 = {
+	  $proxy: true,
+	  storage: storage.local,
+	  cache: false,
+	  local: false,
+	  data: "",
+	  _is_offline: function _is_offline() {
+	    if (!this.cache && !env.offline) {
+	      callEvent("onOfflineMode", []);
+	      env.offline = true;
+	    }
+	  },
+	  _is_online: function _is_online() {
+	    if (!this.cache && env.offline) {
+	      env.offline = false;
+	      callEvent("onOnlineMode", []);
+	    }
+	  },
+	  load: function load(view, callback) {
+	    var mycallback = {
+	      error: function error() {
+	        //assuming offline mode
+	        var text = this.getCache() || this.data;
+	        var loader = {
+	          responseText: text
+	        };
+
+	        var data = ajax.prototype._data(loader);
+
+	        this._is_offline();
+
+	        ajax.$callback(view, callback, text, data, loader);
+	      },
+	      success: function success(text, data, loader) {
+	        this._is_online();
+
+	        ajax.$callback(view, callback, text, data, loader);
+	        this.setCache(text);
+	      }
+	    }; //in cache mode - always load data from cache
+
+	    if (this.cache && this.getCache()) mycallback.error.call(this);else {
+	      //else try to load actual data first
+	      if (this.source.$proxy) this.source.load(this, mycallback);else ajax(this.source, mycallback, this);
+	    }
+	  },
+	  getCache: function getCache() {
+	    return this.storage.get(this._data_name());
+	  },
+	  clearCache: function clearCache() {
+	    this.storage.remove(this._data_name());
+	  },
+	  setCache: function setCache(text) {
+	    this.storage.put(this._data_name(), text);
+	  },
+	  _data_name: function _data_name() {
+	    if (this.source.$proxy) return this.source.source + "_$proxy$_data";else return this.source + "_$proxy$_data";
+	  },
+	  save: function save(master, data, view, callback) {
+	    if (!env.offline && !this.cache) {
+	      if (this.source.$proxy) {
+	        this.source.save(master, data, view, callback);
+	      } else {
+	        ajax().post(this.source, data.data, callback);
+	      }
+	    }
+	  },
+	  saveAll: function saveAll(view, update, dp, callback) {
+	    this.setCache(view.serialize());
+
+	    if (this.cache || env.offline) {
+	      ajax.$callback(view, callback, "", update);
+	    }
+	  },
+	  result: function result(id, master, dp, text, data) {
+	    for (var i = 0; i < data.length; i++) {
+	      dp.processResult({
+	        id: data[i].id,
+	        status: data[i].operation
+	      }, {}, {});
+	    }
+	  }
+	};
+
+	var proxy$9 = {
+	  init: function init() {
+	    exports.extend(this, proxy$8);
+	  },
+	  cache: true
+	};
+
+	var proxy$a = {
+	  init: function init() {
+	    exports.extend(this, proxy$8);
+	  },
+	  cache: true,
+	  local: true,
+	  data: []
+	};
+
+	function unbox(data) {
+	  if (!data || !_typeof(data) === "object" || Array.isArray(data)) return data;
+	  var lkey = "";
+	  var count = 0;
+
+	  for (var key in data) {
+	    count++;
+	    if (count == 2) return data;
+	    lkey = key;
+	  }
+
+	  return data[lkey];
+	}
+
+	var GraphQL = {
+	  $proxy: true,
+	  save: function save(data) {
+	    return this.load(data);
+	  },
+	  load: function load(view, callback) {
+	    var params = {
+	      query: this.source
+	    };
+
+	    if (arguments.length === 1) {
+	      params.variables = view;
+	      view = this;
+	    }
+
+	    return ajax().bind(view).headers({
+	      "Content-type": "application/json"
+	    }).post(this.url, params).then(function (data) {
+	      var flat = unbox(data.json().data);
+	      if (callback) ajax.$callback(view, callback, "", flat, -1);
+	      return flat;
+	    });
+	  }
+	};
+
+	function proxy$b(name, source, extra) {
+	  assert(proxy$b[name], "Invalid proxy name: " + name);
+	  var copy$$1 = copy(proxy$b[name]);
+	  copy$$1.source = source;
+	  if (extra) exports.extend(copy$$1, extra, true);
+	  if (copy$$1.init) copy$$1.init();
+	  return copy$$1;
+	}
+
+	proxy$b.$parse = function (value) {
+	  if (typeof value == "string" && value.indexOf("->") != -1) {
+	    var parts = value.split("->");
+	    return proxy$b(parts[0], parts[1]);
+	  }
+
+	  return value;
+	};
+
+	proxy$b.binary = proxy;
+	proxy$b.connector = proxy$1;
+	proxy$b.debug = proxy$2;
+	proxy$b.faye = proxy$3;
+	proxy$b.indexdb = indexdb;
+	proxy$b.json = proxy$5;
+	proxy$b.post = proxy$6;
+	proxy$b.rest = proxy$4;
+	proxy$b.sync = proxy$7;
+	proxy$b.offline = proxy$8;
+	proxy$b.cache = proxy$9;
+	proxy$b.local = proxy$a;
+	proxy$b.local = proxy$a;
+	proxy$b.GraphQL = GraphQL;
 
 	var AtomDataLoader = {
 	  $init: function $init(config) {
@@ -4676,7 +4797,7 @@
 	  _focus_action: function _focus_action(view) {
 	    this._focus_was_there = this._focus_was_there || view._settings.id;
 	  },
-	  setFocus: function setFocus(view, only_api) {
+	  setFocus: function setFocus(view, only_api, tab) {
 	    //view can be empty
 	    view = $$(view); //unfocus if view is hidden
 
@@ -4687,7 +4808,12 @@
 	    this._focus_time = state._focus_time = new Date();
 	    if (this._view === view) return true;
 	    if (this._view && this._view.callEvent) this._view.callEvent("onBlur", [this._view]);
-	    if (view && view.callEvent) view.callEvent("onFocus", [view, this._view]);
+
+	    if (view && view.callEvent) {
+	      view.callEvent("onFocus", [view, this._view]);
+	      if (tab) view.callEvent("onTabFocus", [view, this._view]);
+	    }
+
 	    callEvent("onFocusChange", [view, this._view]);
 	    if (this._view && this._view.blur && !only_api) this._view.blur();
 	    this._view = view;
@@ -4826,7 +4952,7 @@
 	        return true;
 	      }
 	    } else delay(function () {
-	      UIManager.setFocus($$(document.activeElement), true);
+	      UIManager.setFocus($$(document.activeElement), true, true);
 	    }, 1);
 	  },
 	  getTop: function getTop(id) {
@@ -11529,18 +11655,13 @@
 
 	var KeysNavigation = {
 	  $init: function $init() {
+	    if (this.getSelectedId) this.attachEvent("onAfterRender", this._set_focusable_item);
+	    if (this.moveSelection) this.attachEvent("onTabFocus", this._set_item_focus);
+	  },
+	  _set_item_focus: function _set_item_focus() {
 	    if (this.getSelectedId) {
-	      this.attachEvent("onAfterRender", this._set_focusable_item);
-	      this.attachEvent("onAfterSelect", once(function (id) {
-	        if (this.count() > 1 && this._dataobj && this.data.order[0] != id) {
-	          var node = this._dataobj.querySelector("[" + this._id + "]");
-
-	          if (node) {
-	            node.setAttribute("tabindex", "-1");
-	            removeCss(node, "webix_focused");
-	          }
-	        }
-	      }));
+	      var sel = this.getSelectedId(true);
+	      if (!sel.length || !this.getItemNode(sel[0])) this.moveSelection("down"); //select and show
 	    }
 	  },
 	  _set_focusable_item: function _set_focusable_item() {
@@ -11549,10 +11670,7 @@
 	    if (!sel.length || !this.getItemNode(sel[0])) {
 	      var node = this._dataobj.querySelector("[" + this._id + "]");
 
-	      if (node) {
-	        node.setAttribute("tabindex", "0");
-	        addCss(node, "webix_focused");
-	      }
+	      if (node) node.setAttribute("tabindex", "0");
 	    }
 	  },
 	  _navigation_helper: function _navigation_helper(mode) {
@@ -12484,15 +12602,15 @@
 	    var html = this.getItemNode(id);
 
 	    if (html && this.scrollTo) {
-	      var txmin = Math.abs(this._contentobj.offsetLeft - html.offsetLeft);
+	      var txmin = html.offsetLeft;
 	      var txmax = txmin + html.offsetWidth;
-	      var tymin = Math.abs(this._contentobj.offsetTop - html.offsetTop);
+	      var tymin = html.offsetTop;
 	      var tymax = tymin + html.offsetHeight;
 	      var state = this.getScrollState();
 	      var x = state.x;
 	      if (x > txmin || x + this._content_width < txmax) x = txmin;
 	      var y = state.y;
-	      if (y > tymin || y + this._content_height < tymax) y = tymin - 5;
+	      if (y > tymin || y + this._content_height < tymax) y = tymin;
 	      this.scrollTo(x, y);
 	      if (this._setItemActive) this._setItemActive(id);
 	    }
@@ -12621,7 +12739,7 @@
 	      this._scroll_y = mode;
 	    }
 
-	    this._settings.scroll = dir;
+	    this._settings.scroll = mode ? dir : mode;
 	  },
 	  getScrollState: function getScrollState() {
 	    if (Touch.$active) {
@@ -16258,7 +16376,7 @@
 	  }
 	};
 
-	var version$1 = "6.0.5";
+	var version$1 = "6.0.9";
 	var name$1 = "core";
 
 	var errorMessage = "non-existing view for export";
@@ -16495,10 +16613,10 @@
 	    // in other cases we don't have built-in data templates
 
 	    var rawColumn = raw && isTable;
-	    var sourceColumn = view._columns_pull && view._columns_pull[_key2];
 
 	    if (isTable) {
-	      // when these's no column to take raw data from, or custom template defined - ignore raw mode
+	      var sourceColumn = view._columns_pull[_key2]; // when these's no column to take raw data from, or custom template defined - ignore raw mode
+
 	      if (column.template && (!sourceColumn || sourceColumn.template != column.template)) rawColumn = false;
 	      if (sourceColumn) column = exports.extend(exports.extend({}, column), sourceColumn);
 	    }
@@ -16522,7 +16640,7 @@
 	    }];else record.header = copy(record.header);
 
 	    for (var _i3 = 0; _i3 < record.header.length; _i3++) {
-	      record.header[_i3] = record.header[_i3] ? record.header[_i3].contentId ? "" : record.header[_i3].text : "";
+	      record.header[_i3] = record.header[_i3] ? record.header[_i3].value || record.header[_i3].text.replace(/<[^>]*>/gi, "") : "";
 	    }
 
 	    h_count = Math.max(h_count, record.header.length);
@@ -16800,27 +16918,36 @@
 	      var cell_ref = XLSX.utils.encode_cell({
 	        c: C,
 	        r: R
-	      }); //apply user params
+	      });
+	      var stringValue = cell.v.toString();
+	      var isFormula = stringValue.charAt(0) === "="; // set type based on column's config
+	      // skip headers and formula based cells
 
-	      if (R >= scheme[0].header.length && cell.v.toString().charAt(0) != "=") {
+	      if (R >= scheme[0].header.length && !isFormula) {
 	        var column = scheme[C];
 	        if (column.type) cell.t = types[column.type] || "";
 	        if (column.format) cell.z = column.format;
-	      }
+	      } // set type based on cell's value
+
 
 	      if (cell.v instanceof Date) {
 	        cell.t = cell.t || "n";
 	        cell.z = cell.z || XLSX.SSF[table][14];
 	        cell.v = excelDate(cell.v);
 	      } else if (!cell.t) {
-	        if (typeof cell.v === "boolean") cell.t = "b";else if (typeof cell.v === "number" || cell.v && !isNaN(cell.v * 1)) {
+	        if (typeof cell.v === "boolean") cell.t = "b";else if (typeof cell.v === "number" || parseFloat(cell.v) == cell.v) {
 	          cell.v = cell.v * 1;
 	          cell.t = "n";
-	        } else if (cell.v.charAt(0) == "=") {
-	          cell.t = "n";
-	          cell.f = cell.v;
-	          delete cell.v;
-	        } else cell.t = "s";
+	        } else {
+	          // convert any other object to a string
+	          cell.v = stringValue;
+
+	          if (isFormula) {
+	            cell.t = "n";
+	            cell.f = cell.v;
+	            delete cell.v;
+	          } else cell.t = "s";
+	        }
 	      }
 
 	      if (styles) cell.s = getStyles(R, C, styles);
@@ -18006,128 +18133,6 @@
 	  }
 	};
 
-	var storage = {};
-
-	storage.prefix = function (scope, storage) {
-	  scope = scope + ".";
-	  return {
-	    put: function put(name, data) {
-	      return storage.put(scope + name, data);
-	    },
-	    get: function get(name) {
-	      return storage.get(scope + name);
-	    },
-	    remove: function remove(name) {
-	      return storage.remove(scope + name);
-	    }
-	  };
-	};
-
-	storage.local = {
-	  put: function put(name, data) {
-	    if (name && window.JSON && window.localStorage) {
-	      window.localStorage.setItem(name, stringify(data));
-	    }
-	  },
-	  get: function get(name) {
-	    if (name && window.JSON && window.localStorage) {
-	      var json = window.localStorage.getItem(name);
-	      if (!json) return null;
-	      return DataDriver.json.toObject(json);
-	    } else return null;
-	  },
-	  remove: function remove(name) {
-	    if (name && window.JSON && window.localStorage) {
-	      window.localStorage.removeItem(name);
-	    }
-	  },
-	  clear: function clear() {
-	    window.localStorage.clear();
-	  }
-	};
-	storage.session = {
-	  put: function put(name, data) {
-	    if (name && window.JSON && window.sessionStorage) {
-	      window.sessionStorage.setItem(name, stringify(data));
-	    }
-	  },
-	  get: function get(name) {
-	    if (name && window.JSON && window.sessionStorage) {
-	      var json = window.sessionStorage.getItem(name);
-	      if (!json) return null;
-	      return DataDriver.json.toObject(json);
-	    } else return null;
-	  },
-	  remove: function remove(name) {
-	    if (name && window.JSON && window.sessionStorage) {
-	      window.sessionStorage.removeItem(name);
-	    }
-	  },
-	  clear: function clear() {
-	    window.sessionStorage.clear();
-	  }
-	};
-	storage.cookie = {
-	  put: function put(name, data, domain, expires) {
-	    if (name && window.JSON) {
-	      document.cookie = name + "=" + escape(stringify(data)) + (expires && expires instanceof Date ? ";expires=" + expires.toUTCString() : "") + (domain ? ";domain=" + domain : "") + (env.https ? ";secure" : "");
-	    }
-	  },
-	  getRaw: function getRaw(check_name) {
-	    // first we'll split this cookie up into name/value pairs
-	    // note: document.cookie only returns name=value, not the other components
-	    var a_all_cookies = document.cookie.split(";");
-	    var a_temp_cookie = "";
-	    var cookie_name = "";
-	    var cookie_value = "";
-	    var b_cookie_found = false; // set boolean t/f default f
-
-	    for (var i = 0; i < a_all_cookies.length; i++) {
-	      // now we'll split apart each name=value pair
-	      a_temp_cookie = a_all_cookies[i].split("="); // and trim left/right whitespace while we're at it
-
-	      cookie_name = a_temp_cookie[0].replace(/^\s+|\s+$/g, ""); // if the extracted name matches passed check_name
-
-	      if (cookie_name == check_name) {
-	        b_cookie_found = true; // we need to handle case where cookie has no value but exists (no = sign, that is):
-
-	        if (a_temp_cookie.length > 1) {
-	          cookie_value = unescape(a_temp_cookie[1].replace(/^\s+|\s+$/g, ""));
-	        } // note that in cases where cookie is initialized but no value, null is returned
-
-
-	        return cookie_value;
-	      }
-
-	      a_temp_cookie = null;
-	      cookie_name = "";
-	    }
-
-	    if (!b_cookie_found) {
-	      return null;
-	    }
-
-	    return null;
-	  },
-	  get: function get(name) {
-	    if (name && window.JSON) {
-	      var json = this.getRaw(name);
-	      if (!json) return null;
-	      return DataDriver.json.toObject(unescape(json));
-	    } else return null;
-	  },
-	  remove: function remove(name, domain) {
-	    if (name && this.getRaw(name)) document.cookie = name + "=" + (domain ? ";domain=" + domain : "") + ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
-	  },
-	  clear: function clear(domain) {
-	    var cookies = document.cookie.split(";");
-
-	    for (var i = 0; i < cookies.length; i++) {
-	      document.cookie = /^[^=]+/.exec(cookies[i])[0] + "=" + (domain ? ";domain=" + domain : "") + ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
-	    }
-	  }
-	};
-
 	var markup = {
 	  namespace: "x",
 	  attribute: "data-",
@@ -18331,7 +18336,13 @@
 	    this._attrs_to_json(el, json, html);
 
 	    if (subs.length) {
-	      if (json.stack) json[json.stack] = subs;else if (this._view_has_method(json.view, "setValues")) json["elements"] = subs;else if (json.view == "rows") {
+	      if (json.stack) {
+	        json[json.stack] = subs;
+	      } else if (json.subui) {
+	        json[json.subui] = subs[0];
+	      } else if (this._view_has_method(json.view, "setValues")) {
+	        json["elements"] = subs;
+	      } else if (json.view == "rows") {
 	        json.view = "layout";
 	        json.rows = subs;
 	      } else if (json.view == "cols") {
@@ -18343,7 +18354,9 @@
 	        json.body = subs.length == 1 ? subs[0] : {
 	          rows: subs
 	        };
-	      } else json["rows"] = subs;
+	      } else {
+	        json["rows"] = subs;
+	      }
 	    } else if (!htmltable && !has_tags) {
 	      if (html && !json.template && (!json.view || json.view == "template")) {
 	        json.view = "template";
@@ -24222,6 +24235,9 @@
 
 	    this._viewobj.setAttribute("aria-readonly", "true");
 	  },
+	  _set_item_focus: function _set_item_focus() {
+	    if (!this.getValue()) this.moveSelection("up");
+	  },
 	  _findIndex: function _findIndex(value) {
 	    var pal = this._settings.palette;
 	    value = (value || "").toUpperCase();
@@ -24407,6 +24423,7 @@
 	        ind.row = this._viewobj.lastChild.querySelectorAll(".webix_color_row").length - 1;
 	        ind.col = this._viewobj.lastChild.childNodes[ind.row].childNodes.length - 1;
 	      }
+	      ind.row = Math.max(ind.row, 0);
 	      if (ind.row >= 0) cell = this._viewobj.lastChild.childNodes[ind.row].childNodes[ind.col];
 
 	      if (cell) {
@@ -24544,12 +24561,12 @@
 	    htmlbutton: "<button type='button' class='webix_el_htmlbutton webixtype_base'>#label#</button>",
 	    prev: "<input type='button' class='webixtype_prev' value='#label#' /><div class='webix_el_arrow webixtype_prev_arrow'></div>",
 	    next: "<input type='button' class='webixtype_next' value='#label#' /><div class='webix_el_arrow webixtype_next_arrow'></div>",
-	    imageButton: "<button type='button' class='webix_img_btn_abs webixtype_base' style='width:100%; line-height:#cheight#px'><div class='webix_image' style='width:#dheight#px;height:#dheight#px;background-image:url(#image#);'> </div> #label#</button>",
-	    imageButtonTop: "<button type='button' class='webix_img_btn_abs webix_img_btn_abs_top webixtype_base'><div class='webix_image' style='width:100%;height:100%;background-image:url(#image#);'> </div> <div class='webix_img_btn_text'>#label#</div></button>",
-	    image: "<button type='button' class='webix_img_btn' style='line-height:#cheight#px;'><div class='webix_image' style='width:#cheight#px;height:#cheight#px;background-image:url(#image#);'> </div> #label#</button>",
-	    imageTop: "<button type='button' class='webix_img_btn_top'><div class='webix_image' style='width:100%;height:100%;background-image:url(#image#);'></div> <div class='webix_img_btn_text'>#label#</div></button>",
+	    imageButton: "<button type='button' class='webix_img_btn_abs webixtype_base' style='width:100%; line-height:#cheight#px'><div class='webix_image' style='width:#dheight#px;height:#dheight#px;background-image:url(#image#);'></div>#label#</button>",
+	    imageButtonTop: "<button type='button' class='webix_img_btn_abs webix_img_btn_abs_top webixtype_base'><div class='webix_image' style='width:100%;height:100%;background-image:url(#image#);'></div><div class='webix_img_btn_text'>#label#</div></button>",
+	    image: "<button type='button' class='webix_img_btn' style='line-height:#cheight#px;'><div class='webix_image' style='width:#cheight#px;height:#cheight#px;background-image:url(#image#);'></div>#label#</button>",
+	    imageTop: "<button type='button' class='webix_img_btn_top'><div class='webix_image' style='width:100%;height:100%;background-image:url(#image#);'></div><div class='webix_img_btn_text'>#label#</div></button>",
 	    icon: "<button type='button' class='webix_img_btn' style='line-height:#cheight#px;'><span class='webix_icon_btn #icon#' style='max-width:#cheight#px;'></span>#label#</button>",
-	    iconButton: "<button type='button' class='webix_img_btn_abs webixtype_base' style='width:100%;'><span class='webix_icon #icon#'></span> #label#</button>",
+	    iconButton: "<button type='button' class='webix_img_btn_abs webixtype_base' style='width:100%;'><span class='webix_icon #icon#'></span>#label#</button>",
 	    iconTop: "<button type='button' class='webix_img_btn_top' style='width:100%;top:4px;text-align:center;'><span class='webix_icon #icon#'></span><div class='webix_img_btn_text'>#label#</div></button>",
 	    iconButtonTop: "<button type='button' class='webix_img_btn_abs webix_img_btn_abs_top webixtype_base' style='width:100%;top:0px;text-align:center;'><span class='webix_icon #icon#'></span><div class='webix_img_btn_text'>#label#</div></button>"
 	  },
@@ -24709,7 +24726,7 @@
 	  },
 	  _calc_size: function _calc_size(config) {
 	    config = config || this._settings;
-	    if (config.autowidth) config.width = getTextSize(config.value || config.label || "", "webixbutton").width + (config.badge ? 15 : 0) + (config.type === "iconButton" ? 30 : 0) + (config.type === "icon" ? 20 : 0);
+	    if (config.autowidth) config.width = getTextSize(config.value || config.label || "", "webixbutton").width + (config.badge ? 16 : 0) + (config.type === "iconButton" || config.type === "icon" ? 24 : 0) + (config.type === "imageButton" || config.type === "image" ? config.height - $active.inputPadding : 0);
 	  },
 	  _calck_input_size: function _calck_input_size() {
 	    //use width for both width and inputWidth settings in clever way
@@ -24916,7 +24933,10 @@
 	};
 	var TextPattern = {
 	  $init: function $init(config) {
-	    if (config.pattern || config.format && !this.format_setter) {
+	    var pattern = this.defaults.pattern || config.pattern;
+	    var format = this.defaults.format || config.format;
+
+	    if (pattern || format && !this.format_setter) {
 	      this.attachEvent("onKeyPress", function (code, e) {
 	        if (e.ctrlKey || e.altKey || this._custom_format) return;
 	        if (code > 105 && code < 112) //numpad operators
@@ -24942,11 +24962,11 @@
 	        if (mode === false) return this._getRawValue(value);else return this._matchPattern(value);
 	      };
 
-	      if (config.format) {
-	        if (_typeof(config.format) === "object") {
-	          this._custom_format = config.format;
+	      if (format) {
+	        if (_typeof(format) === "object") {
+	          this._custom_format = format;
 	        } else {
-	          var format = Number.getConfig(config.format);
+	          format = Number.getConfig(format);
 	          this._custom_format = {
 	            parse: function parse(value) {
 	              return Number.parse(value, format);
@@ -26112,8 +26132,11 @@
 	    this.defaults.width = $active.inputHeight;
 	  },
 	  defaults: {
-	    template: function template(obj) {
-	      return "<button type='button' " + " style='height:100%;width:100%;' class='webix_icon_button'><span class='webix_icon " + obj.icon + " '></span>" + (obj.badge ? "<span class='webix_badge'>" + obj.badge + "</span>" : "") + "</button>";
+	    template: function template(obj, view) {
+	      var min = Math.min(obj.awidth, obj.aheight);
+	      var top = Math.round((view._content_height - obj.aheight) / 2);
+	      var inner = "<button type='button' style='height:" + min + "px;width:" + min + "px;' class='webix_icon_button'>" + "<span class='webix_icon " + obj.icon + "'></span></button>";
+	      return "<div class='webix_el_box' style='width:" + obj.awidth + "px;height:" + obj.aheight + "px;line-height:" + obj.aheight + "px;margin-top:" + top + "px'>" + inner + (obj.badge ? "<span class='webix_badge'>" + obj.badge + "</span>" : "") + "</div>";
 	    }
 	  },
 	  _set_inner_size: function _set_inner_size() {},
@@ -26359,7 +26382,7 @@
 	    var textNode = input.lastChild;
 	    input.setAttribute("aria-pressed", isPressed ? "true" : false);
 	    input.value = text;
-	    if (textNode) (textNode.firstChild || textNode).nodeValue = " " + text; //icon or image button
+	    if (textNode) (textNode.firstChild || textNode).nodeValue = text; //icon or image button
 
 	    if (input.firstChild && input.firstChild.nodeName === "SPAN" && obj.onIcon && obj.offIcon && obj.onIcon !== obj.offIcon) input.firstChild.className = input.firstChild.className.replace(isPressed ? obj.offIcon : obj.onIcon, isPressed ? obj.onIcon : obj.offIcon);
 	    var parent = input.parentNode;
@@ -26623,11 +26646,18 @@
 	      this._set_inner_size();
 	    }
 	  },
+	  value_setter: function value_setter(value) {
+	    return this.$prepareValue(value);
+	  },
 	  $setValue: function $setValue() {
 	    this.refresh();
 	  },
 	  $getValue: function $getValue() {
 	    return this._settings.value;
+	  },
+	  $prepareValue: function $prepareValue(value) {
+	    value = parseFloat(value);
+	    return isNaN(value) ? 0 : value;
 	  },
 	  $init: function $init(config) {
 	    if (env.touch) this.attachEvent("onTouchStart", bind(this._on_mouse_down_start, this));else _event(this._viewobj, "mousedown", bind(this._on_mouse_down_start, this));
@@ -27385,7 +27415,7 @@
 	      return "role=\"option\"" + (marks && marks.webix_selected ? " aria-selected=\"true\" tabindex=\"0\"" : " tabindex=\"-1\"") + (obj.$count && obj.$template ? "aria-expanded=\"true\"" : "");
 	    },
 	    template: function template$$1(obj) {
-	      return (obj.icon ? "<span class='webix_icon " + obj.icon + "'></span> " : "") + obj.value + (obj.badge ? "<div class='webix_badge'>" + obj.badge + "</div>" : "");
+	      return (obj.icon ? "<span class='webix_icon " + obj.icon + "'></span>" : "") + obj.value + (obj.badge ? "<div class='webix_badge'>" + obj.badge + "</div>" : "");
 	    },
 	    width: "auto",
 	    templateStart: template("<div webix_l_id=\"#id#\" class=\"{common.classname()}\" style=\"width:{common.widthSize()}; height:{common.heightSize()}; overflow:hidden;\" {common.aria()}>"),
@@ -27506,7 +27536,7 @@
 	      context: this._last_file_context,
 	      status: "client"
 	    };
-	    if (file.webkitRelativePath) file_struct.name = file.webkitRelativePath;
+	    if (file && file.webkitRelativePath) file_struct.name = file.webkitRelativePath;
 	    if (extra) exports.extend(file_struct, extra, true);
 
 	    if (this.callEvent("onBeforeFileAdd", [file_struct])) {
@@ -35030,7 +35060,7 @@
 
 	      var menuTemplate = function menuTemplate(obj) {
 	        var icon = "wxi-angle-" + (config.position == "left" ? "right" : "left");
-	        var arrow = obj.submenu || obj.data ? "<div class=\"webix_icon " + icon + "\"></div>" : "";
+	        var arrow = obj.submenu || obj.data || obj.item ? "<div class=\"webix_icon " + icon + "\"></div>" : "";
 	        return arrow + obj.value;
 	      };
 
@@ -35373,7 +35403,8 @@
 	    this._x_scroll_mode = x_mode;
 
 	    _event(area, env.isIE8 ? "mousewheel" : "wheel", this._on_wheel, {
-	      bind: this
+	      bind: this,
+	      passive: false
 	    });
 
 	    this._add_touch_events(area);
@@ -37800,6 +37831,12 @@
 	var Mixin$9 = {
 	  $init: function $init() {
 	    this.attachEvent("onAfterScroll", this._set_focusable_item);
+	    this.attachEvent("onFocus", function () {
+	      addCss(this.$view, "webix_dtable_focused");
+	    });
+	    this.attachEvent("onBlur", function () {
+	      removeCss(this.$view, "webix_dtable_focused");
+	    });
 	  },
 	  _set_focusable_item: function _set_focusable_item() {
 	    var sel = this._getVisibleSelection();
@@ -37807,10 +37844,7 @@
 	    if (!sel) {
 	      var node = this._dataobj.querySelector(".webix_cell");
 
-	      if (node) {
-	        node.setAttribute("tabindex", "0");
-	        addCss(node, "webix_focused");
-	      }
+	      if (node) node.setAttribute("tabindex", "0");
 	    }
 	  },
 	  _getVisibleSelection: function _getVisibleSelection() {
@@ -40164,14 +40198,14 @@
 	    };
 
 	    for (var i = 0; i < this._settings.topSplit; i++) {
-	      html += this._render_single_cell(i, config, yr, state, -this._render_scroll_shift);
+	      html += this._render_single_cell(i, config, yr, state, -this._render_scroll_shift, index$$1);
 	    } // ignore not available rows in top-split area
 
 
 	    this._data_request_flag = null;
 
 	    for (var _i11 = Math.max(yr[0], this._settings.topSplit); _i11 < yr[1]; _i11++) {
-	      html += this._render_single_cell(_i11, config, yr, state, -1);
+	      html += this._render_single_cell(_i11, config, yr, state, -1, index$$1);
 	    } // preserve target node for Safari wheel event
 
 
@@ -40184,7 +40218,7 @@
 	    col._render_scroll_shift = this._render_scroll_shift;
 	    return 1;
 	  },
-	  _render_single_cell: function _render_single_cell(i, config, yr, state, top) {
+	  _render_single_cell: function _render_single_cell(i, config, yr, state, top, index$$1) {
 	    var id = this.data.order[i];
 	    var item = this.data.getItem(id);
 	    var html = "";
@@ -40212,7 +40246,19 @@
 
 	      var css = this._getCss(config, value, item, id);
 
-	      if (css.indexOf("select") !== -1) aria += " aria-selected='true' tabindex='0'";
+	      var ariaSelect = " aria-selected='true' tabindex='0'";
+
+	      if (css.indexOf("select") !== -1) {
+	        //in case of row/column selection - make only first cell focusable
+	        if (css.indexOf("row") !== -1) {
+	          var xr = this._get_x_range();
+
+	          if (xr[0] === index$$1) aria += ariaSelect;
+	        } else if (css.indexOf("col") !== -1) {
+	          if (i === yr[0]) aria += ariaSelect;
+	        } else aria += ariaSelect;
+	      }
+
 	      var isOpen = !!item.$subopen;
 	      var margin = isOpen ? "margin-bottom:" + item.$subHeight + "px;" : "";
 

@@ -1,6 +1,6 @@
 {
   "name": "webix",
-  "version": "6.0.5",
+  "version": "6.0.9",
   "description": "Javascript UI for Web",
   "scripts": {
     "lint": "yarn eslint \"sources/**/*.js\"",

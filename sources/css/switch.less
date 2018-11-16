@@ -1,6 +1,5 @@
-.webix_el_box .webix_switch_box{
-  margin-top:4px;
-}
+@switchHeight:24px;
+
 .webix_switch_toggle {
   position: absolute;
   visibility: hidden;
@@ -8,10 +7,11 @@
 .webix_switch_box {
   display: block;
   position: relative;
+  top: 50%;
+  margin-top: -(@switchHeight/2);
+  height: @switchHeight;
   cursor: pointer;
-  height: 24px;
-  width: 60px;
-  
+
   background-color: #f1f1f1;
   border:1px solid @borderColor;
   border-radius: 60px;
@@ -29,8 +29,8 @@
 }
 
 .webix_switch_handle{
-  height:22px;
-  width:22px;
+  height: @switchHeight - 2px;
+  width: @switchHeight - 2px;
   border-radius: 100%;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
   border:1px solid #eee;

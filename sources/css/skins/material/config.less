@@ -54,6 +54,7 @@
 	font-family: Roboto;
 	src: url('fonts/Roboto-Regular-webfont.eot');
 	src: url('fonts/Roboto-Regular-webfont.eot?#iefix') format('embedded-opentype'),
+		url('fonts/Roboto-Regular-webfont.woff2') format('woff2'),
 		url('fonts/Roboto-Regular-webfont.woff') format('woff'),
 		url('fonts/Roboto-Regular-webfont.ttf') format('truetype');
 	font-weight: normal;
@@ -64,6 +65,7 @@
 	font-family: Roboto;
 	src: url('fonts/Roboto-Medium-webfont.eot');
 	src: url('fonts/Roboto-Medium-webfont.eot?#iefix') format('embedded-opentype'),
+		url('fonts/Roboto-Medium-webfont.woff2') format('woff2'),
 		url('fonts/Roboto-Medium-webfont.woff') format('woff'),
 		url('fonts/Roboto-Medium-webfont.ttf') format('truetype');
 	font-style:normal;
@@ -119,6 +121,9 @@
 }
 .radioHoverRule(@color){
 	color:darken(@color,6%);
+}
+.selectFocusRule{
+	background: darken(@selectColor, 2%);
 }
 
 
@@ -688,6 +693,9 @@
 .selectLine(){
 	color: @selectFontColor;
 	background: @selectColor;
+	&:focus{
+		.selectFocusRule();
+	}
 }
 .selectXLine(){
 	border-bottom:1px solid @selectBorderColor;
@@ -933,6 +941,9 @@
 .webix_tree{
 	.webix_tree_item.webix_selected{
 		background-color: @selectColor;
+		&:focus{
+			background-color: darken(@selectColor, 2%);
+		}
 		span{
 			background-color: transparent;
 			padding: 0;
@@ -1166,11 +1177,16 @@
 }
 .webix_multilist .wxi-checkbox-blank,
 .webix_multilist .wxi-checkbox-marked{
-	color: @baseColor;
 	font-size: 24px;
 	width: 24px;
 	vertical-align: sub;
 	margin-right: 4px;
+}
+.webix_multilist .wxi-checkbox-marked{
+	color: @baseColor;
+}
+.webix_multilist .wxi-checkbox-blank{
+	color: @inactiveFontColor;
 }
 
 // multicombo
@@ -1215,6 +1231,9 @@
 		font-size: @barFontSize;
 		color: @baseColor;
 	}
+}
+.webix_checksuggest_select_all.webix_el_checkbox .webix_label_right{
+	padding-top:5px;
 }
 
 .buttonStyle{
@@ -1564,6 +1583,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 
 // Button border
 .webix_el_button input, .webix_el_toggle input, .webix_el_button button, .webix_el_toggle button,
+.webix_el_toggle button.webixtype_danger, .webix_el_toggle button.webixtype_form,
 .webixbutton, .webix_el_button .webixtype_danger, .webix_el_button .webixtype_form,
 .webix_view button, .webix_view input[type=button]{
 	border-width:0px;
@@ -1673,6 +1693,14 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	.webix_pressed .webix_img_btn, .webix_pressed .webix_img_btn_top{
 		.activeShadow;
 		.darkHoverRule(@selectColor);
+	}
+	.webix_pressed .webixtype_danger{
+		.activeShadow;
+		.darkHoverRule(@dangerColor);
+	}
+	.webix_pressed .webixtype_form{
+		.activeShadow;
+		.darkHoverRule(@formButtonColor);
 	}
 	.webix_el_box.webix_pressed{
 		.webixtype_base, .webix_img_btn_abs{
@@ -1883,6 +1911,9 @@ div.webix_inp_static,.webix_el_textarea textarea {
 				background-color: @baseColor;
 			}
 		}
+		&:focus .webix_cal_day_inner{
+			.darkFocusRule(@baseColor);
+		}
 	}
 
 	.webix_cal_block{
@@ -1895,6 +1926,9 @@ div.webix_inp_static,.webix_el_textarea textarea {
 				&:hover{
 					background-color: @baseColor;
 				}
+			}
+			&:focus span{
+				.darkFocusRule(@baseColor);
 			}
 		}
 		span{
@@ -2192,6 +2226,9 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	&.webix_disabled{
 		color: @inactiveFontColor;
 	}
+	.webix_icon{
+		font-size: 20px;
+	}
 }
 .webix_list-x .webix_list_item.webix_selected{
 	box-shadow: none;
@@ -2233,10 +2270,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		opacity: 1;
 		transform: scale(1);
 	}
-	.webix_icon{
-		width: 20px;
-		height: 20px;
-	}
 }
 
 .webix_icon{
@@ -2245,9 +2278,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 .webix_icon_btn, .webix_input_icon{
 	font-size: 20px;
 	width: 20px;
-}
-.webix_icon_btn{
-	margin: 0 4px;
 }
 .webix_img_btn_abs_top, .webix_img_btn_top{
 	.webix_icon{
@@ -2259,7 +2289,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 }
 .webix_img_btn_abs .webix_icon {
 	font-size: 20px;
-	margin: 0 4px;
 }
 .webix_icon_btn, .webix_img_btn_abs .webix_icon{
 	vertical-align: text-bottom;

@@ -22,7 +22,7 @@ const api = {
 		input.setAttribute("aria-pressed", isPressed?"true":false);
 		input.value = text;
 		if (textNode)
-			(textNode.firstChild || textNode).nodeValue = " "+text;
+			(textNode.firstChild || textNode).nodeValue = text;
 
 		//icon or image button
 		if(input.firstChild && input.firstChild.nodeName ==="SPAN" && obj.onIcon && obj.offIcon && obj.onIcon !==obj.offIcon)

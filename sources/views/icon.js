@@ -11,10 +11,15 @@ const api = {
 		this.defaults.width = $active.inputHeight;
 	},
 	defaults:{
-		template:function(obj){
-			return "<button type='button' "+" style='height:100%;width:100%;' class='webix_icon_button'><span class='webix_icon "+obj.icon+" '></span>"+
-				(obj.badge ? "<span class='webix_badge'>"+obj.badge+"</span>":"")+
-				"</button>";
+		template:function(obj, view){
+			let min = Math.min(obj.awidth, obj.aheight);
+			let top = Math.round((view._content_height-obj.aheight)/2);
+			let inner = "<button type='button' style='height:"+min+"px;width:"+min+"px;' class='webix_icon_button'>"+
+                "<span class='webix_icon "+obj.icon+"'></span></button>";
+
+			return "<div class='webix_el_box' style='width:"+obj.awidth+"px;height:"+obj.aheight+"px;line-height:"+obj.aheight+
+				"px;margin-top:"+top+"px'>"+inner+(obj.badge ? "<span class='webix_badge'>"+obj.badge+"</span>":"")+
+				"</div>";
 		}
 	},
 	_set_inner_size:function(){},

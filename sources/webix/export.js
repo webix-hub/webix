@@ -251,8 +251,8 @@ function getExportScheme(view, options){
 		// raw mode has sense only for datatable
 		// in other cases we don't have built-in data templates
 		var rawColumn = raw && isTable;
-		var sourceColumn = view._columns_pull && view._columns_pull[key];
 		if (isTable){
+			let sourceColumn = view._columns_pull[key];
 			// when these's no column to take raw data from, or custom template defined - ignore raw mode
 			if (column.template && (!sourceColumn || sourceColumn.template != column.template))
 				rawColumn = false;
@@ -278,7 +278,8 @@ function getExportScheme(view, options){
 		else record.header = wcopy(record.header);
 
 		for(let i = 0; i<record.header.length; i++)
-			record.header[i] = record.header[i]?(record.header[i].contentId?"":record.header[i].text):"";
+			record.header[i] = record.header[i]?(record.header[i].value || record.header[i].text.replace( /<[^>]*>/gi, "")):"";
+
 		h_count = Math.max(h_count, record.header.length);
 
 		if(view._settings.footer){
@@ -514,13 +515,18 @@ function getExcelData(data, scheme, spans, styles) {
 			if(cell.v === null) continue;
 			var cell_ref = XLSX.utils.encode_cell({c:C,r:R});
 
-			//apply user params
-			if(R>=scheme[0].header.length && cell.v.toString().charAt(0) != "="){
+			let stringValue = cell.v.toString();
+			let isFormula = (stringValue.charAt(0) === "=");
+
+			// set type based on column's config
+			// skip headers and formula based cells
+			if(R>=scheme[0].header.length && !isFormula){
 				var column = scheme[C];
 				if(column.type) cell.t = (types[column.type] || "");
 				if(column.format) cell.z = column.format;
 			}
 
+			// set type based on cell's value
 			if(cell.v instanceof Date){
 				cell.t = cell.t || "n";
 				cell.z = cell.z || XLSX.SSF[table][14];
@@ -529,16 +535,20 @@ function getExcelData(data, scheme, spans, styles) {
 			else if(!cell.t){
 				if(typeof cell.v === "boolean")
 					cell.t = "b";
-				else if(typeof cell.v === "number" || (cell.v && !isNaN(cell.v*1))){
+				else if(typeof cell.v === "number" || parseFloat(cell.v) == cell.v){
 					cell.v = cell.v*1;
 					cell.t = "n";
 				}
-				else if(cell.v.charAt(0) == "="){
-					cell.t = "n";
-					cell.f = cell.v;
-					delete cell.v;
+				else {
+					// convert any other object to a string
+					cell.v = stringValue;
+					if(isFormula){
+						cell.t = "n";
+						cell.f = cell.v;
+						delete cell.v;
+					}
+					else cell.t = "s";
 				}
-				else cell.t = "s";
 			}
 
 			if(styles)

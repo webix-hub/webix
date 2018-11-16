@@ -71,6 +71,10 @@
 	background-color: rgba(0,0,0,0.07);
 }
 
+.selectFocusRule(){
+	background: darken(@selectColor, 3%);
+}
+
 //-------------------------------------------///
 //            Sync with skin.js              ///
 //-------------------------------------------///
@@ -235,7 +239,7 @@
 	.webix_img_btn:hover, .webix_img_btn_top:hover{
 		.darkHoverRule(@barButtonColor);
 	}
-	.webix_icon_button{
+	.webix_el_icon .webix_el_box{
 		#border > .radius(@skin_input_radius);
 	}
 	.webix_img_btn_top .webix_img_btn_text, .webix_img_btn_top .webix_icon, .webix_el_icon, .webix_img_btn, .webix_icon_btn, .webix_icon_button{
@@ -251,10 +255,10 @@
 		.darkActiveRule(@barButtonColor);
 		.activeShadow;
 	}
-	.webix_el_icon .webix_icon_button:focus{
+	.webix_el_icon .webix_el_box:focus{
 		.darkActiveRuleA;
 	}
-	.webix_el_box .webix_img_btn_abs:hover,.webix_el_icon .webix_icon_button:hover{
+	.webix_el_box .webix_img_btn_abs:hover,.webix_el_icon .webix_el_box:hover{
 		.darkHoverRuleA
 	}
 
@@ -262,9 +266,6 @@
 		border-color: @mainColor;
 	}
 	.webix_icon_button .webix_icon{
-		font-size: 23px;
-		height: 27px;
-		width: 27px;
 		color: @barFontColor ;
 	}
 	.webix_img_btn, .webix_img_btn_top{
@@ -506,6 +507,9 @@
 .selectLine(){
 	color: @selectFontColor;
 	background: @selectColor;
+	&:focus{
+		.selectFocusRule();
+	}
 }
 .selectXLine(){
 	border-bottom:1px solid @selectBorderColor;
@@ -613,10 +617,15 @@
 .webix_dataview_item{
 	border-right-color: @dataBorderColor;
 }
-.webix_dataview_item.tiles.webix_selected .webix_dataview_inner_item{
-	background-color:lighten(@selectColor, 50%);
-	color:@fontColor;
-	border-color:@selectColor;
+.webix_dataview_item.tiles.webix_selected{
+	.webix_dataview_inner_item{
+		background-color:lighten(@selectColor, 50%);
+		color:@fontColor;
+		border-color:@selectColor;
+	}
+	&:focus .webix_dataview_inner_item{
+		background-color:lighten(@selectColor, 45%);
+	}
 }
 .webix_view .webix_pager_item{
 	.buttonBackground;
@@ -737,6 +746,11 @@
 			background-color:#f6f6f6;
 		}
 	}
+}
+
+//tree
+.webix_tree_item.webix_selected:focus span{
+	background-color:darken(@selectColor, 6%);
 }
 
 // drag-n-drop
@@ -866,7 +880,7 @@
 .webix_focused .webix_inp_static{
 	.focusStyle;
 }
-.webix_multilist .fa-check-square{
+.webix_multilist .wxi-checkbox-marked{
 	color: @buttonColor;
 }
 
@@ -1291,6 +1305,14 @@ div.webix_item_tab.webix_selected{
 	.webix_pressed .webix_img_btn, .webix_pressed .webix_img_btn_top{
 		.activeShadow;
 	}
+	.webix_pressed .webixtype_danger{
+		.activeShadow;
+		.darkHoverRule(@dangerColor);
+	}
+	.webix_pressed .webixtype_form{
+		.activeShadow;
+		.darkHoverRule(@formButtonColor);
+	}
 	.webix_el_box.webix_pressed{
 		.webixtype_base, .webix_img_btn_abs{
 			.activeShadow;
@@ -1430,38 +1452,27 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 //                   Calendar                ///
 //-------------------------------------------///
 .webix_cal_body{
-
 	.webix_cal_today{
-		/*background-color: transparent;
-		color: @fontColor;*/
 		#box > .sizing;
 		border: 1px solid @selectColor;
 		border-radius: @skin_input_radius;
-		span{
-			/*#box > .sizing;
-			border: 1px solid @selectColor;*/
-		}
 	}
 	.webix_cal_day, .webix_cal_week_num {
 		font-size: (@fontSize - 2);
 	}
 	.webix_cal_select,  .webix_cal_select.webix_cal_today{
-		/*background: transparent;
-		color: @fontColor;*/
 		border-radius: @skin_input_radius;
-	}
-
-	.webix_cal_today span, .webix_cal_select span, .webix_cal_select.webix_cal_today span{
-
-		//border-radius: @skin_input_radius;
-
 	}
 	.webix_selected, .webix_cal_event.webix_cal_select{
 		color: @buttonFontColor;
 		border-radius: @skin_input_radius;
 		background: @selectColor;
 	}
-
+	.webix_selected, .webix_cal_select, .webix_cal_event.webix_cal_select{
+		&:focus{
+	        .selectFocusRule();
+		}
+	}
 
 }
 .webix_cal_event {
@@ -1519,10 +1530,6 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 	background-size: 14px 14px;
 }
 
-//Focusing
-.dataFocusStyle(){
-	background:lighten(@selectColor, 50%);
-}
 .webix_view .webix_item_tab:focus,
 .webix_view .webix_cal_next_button:focus,
 .webix_view .webix_cal_prev_button:focus{

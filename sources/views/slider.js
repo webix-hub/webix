@@ -112,11 +112,18 @@ const api = {
 			this._set_inner_size();
 		}
 	},
+	value_setter:function(value){
+		return this.$prepareValue(value);
+	},
 	$setValue:function(){
 		this.refresh();
 	},
 	$getValue:function(){
 		return this._settings.value;
+	},
+	$prepareValue:function(value){
+		value = parseFloat(value);
+		return isNaN(value)?0:value;
 	},
 	$init:function(config){
 		if(env.touch)

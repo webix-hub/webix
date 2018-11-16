@@ -1,5 +1,5 @@
 import env from "../../webix/env";
-import storage from "../../webix/env";
+import storage from "../../webix/storage";
 
 import {callEvent} from "../../webix/customevents";
 import {ajax} from "../ajax";

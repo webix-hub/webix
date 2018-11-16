@@ -105,6 +105,9 @@
 .webix_hcell.webix_ss_filter{
 	padding: @skin_input_y_padding 5px @skin_input_y_padding 5px;
 }
+.webix_hcell .webix_tree_close, .webix_hcell .webix_tree_open{
+	margin-right:5px;
+}
 
 @filterHeight: @barHeight - @skin_input_y_padding*2;
 
@@ -415,4 +418,9 @@
 	    border:none;
 	    background-color:@mainColor;
 	}
+}
+
+.webix_dtable_focused .webix_column > div.webix_row_select,
+.webix_dtable_focused .webix_column > div.webix_column_select{
+	.selectFocusRule();
 }
