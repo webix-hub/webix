@@ -84,6 +84,14 @@ const es = {
 	message:{
 		ok:"OK",
 		cancel:"Cancelar"
+	},
+	comments:{
+		send: "Enviar",
+		confirmMessage: "El comentario será eliminado. Estás seguro?",
+		edit: "Corregir",
+		remove: "Suprimir",
+		placeholder: "Escriba aquí..",
+		moreComments:"Más comentarios"
 	}
 };
 

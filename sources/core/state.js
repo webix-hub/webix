@@ -3,6 +3,7 @@ const state = {
 	cdn:"//cdn.webix.com",
 	top_views:[],
 
+	_global_scope:null,
 	_global_collection:null,
 	_child_sizing_active:null,
 	_responsive_exception:null,

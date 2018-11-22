@@ -1,6 +1,3 @@
-import "./css/webix.less";
-
-
 //----------------
 //    Mixins
 //----------------.
@@ -130,6 +127,8 @@ import "./views/tree";
 import "./views/treemap";
 import "./views/dataview";
 import "./views/pager";
+import "./views/comments";
+
 
 import "./views/menu";
 import "./views/submenu";

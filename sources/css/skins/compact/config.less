@@ -4,6 +4,15 @@
 
 @skin : "compact";
 
+/*shared scheme with all skins*/
+@baseColor: #3498db;
+@accentColor:#27ae60;
+@infoColor: #ff9;
+@dangerColor: #ce5545;
+@backColor:#ffffff;	
+
+@inactiveFontColor:#A4B4BF;
+
 //basic colors
 //@mainColor : #1d7c9c;
 @mainColor : #3498db;
@@ -171,16 +180,15 @@
 	.webix_segment_0:hover, .webix_segment_1:hover, .webix_segment_N:hover{
 		.barButtonHover;
 	}
-	.webixtype_base:active,
-	.webix_inp_counter_next:active, .webix_inp_counter_prev:active,
-	.webix_segment_0:active, .webix_segment_1:active, .webix_segment_N:active{
-		.barButtonActive;
-
-	}
 	.webixtype_base:focus,
 	.webix_inp_counter_next:focus, .webix_inp_counter_prev:focus,
 	.webix_segment_0:focus, .webix_segment_1:focus, .webix_segment_N:focus{
 		.barButtonFocus;
+	}
+	.webixtype_base:active,
+	.webix_inp_counter_next:active, .webix_inp_counter_prev:active,
+	.webix_segment_0:active, .webix_segment_1:active, .webix_segment_N:active{
+		.barButtonActive;
 	}
 	.webix_inp_static, input[type=text]{
 		border-color: @backColor;
@@ -214,10 +222,10 @@
 	.webix_selected.webix_segment_0:hover, .webix_selected.webix_segment_1:hover, .webix_selected.webix_segment_N:hover{
 		background-color: darken(@selectColor,3%);
 	}
-	.webix_selected.webix_segment_0:active, .webix_selected.webix_segment_1:active, .webix_selected.webix_segment_N:active{
+	.webix_selected.webix_segment_0:focus, .webix_selected.webix_segment_1:focus, .webix_selected.webix_segment_N:focus{
 		background-color: darken(@selectColor,5%);
 	}
-	.webix_selected.webix_segment_0:focus, .webix_selected.webix_segment_1:focus, .webix_selected.webix_segment_N:focus{
+	.webix_selected.webix_segment_0:active, .webix_selected.webix_segment_1:active, .webix_selected.webix_segment_N:active{
 		background-color: darken(@selectColor,5%);
 	}
 	.webix_segment_1, .webix_segment_N, .webix_selected.webix_segment_1, .webix_selected.webix_segment_N{
@@ -229,15 +237,15 @@
 /*.webixtype_prev:active, .webixtype_next:active, .webixtype_base:active, .webix_inp_counter_next:active, .webix_inp_counter_prev:active{
 	   background-color: @barButtonActiveColor;
    }*/
-	.webix_img_btn:active, .webix_img_btn_top:active{
-		.darkActiveRule(@barButtonColor);
-		.activeShadow;
+	.webix_img_btn:hover, .webix_img_btn_top:hover{
+		.darkHoverRule(@barButtonColor);
 	}
 	.webix_img_btn:focus, .webix_img_btn_top:focus{
 		.darkFocusRule(@barButtonColor);
 	}
-	.webix_img_btn:hover, .webix_img_btn_top:hover{
-		.darkHoverRule(@barButtonColor);
+	.webix_img_btn:active, .webix_img_btn_top:active{
+		.darkActiveRule(@barButtonColor);
+		.activeShadow;
 	}
 	.webix_el_icon .webix_el_box{
 		#border > .radius(@skin_input_radius);
@@ -251,15 +259,15 @@
 	.webix_img_btn_abs{
 		color: @barFontColor ;
 	}
-	.webix_el_box .webix_img_btn_abs:active{
-		.darkActiveRule(@barButtonColor);
-		.activeShadow;
+	.webix_el_box .webix_img_btn_abs:hover,.webix_el_icon .webix_el_box:hover{
+		.darkHoverRule(@barButtonColor)
 	}
 	.webix_el_icon .webix_el_box:focus{
 		.darkFocusRule(@barButtonColor);
 	}
-	.webix_el_box .webix_img_btn_abs:hover,.webix_el_icon .webix_el_box:hover{
-		.darkHoverRule(@barButtonColor)
+	.webix_el_box .webix_img_btn_abs:active{
+		.darkActiveRule(@barButtonColor);
+		.activeShadow;
 	}
 
 	.webix_control{
@@ -1134,18 +1142,17 @@ div.webix_item_tab.webix_selected{
 }
 
 //@saturatedButtonActiveColor: darken(@formButtonColor,3%);
-.webix_el_box .webixtype_form:active{
-	.darkActiveRule(@formButtonColor);
-	.activeShadow;
+.webix_el_box .webixtype_form:hover{
+	.darkHoverRule(@formButtonColor)
 }
 .webix_el_box .webixtype_form:focus{
 	.darkFocusRule(@formButtonColor);
 }
-.webix_el_box .webixtype_form:hover{
-	.darkHoverRule(@formButtonColor)
+.webix_el_box .webixtype_form:active{
+	.darkActiveRule(@formButtonColor);
+	.activeShadow;
 }
 // red button
-@dangerColor: #ce5545;
 .skinRedButton(){
 	background: @dangerColor;
 	border: 1px solid @dangerColor;
@@ -1163,14 +1170,14 @@ div.webix_item_tab.webix_selected{
 	.activeShadow;
 }
 
-.webixtype_prev:focus, .webixtype_prev:focus  +.webixtype_prev_arrow,
-.webixtype_next:focus, .webixtype_next:focus  +.webixtype_next_arrow{
-	.darkFocusRule(@buttonBgColor);
-}
-
 .webixtype_prev:hover, .webixtype_prev:hover  +.webixtype_prev_arrow,
 .webixtype_next:hover, .webixtype_next:hover  +.webixtype_next_arrow{
 	.darkHoverRule(@buttonBgColor);
+}
+
+.webixtype_prev:focus, .webixtype_prev:focus  +.webixtype_prev_arrow,
+.webixtype_next:focus, .webixtype_next:focus  +.webixtype_next_arrow{
+	.darkFocusRule(@buttonBgColor);
 }
 
 /*.webix_img_btn:active, .webix_img_btn_top:active{
@@ -1213,11 +1220,11 @@ div.webix_item_tab.webix_selected{
 .webix_selected.webix_segment_0:hover, .webix_selected.webix_segment_1:hover, .webix_selected.webix_segment_N:hover{
 	.darkHoverRule(@selectColor);
 }
-.webix_selected.webix_segment_0:active, .webix_selected.webix_segment_1:active, .webix_selected.webix_segment_N:active{
-	.darkActiveRule(@selectColor);
-}
 .webix_selected.webix_segment_0:focus, .webix_selected.webix_segment_1:focus, .webix_selected.webix_segment_N:focus{
 	.darkFocusRule(@selectColor);
+}
+.webix_selected.webix_segment_0:active, .webix_selected.webix_segment_1:active, .webix_selected.webix_segment_N:active{
+	.darkActiveRule(@selectColor);
 }
 
 // segmented button
@@ -1335,12 +1342,12 @@ div.webix_item_tab.webix_selected{
 .webix_img_btn:hover,.webix_img_btn_top:hover{
 	.darkHoverRuleA;
 }
+.webix_img_btn:focus,.webix_img_btn_top:focus{
+	.darkActiveRuleA;
+}
 .webix_img_btn:active,.webix_img_btn_top:active{
 	.darkActiveRuleA;
 	.activeShadow;
-}
-.webix_img_btn:focus,.webix_img_btn_top:focus{
-	.darkActiveRuleA;
 }
 /*
 .webix_el_box .webix_img_btn_abs:active + input, .webix_el_box .webix_img_btn_abs + input:active{
@@ -1559,6 +1566,13 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 	outline-color:lighten(@fontColor, 35%);
 	outline-style:dotted;
 	outline-width:1px;
+}
+
+//comments
+.webix_comments_menu.webix_icon{
+	line-height:24px;
+	margin:0 4px;
+	font-size:15px;
 }
 
 //for skin autodetection

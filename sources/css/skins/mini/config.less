@@ -595,7 +595,6 @@
 }
 .webix_modal_box{
 	border: 1px solid @borderColor;
-	box-shadow: @mediumShadow;
 	.webix_popup_title{
 		background: @backColor;
 		.fontStyle(@barFontSize, 500, @fontColor);
@@ -654,7 +653,6 @@
 .webix_info{
 	.fontStyle(@fontSize, 400, @altFontColor);
 	line-height: 18px;
-	box-shadow: @bigShadow;
 	border: 1px solid @borderColor;
 	#border > .radius(@skin_input_radius);
 	margin-bottom: 12px;
@@ -800,6 +798,11 @@
 }
 .webix_area_selection, .webix_area_selection_handle{
 	background: @baseColor;
+}
+.webix_dtable_focused{
+	.webix_area_selection, .webix_area_selection_handle{
+		.darkFocusRule(@baseColor);
+	}
 }
 .webix_ss_sort_asc, .webix_ss_sort_desc {
 	font-size: 20px;
@@ -2302,37 +2305,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 @mediumShadow: 0 3px 10px 0 rgba(0,0,0,0.1), 0 1px 7px 0 rgba(0,0,0,0.1);
 @bigShadow: 0 1px 14px 0 rgba(0,0,0,0.12), 0 4px 10px 0 rgba(0,0,0,0.1);
 
-.webix_shadow_medium, .webix_shadow_small, .webix_shadow_big{
-	position: relative;
-}
-.webix_shadow_medium{
-	box-shadow: @mediumShadow;
-}
-.webix_shadow_small{
-	box-shadow: @smallShadow;
-}
-.webix_shadow_big{
-	box-shadow: @bigShadow;
-}
-.webix_shadow_none{
-	box-shadow: none !important;
-}
-
-.webix_toolbar.webix_shadow_small, 
-.webix_toolbar.webix_shadow_medium, 
-.webix_toolbar.webix_shadow_big{
-	z-index: 1;
-}
-
-.webix_window{
-	box-shadow: @mediumShadow;
-	&:focus{
-		box-shadow:@bigShadow;
-	}
-}
-.webix_drag_zone, .webix_tooltip{
-	box-shadow: @smallShadow;
-}
 .webix_resize_frame{
 	box-shadow: 0 2px 6px 0 #000, 0 1px 4px 0 #000;
 }
@@ -2344,12 +2316,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	line-height: 20px;
 	#border > .radius(@skin_input_radius);
 	border: none;
-}
-.panel_target{
-	border: 1px solid @borderColor;
-	box-shadow: none;
-	background: @selectColor;
-	opacity: 0.7;
 }
 .portlet_marker, .portlet_markertop, .portlet_markerbottom, .portlet_markerleft, .portlet_markerright{
 	background: @baseColor;
@@ -2588,6 +2554,14 @@ div.webix_inp_static,.webix_el_textarea textarea {
 			background: rgba(255,255,255,0.4);
 		}
 	}
+}
+
+//comments
+.webix_comments_menu.webix_icon{
+    line-height: normal;
+}
+.webix_comments_more{
+	padding-top: 2px;
 }
 
 //for skin autodetection

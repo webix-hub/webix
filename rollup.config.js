@@ -8,8 +8,9 @@ import { eslint } from "rollup-plugin-eslint";
 module.exports = function(cli){
 	const pkg = require("./package.json");
 
+	const name = pkg.productTag;
 	const mode = cli["config-mode"] || "fast";
-	const outname = cli["config-name"] || ( mode === "min" ? "webix.min" : "webix" );
+	const outname = cli["config-name"] || ( mode === "min" ? `${name}.min` : name );
 	const skin = cli["config-skin"] || "material";
 
 	const plugins = [
@@ -18,7 +19,7 @@ module.exports = function(cli){
 			VERSION: pkg.version
 		}),
 		less({
-			output:"codebase/webix.css",
+			output:`codebase/${name}.css`,
 			option:{
 				paths:[ `${__dirname}/sources/css/skins/${skin}` ]
 			}
@@ -26,7 +27,7 @@ module.exports = function(cli){
 		license({
 			sourceMap: true,
 			banner: `@license
-webix UI v.<%= pkg.version %>
+webix <%= pkg.productName %> v.<%= pkg.version %>
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details`
 		})
@@ -72,12 +73,12 @@ This software is allowed to use under GPL or you need to obtain Commercial Licen
 
 	return {
 		treeshake,
-		input: "sources/webix.js",
+		input: `sources/${name}.js`,
 		plugins,
 		output: {
 			file: `codebase/${outname}.js`,
 			format: "umd",
-			name: "webix",
+			name,
 			sourcemap
 		},
 		watch:{

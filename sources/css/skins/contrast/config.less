@@ -4,11 +4,19 @@
 
 @skin : "contrast";
 
+/*shared scheme with all skins*/
+@baseColor: #3498db;
+@accentColor:#27ae60;
+@infoColor: #ff9;
+@dangerColor: #ce5545;
+@backColor:#ffffff;
+
+@inactiveFontColor:darken(#fff, 20%);
+
 //basic colors
 //@mainColor : #1d7c9c;
 @mainColor : #191919;
 @alterColor: #575757;//#a4b4bf;//#afc1cd;
-
 
 
 @selectColor:  #1F884C;
@@ -133,9 +141,9 @@
 }
 .barButtonActive(@fColor: @barFontColor, @color: @barButtonColor, @shadowColor: darken(@mainColor,10%)){
 
+	.activeShadow;
 	.darkActiveRuleA;
 	color: @fColor;
-	.activeShadow;
 
 }
 .barButtonFocus(@fColor: @barFontColor, @color: @barButtonColor, @shadowColor: darken(@mainColor,10%)){
@@ -308,10 +316,6 @@
 //-------------------------------------------///
 
 @windowRadius: 0px;
-.webix_window, .webix_tooltip {
-	box-shadow: 0px 1px 7px 1px @borderColor;
-}
-
 
 .webix_view .webix_win_head{
 	border-bottom: 1px solid @borderColor;
@@ -1060,18 +1064,17 @@ div.webix_item_tab.webix_selected{
 }
 
 //@saturatedButtonActiveColor: darken(@formButtonColor,3%);
-.webix_el_box .webixtype_form:active{
-	 .darkActiveRule(@formButtonColor);
-	.activeShadow;
+.webix_el_box .webixtype_form:hover{
+	.darkHoverRule(@formButtonColor)
 }
 .webix_el_box .webixtype_form:focus{
 	.darkFocusRule(@formButtonColor);
 }
-.webix_el_box .webixtype_form:hover{
-	.darkHoverRule(@formButtonColor)
+.webix_el_box .webixtype_form:active{
+	.activeShadow;
+	.darkActiveRule(@formButtonColor);
 }
 // red button
-@dangerColor: #ce5545;
 .skinRedButton(){
 	background: @dangerColor;
 	border: 1px solid @dangerColor;
@@ -1086,18 +1089,18 @@ div.webix_item_tab.webix_selected{
 	.darkFocusRule(@dangerColor);
 }
 .webixtype_danger:active{
-	.darkActiveRule(@dangerColor);
 	.activeShadow;
-}
-
-.webixtype_prev:focus, .webixtype_prev:focus  +.webixtype_prev_arrow,
-.webixtype_next:focus, .webixtype_next:focus  +.webixtype_next_arrow{
-	.darkFocusRule(@buttonBgColor);
+	.darkActiveRule(@dangerColor);
 }
 
 .webixtype_prev:hover, .webixtype_prev:hover  +.webixtype_prev_arrow,
 .webixtype_next:hover, .webixtype_next:hover  +.webixtype_next_arrow{
 	.darkHoverRule(@buttonBgColor);
+}
+
+.webixtype_prev:focus, .webixtype_prev:focus  +.webixtype_prev_arrow,
+.webixtype_next:focus, .webixtype_next:focus  +.webixtype_next_arrow{
+	.darkFocusRule(@buttonBgColor);
 }
 
 
@@ -1114,8 +1117,8 @@ div.webix_item_tab.webix_selected{
 }
 .webixbutton:active, .webixtype_base:active,
 .webix_segment_0:active, .webix_segment_1:active, .webix_segment_N:active{
-	.darkActiveRule(@buttonBgColor);
 	.activeShadow;
+	.darkActiveRule(@buttonBgColor);
 }
 .webix_el_text .webix_input_icon{
 	color: @linkFontColor;
@@ -1133,11 +1136,11 @@ div.webix_item_tab.webix_selected{
 .webix_selected.webix_segment_0:hover, .webix_selected.webix_segment_1:hover, .webix_selected.webix_segment_N:hover{
 	.darkHoverRule(@selectColor);
 }
-.webix_selected.webix_segment_0:active, .webix_selected.webix_segment_1:active, .webix_selected.webix_segment_N:active{
-	 .darkActiveRule(@selectColor);
- }
 .webix_selected.webix_segment_0:focus, .webix_selected.webix_segment_1:focus, .webix_selected.webix_segment_N:focus{
 	.darkFocusRule(@selectColor);
+}
+.webix_selected.webix_segment_0:active, .webix_selected.webix_segment_1:active, .webix_selected.webix_segment_N:active{
+	.darkActiveRule(@selectColor);
 }
 
 // segmented button
@@ -1269,11 +1272,11 @@ div.webix_item_tab.webix_selected{
 .webix_img_btn:hover,.webix_img_btn_top:hover{
 	.darkHoverRuleA;
 }
-.webix_img_btn:active,.webix_img_btn_top:active{
-	.darkActiveRuleA;
-	.activeShadow;
-}
 .webix_img_btn:focus,.webix_img_btn_top:focus{
+	.darkActiveRuleA;
+}
+.webix_img_btn:active,.webix_img_btn_top:active{
+	.activeShadow;
 	.darkActiveRuleA;
 }
 
@@ -1431,6 +1434,15 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 @skin_input_y_padding: 3px;
 @formFontSize: @fontSize;
 @iconFontColor: @linkFontColor;
+
+//shadow
+@smallShadow: 0 1px 3px 1px #818181;
+@mediumShadow: 0 1px 7px 1px #818181;
+@bigShadow: 0 1px 12px 1px #818181;
+
+.panel_target{
+	background: rgba(255,255,255,.1);
+}
 
 //-------------------------------------------///
 //                   Calendar                ///
@@ -1666,6 +1678,20 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 	outline-color:lighten(@fontColor, 35%);
 	outline-style:dotted;
 	outline-width:1px;
+}
+
+//comments
+.webix_comments_name{
+	color:@fontColor;
+}
+.webix_comments_menu.webix_icon{
+	line-height:32px;
+	margin:0 4px;
+}
+.webix_comments_status{
+	height:12px;
+	width:12px;
+	border:none;
 }
 
 //for skin autodetection

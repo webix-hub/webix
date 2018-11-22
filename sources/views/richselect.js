@@ -91,8 +91,16 @@ const api = {
 			text = this.getPopup().getItemText(value);
 
 		if (!text && value && value.id){ //add new value
-			this.getPopup().getList().add(value);
-			text = this.getPopup().getItemText(value.id);
+			const popup = this.getPopup();
+			const list = popup.getList();
+			list.add(value);
+			text = popup.getItemText(value.id);
+
+			// in case of dynamic list, we can't add extra items
+			// to not interfere with dynamic loading
+			if (list._settings.dynamic)
+				list.remove(value.id);
+
 			this._settings.value = value.id;
 		}
 

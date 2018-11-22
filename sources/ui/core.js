@@ -16,10 +16,18 @@ const views = {};
 function ui(config, parent, id){
 	var res;
 	state._ui_creation++;
+	// save old value of global scope
+	const temp = state._global_scope;
+	// set global scope to the scope of new UI or to previous value
+	// as result inner webix.ui calls will have access the scope of master view
+	// mainly necessary for suggests
+	state._global_scope = config.$scope || temp;
 	try {
 		res = _ui_creator(config, parent, id);
 	} finally {
 		state._ui_creation--;
+		// restore global scope
+		state._global_scope = temp;
 	}
 	return res;
 }
@@ -141,7 +149,11 @@ function _deleteIds(uis){
 		current.config.id = "x"+uid();
 		views[current.config.id] = current;
 		//process childs
-		_deleteIds(current.getChildViews());
+		if (current.getChildViews)
+			_deleteIds(current.getChildViews());
+		//process related UI
+		if (current._destroy_with_me)
+			_deleteIds(current._destroy_with_me);
 	}
 }
 

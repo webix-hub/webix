@@ -86,6 +86,14 @@ const pt = {
 	message:{
 		ok:"OK",
 		cancel:"Cancelar"
+	},
+	comments:{
+		send: "Enviar",
+		confirmMessage: "Comentário será removido. Você tem certeza?",
+		edit: "Editar",
+		remove: "Excluir",
+		placeholder: "Digite aqui..",
+		moreComments:"Mais comentários"
 	}
 };
 

@@ -142,7 +142,6 @@ const DragControl ={
 	_moveDrag:function(e){
 		var dragCtrl = DragControl;
 		var pos = getPos(e);
-		var evobj = env.mouse.context(e);
 
 		//give possibility to customize drag position
 		var customPos = dragCtrl.$dragPos(pos, e);
@@ -151,12 +150,28 @@ const DragControl ={
 		dragCtrl._html.style.top=pos.y+dragCtrl.top+(customPos||!ctx.y_offset?0:ctx.y_offset) +"px";
 		dragCtrl._html.style.left=pos.x+dragCtrl.left+(customPos||!ctx.x_offset?0:ctx.x_offset)+"px";
 
+		var evobj = e;
 		if (dragCtrl._skip)
 			dragCtrl._skip=false;
 		else {
-			var target = evobj.target = env.touch ? document.elementFromPoint(evobj.x, evobj.y) : evobj.target;
-			var touch_event = env.touch ? evobj : e;
-			dragCtrl._checkLand(target, touch_event);
+			if (env.touch){
+				var context = env.mouse.context(e);
+				var target = document.elementFromPoint(context.x, context.y);
+				evobj = new Proxy(e, {
+					get: function(obj, prop){
+						if (prop === "target"){
+							return target;
+						}
+
+						var res = obj[prop];
+						if (typeof res === "function"){
+							return res.bind(e);
+						}
+						return res;
+					}
+				});
+			}
+			dragCtrl._checkLand(evobj.target, evobj);
 		}
 		
 		return preventEvent(e);

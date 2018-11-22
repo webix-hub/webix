@@ -1,27 +1,14 @@
-Version 6.0.9 
+Version 6.1 (November 2018)
 ==================
 
-# Fixes
+### Major features
 
-- custom scroll should be hidden when mouse leaves the viewport
-- regression in offline and related proxies: storage object is lost
-- rangeslider breaks in case of empty/invalid values
-- slider show NaN in case of empty value
-- multicombo cannot change selectAll label correctly
-- when page has more than 10 multicombos they cannot be resized properly
-- export to excel for complex data ( arrays and objects )
-- export groupText to excel
-- showItem method is not precise in some cases
-- different issues with parsing markup from xml
-- regression in scrolls for richselect and combo boxes
-- uploader addFile breaks with non-object as first parameter
-- autowidth for iconButton
-- text pattern/format can't be defined through protoUI defaults
-- non-passive event listeners for blockable mousewheel events
-- regression in webix.stringify
-- regression in data export for simple data components
-- regression in Touch scroll handling
-- regression in data mapping ( complex templates )
+- Comments widget
+- Major update for Kanban widget
+- Full support of skins for all complex widgets
+- NodeJs backend for package samples
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_6_1.html)
 
 Version 6.0 (October 2018)
 ==================

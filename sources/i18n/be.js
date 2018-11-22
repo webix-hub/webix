@@ -84,6 +84,14 @@ const be = {
 	message:{
 		ok:"ОК",
 		cancel:"Адмена"
+	},
+	comments:{
+		send: "Даслаць",
+		confirmMessage: "Каментарый будзе выдалены. Вы ўпэўнены?",
+		edit: "Рэдагаваць",
+		remove: "Выдаліць",
+		placeholder: "Пішыце тут..",
+		moreComments:"Больш каментарыяў"
 	}
 };
 

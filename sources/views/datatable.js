@@ -645,6 +645,8 @@ const api = {
 		}
 
 		//parameter will be set to -1, to mark that scroll need not to be adjusted
+		var scroll = this.getScrollState();
+
 		if (row_ind != -1){
 			let state = this._get_y_range();
 			if (row_ind < state[0]+1 || row_ind >= state[1]-1 ){
@@ -662,7 +664,7 @@ const api = {
 						summ += this._getHeightByIndex(row_ind-1)-1;
 				}
 
-				this._y_scroll.scrollTo(summ);
+				scroll.y = summ;
 			}
 		}
 		if (column_ind != -1){
@@ -686,9 +688,11 @@ const api = {
 					summ += this._columns[column_ind].width - this._center_width;
 				}	
 				/*jsl:end*/
-				this._x_scroll.scrollTo(summ);
+				scroll.x = summ;
 			}
-		}		
+		}
+
+		this.scrollTo(scroll.x, scroll.y);
 	},
 	showCell:function(row, column){
 		if (!column || !row){ 

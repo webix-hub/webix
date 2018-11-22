@@ -54,8 +54,10 @@ const DataState = {
 		this._last_sorted = null; 
 		this.blockEvent();
 
-		if (obj.order && obj.order.length)
+		if (obj.order && obj.order.length){
 			this._hidden_column_order = [].concat(obj.order);
+			this._hidden_split = [ this._settings.leftSplit, obj.order.length - this._settings.rightSplit ];
+		}
 
 		if (obj.hidden){
 			var hihash = {};

@@ -1,8 +1,8 @@
 .webix_window{
 	position:absolute;
-	box-shadow:1px 3px 4px #c8c8c8;
+	box-shadow:@mediumShadow;
 	&:focus{
-		box-shadow:1px 3px 4px #bbb;
+		box-shadow:@bigShadow;
 	}
 }
 .webix_win_body{
@@ -105,4 +105,26 @@
 }
 .webix_resize_cursor{
 	cursor: nw-resize;
+}
+
+.webix_shadow_medium, .webix_shadow_small, .webix_shadow_big{
+	position: relative;
+}
+.webix_shadow_medium{
+	box-shadow: @mediumShadow;
+}
+.webix_shadow_small{
+	box-shadow: @smallShadow;
+}
+.webix_shadow_big{
+	box-shadow: @bigShadow;
+}
+.webix_shadow_none{
+	box-shadow: none !important;
+}
+
+.webix_toolbar.webix_shadow_small,
+.webix_toolbar.webix_shadow_medium,
+.webix_toolbar.webix_shadow_big{
+	z-index: 1;
 }

@@ -79,6 +79,14 @@ const fr = {
 	message:{
 		ok:"OK",
 		cancel:"Annuler"
+	},
+	comments:{
+		send: "Envoyer",
+		confirmMessage: "Le commentaire sera supprimé. Êtes-vous sûr?",
+		edit: "Modifier",
+		remove: "Effacer",
+		placeholder: "Écrivez ici..",
+		moreComments:"Plus de commentaires"
 	}
 };
 

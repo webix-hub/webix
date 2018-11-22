@@ -84,6 +84,14 @@ const it = {
 	message:{
 		ok:"OK",
 		cancel:"Annullare"
+	},
+	comments:{
+		send: "Inviare",
+		confirmMessage: "Il commento verrà rimosso. Sei sicuro?",
+		edit: "Correggere",
+		remove: "Elimina",
+		placeholder: "Digitare qui..",
+		moreComments:"Altri commenti"
 	}
 };
 

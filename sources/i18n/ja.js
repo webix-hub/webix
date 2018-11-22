@@ -84,6 +84,14 @@ const ja = {
 	message:{
 		ok:"OK",
 		cancel:"取り消す"
+	},
+	comments:{
+		send: "送信",
+		confirmMessage: "コメントは削除されます. 本気ですか？",
+		edit: "編集",
+		remove: "削除",
+		placeholder: "ここに入力..",
+		moreComments:"その他のコメント"
 	}
 };
 

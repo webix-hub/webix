@@ -185,7 +185,7 @@ export const DataProcessor = proto({
 	_check_unique:function(check){
 		for (var i = 0; i < this._updates.length; i++){
 			var one = this._updates[i];
-			if (one.id == check.id){
+			if (one.id == check.id && !one._in_progress){
 				if (check.operation == "delete"){
 					if (one.operation == "insert")
 						this._updates.splice(i,1);

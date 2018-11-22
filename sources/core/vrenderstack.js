@@ -2,7 +2,7 @@ import {offset, insertBefore, remove} from "../webix/html";
 import {bind} from "../webix/helpers";
 import base from "../views/view";
 import {_event} from "../webix/htmlevents";
-
+import Touch from "../core/touch";
 
 /*
 	Renders collection of items on demand
@@ -10,9 +10,34 @@ import {_event} from "../webix/htmlevents";
 const VRenderStack = {
 	$init:function(){
 		this._htmlmap = {};
-		_event(this._viewobj, "scroll", bind(function(){
-			this.render(null, null, "paint");
-		}, this));
+
+		if (Touch.$active){
+			this.attachEvent("onBeforeScroll", function(){ 
+				this._in_touch_scroll = true;
+			});
+			this.attachEvent("onAfterScroll", function(){
+				this.render(null, null, "paint");
+				this._in_touch_scroll = false;
+			});
+			this.attachEvent("onTouchMove", function(){
+				if (this._in_touch_scroll){
+					this.blockEvent();
+					this.render(null, null, "paint");
+					this.unblockEvent();
+				}
+			});
+		} else {
+			_event(this._viewobj, "scroll", bind(function(){
+				this.render(null, null, "paint");
+			}, this));
+		}
+	},
+	_sync_scroll:function(x,y,t){
+
+		if (this._settings.footer)
+			Touch._set_matrix(this._footer.childNodes[1].firstChild,x,0,t);
+
+		this.callEvent("onSyncScroll", [x,y,t]);
 	},
 	//return html container by its ID
 	//can return undefined if container doesn't exists

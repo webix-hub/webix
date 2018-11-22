@@ -524,7 +524,7 @@ const Mixin = {
 						for (var j = sind; j <= eind; j++) {
 							var cid = this._columns[j].id;
 							if (callback)
-								item[cid] = callback((item[cid] || ""), rid, cid, i-srow, j-sind);
+								item[cid] = callback(item[cid], rid, cid, i-srow, j-sind);
 							else
 								return { row:rid, column:cid };
 						}

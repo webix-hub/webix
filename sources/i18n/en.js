@@ -87,6 +87,14 @@ const en = {
 	message:{
 		ok:"OK",
 		cancel:"Cancel"
+	},
+	comments:{
+		send: "Send",
+		confirmMessage: "The comment will be removed. Are you sure?",
+		edit: "Edit",
+		remove: "Remove",
+		placeholder: "Type here..",
+		moreComments:"More comments"
 	}
 };
 

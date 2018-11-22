@@ -86,7 +86,7 @@ export const toExcel = function(id, options){
 			var spans  = views[i].spans ? views[i].spans: (options.spans ? getSpans(views[i], options) : []);
 			var ranges =  views[i].ranges || [];
 			var styles = views[i].styles || [];
-			var data   = getExcelData(result, scheme, spans, styles);
+			var data   = getExcelData(result, scheme, spans, styles, options);
 			var sname  = (name[i] || "Data"+i).replace(/[*?:[\]\\/]/g,"").replace(/&/g, "&amp;").substring(0, 31);
 
 			wb.SheetNames.push(sname);
@@ -319,17 +319,18 @@ function getExportData(view, options, scheme){
 	var htmlFilter = /<[^>]*>/gi;
 	var data = [];
 	var header, headers;
+	var mode = options.export_mode;
 
-	if(options.export_mode ==="excel" && options.docHeader){
+	if((mode === "excel" || mode == "csv") && options.docHeader){
 		data = [[(options.docHeader.text || options.docHeader).toString()], [""]];
-		if(options.docHeader.height)
+		if(mode === "excel" && options.docHeader.height)
 			scheme.heights[0] = options.docHeader.height;
 	}
 
 	if( options.header !== false && scheme.length){
 		for(let h=0; h < scheme[0].header.length; h++){
 			headers = [];
-			for (let i = 0; i < scheme.length; i++){
+			for (let i = 0; i < scheme.length; i++){ 
 				header = "";
 				if(scheme[i].header[h]){
 					header = scheme[i].header[h];
@@ -339,11 +340,11 @@ function getExportData(view, options, scheme){
 				headers.push(header);
 			}
 
-			if(options.export_mode =="excel" && view._columns && options.heights !==false &&
+			if(mode =="excel" && view._columns && options.heights !==false &&
 			(view._headers[h] !== $active.barHeight || options.heights == "all")
 			) scheme.heights[data.length] = view._headers[h];
 
-			if (options.export_mode !== "pdf")
+			if (mode !== "pdf")
 				data[data.length] = headers;
 		}
 	}
@@ -377,17 +378,17 @@ function getExportData(view, options, scheme){
 						cell = cell.replace(htmlFilter, "");
 					}
 					//remove end/start spaces(ex.hierarchy data)
-					if (typeof cell === "string" && options.export_mode === "csv")
+					if (typeof cell === "string" && mode === "csv")
 						cell = cell.trim();
 					//for multiline data
-					if (typeof cell === "string" && (options.export_mode === "excel" || options.export_mode === "csv")){
+					if (typeof cell === "string" && (mode === "excel" || mode === "csv")){
 						cell = cell.replace(/<br\s*\/?>/mg,"\n");
 					}
 				}
 				line.push(cell);
 			}
 
-			if(options.export_mode =="excel" && view._columns &&  options.heights !==false &&
+			if(mode =="excel" && view._columns &&  options.heights !==false &&
 			((item.$height && item.$height !== $active.rowHeight) || options.heights =="all")
 			) scheme.heights[data.length] = item.$height || this.config.rowHeight;
 
@@ -406,16 +407,16 @@ function getExportData(view, options, scheme){
 			}
 		
 		
-			if(options.export_mode =="excel" && view._columns && options.heights !==false &&
+			if(mode =="excel" && view._columns && options.heights !==false &&
 			(view._footers[f] !== $active.barHeight || options.heights=="all")
 			) scheme.heights[data.length] = view._footers[f];
 
-			if(options.export_mode !== "pdf")
+			if(mode !== "pdf")
 				data.push(footers);
 		}
 	}
 
-	if(options.export_mode ==="excel" && options.docFooter){
+	if(mode ==="excel" && options.docFooter){
 		data = data.concat([[], [(options.docFooter.text || options.docFooter).toString()]]);
 		if(options.docFooter.height)
 			scheme.heights[data.length-1] = options.docFooter.height;
@@ -501,7 +502,7 @@ function getRowHeights(heights){
 
 var types = { number:"n", date:"n", string:"s", boolean:"b"};
 var table = "_table";
-function getExcelData(data, scheme, spans, styles) {
+function getExcelData(data, scheme, spans, styles, options) {
 	var ws = {};
 	var range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
 	for(var R = 0; R != data.length; ++R) {
@@ -520,7 +521,8 @@ function getExcelData(data, scheme, spans, styles) {
 
 			// set type based on column's config
 			// skip headers and formula based cells
-			if(R>=scheme[0].header.length && !isFormula){
+			var header = (options.docHeader?2:0)+scheme[0].header.length;
+			if(R>=header && !isFormula){
 				var column = scheme[C];
 				if(column.type) cell.t = (types[column.type] || "");
 				if(column.format) cell.z = column.format;

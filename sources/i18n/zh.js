@@ -84,6 +84,14 @@ const zh = {
 	message:{
 		ok:"好",
 		cancel:"取消"  
+	},
+	comments:{
+		send: "发送",
+		confirmMessage: "评论将被删除. 你确定吗?",
+		edit: "编辑",
+		remove: "去掉",
+		placeholder: "在此输入..",
+		moreComments:"更多评论"
 	}
 };
 

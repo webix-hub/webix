@@ -79,6 +79,14 @@ const ru = {
 	message:{
 		ok:"OK",
 		cancel:"Отмена"
+	},
+	comments:{
+		send: "Отправить",
+		confirmMessage: "Комментарий будет удален. Вы уверены?",
+		edit: "Редактировать",
+		remove: "Удалить",
+		placeholder: "Введите текст..",
+		moreComments:"Больше комментариев"
 	}
 };
 

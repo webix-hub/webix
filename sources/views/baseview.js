@@ -28,7 +28,9 @@ const api = {
 		this._parent_cell = state._parent_cell;
 		state._parent_cell = null;
 
-		this.$scope = config.$scope || (this._parent_cell ? this._parent_cell.$scope : null);
+		// if scope not provided directly, and there is no parent view
+		// check if we have a global scope
+		this.$scope = config.$scope || (this._parent_cell ? this._parent_cell.$scope : state._global_scope);
 		
 		if (!this._viewobj){
 			this._contentobj = this._viewobj = html.create("DIV",{
@@ -60,6 +62,8 @@ const api = {
 	getChildViews:function(){ return []; },
 	queryView:function(search, all){
 		var confirm;
+		if (typeof search === "string")
+			search = { view:search };
 		if (typeof search === "object"){
 			var keys = Object.keys(search);
 			var values = [];

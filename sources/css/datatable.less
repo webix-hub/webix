@@ -369,7 +369,7 @@
 
 .webix_dtable_span{
 	position:absolute;
-	background: #fff;
+	background: @backColor;
 	text-align:left;
 }
 
@@ -391,6 +391,9 @@
 	position: absolute;
 	background: @fontColor;
 }
+.webix_dtable_focused .webix_area_selection{
+	.darkFocusRule(@fontColor);
+}
 .webix_area_selection_top, .webix_area_selection_bottom{
 	height:2px;
 }
@@ -408,7 +411,7 @@
 }
 .webix_topcell{
 	position:relative;
-	background:#fff;
+	background:@backColor;
 	z-index:1;
 }
 

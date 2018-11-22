@@ -823,9 +823,10 @@ const api = {
 			header[1].setAttribute("aria-label", labels[0]);
 			header[2].setAttribute("aria-label", labels[1]);
 
-			height = this._reserve_box_height/3;
-			width = this._reserve_box_width/4;
+			height = Math.floor(this._reserve_box_height/3);
+			width = Math.floor(this._reserve_box_width/4);
 			sqSize = Math.min(height, width);
+
 			if(this._checkDate(config.date))
 				selected = (this._zoom_level==1?config.date.getMonth():config.date.getFullYear());
 			for (i=0; i<12; i++){

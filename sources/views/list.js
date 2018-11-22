@@ -147,7 +147,7 @@ const api = {
 			return "role=\"option\""+(marks && marks.webix_selected?" aria-selected=\"true\" tabindex=\"0\"":" tabindex=\"-1\"")+(obj.$count && obj.$template?"aria-expanded=\"true\"":"");
 		},
 		template:function(obj){
-			return (obj.icon?("<span class='webix_icon "+obj.icon+"'></span>"):"") + obj.value + (obj.badge?("<div class='webix_badge'>"+obj.badge+"</div>"):"");
+			return (obj.icon?("<span class='webix_list_icon webix_icon "+obj.icon+"'></span>"):"") + obj.value + (obj.badge?("<div class='webix_badge'>"+obj.badge+"</div>"):"");
 		},
 		width:"auto",
 		templateStart:template("<div webix_l_id=\"#id#\" class=\"{common.classname()}\" style=\"width:{common.widthSize()}; height:{common.heightSize()}; overflow:hidden;\" {common.aria()}>"),

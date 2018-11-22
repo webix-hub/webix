@@ -37,8 +37,8 @@ const Mixin = {
 	},
 	_touchNative:{
 		_scrollTo_touch:function(x,y){
-			Touch._set_matrix(this._body.childNodes[1].firstChild, 0,0,"0ms");
-			this._sync_scroll(x,y,"0ms");
+			Touch._set_matrix(this._body.childNodes[1].firstChild, -x, -y,"0ms");
+			this._sync_scroll(-x, -y,"0ms");
 		},
 		_getScrollState_touch:function(){
 			var temp = Touch._get_matrix(this._body.childNodes[1].firstChild);
