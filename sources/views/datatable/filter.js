@@ -91,12 +91,12 @@ const Mixin = {
 	registerFilter:function(node, config, obj){
 		this._filter_elements[config.columnId] = [node, config, obj];
 	},
-	collectValues:function(id){
+	collectValues:function(id, mode){
 		var values = [];
 		var checks = { "" : true };
 
 		var obj = this.getColumnConfig(id);
-		var options = obj.options||obj.collection;
+		var options = (mode && mode.visible) ? null : (obj.options||obj.collection);
 
 		if (options){
 			if (typeof options == "object" && !options.loadNext){

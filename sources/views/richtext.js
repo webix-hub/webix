@@ -1,5 +1,6 @@
 import layout from "../views/layout";
 import IdSpace from "../core/idspace";
+import UIManager from "../core/uimanager";
 import {protoUI} from "../ui/core";
 import i18n from "../webix/i18n";
 import {_event} from "../webix/htmlevents";
@@ -90,7 +91,7 @@ const api = {
 			this.config.borderless = true;
 			this.cols_setter([{ 
 				template: (this.config.label || " "),
-				css: "webix_richtext_inp_label",
+				css: "webix_richtext_inp_label"+(this.config.required?" webix_required":""),
 				borderless: true,
 				width: this.config.labelWidth
 			}, {
@@ -176,6 +177,9 @@ const api = {
 		}
 	},
 	focus: function() {
+		if(!UIManager.canFocus(this))
+			return false;
+
 		var editableElement = this.$view.querySelector(".webix_richtext_editor");
 		editableElement.focus();
 	},

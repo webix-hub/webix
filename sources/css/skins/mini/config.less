@@ -256,7 +256,8 @@
 	}
 	::-webkit-input-placeholder { color: @darkBarPlaceholderColor; }
 	::-moz-placeholder { color: @darkBarPlaceholderColor; }
-	::-ms-input-placeholder { color: @darkBarPlaceholderColor; }
+	:-moz-placeholder { color: @darkBarPlaceholderColor; }
+	:-ms-input-placeholder { color: @darkBarPlaceholderColor; }
 
 	.webix_input_icon{
 		color: @barkBarInputColor;
@@ -1725,14 +1726,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 }
 
 
-.webix_view.webix_fieldset{
-	fieldset{
-		border:1px solid @borderColor;
-	}
-	legend{
-		.fontStyle(@smallFontSize);
-	}
-}
 .webix_section > .webix_template{
 	.fontStyle(@smallFontSize);
 }
@@ -2330,7 +2323,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	}
 }
 // input labels
-.webix_inp_label, .webix_inp_top_label, .webix_forminput legend, .webix_el_label{
+.webix_inp_label, .webix_inp_top_label, legend.webix_forminput_label, .webix_el_label{
 	.fontStyle(@fontSize, 500, @altFontColor);
 }
 .webix_inp_label{
@@ -2342,15 +2335,11 @@ div.webix_inp_static,.webix_el_textarea textarea {
 .webix_el_checkbox .webix_label_right{
 	padding-top: 0;
 }
-.webix_placeholder{
-	color:@inactiveFontColor;
-}
 .webix_inp_bottom_label{
 	font-size:@smallFontSize;	
 }
-::-webkit-input-placeholder { color: @inactiveFontColor; }
-::-moz-placeholder { color: @inactiveFontColor; }
-::-ms-input-placeholder { color: @inactiveFontColor; }
+
+@placeholderColor: @inactiveFontColor;
 
 //richtext
 .webix_richtext{

@@ -99,7 +99,7 @@ const api = {
 	getValue:function(){
 		return this._settings.value;
 	},
-	focus: function(){ this._focus(); },
+	focus: function(){ return this._focus(); },
 	blur: function(){ this._blur(); },
 	customRadio_setter: function(value){
 		if(value === true && $active.customRadio)

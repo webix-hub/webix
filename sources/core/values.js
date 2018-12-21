@@ -17,16 +17,17 @@ const Values = {
 			this._focus(this.elements[name]);
 		} else{
 			for(var n in this.elements){
-				if(this._focus(this.elements[n]))
+				if(this._focus(this.elements[n]) !== false)
 					return true;
 			}
 		}
+		return false;
 	},
 	_focus: function(target){
 		if (target && target.focus){
-			target.focus();
-			return true;
+			return target.focus();
 		}
+		return false;
 	},
 	setValues:function(data, update){
 		if (this._settings.complexData)

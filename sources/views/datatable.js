@@ -538,12 +538,14 @@ const api = {
 			var config = this._active_headers[id];
 			var type = datafilter[config.content];
 
-			if (type.getHelper) return type.getHelper(obj, config);
-			return {
+			const base = {
 				type: type,
-				getValue:function(){ return type.getValue(obj); },
+				getValue:function(text){ return type.getValue(obj, text); },
 				setValue:function(value){ return type.setValue(obj, value); }
 			};
+
+			if (type.getHelper) extend(base, type.getHelper(obj, config));
+			return base;
 		}
 	},
 	_summ_next:function(heights, start, i){
@@ -774,8 +776,9 @@ const api = {
 					var content = datafilter[obj.content];
 
 					if (getOnly){
-						if (content.getValue)
+						if (content.getValue){
 							obj.value = content.getValue(alltd[i]);
+						}
 					} else if (!cellTrackOnly || content.trackCells){
 						content.refresh(this, alltd[i], obj);
 					}

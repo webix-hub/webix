@@ -93,12 +93,16 @@ const api = {
 		if (!text && value && value.id){ //add new value
 			const popup = this.getPopup();
 			const list = popup.getList();
-			list.add(value);
+
+			// add new item only when item with such id doesn't exists yet
+			const exists = list.exists(value.id);
+			if (!exists) list.add(value);
+
 			text = popup.getItemText(value.id);
 
 			// in case of dynamic list, we can't add extra items
 			// to not interfere with dynamic loading
-			if (list._settings.dynamic)
+			if (list._settings.dynamic && !exists)
 				list.remove(value.id);
 
 			this._settings.value = value.id;

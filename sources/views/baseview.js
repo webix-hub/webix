@@ -2,7 +2,7 @@ import {assert} from "../webix/debug";
 import {debug_size_box} from "../webix/debug";
 
 import {callEvent} from "../webix/customevents";
-import * as html from "../webix/html";
+import {create, createCss, remove, addCss, removeCss, triggerEvent, preventEvent} from "../webix/html";
 import {toNode, extend} from "../webix/helpers";
 import env from "../webix/env";
 
@@ -33,7 +33,7 @@ const api = {
 		this.$scope = config.$scope || (this._parent_cell ? this._parent_cell.$scope : state._global_scope);
 		
 		if (!this._viewobj){
-			this._contentobj = this._viewobj = html.create("DIV",{
+			this._contentobj = this._viewobj = create("DIV",{
 				"class":"webix_view"
 			});
 			this.$view = this._viewobj;
@@ -65,16 +65,13 @@ const api = {
 		if (typeof search === "string")
 			search = { view:search };
 		if (typeof search === "object"){
-			var keys = Object.keys(search);
-			var values = [];
-			for (var i=0; i<keys.length; i++)
-				values[i] = search[keys[i]];
-
+			//IE8 compatibility
 			confirm = function(test){
 				var config = test.config;
-				for (var j=0; j<keys.length; j++)
-					if (config[keys[j]] != values[j])
+				for (var key in search){
+					if (config[key] != search[key])
 						return false; 
+				}
 				return true;
 			};
 		} else
@@ -103,10 +100,10 @@ const api = {
 				else
 					return kids[i];
 			}
-			else {
-				var sub = kids[i]._queryView(confirm, next, all);
-				if (sub)
-					return sub;
+
+			var sub = kids[i]._queryView(confirm, next, all);
+			if (sub && !all){
+				return sub;
 			} 
 		}
 		return null;
@@ -142,24 +139,24 @@ const api = {
 		return true;
 	},
 	disable:function(){
-		html.remove(this._disable_cover);
+		remove(this._disable_cover);
 		this._settings.disabled = true;
 
-		this._disable_cover = html.create("div",{
+		this._disable_cover = create("div",{
 			"class":"webix_disabled"
 		});
 
 		this._viewobj.appendChild(this._disable_cover);
 		this._viewobj.setAttribute("aria-disabled", "true");
-		html.addCss(this._viewobj,"webix_disabled_view",true);
+		addCss(this._viewobj,"webix_disabled_view",true);
 		UIManager._moveChildFocus(this);
 	},
 	enable:function(){
 		this._settings.disabled = false;
 
 		if (this._disable_cover){
-			html.remove(this._disable_cover);
-			html.removeCss(this._viewobj,"webix_disabled_view");
+			remove(this._disable_cover);
+			removeCss(this._viewobj,"webix_disabled_view");
 			this._viewobj.removeAttribute("aria-disabled");
 			this._disable_cover = null;
 		}
@@ -177,7 +174,7 @@ const api = {
 	},
 	css_setter:function(value){
 		if (typeof value == "object")
-			value = html.createCss(value);
+			value = createCss(value);
 
 		this._viewobj.className += " "+value;
 		return value;
@@ -272,7 +269,7 @@ const api = {
 					this._settings.hidden = this._settings._hidden = true;
 					if (this._viewobj){
 						this._settings._container = this._viewobj.parentNode;
-						html.remove(this._viewobj);
+						remove(this._viewobj);
 					}
 				}
 			}
@@ -293,8 +290,8 @@ const api = {
 		var target = e.srcElement || e.target, role = target.getAttribute("role");
 
 		if((code === 13 || code === 32) && (role == "button" || role == "tab") && !this._settings.disabled){
-			html.triggerEvent(target, "MouseEvents", "click");
-			html.preventEvent(e);
+			triggerEvent(target, "MouseEvents", "click");
+			preventEvent(e);
 		}
 	},
 	hidden_setter:function(value){

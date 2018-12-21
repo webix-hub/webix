@@ -325,7 +325,7 @@ const EditAbility ={
 	_editStop:function(editor, ignore){
 		if (!editor || globalState._final_destruction) return;
 		var state = { 
-			value : editor.getValue(), 
+			value : this._get_new_value(editor), 
 			old : editor.value
 		};
 		if (this.callEvent("onBeforeEditStop", [state, editor, ignore])){
@@ -336,7 +336,7 @@ const EditAbility ={
 				if (typeof state.value == "string") old += "";
 
 				if (old != state.value || editor.config.liveEdit){
-					var item = this._set_new_value(editor, state.value, true);
+					var item = this._set_new_value(editor, state.value, true);	
 					this.updateItem(editor.row || editor.id, item);
 				}
 			}
@@ -437,6 +437,9 @@ const EditAbility ={
 		}
 
 		return null;
+	},
+	_get_new_value(editor){
+		return editor.getValue();
 	},
 	_set_new_value:function(editor, new_value, copy){
 		var item = copy ? {} : this.getItem(editor.id);

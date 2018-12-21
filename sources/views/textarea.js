@@ -25,15 +25,6 @@ const api = {
 		this._inputSpacing = $active.inputSpacing;
 	},
 	_skipSubmit: true,
-	$renderLabel: function(config, id){
-		var labelAlign = (config.labelAlign||"left");
-		var top = this._settings.labelPosition == "top";
-		var labelTop =  top?"display:block;":("width: " + this._settings.labelWidth + "px;");
-		var label = "";
-		if (config.label)
-			label = "<label style='"+labelTop+"text-align: " + labelAlign + ";' onclick='' for='"+id+"' class='webix_inp_"+(top?"top_":"")+"label "+(config.required?"webix_required":"")+"'>" + (config.label||"") + "</label>";
-		return label;
-	},
 	//get input element
 	getInputNode: function() {
 		return this._dataobj.getElementsByTagName("textarea")[0];

@@ -6,7 +6,7 @@ import {ui, $$} from "../ui/core";
 import {extend, bind, delay, toArray} from "../webix/helpers";
 import env from "../webix/env";
 import {setSelectionRange, preventEvent} from "../webix/html";
-import {attachEvent} from "../webix/customevents";
+import {attachEvent, detachEvent} from "../webix/customevents";
 import {confirm} from "../webix/message";
 import template from "../webix/template";
 import {$active} from "../webix/skin";
@@ -63,7 +63,7 @@ const api = {
 		};
 
 		//tune input zone
-		attachEvent("onClick", (e) => {
+		this._clickHandler = attachEvent("onClick", (e) => {
 			var view = $$(e);
 			if(view == this._input){
 				this._changeTextarea(true);
@@ -72,6 +72,10 @@ const api = {
 			else if(view !==this._sendButton && view !==this._listMenu && (!e || e.target.className.indexOf("webix_comments_menu") ===-1)){
 				this._changeTextarea();
 			}
+		});
+
+		this.attachEvent("onDestruct", function(){
+			detachEvent(this._clickHandler);
 		});
 	},
 	$onLoad: function(data, driver){
@@ -216,8 +220,8 @@ const api = {
 			autowidth:true,
 			point:false,
 			data:[
-				{ id:"edit", value: "<span class = 'webix_icon wxi-pencil'></span>"+i18n.comments["edit"]},
-				{ id:"remove", value: "<span class = 'webix_icon wxi-trash'></span>"+i18n.comments["remove"]},
+				{ id:"edit", icon:"wxi-pencil", value: i18n.comments["edit"]},
+				{ id:"remove", icon:"wxi-trash", value: i18n.comments["remove"]}
 			],
 			on:{
 				onShow:() => {
@@ -323,8 +327,20 @@ const api = {
 				var format = DateHelper.dateToStr("%d %M, %H:%i");
 				return obj.date?("<span class='"+css+"date'>"+format(obj.date)+"</span>"):"";
 			},
-			templateText: (obj) => {
-				return "<div class = '"+css+"message'>"+obj.text+"</div>";
+			templateLinks: (obj) => {
+				var text = obj.text.replace(/(https?:\/\/[^\s]+)/g, function(match){
+					match = template.escape(match);
+					var html = "<a target='_blank' href='"+match+"'>";
+					if(match.match(/.(jpg|jpeg|png|gif)$/))
+						html += "<img class='webix_comments_image' src='"+match+"'/>";
+					else
+						html += match;
+					return html+"</a>";
+				});
+				return text;
+			},
+			templateText: (obj, common) => {
+				return "<div class = '"+css+"message'>"+common.templateLinks(obj)+"</div>";
 			},
 			templateAvatar: (obj, common) => {
 				var avatar = "<div class='"+css+"avatar'>";
@@ -352,10 +368,10 @@ const api = {
 				}
 				else{
 					var avatar = common.templateAvatar(obj, common);
-					var user = common.templateUser(obj);
-					var date = common.templateDate(obj);
+					var user = common.templateUser(obj, common);
+					var date = common.templateDate(obj, common);
 					var menu = common.templateMenu(obj, common);
-					var text = common.templateText(obj);
+					var text = common.templateText(obj, common);
 
 					message = avatar+user+menu+date+text;
 				}

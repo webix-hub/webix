@@ -169,6 +169,8 @@ const api = {
 			}, true);
 	},
 	focus:function(){
+		if(!UIManager.canFocus(this))
+			return false;
 		UIManager.setFocus(this);
 	},
 	value_setter:function(val){

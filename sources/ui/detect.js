@@ -1,7 +1,7 @@
 import Touch from "../core/touch";
 import env  from "../webix/env";
 import ready from "../webix/ready";
-import * as skin from "../webix/skin";
+import {set as setSkin} from "../webix/skin";
 import {create, addStyle} from "../webix/html";
 import {define} from "../services";
 
@@ -24,7 +24,7 @@ function _detectScrollSize(){
 	document.body.removeChild(div);
 
 	if (name)
-		skin.set(name);
+		setSkin(name);
 
 	if (env.$customScroll) return 0;
 	return width;

@@ -60,7 +60,7 @@
 	float:none;
 	padding:@skin_input_y_padding @skin_input_x_padding;
 
-	padding-bottom:0px;;
+	padding-bottom:0px;
 }
 .webix_inp_bottom_label{
 	font-size: @formFontSize - 2;
@@ -214,10 +214,17 @@ body:not(:-moz-handler-blocked) .webix_el_select select{
 	//padding-top:(@inputHeight - 20)/2 ;
 	#box > .sizing;
 	float:left;
-	.webix_placeholder{
-		color: lighten(@fontColor, 30%);
-	}
 }
+
+@placeholderColor: lighten(@fontColor, 30%);
+.webix_placeholder{
+	color: @placeholderColor;
+}
+::-webkit-input-placeholder { color: @placeholderColor; }
+::-moz-placeholder { color: @placeholderColor; }  /* Firefox 19+ */
+:-moz-placeholder { color: @placeholderColor; }   /* Firefox 18- */
+:-ms-input-placeholder { color: @placeholderColor; }
+
 .webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_search{
 	font-size: @formFontSize;
 	.webix_el_box{
@@ -358,7 +365,8 @@ body:not(:-moz-handler-blocked) .webix_el_select select{
 	color: @disabledFontColor;
 }
 
-label.webix_required:after, legend.webix_required:after{
+label.webix_required:after, legend.webix_required:after,
+.webix_richtext_inp_label.webix_required .webix_template:after {
 	padding-left:4px; content:"*";
 	color:red;
 }

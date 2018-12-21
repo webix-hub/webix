@@ -37,6 +37,7 @@
 
 
 //basis font
+@smallFontSize: 13px;
 @fontSize: 15px;
 
 @font-face {
@@ -1280,16 +1281,6 @@ div.webix_item_tab.webix_selected{
 	.darkActiveRuleA;
 }
 
-
-.webix_view .webix_fieldset{
-	fieldset{
-		border:1px solid  @inputBorderColor;
-	}
-	legend{
-		color: lighten(@fontColor,7%);
-	}
-}
-
 .webix_control.webix_el_search span {
 	.altBackColor;
 }
@@ -1385,10 +1376,6 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 }
 
 @placeholderColor: darken(@foreColor,15);
-
-::-webkit-input-placeholder { color: @placeholderColor; }
-::-moz-placeholder { color: @placeholderColor; }
-:-ms-input-placeholder { color: @placeholderColor; }
 
 .webix_badge{
 	background-color: @lightenButtonColor;
@@ -1693,6 +1680,10 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 	width:12px;
 	border:none;
 }
+.webix_comments_message a:visited{
+	color: @lightenButtonColor;
+}
+
 
 //for skin autodetection
 .webix_skin_mark{

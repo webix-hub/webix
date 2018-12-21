@@ -153,7 +153,7 @@ const UIManager = {
 		return this._focus(e, true);
 	},
 	canFocus:function(view){
-		return view.isVisible() && view.isEnabled();
+		return view.isVisible() && view.isEnabled() && !view.queryView({disabled:true}, "parent");
 	},
 
 	_moveChildFocus: function(check_view){

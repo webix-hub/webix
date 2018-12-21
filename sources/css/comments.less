@@ -35,13 +35,25 @@
 .webix_comments_current.active_menu .webix_comments_menu{
 	visibility:visible;
 }
-
+@linkFontColor:@baseColor;
 .webix_comments_message{
 	white-space: pre-wrap;
 	line-height: 20px;
 	margin-left: 70px;
 	margin-right:10px;
+	a{
+		color:@linkFontColor;
+		text-decoration:none;
+		word-break: break-all;
+	}
+	a:hover{
+		text-decoration:underline;
+	}
+	a:visited{
+		color: #7e57c2;
+	}
 }
+
 .webix_comments_avatar{
 	margin-left:14px;
 	float: left;
@@ -100,6 +112,13 @@
 	color:@inactiveFontColor;
 	font-size: 12px;
 }
+
+.webix_comments_image{
+	max-width: 100%;
+    max-height: 300px;
+    display: block;
+}
+
 
 /* buttons*/
 .webix_comments_more{

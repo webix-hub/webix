@@ -277,8 +277,14 @@ function getExportScheme(view, options){
 		if(typeof record.header === "string") record.header = [{text:record.header}];
 		else record.header = wcopy(record.header);
 
-		for(let i = 0; i<record.header.length; i++)
-			record.header[i] = record.header[i]?(record.header[i].value || record.header[i].text.replace( /<[^>]*>/gi, "")):"";
+		for(let i = 0; i<record.header.length; i++){
+			const hcell = record.header[i] || {};
+			const text =  hcell.contentId ?
+				view.getHeaderContent(hcell.contentId).getValue(true) :
+				hcell.text;
+
+			record.header[i] = (text||"").toString().replace( /<[^>]*>/gi, "");
+		}
 
 		h_count = Math.max(h_count, record.header.length);
 
@@ -455,6 +461,8 @@ function getSpans(view, options){
 				for(var col in cols){
 					var sc = view.getColumnIndex(col) - xc;
 					var sr = view.getIndexById(row) - yc;
+					if(sc<0||sr<0) //hidden cols/rows
+						continue;
 					var ec = sc+cols[col][0]-1;
 					var er = sr+(cols[col][1]-1);
 

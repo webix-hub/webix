@@ -2,7 +2,6 @@ import base from "../views/view";
 import {protoUI, ui} from "../ui/core";
 import state from "../core/state";
 import {debug_size_box_start, debug_size_box_end} from "../webix/debug";
-import {assert} from "../webix/debug";
 
 
 const api = {
@@ -14,10 +13,12 @@ const api = {
 		paddingY: 30
 	},
 	$init:function(obj){
-		assert(obj.body, "fieldset must have not-empty body");
+		obj.body = obj.body || {};
 
-		this._viewobj.className += " "+this.defaults.$cssName;
-		this._viewobj.innerHTML =  "<fieldset><legend"+(obj.required?" class=\"webix_required\"":"")+"></legend><div></div></fieldset>";
+		let css = this.defaults.$cssName;
+		this._viewobj.className += " "+css;
+		this._viewobj.innerHTML =  "<fieldset><legend class='"+css+"_label"+(obj.required?" webix_required":"")+
+			"'></legend><div class='"+css+"_body'></div></fieldset>";
 	},
 	label_setter:function(value){
 		this._viewobj.firstChild.childNodes[0].innerHTML = value;

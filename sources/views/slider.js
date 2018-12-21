@@ -158,8 +158,8 @@ const api = {
 
 			value = value<c.min ? c.min:(value>c.max ? c.max : value);
 			
-			if(code === 35) value = c.min;
-			else if(code === 36) value = c.max;
+			if(code === 36) value = c.min;
+			else if(code === 35) value = c.max;
 			else{
 				var inc = (code === 37 || code ===40 || code === 34)?-1:1;
 				if(code === 33 || code === 34 || c.step>1)
@@ -274,7 +274,7 @@ const api = {
 		var newvalue = (size?(pos-corner) * max / size:0);
 		if(config.vertical)
 			newvalue = max-newvalue;
-		newvalue = Math.round((newvalue+config.min)/config.step) * config.step;
+		newvalue = Math.round((newvalue + 1*config.min)/config.step) * config.step;
 		return Math.max(Math.min(newvalue, config.max), config.min);
 	},
 	_init_onchange:function(){} //need not ui.text logic

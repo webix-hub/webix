@@ -64,7 +64,7 @@ const api = {
 	_getInputNode:function(){
 		return this.$view.getElementsByTagName("BUTTON");
 	},
-	focus: function(){ this._focus(); },
+	focus: function(){ return this._focus(); },
 	blur: function(){ this._blur(); },
 	$setValue:function(value){
 

@@ -194,10 +194,11 @@ const api = {
 		return this._settings.value||"";	
 	},
 	focus:function(){
-		if(!this._settings.disabled && !this.queryView({disabled:true}, "parent")){
-			var input = this.getInputNode();
-			if (input && input.focus) input.focus();
-		}
+		if(!UIManager.canFocus(this))
+			return false;
+		
+		var input = this.getInputNode();
+		if (input && input.focus) input.focus();
 	},
 	blur:function() {
 		var input = this.getInputNode();

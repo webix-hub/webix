@@ -2,6 +2,7 @@ import {preventEvent} from "../webix/html";
 import {$active} from "../webix/skin";
 import {isUndefined} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
+import UIManager from "./uimanager";
 
 
 /*aria-style handling for options of multiple-value controls (radio, segmented, tabbar)*/
@@ -12,14 +13,16 @@ const HTMLOptions = {
 			_event( this.$view, "keydown", this._moveSelection, {bind:this});
 	},
 	_focus: function(){
-		if(!this._settings.disabled && !this.queryView({disabled:true}, "parent")){
-			var input = this._getInputNode();
-			if(input)
-				for(var i=0; i<input.length; i++){
-					if(input[i].getAttribute("tabindex") == "0"){
-						input[i].focus();
-					}
+		if(!UIManager.canFocus(this))
+			return false;
+
+		var input = this._getInputNode();
+		if(input){
+			for(var i=0; i<input.length; i++){
+				if(input[i].getAttribute("tabindex") == "0"){
+					input[i].focus();
 				}
+			}
 		}
 	},
 	_blur: function(){

@@ -81,7 +81,7 @@ function template(str){
 					return obj[s];
 				}});
 			});
-			str.replace("{obj}",function(search,s,pos){
+			str.replace("{obj}",function(search,pos){
 				temp_res.push({pos: pos, str: search, fn: function(obj){
 					return obj;
 				}});

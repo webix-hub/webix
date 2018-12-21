@@ -1,3 +1,41 @@
+Version 6.1.4
+==================
+
+[fix] subview not destroyed on parent row deletion
+[fix] number formatting affects data saving logic
+[fix] queryView doesn't collect all nodes in "all" mode
+[fix] forminput and fieldset styling
+[fix] labelPosition:top and forminput
+[fix] there was no way to subclass fieldset of forminput widgets
+
+Version 6.1.3
+==================
+
+[fix] comments widget can't be fully destroyed
+[fix] incorrect styling for textarea with top label
+[fix] incorrect styling for narrow tree items
+[fix] regression in templates processing in strict mode
+[fix] regression in dynamic scroll swithching in list and dataview widgets
+
+Version 6.1.2
+==================
+
+[fix] regression in export to excel for datatable with complex content in headers
+[fix] incorrect rendering of multicombo after adding a new value
+[fix] incorrect rendering of combo editor while scrolling datatable
+[fix] focus for form with disabled element
+[fix] export to excel for datatable with hidden spans
+
+Version 6.1.1
+==================
+
+[update] CollectValues can fetch visible values only
+[update] select like filters can autofill self with visible values
+[fix] regressions in IE8
+[fix] incorrect behavior of counter with string value
+[fix] using setValue for combo with dupplicate id
+[fix] positions of icons in the comments widget
+
 Version 6.1 (November 2018)
 ==================
 

@@ -119,7 +119,7 @@ const datafilter = {
 					data = options;
 			}
 			else{
-				data = master.collectValues(value.columnId);
+				data = master.collectValues(value.columnId, value.collect);
 				data.unshift({ id:"", value:"" });
 			}
 

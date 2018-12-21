@@ -43,7 +43,7 @@ const api = {
 	$init:function(config){
 		if (config.labelPosition == "top")
 			if (isUndefined(config.height) && this.defaults.height)  // textarea
-				config.height = this.defaults.height + this._labelTopHeight;
+				config.height = this.defaults.height + (config.label?this._labelTopHeight:0);
 
 		//suggest reference for destructor
 		this._destroy_with_me = [];
@@ -165,7 +165,7 @@ const api = {
 			if (config.labelPosition == "top"){
 				// textarea
 				if (!config.inputHeight)
-					this._inputHeight = this._content_height - this._labelTopHeight - (this.config.bottomPadding||0);
+					this._inputHeight = this._content_height - (config.label?this._labelTopHeight:0) - (this.config.bottomPadding||0);
 				config.labelWidth = 0;
 			} else if (config.bottomPadding){
 				config.inputHeight = this._content_height - this.config.bottomPadding;
@@ -208,7 +208,7 @@ const api = {
 		var top = this._settings.labelPosition == "top";
 		var labelTop =  top?"display:block;":("width: " + this._settings.labelWidth + "px;");
 		var label = "";
-		var labelHeight = top?this._labelTopHeight-2*this._borderWidth:( this._settings.aheight - 2*this._settings.inputPadding);
+		var labelHeight = top?this._labelTopHeight-this._settings.inputPadding:( this._settings.aheight - 2*this._settings.inputPadding);
 		if (config.label)
 			label = "<label style='"+labelTop+"text-align: " + labelAlign + ";line-height:"+labelHeight+"px;' onclick='' for='"+id+"' class='webix_inp_"+(top?"top_":"")+"label "+(config.required?"webix_required":"")+"'>" + (config.label||"") + "</label>";
 		return label;

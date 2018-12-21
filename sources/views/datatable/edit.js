@@ -81,10 +81,14 @@ const Mixin = {
 			that.validateEditor(id);
 		};
 	},
-	_set_new_value:function(editor, new_value, copy){
+	_get_new_value:function(editor){
 		var parser = this.getColumnConfig(editor.column).editParse;
+		var new_value = editor.getValue();
+		return parser?parser(new_value):new_value;
+	},
+	_set_new_value:function(editor, new_value, copy){
 		var item = copy ? {} : this.getItem(editor.row);
-		item[editor.column] = parser?parser(new_value):new_value;
+		item[editor.column] = new_value;
 
 		if (this._settings.editMath)
 			item["$"+editor.column] = null;
@@ -309,7 +313,8 @@ const Mixin = {
 						editor.getPopup().show(node);
 					else
 						editor.getPopup().show({ x:-10000, y:-10000 });
-				} else if (!editor.$inline){
+				}
+				if (!editor.linkInput && !editor.$inline){
 					editor.node.top -= diff;
 					editor.node.style.top = editor.node.top + "px";
 				}
