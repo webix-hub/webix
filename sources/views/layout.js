@@ -2,7 +2,7 @@ import {protoUI} from "../ui/core";
 import state from "../core/state";
 import {$active} from "../webix/skin";
 
-import {clone} from "../webix/helpers";
+import {clone, extend} from "../webix/helpers";
 import {debug_size_box_start, debug_size_box_end} from "../webix/debug";
 
 
@@ -30,15 +30,17 @@ const api = {
 		if (this._settings.margin !== undefined)
 			this._margin = this._settings.margin;
 
-		if (this._settings.padding != undefined)
-			this._paddingX = this._paddingY = this._settings.padding;
+		if (this._settings.padding !== undefined && typeof this._settings.padding !== "object" )
+			this._padding.left = this._padding.right = this._padding.top = this._padding.bottom = this._settings.padding;
 		if (this._settings.paddingX !== undefined)
-			this._paddingX = this._settings.paddingX;
+			this._padding.left = this._padding.right = this._settings.paddingX;
 		if (this._settings.paddingY !== undefined)
-			this._paddingY = this._settings.paddingY;
+			this._padding.top = this._padding.bottom = this._settings.paddingY;
+		if (typeof this._settings.padding === "object")
+			extend(this._padding, this._settings.padding, true);
 
-		if (this._paddingY || this._paddingX)
-			this._padding = true;
+		if (this._padding.left || this._padding.right || this._padding.top || this._padding.bottom)
+			this._padding.defined = true;
 
 		//if layout has paddings we need to set the visible border 
 		if (this._hasBorders() && !this._settings.borderless){
@@ -70,10 +72,10 @@ const api = {
 		}
 
 		if (!this._settings.height)
-			dy += (this._paddingY||0)*2 + (this._vertical_orientation ? correction : 0);
+			dy += this._padding.top + this._padding.bottom + (this._vertical_orientation ? correction : 0);
 
 		if (!this._settings.width)
-			dx += (this._paddingX||0)*2 + (this._vertical_orientation ? 0 : correction);
+			dx += this._padding.left + this._padding.right + (this._vertical_orientation ? 0 : correction);
 				
 		return base.api.$getSize.call(this, dx, dy);
 	},
@@ -103,14 +105,12 @@ const api = {
 	_set_child_size:function(x,y){
 		var correction = this._margin*(this._cells.length-this._hiddencells-1);
 
-		if (this._vertical_orientation){
-			y-=correction+this._paddingY*2;
-			x-=this._paddingX*2;
-		}
-		else {
-			x-=correction+this._paddingX*2;
-			y-=this._paddingY*2;
-		}
+		y -= this._padding.top + this._padding.bottom;
+		x -= this._padding.left + this._padding.right;
+		if (this._vertical_orientation)
+			y-=correction;
+		else x-=correction;
+
 		return base.api._set_child_size.call(this, x, y);
 	},
 	resizeChildren:function(structure_changed){ 
@@ -136,7 +136,7 @@ const api = {
 		base.api.resizeChildren.call(this);
 	},
 	_hasBorders:function(){
-		return this._padding && this._margin>0 && !this._cleanlayout;
+		return this._padding.defined && this._margin>0 && !this._cleanlayout;
 	},
 	_beforeResetBorders:function(collection){
 		if (this._hasBorders() && (!this._settings.borderless || this._settings.type == "space")){
@@ -212,16 +212,16 @@ const api = {
 
 		var style = this._vertical_orientation?"marginLeft":"marginTop";
 		var contrstyle = this._vertical_orientation?"marginTop":"marginLeft";
-		var padding = this._vertical_orientation?this._paddingX:this._paddingY;
-		var contrpadding = this._vertical_orientation?this._paddingY:this._paddingX;
+		var padding = this._vertical_orientation?this._padding.left:this._padding.top;
+		var contrpadding = this._vertical_orientation?this._padding.top:this._padding.left;
 
 		//add top offset to all
 		for (let i=0; i<collection.length; i++)
-			this._cells[i]._viewobj.style[style] = (padding||0) + "px";			
+			this._cells[i]._viewobj.style[style] = padding + "px";
 
 		//add left offset to first cell
 		if (this._cells.length)
-			this._cells[start]._viewobj.style[contrstyle] = (contrpadding||0)+"px";
+			this._cells[start]._viewobj.style[contrstyle] = contrpadding + "px";
 
 		//add offset between cells
 		for (var index=start+1; index<collection.length; index++)
@@ -229,8 +229,9 @@ const api = {
 		
 	},
 	type_setter:function(value){
-		this._margin = (typeof this._margin_set[value] != "undefined"? this._margin_set[value]: this._margin_set["line"]);
-		this._paddingX = this._paddingY = (typeof this._margin_set[value] != "undefined"? this._padding_set[value]: this._padding_set["line"]);
+		this._margin = (typeof this._margin_set[value] !== "undefined"? this._margin_set[value]: this._margin_set["line"]);
+		this._padding.left = this._padding.right = this._padding.top = this._padding.bottom =
+			(typeof this._margin_set[value] !== "undefined") ? this._padding_set[value] : this._padding_set["line"];
 		this._cleanlayout = (value=="material" || value=="clean");
 		if (value == "material")
 			this._settings.borderless = true;

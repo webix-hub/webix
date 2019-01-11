@@ -57,8 +57,11 @@ const ResizeArea = {
 			if (this.$resizeMove)
 				this.$resizeMove(progress);
 			else {
-				if (Math.abs(this._wsReady.x - elPos.x) < (this.config.minWidth||100) || Math.abs(this._wsReady.y - elPos.y) < (this.config.minHeight||100))
-					return;
+				var width = Math.abs(this._wsReady.x - elPos.x), 
+					height = Math.abs(this._wsReady.y - elPos.y);
+				if (width < (this.config.minWidth||100) || height < (this.config.minHeight||100)
+					|| width > this._settings.maxWidth || height > this._settings.maxHeight
+				) return;
 			}
 
 			this._wsProgress = progress;

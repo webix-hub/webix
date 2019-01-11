@@ -25,6 +25,9 @@ const api = {
 		this._inputSpacing = $active.inputSpacing;
 	},
 	_skipSubmit: true,
+	_getLabelHeight:function(top){
+		return top ? this._labelTopHeight-this._settings.inputPadding : "";
+	},
 	//get input element
 	getInputNode: function() {
 		return this._dataobj.getElementsByTagName("textarea")[0];

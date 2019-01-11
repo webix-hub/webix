@@ -361,6 +361,10 @@ function getExportData(view, options, scheme){
 
 	view.data.each(function(item){
 		if(!options.filter || options.filter(item)){
+			if(this.data._scheme_export){
+				item = view.data._scheme_export(item);
+			}
+
 			let line = [];
 			for (let i = 0; i < scheme.length; i++){
 				let column = scheme[i], cell = null;

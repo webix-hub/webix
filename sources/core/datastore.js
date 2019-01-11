@@ -306,6 +306,7 @@ DataStore.prototype={
 		this._scheme_serialize = config.$serialize;
 		this._scheme_group = config.$group;
 		this._scheme_sort = config.$sort;
+		this._scheme_export = config.$export;
 
 		//ignore $-starting properties, as they have special meaning
 		for (var key in config)
@@ -697,7 +698,7 @@ DataStore.prototype={
 				return result[0];
 		}
 
-		return result;
+		return first ? null : result;
 	},
 	filter:function(text,value,preserve){
 		//unfilter call but we already in not-filtered state

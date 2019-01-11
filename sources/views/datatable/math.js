@@ -22,14 +22,21 @@ const Mixin = {
 		this.attachEvent("onStructureLoad", this._parse_math);
 	},
 	_parse_row_math:function(id, obj, action){
-		if (!id || (action=="delete" || action=="paint")) return;
+		if (!id || action=="paint") return;
+		
+		if (action == "delete"){
+			for (let i=0; i<this._columns.length; i++){
+				this._remove_old_triggers(obj,  this._columns[i].id);
+			}
+		}
+		else {
+			if (action == "add")
+				this._exprs_by_columns(obj);
 
-		if (action == "add")
-			this._exprs_by_columns(obj);
-
-		for (var i=0; i<this._columns.length; i++)
-			this._parse_cell_math(id, this._columns[i].id, action !== "add");
-		this._math_recalc = {};
+			for (let i=0; i<this._columns.length; i++)
+				this._parse_cell_math(id, this._columns[i].id, action !== "add");
+			this._math_recalc = {};
+		}
 	},
 	_parse_cell_math: function(row, col, _inner_call) {
 		var item = this.getItem(row);
@@ -43,9 +50,7 @@ const Mixin = {
 			this._math_recalc = {};
 		}
 
-		if (typeof value === "undefined" || value === null) return;
-
-		if (value.length > 0 && value.substr(0, 1) === "=") {
+		if (value && value.length > 0 && value.toString().substr(0, 1) === "=") {
 			// calculate math value
 			if (!item[this._math_pref + col] || (_inner_call !== true))
 				item[this._math_pref + col] = item[col];

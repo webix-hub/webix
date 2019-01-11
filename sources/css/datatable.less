@@ -202,13 +202,6 @@
 	text-align:left;
 }
 
-/*alter styles for even and odd rows*/
-.webix_column>div:nth-child(even){
-	.evenLine;
-}
-
-
-
 /*header selection in column mode*/
 .webix_sel_hcell, .webix_dd_over_column{
 	background-color:#c9eaf5;
@@ -256,9 +249,6 @@
 .webix_cell.webix_invalid{
 	background-color: #ffeeee;
 }
-.webix_column > .webix_cell.webix_invalid:nth-child(even){
-	background-color: #ffeeee;
-}
 .webix_invalid_cell{
 	position:relative;
 }
@@ -291,7 +281,7 @@
 
 
 /*extra borders, for selection in row mode*/
-.webix_column>div.webix_row_select, .webix_column>div.webix_invalid.webix_row_select:nth-child(even){
+.webix_column>div.webix_row_select{
 	.selectXLine;
 	padding-top:0px;
 }
@@ -299,9 +289,6 @@
 .webix_column>div.webix_column_select{
 	.selectYLine;
 	padding-left:(@dataPadding - 1);
-}
-.webix_column > .webix_cell.webix_invalid.webix_cell_select:nth-child(even){
-	.selectLine;
 }
 
 .webix_cell.webix_dtable_colrow, .webix_cell.webix_dtable_subrow, .webix_dtable_subview{

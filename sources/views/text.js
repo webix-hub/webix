@@ -27,11 +27,10 @@ const api = {
 	},
 	_applyChanges: function(){
 		var newvalue = this.getValue();
-
-		if (newvalue != this._settings.value)
-			this.setValue(newvalue, true);
-		else if (this._custom_format){
-			//controls with post formating, we need to repaint value
+		
+		var res = this.setValue(newvalue, true);
+		//controls with post formating, we need to repaint value
+		if (this._custom_format && res === false ){
 			this.$setValue(newvalue);
 		}
 	},
@@ -204,14 +203,19 @@ const api = {
 		return html;
 	},
 	$renderLabel: function(config, id){
-		var labelAlign = (config.labelAlign||"left");
-		var top = this._settings.labelPosition == "top";
-		var labelTop =  top?"display:block;":("width: " + this._settings.labelWidth + "px;");
-		var label = "";
-		var labelHeight = top?this._labelTopHeight-this._settings.inputPadding:( this._settings.aheight - 2*this._settings.inputPadding);
-		if (config.label)
+		let label = "";
+
+		if (config.label){
+			let labelAlign = (config.labelAlign||"left");
+			let top = this._settings.labelPosition == "top";
+			let labelTop =  top?"display:block;":("width: " + this._settings.labelWidth + "px;");
+			let labelHeight = this._getLabelHeight(top);
 			label = "<label style='"+labelTop+"text-align: " + labelAlign + ";line-height:"+labelHeight+"px;' onclick='' for='"+id+"' class='webix_inp_"+(top?"top_":"")+"label "+(config.required?"webix_required":"")+"'>" + (config.label||"") + "</label>";
+		}
 		return label;
+	},
+	_getLabelHeight:function(top){
+		return top ? this._labelTopHeight-this._settings.inputPadding : (this._settings.aheight - 2*this._settings.inputPadding);
 	},
 	$renderInput: function(config, div_start, id) {
 		var inputAlign = (config.inputAlign||"left");

@@ -94,14 +94,14 @@ const Pie = {
 			p = this._getPositionByAngle(angles[i],x0,y0,radius);
 			this._drawLine(ctx,x0,y0,p.x,p.y,this._settings.lineColor.call(this,data[i]),2);
 		}
-		if(ky==1){
-			ctx.lineWidth = 2;
-			ctx.strokeStyle = "#ffffff";
+		ctx.globalAlpha =1;
+		if(ky==1 && this._settings.border){
+			ctx.lineWidth = this._settings.borderWidth||2;
+			ctx.strokeStyle = this._settings.borderColor ? this._settings.borderColor.call(this) : "#ffffff";
 			ctx.beginPath();
 			ctx.arc(x0,y0,radius+1,0,2*Math.PI,false);
 			ctx.stroke();
 		}
-		ctx.globalAlpha =1;
 
 		ctx.scale(1,1/ky);
 	},

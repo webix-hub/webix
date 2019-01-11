@@ -1,3 +1,20 @@
+Version 6.1.5
+==================
+
+[fix] areaselection in datatable and hidden columns
+[fix] sidebar generates unnecessary popups
+[fix] getSpan api in datatable and hidden columns
+[fix] multicombo doesn't support fitMaster option
+[fix] sparklines break math in datatable 
+[fix] old math references not cleared in datatable
+[fix] incorrect cursor for legend items in chart
+[fix] label positition for textarea view
+[fix] webix.requiere doesn't recognize css files with parameters
+[fix] sometimes tabview renders incorrect when animate:false used
+[fix] export comments widget to pdf and excel
+[fix] input pattern can generate unnecessary onChange event
+
+
 Version 6.1.4
 ==================
 

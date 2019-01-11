@@ -3,7 +3,7 @@ import layout from "../views/layout";
 import list from "../views/list";
 
 import {ui, $$} from "../ui/core";
-import {extend, bind, delay, toArray} from "../webix/helpers";
+import {extend, bind, delay, toArray, copy} from "../webix/helpers";
 import env from "../webix/env";
 import {setSelectionRange, preventEvent} from "../webix/html";
 import {attachEvent, detachEvent} from "../webix/customevents";
@@ -43,6 +43,9 @@ const api = {
 		this._initUsers(config.users);
 		this._initMenu();
 		this.$ready.push(this._afterInit);
+	},
+	$exportView:function(){
+		return this._list;
 	},
 	_afterInit: function(){
 		// store UI blocks
@@ -401,8 +404,11 @@ const api = {
 						obj.date = this._dateToStr(obj.date);
 				},
 				$serialize: (obj) => {
-					if(obj.date)
-						obj.date = this._dateToStr(obj.date);
+					if(obj.date){
+						var item = copy(obj);
+						item.date = this._dateToStr(obj.date);
+						return item;
+					}
 					return obj;
 				}
 			},

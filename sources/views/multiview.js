@@ -190,7 +190,7 @@ const api = {
 			animate(line, aniset);
 			this._in_animation = true;
 		}
-		else { // browsers which don't support transform and transition
+		else { // browsers which don't support transform and transition, or animate:false in config
 			if(this._settings.keepViews){
 				prev._viewobj.style.display = "none";
 			}
@@ -200,8 +200,7 @@ const api = {
 			}
 
 			this._active_cell = _next_cell;
-
-			prev.resize();
+			this.resizeChildren();
 			this._render_activation(this.getActiveId());
 		}
 

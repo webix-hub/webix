@@ -104,7 +104,7 @@ const api = {
 			height: this.$height,
 			width: this.$width,
 			border: 1,
-			margin: this.getParentView()["_padding"+dir.toUpperCase()]
+			margin: this.getParentView()._padding[dir === "x"? "left" : "top"]
 		});
 
 		/*stops resizing on stick mouseup*/

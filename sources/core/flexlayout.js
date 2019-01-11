@@ -28,8 +28,8 @@ const FlexLayout = {
 			h = Math.max(h, size[2]);
 		}
 
-		w += (this._paddingX||0)*2;
-		h += (this._paddingY||0)*2;
+		w += this._padding.left + this._padding.right;
+		h += this._padding.top + this._padding.bottom;
 
 		if (this._settings.width)
 			w = Math.max(w, this._settings.width);
@@ -45,8 +45,10 @@ const FlexLayout = {
 		if (!this.isVisible(this._settings.id)) return;
 		var st = this.$view.style;
 		var margin = Math.round(this._margin/2);
-		st.paddingTop = st.paddingBottom = this._paddingY-margin + "px";
-		st.paddingLeft = st.paddingRight = this._paddingX-margin + "px";
+		st.paddingTop = this._padding.top-margin + "px";
+		st.paddingBottom = this._padding.bottom-margin + "px";
+		st.paddingLeft = this._padding.left-margin + "px";
+		st.paddingRight = this._padding.right-margin + "px";
 
 		for (let i=0; i<this._cells.length; i++){
 			if (this._cells[i]._settings.hidden) continue;

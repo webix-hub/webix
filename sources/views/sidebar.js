@@ -7,12 +7,12 @@ import {_event} from "../webix/htmlevents";
 import type from "../webix/type";
 import env from "../webix/env";
 import tree from "../views/tree";
+import TreeAPI from "../core/treeapi";
 
 
 const api = {
 	name: "sidebar",
 	defaults:{
-		titleHeight: $active.sidebarTitleHeight || 40,
 		type: "sideBar",
 		activeTitle: true,
 		select: true,
@@ -22,6 +22,9 @@ const api = {
 		position: "left",
 		width: 250,
 		mouseEventDelay: 10
+	},
+	$skin: function(){
+		this.defaults.titleHeight = $active.sidebarTitleHeight;
 	},
 	$init: function(){
 		this.$ready.push(this._initSidebar);
@@ -89,7 +92,7 @@ const api = {
 	_updateTitle: function(id){
 		var popup = this.getPopup();
 		var title = popup.getBody().getChildViews()[0];
-		if (!title) return;
+		if (!title || title.masterId == id) return;
 
 		var selectedId = this.getSelectedId();
 		title.masterId = id;
@@ -111,12 +114,15 @@ const api = {
 	_updateList: function(id){
 		var popup = this.getPopup();
 		var list = popup.getBody().getChildViews()[1];
-		if (!list) return;
+		if (!list || list.masterId == id) return;
+
+		if (this.exists(list.masterId) && this.getItem(list.masterId).menu)
+			this.updateItem(list.masterId, {menu:list.data.serialize()});
 
 		list.clearCss("webix_sidebar_selected");
 		list.masterId = id;
 		var selectedId = this.getSelectedId();
-		var data = this.getItem(id).menu? copy(this.getItem(id).menu): [].concat(copy(this.data.getBranch(id)));
+		var data = copy(this.getItem(id).menu || []);
 		
 		list.unselect();
 		if(data.length){
@@ -127,8 +133,10 @@ const api = {
 			else if(selectedId)
 				this._markMenu(list, selectedId);
 		}
-		else
+		else {
 			list.hide();
+			list.data.clearAll();
+		}
 	},
 	_initContextMenu: function(){
 		var master = this,
@@ -236,7 +244,9 @@ const api = {
 					addCss(this.$view, "webix_sidebar_selected", true);
 				}
 				if(master.config.collapsed && master.getItem(id).$level ==1){
-					addCss(this.$view, "webix_selected", true);
+					let title = popup.getBody().getChildViews()[0];
+					if (title)
+						addCss(title.$view, "webix_selected", true);
 				}
 			};
 			popup.queryView({view:"menu"})._show_child_on_click = true;
@@ -319,6 +329,15 @@ const api = {
 		this.resize();
 
 		return value;
+	},
+	getState:function(){
+		var state = { collapsed:this.config.collapsed };
+		extend(state, TreeAPI.getState.call(this));
+		return state;
+	},
+	setState:function(state){
+		TreeAPI.setState.call(this, state);
+		this.define("collapsed", state.collapsed);
 	}
 };
 

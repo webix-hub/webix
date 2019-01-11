@@ -65,6 +65,7 @@ const api = {
 		this._dataobj  = this._contentobj;
 		this._layout_sizes = [];
 		this._responsive = [];
+		this._padding = { top:0, left:0, right:0, bottom:0 };
 
 		if (config.$topView){
 			config.borderless = true;
@@ -488,7 +489,7 @@ const api = {
 	},
 	_responsive_cells:function(x){
 		state._responsive_tinkery = true;
-		if (x + this._paddingX*2 + this._margin * (this._cells.length-1)< this._desired_size[0]){
+		if (x + this._padding.left + this._padding.right + this._margin * (this._cells.length-1)< this._desired_size[0]){
 			var max = this._cells.length - 1;
 			for (var i = 0; i < max; i++){
 				let cell = this._cells[i];

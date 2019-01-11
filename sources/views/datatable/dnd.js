@@ -87,7 +87,7 @@ const Mixin = {
 
 			var column = this._settings.columns[colindex];
 
-			if (column.attached && column.node){
+			if (column && column.attached && column.node){
 				var nodeIndex = rowindex < this._settings.topSplit?rowindex:(rowindex-minRow);
 				return column.node.childNodes[nodeIndex];
 			}

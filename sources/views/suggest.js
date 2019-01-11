@@ -335,12 +335,13 @@ const api = {
 				list.filter("");
 			}
 
-			if(this.$customWidth&&((this._settings.fitMaster||!this._settings.width)||isUndefined(this._settings.fitMaster))){
+			if(this.$customWidth){
 				this.$customWidth(node);
 			}
-			if (node.tagName && this._settings.fitMaster){
+			else if (node.tagName && this._settings.fitMaster){
 				this._settings.width = node.offsetWidth -2 ; //2 - borders
 			}
+
 			if (list._zoom_level)
 				list.render();
 

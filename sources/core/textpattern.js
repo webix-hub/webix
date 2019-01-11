@@ -5,7 +5,7 @@ import env from "../webix/env";
 import patterns from "../webix/patterns";
 
 import {preventEvent, getSelectionRange, setSelectionRange} from "../webix/html";
-import {bind} from "../webix/helpers";
+import {bind, isUndefined} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 
 
@@ -26,6 +26,7 @@ const TextPattern = {
 	$init:function(config){
 		var pattern =  this.defaults.pattern || config.pattern;
 		var format = this.defaults.format || config.format;
+		config.value = isUndefined(config.value) ? "" :config.value;
 
 		if(pattern || (format && !this.format_setter)){
 			this.attachEvent("onKeyPress", function(code, e){
@@ -172,7 +173,7 @@ const TextPattern = {
 		if (this._custom_format)
 			return this._custom_format.parse(value);
 
-		value = value || "";
+		value = value || value === 0 ? value : "";
 		var matches = value.toString().match(this._pattern_allows) || [];
 		return matches.join("").replace(this._pattern_chars, "");
 	},

@@ -51,7 +51,8 @@ export default function require(module, callback, master){
 		var fullpath = module;
 
 		//css, async, no waiting
-		if (module.substr(module.length-4) == ".css") {
+		var parts = module.split("?");
+		if (parts[0].substr(parts[0].length-4) == ".css") {
 			var link = create("LINK",{  type:"text/css", rel:"stylesheet", href:fullpath});
 			document.getElementsByTagName("head")[0].appendChild(link);
 			promise.resolve();

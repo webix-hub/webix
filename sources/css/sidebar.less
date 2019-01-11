@@ -3,6 +3,9 @@
 .webix_sidebar{
 	background: #ECEFF1;
 }
+.webix_sidebar .webix_tree_item.webix_selected:focus span{
+	background: transparent;
+}
 .webix_sidebar .webix_tree_item {
 	color: #454545;
 	height:@barHeight;
@@ -58,12 +61,16 @@ span.webix_sidebar_dir_icon{
 	border-radius:0;
 }
 .webix_sidebar_popup_right{
-	box-shadow: -1px 3px 3px #ddd;
+	box-shadow: -3px 3px 3px #ddd;
 }
 .webix_sidebar_popup_list.webix_sidebar_popup_left .webix_icon{
 	float:right;
 	line-height:inherit;
-	width:7px;
+	width:8px;
+}
+.webix_sidebar_popup_list.webix_sidebar_popup_right .webix_icon{
+	float: left;
+	line-height: inherit;
 }
 /*SubMenu: title*/
 .webix_sidebar_popup_title{
@@ -74,10 +81,14 @@ span.webix_sidebar_dir_icon{
 	background: @selectColor;
 }
 .webix_sidebar_popup_title .webix_template{
-	line-height: 40px;
+	line-height: @barHeight;
 	padding: 0 10px;
 	border: 1px solid #E5E5E5;
 	border-left:none;
+}
+.webix_sidebar_popup_right .webix_sidebar_popup_title .webix_template{
+	border: 1px solid #E5E5E5;
+	border-right: none;
 }
 .webix_sidebar_selected.webix_sidebar_popup_title .webix_template{
 	background: rgba(0,0,0,0.03);
