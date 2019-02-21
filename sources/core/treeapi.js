@@ -1,3 +1,4 @@
+import {assert} from "../webix/debug";
 
 
 const TreeAPI = {
@@ -5,6 +6,8 @@ const TreeAPI = {
 		if (!id) return;
 		//ignore open for leaf items
 		var item = this.getItem(id);
+		assert(item,"Incorrect ID to open: "+id);
+
 		if (!item.$count || item.open) return;
 
 		if (this.callEvent("onBeforeOpen",[id])){

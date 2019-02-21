@@ -127,7 +127,8 @@ const Mixin = {
 			this._editors[newid] = editor;
 			delete this._editors[oldid];
 			for (var key in editor)
-				editor[key].row = newid;
+				if (key != "$count")
+					editor[key].row = newid;
 		}
 	},
 	//get html cell by combined id

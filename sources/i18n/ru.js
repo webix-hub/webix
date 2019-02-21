@@ -34,7 +34,9 @@ const ru = {
 		actualSize:"Настоящий размер",
 		pageFit:"Размер страницы",
 		pageWidth:"Ширина страницы",
-		pageHeight:"Высота страницы"
+		pageHeight:"Высота страницы",
+		enterPassword:"Введите пароль",
+		passwordError:"Неверный пароль"
 	},
 	aria:{
 		calendar:"Календарь",

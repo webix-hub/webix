@@ -8,6 +8,7 @@ import template from "../webix/template";
 import baseview from "../views/baseview";
 import base from "../views/view";
 
+import AutoTooltip from "../core/autotooltip";
 import UIManager from "../core/uimanager";
 import EventSystem from "../core/eventsystem";
 import AtomRender from "../core/atomrender";
@@ -60,12 +61,6 @@ const api = {
 		this.attachEvent("onDestruct", function(){
 			UIManager.removeHotKey(keyCode, func, view);
 		});
-	},
-	tooltip_setter: function(value){
-		var box = this._getBox() || this.$view.firstChild;
-		if(box)
-			box.title = value;
-		return value;
 	},
 	type_setter:function(value){
 		if (this._types[value])
@@ -216,6 +211,14 @@ const api = {
 		}
 		return null;
 	},
+	_get_tooltip_data:function(t,e){
+		let node = e.target || e.srcElement;
+		let box = this._getBox();
+
+		if (box && box.contains(node))
+			return this._settings;
+		return null;
+	},
 	_sqrt_2:Math.sqrt(2),
 	_set_inner_size_next:function(){
 		var cfg = this._settings;
@@ -301,10 +304,6 @@ const api = {
 
 			if (this._settings.disabled)
 				this.disable();
-
-			// set tooltip after render
-			if (this._settings.tooltip)
-				this.define("tooltip",this._settings.tooltip );
 
 			if (this._init_once){
 				this._init_once(this.data);
@@ -395,5 +394,5 @@ const api = {
 	}
 };
 
-const view = protoUI(api, base.view, AtomRender, Settings, EventSystem);
+const view = protoUI(api, base.view, AutoTooltip, AtomRender, Settings, EventSystem);
 export default {api, view};

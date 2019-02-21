@@ -2,13 +2,13 @@ import {ajax} from "../ajax";
 
 const proxy = {
 	$proxy:true,
-	load:function(view, callback){
-		ajax(this.source, callback, view);
+	load:function(){
+		return ajax(this.source);
 	},
-	save:function(view, update, dp, callback){
-		return proxy._save_logic.call(this, view, update, dp, callback, ajax());
+	save:function(view, update){
+		return proxy._save_logic.call(this, update, ajax());
 	},
-	_save_logic:function(view, update, dp, callback, ajax){
+	_save_logic:function(update, ajax){
 		var url = this.source;
 		var query = "";
 		var mark = url.indexOf("?");
@@ -27,11 +27,11 @@ const proxy = {
 
 		//call rest URI
 		if (mode == "update"){
-			ajax.put(url + data.id + query, data, callback);
+			return ajax.put(url + data.id + query, data);
 		} else if (mode == "delete") {
-			ajax.del(url + data.id + query, data, callback);
+			return ajax.del(url + data.id + query, data);
 		} else {
-			ajax.post(url + query, data, callback);
+			return ajax.post(url + query, data);
 		}
 	}
 };

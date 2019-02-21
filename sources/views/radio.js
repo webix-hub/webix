@@ -24,6 +24,7 @@ const api = {
 					html.push("<div class='webix_line_break'></div>");
 				var isChecked = (options[i].id == config.value);
 				var label = options[i].value || "";
+				var tooltip = config.tooltip ? " webix_t_id='"+options[i].id+"'" : "";
 				
 				var customRadio = config.customRadio|| "";
 				if(customRadio){
@@ -39,7 +40,7 @@ const api = {
 				if (label)
 					label = "<label for='"+eachid+"' class='webix_label_right'>" + label + "</label>";
 
-				html.push("<div class='webix_radio_option' role='presentation'>"+input + label+"</div>");
+				html.push("<div class='webix_radio_option' role='presentation'"+tooltip+">"+input+label+"</div>");
 				
 			}
 			html = "<div class='webix_el_group' role='radiogroup' style='margin-left:"+(config.label?config.labelWidth:0)+"px;'>"+html.join("")+"</div>";
@@ -113,5 +114,5 @@ const api = {
 	}
 };
 
-const view = protoUI(api, HTMLOptions, text.view);
+const view = protoUI(api, text.view, HTMLOptions);
 export default {api, view};

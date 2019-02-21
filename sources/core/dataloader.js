@@ -43,16 +43,11 @@ const DataLoader =proto({
 			this._load_count=true;
 		this._feed_last.from = from;
 		this._feed_last.count = count;
-		this._feed_common.call(this, from, count, callback);
+		return this._feed_common.call(this, from, count, callback);
 	},
 	_feed_common:function(from, count, callback, url, details){
 		var state = null;
 		url = url || this.data.url;
-
-		var final_callback = [
-			{ success: this._feed_callback, error: this._feed_callback },
-			callback
-		];
 
 		if (from<0) from = 0;
 
@@ -73,7 +68,12 @@ const DataLoader =proto({
 				if (state.filter)
 					details.filter = state.filter;
 			}
-			this.load(url, final_callback, details);
+			return this.load(url, 0, details).then((data)=>{
+				this._feed_callback();
+				if(callback)
+					ajax.$callback(this, callback, data);
+				return data;
+			});
 		} else { // GET
 			url = url+((url.indexOf("?")==-1)?"?":"&");
 
@@ -96,7 +96,12 @@ const DataLoader =proto({
 			url += params.join("&");
 			if (this._feed_last.url !== url){
 				this._feed_last.url = url;
-				this.load(url, final_callback);
+				return this.load(url).then((data)=>{
+					this._feed_callback();
+					if(callback)
+						ajax.$callback(this, callback, data);
+					return data;
+				});
 			} else {
 				this._load_count = false;
 			}
@@ -138,7 +143,7 @@ const DataLoader =proto({
 
 		this.data.url = this.data.url || url;
 		if (this.callEvent("onDataRequest", [start,count,callback,url]) && this.data.url)
-			this.data.feed.call(this, start, count, callback);
+			return this.data.feed.call(this, start, count, callback);
 	},
 	_maybe_loading_already:function(count, from){
 		var last = this._feed_last;
@@ -193,23 +198,27 @@ const DataLoader =proto({
 				this.clearAll();
 				var url = this._settings.dataFeed;
 
-				//js data feed
-				if (typeof url == "function"){
-					var filter = {};
-					filter[text] = filtervalue;
-					url.call(this, filtervalue, filter);
-				} else if (url.$proxy) {
-					if (url.load){
-						var filterobj = {}; filterobj[text] = filtervalue;
-						url.load(this, {
-							success: this._onLoad,
-							error: this._onLoadError
-						}, { filter: filterobj });
-					}
-				} else {
 				//url data feed
+				if(typeof url =="string"){
 					var urldata = "filter["+text+"]="+encodeURIComponent(filtervalue);
 					this.load(url+(url.indexOf("?")<0?"?":"&")+urldata, this._settings.datatype);
+				}
+				//js data feed
+				else{
+					var filter = {};
+					filter[text] = filtervalue;
+					if (typeof url == "function"){
+						url.call(this, filtervalue, filter);
+					}
+					else if (url.$proxy) {
+						if (url.load){
+							url.load(this, { filter: filter }) .then((data) => { 
+								this._onLoad(data);
+							}, (x) => { 
+								this._onLoadError(x);
+							});
+						}
+					}
 				}
 				return false;
 			}

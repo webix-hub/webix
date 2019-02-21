@@ -209,7 +209,11 @@ const api = {
 		},
 		css:"group",
 		classname:function(obj, common, marks){
-			return "webix_list_item webix_"+(obj.$count?"group":"item")+(obj.$template?"_back":"")+((marks&&marks.webix_selected)?" webix_selected ":"")+ (obj.$css?obj.$css:"");
+			return "webix_list_item"+
+				" webix_"+(obj.$count?"group":"item")+(obj.$template?"_back":"")+
+				((marks&&marks.webix_selected)?" webix_selected":"")+
+				(common.css?" "+common.css:"")+
+				(obj.$css?" "+obj.$css:"");
 		},
 		templateStart:template("<div webix_l_id=\"#id#\" class=\"{common.classname()}\" style=\"width:{common.widthSize()}; height:{common.heightSize()};  overflow:hidden;\" {common.aria()}>"),
 		templateBack:template("#value#"),

@@ -34,7 +34,9 @@ const fr = {
 		actualSize:"Taille actuelle",
 		pageFit:"Taille de la page",
 		pageWidth:"Largeur de la page",
-		pageHeight:"Hauteur de page"
+		pageHeight:"Hauteur de page",
+		enterPassword:"Entrez le mot de passe",
+		passwordError:"Mauvais mot de passe"
 	},
 	aria:{
 		calendar:"Сalendrier",

@@ -3,6 +3,7 @@ import storage from "../../webix/storage";
 
 import {callEvent} from "../../webix/customevents";
 import {ajax} from "../ajax";
+import promise from "../../thirdparty/promiz";
 
 
 const proxy = {
@@ -25,36 +26,38 @@ const proxy = {
 			callEvent("onOnlineMode", []);
 		}
 	},
-
-	load:function(view, callback){
-		var mycallback = {
-			error:function(){
-				//assuming offline mode
-				var text = this.getCache() || this.data;
-
-				var loader = { responseText: text };
-				var data = ajax.prototype._data(loader);
-
-				this._is_offline();
-				ajax.$callback(view, callback, text, data, loader);
-			},
-			success:function(text, data, loader){
-				this._is_online();
-				ajax.$callback(view, callback, text, data, loader);
-
-				this.setCache(text);
-			}
-		};
-
+	_on_success:function(text){
+		this._is_online();
+		this.setCache(text);
+	},
+	_on_error:function(view){
+		//assuming offline mode
+		this._is_offline();
+		
+		var text = this.getCache() || this.data;
+		view.parse(text);
+	},
+	load:function(view){
 		//in cache mode - always load data from cache
-		if (this.cache && this.getCache())
-			mycallback.error.call(this);
+		if (this.cache && this.getCache()){
+			this._on_error(view);
+		}
+		//else try to load actual data first
 		else {
-			//else try to load actual data first
+			var result;
 			if (this.source.$proxy)
-				this.source.load(this, mycallback);
+				result =  this.source.load(view);
 			else
-				ajax(this.source, mycallback, this);
+				result = ajax().get(this.source);
+
+			if(result && result.then){
+				result.then((data) => {
+					this._on_success(data.text());
+				}, () => {
+					this._on_error(view);
+				});
+			}
+			return result;
 		}
 	},
 	getCache:function(){
@@ -72,24 +75,22 @@ const proxy = {
 		else 
 			return this.source + "_$proxy$_data";
 	},
-	save:function(master, data, view, callback){
+	save:function(master, data, view){
 		if (!env.offline && !this.cache){
 			if (this.source.$proxy){
-				this.source.save(master, data, view, callback);
+				return this.source.save(master, data, view);
 			} else {
-				ajax().post(this.source, data.data, callback);
+				return ajax().post(this.source, data.data);
 			}
 		}
 	},
-	saveAll:function(view, update, dp, callback){
+	saveAll:function(view, update){
 		this.setCache(view.serialize());
-		if (this.cache || env.offline){
-			ajax.$callback(view, callback, "", update);
+		update = this.cache || env.offline ? update : [];
+		for (var i = 0; i < update.length; i++){
+			update[i] = { id: update[i].id, status: update[i].operation };
 		}
-	},
-	result:function(id, master, dp, text, data){
-		for (var i = 0; i < data.length; i++)
-			dp.processResult({ id: data[i].id, status: data[i].operation }, {}, {});
+		return promise.resolve(update);
 	}
 };
 

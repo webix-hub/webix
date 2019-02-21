@@ -39,7 +39,9 @@ const be = {
 		actualSize:"Сапраўдны памер",
 		pageFit:"Памер старонкі",
 		pageWidth:"Шырыня старонкі",
-		pageHeight:"Вышыня старонкі"
+		pageHeight:"Вышыня старонкі",
+		enterPassword:"Увядзіце пароль",
+		passwordError:"Няправільны пароль"
 	},
 	aria:{
 		calendar:"Каляндар",

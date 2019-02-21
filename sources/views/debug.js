@@ -21,7 +21,11 @@ import "./spacer";
 
 if (DEBUG){
 
-	attachEvent("onLoadError", function(text, xml, xhttp, owner){
+	attachEvent("onLoadError", function(xhttp, owner){
+		var text; //xhttp can be of blob or arraybuffer type, or just empty in case of no data
+		try{ text = xhttp.responseText; } 
+		catch(e){ text = ""; }
+
 		text = text || "[EMPTY DATA]";
 		var error_text = "Data loading error, check console for details";
 		if (text.indexOf("<?php") === 0)
@@ -40,7 +44,7 @@ if (DEBUG){
 			logger.log("Data loading error");
 			logger.log("Object:", owner);
 			logger.log("Response:", text);
-			logger.log("XHTTP:", xhttp);
+			if(xhttp) logger.log("XHTTP:", xhttp);
 		}
 	});
 

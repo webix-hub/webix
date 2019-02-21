@@ -82,7 +82,6 @@ const Mixin = {
 	},
 	getFilter:function(columnId){
 		var filter = this._filter_elements[columnId];
-		assert(filter, "Filter doesn't exists for column in question");
 
 		if (filter && filter[2].getInputNode)
 			return filter[2].getInputNode(filter[0]);
@@ -143,15 +142,12 @@ const Mixin = {
 		}
 	},
 	_runServerFilter: function(){
-		this.loadNext(0,0,{
-			before:function(){
-				if (this.editStop) this.editStop();
-				this.clearAll(true);
-			},
-			success:function(){
-				this.callEvent("onAfterFilter",[]);
-			}
-		},0,1);
+		this.loadNext(0, 0, 0, 0, 1).then((data) => {
+			if (this.editStop)this.editStop();
+			this.clearAll(true);
+			this.parse(data);
+			this.callEvent("onAfterFilter",[]);
+		});
 	}
 };
 

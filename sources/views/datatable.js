@@ -40,6 +40,7 @@ import {assert} from "../webix/debug";
 import {callEvent} from "../webix/customevents";
 
 import DragControl from "../core/dragcontrol";
+import TooltipControl from "../core/tooltipcontrol";
 import DataCollection from "../core/datacollection";
 import Number from "../core/number";
 import AutoTooltip from "../core/autotooltip";
@@ -732,10 +733,15 @@ const api = {
 		this.showItemByIndex(this.getIndexById(id), -1);
 	},
 	_render_header_section:function(sec, name, heights){
-		sec.childNodes[0].innerHTML = this._render_subheader(0, this._settings.leftSplit, this._left_width, name, heights);
-		sec.childNodes[1].innerHTML = this._render_subheader(this._settings.leftSplit, this._rightSplit, this._dtable_width, name, heights);
-		sec.childNodes[1].onscroll = bind(this._scroll_with_header, this);
-		sec.childNodes[2].innerHTML = this._render_subheader(this._rightSplit, this._columns.length, this._right_width, name, heights);
+		const header = sec.childNodes;
+
+		header[0].innerHTML = this._render_subheader(0, this._settings.leftSplit, this._left_width, name, heights);
+		header[1].innerHTML = this._render_subheader(this._settings.leftSplit, this._rightSplit, this._dtable_width, name, heights);
+		header[2].innerHTML = this._render_subheader(this._rightSplit, this._columns.length, this._right_width, name, heights);
+
+		if(this._dtable_column_refresh)
+			header[1].scrollLeft = this.getScrollState().x;
+		header[1].onscroll = bind(this._scroll_with_header, this);
 	},
 	_scroll_with_header:function(){
 		var active = this.getScrollState().x;
@@ -920,13 +926,18 @@ const api = {
 			var pos = null;
 			if (cs.indexOf("webix_cell")!=-1){
 				pos = this._locate(node);
-				if (pos) 
+				if (pos)
 					pos.row = this.data.order[pos.rind];
 			}
 			if (cs.indexOf("webix_hcell")!=-1){
 				pos = this._locate(node);
 				if (pos)
 					pos.header = true;
+			}
+			if (cs.indexOf("webix_drop_area")!=-1){
+				pos = this._locate(node);
+				if (pos)
+					pos.row = pos.rind = "$webix-drop";
 			}
 
 			if (pos){
@@ -944,16 +955,9 @@ const api = {
 		var cdiv = node.parentNode;
 		if (!cdiv) return null;
 		var column = (node.getAttribute("column") || cdiv.getAttribute("column"))*1;
-		var row = node.getAttribute("row") || 0;
+		var rind = node.getAttribute("aria-rowindex");
+		var row = node.getAttribute("row") || (rind ? rind-1 : 0);
 		var span = (node.getAttribute("colspan") || cdiv.getAttribute("colspan"))*1;
-		if (!row)
-			for (var i = 0; i < cdiv.childNodes.length; i++)
-				if (cdiv.childNodes[i] == node){
-					if (i >= this._settings.topSplit)
-						row = i+this._columns[column]._yr0 - this._settings.topSplit;
-					else
-						row = i;
-				}
 
 		return { rind:row, cind:column, span: span };
 	},
@@ -1851,14 +1855,11 @@ const api = {
 
 		if (type == "server"){
 			this.callEvent("onBeforeSort",[col_id, direction, type]);
-			this.loadNext(0, 0, {
-				before:function(){
-					this.clearAll(true);
-				},
-				success:function(){
-					this.callEvent("onAfterSort",[col_id, direction, type]);
-				}
-			}, 0, 1);
+			this.loadNext(0, 0, 0, 0, 1).then((data) => {
+				this.clearAll(true);
+				this.parse(data);
+				this.callEvent("onAfterSort",[col_id, direction, type]);
+			});
 		} else {
 			if (type == "text"){
 				this.data.each(function(obj){ obj.$text = this.getText(obj.id, col_id); }, this);
@@ -1920,7 +1921,7 @@ const api = {
 							//click event occurs on column holder, we can't detect cell
 							if (trg.getAttribute("column")) return;
 							index = getIndex(trg);
-							if (index >= this._settings.topSplit) 
+							if (index >= this._settings.topSplit && !this._settings.prerender)
 								index += this._columns[column]._yr0 - this._settings.topSplit;
 						}
 
@@ -1952,6 +1953,55 @@ const api = {
 		}
 		this._mouseEventCall(css_call, e, id, this.$view);
 		return found;	//returns true if item was located and event was triggered
+	},
+	_get_tooltip_data:function(t,e){
+		let id = this.locate(e);
+		if (!id) return null;
+
+		let tooltip = TooltipControl._tooltip;
+		let data;
+		if (id.header){
+			let node = e.target||e.srcElement;
+			let pos;
+			let cind = id.cind - (id.span?id.span-1:0);
+			let rind = -1;
+
+			while (node && !pos){
+				node = node.parentNode;
+				pos = node.getAttribute("section");
+			}
+			while( (node = node.previousSibling) !== null )
+				rind++;
+
+			let config = this._columns[cind][pos][rind];
+			if (config.tooltip)
+				tooltip.type.template = template(config.tooltip === true ? "#text#" : config.tooltip);
+			else return null;
+
+			data = config;
+		} else {
+			let config = tooltip.type.column = this.getColumnConfig(id.column);
+			let def = !config.tooltip || config.tooltip === true;
+
+			//empty tooltip - ignoring
+			if (!config.tooltip && config.tooltip !== undefined)
+				return null;
+
+			if (def && !this._settings.tooltip.template){
+				data = this.getText(id.row, id.column).toString();
+			} else if (!def){
+				let area = (e.target||e.srcElement).getAttribute("webix_area");
+
+				if (area){
+					tooltip.type.template = function(obj,common){
+						var values = obj[config.id];
+						return template(config.tooltip).call(this,obj,common,values[area],area);
+					};
+				} else tooltip.type.template = template(config.tooltip);
+			} else tooltip.type.template = template(this._settings.tooltip.template);
+		}
+
+		return data || this.getItem(id.row);
 	},
 	
 

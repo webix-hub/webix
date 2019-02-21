@@ -28,7 +28,8 @@ const Scrollable= {
 	},*/
 	scroll_setter:function(value){
 		if (!value) return false;
-		var marker =  (value=="x"?"x":(value=="xy"?"xy":(value=="a"?"xy":"y")));
+		var auto = value === "auto";
+		var marker =  (value =="x"?"x":(value=="xy"?"xy":(auto?"xy":"y")));
 		if (Touch.$active && env.touch != "native"){
 			this._dataobj.setAttribute("touch_scroll",marker);
 			if (this.attachEvent)
@@ -39,7 +40,7 @@ const Scrollable= {
 				CustomScroll.enable(this, marker);
 			} else {
 				var node = this._dataobj.parentNode.style;
-				if (value.toString().indexOf("a")!=-1){
+				if (auto){
 					node.overflowX = node.overflowY = "auto";
 				} else {
 					if (marker.indexOf("x")!=-1){

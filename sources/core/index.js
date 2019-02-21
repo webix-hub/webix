@@ -48,6 +48,7 @@ export { default as SelectionModel } from "./selectionmodel";
 export { default as Settings } from "./settings";
 export { default as Sparklines } from "./sparklines";
 export { default as TablePaste } from "./tablepaste";
+export { default as TooltipControl} from "./tooltipcontrol";
 export { default as Touch } from "./touch";
 export { default as TreeAPI } from "./treeapi";
 export { default as TreeClick } from "./treeclick";

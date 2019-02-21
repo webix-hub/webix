@@ -7,16 +7,14 @@ import flat from "../css/skins/flat/config";
 import compact from "../css/skins/compact/config";
 import contrast from "../css/skins/contrast/config";
 
-const skin = { material, mini, flat, compact, contrast };
-
 export var $active, $name;
 
 export function set(name){
 	assert(skin[name], "Incorrect skin name: "+name);
 	if ($name === name) return;
 
-	$active = skin[name];
-	$name = name;
+	skin.$active = $active = skin[name];
+	skin.$name = $name = name;
 
 	if (ui){
 		for (var key in ui){
@@ -27,7 +25,9 @@ export function set(name){
 	}		
 }
 
+const skin = { set, material, mini, flat, compact, contrast };
+
 set(window.webix_skin || "material");
 
 //necessary for skin builder
-export { material, mini, flat, compact, contrast };
+export { skin };

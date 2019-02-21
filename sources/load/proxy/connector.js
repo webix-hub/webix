@@ -5,10 +5,10 @@ const proxy = {
 	$proxy:true,
 
 	connectorName:"!nativeeditor_status",
-	load:function(view, callback){
-		ajax(this.source, callback, view);
+	load:function(){
+		return ajax(this.source);
 	},
-	saveAll:function(view, updates, dp, callback){
+	saveAll:function(view, updates){
 		var url = this.source;
 
 		var data = {};
@@ -29,33 +29,28 @@ const proxy = {
 		url += (url.indexOf("?") == -1) ? "?" : "&";
 		url += "editing=true";
 
-		ajax().post(url, data, callback);
-	},
-	result:function(state, view, dp, text, data, loader){
-		data = data.xml();
-		if (!data)
-			return dp._processError(null, text, data, loader);
-		
+		return ajax().post(url, data).then(data => {
+			data = data.xml();
+			if (!data)
+				throw "Data loading error";
 
-		var actions = data.data.action;
-		if (!actions.length)
-			actions = [actions];
+			var actions = data.data.action;
+			if (!actions.length)
+				actions = [actions];
 
+			var hash = [];
 
-		var hash = [];
+			for (var i = 0; i < actions.length; i++) {
+				var obj = actions[i];
+				obj.status = obj.type;
+				obj.id = obj.sid;
+				obj.newid = obj.tid;
 
-		for (var i = 0; i < actions.length; i++) {
-			var obj = actions[i];
-			hash.push(obj);
+				hash.push(obj);
+			}
 
-			obj.status = obj.type;
-			obj.id = obj.sid;
-			obj.newid = obj.tid;
-
-			dp.processResult(obj, obj, {text:text, data:data, loader:loader});
-		}
-
-		return hash;
+			return hash;
+		});
 	}
 };
 

@@ -211,6 +211,7 @@ const api = {
 	_getTabHTML: function(tab,width){
 		var	html,
 			className = "",
+			tooltip = "",
 			config = this.config;
 
 		if(tab.id== config.value)
@@ -219,9 +220,13 @@ const api = {
 		if (tab.css)
 			className+=" "+tab.css;
 
+		if (config.tooltip)
+			tooltip = " webix_t_id='"+tab.id+"'";
+
 		width = (tab.width||width);
 
-		html ="<div class=\"webix_item_tab"+className+"\" button_id=\""+tab.id+"\" role=\"tab\" aria-selected=\""+(tab.id== config.value?"true":"false")+"\" tabindex=\""+(tab.id== config.value?"0":"-1")+"\" style=\"width:"+width+"px;\">";
+		html ="<div class=\"webix_item_tab"+className+"\" button_id=\""+tab.id+"\" role=\"tab\" aria-selected=\""+(tab.id== config.value?"true":"false")+"\" tabindex=\""+
+			(tab.id== config.value?"0":"-1")+"\" style=\"width:"+width+"px;\""+tooltip+">";
 
 		// a tab title
 		if(this._tabTemplate){
@@ -240,6 +245,9 @@ const api = {
 
 		html+="</div>";
 		return html;
+	},
+	_getBox:function(){
+		return this._dataobj.firstChild;
 	},
 	_types:{
 		image:"<div class='webix_img_btn_top' style='height:#cheight#px;background-image:url(#image#);'><div class='webix_img_btn_text'>#value#</div></div>",

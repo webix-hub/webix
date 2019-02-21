@@ -1,5 +1,4 @@
 import proto from "../views/proto";
-import AutoTooltip from "../core/autotooltip";
 import Group from "../core/group";
 import TreeAPI from "../core/treeapi";
 import DragItem from "../core/dragitem";
@@ -21,13 +20,14 @@ import TreeStateCheckbox from "../core/treestatecheckbox";
 
 import {createCss} from "../webix/html";
 import {protoUI} from "../ui/core";
-import {extend} from "../webix/helpers";
+import {extend, isArray} from "../webix/helpers";
+import DragControl from "../core/dragcontrol";
 
 
 const api = {
 	name:"tree",
 	defaults:{
-		scroll:"a",
+		scroll:"auto",
 		navigation:true
 	},
 	$init:function(){
@@ -106,8 +106,22 @@ const api = {
 		custom: function() {}
 	},
 	_drag_order_complex:true,
-	$dragHTML:function(obj){
-		return "<div class='borderless'>"+this.type.template(obj, this.type)+"</div>";
+	$dragHTML:function(obj,e,context){
+		let html = "<div class='webix_tree_item'>"+this.type.template(obj, this.type)+"</div>";
+		if ( isArray(context.source) && context.source.length > 1 )
+			html = this._toMultipleHTML(html, context.source.length);
+		return html;
+	},
+	_close_branches:function(context){
+		let source = context.source;
+		for (let i=0; i<source.length; i++)
+			this.close(source[i]);
+	},
+	_set_drop_area:function(target, t){
+		let node = this.getItemNode(target);
+		if (node){
+			node.parentNode.insertBefore(DragControl._dropHTML[0], node);
+		} else t.children[0].children[0].appendChild(DragControl._dropHTML[0]);
 	},
 	
 	//css class to action map, for dblclick event
@@ -127,6 +141,8 @@ const api = {
 			}
 			if (marks && marks.$css)
 				css += " "+marks.$css;
+			if (common.css)
+				css += " "+common.css;
 
 			return css;
 		},
@@ -142,7 +158,7 @@ const api = {
 };
 
 
-const view = protoUI(api, TreeStateCheckbox, AutoTooltip, Group, TreeAPI, DragItem, TreeDataMove, SelectionModel, KeysNavigation, MouseEvents, Scrollable, TreeDataLoader, proto.view, TreeRenderStack, CopyPaste, EventSystem);
+const view = protoUI(api, TreeStateCheckbox, Group, TreeAPI, DragItem, TreeDataMove, SelectionModel, KeysNavigation, MouseEvents, Scrollable, TreeDataLoader, proto.view, TreeRenderStack, CopyPaste, EventSystem);
 export default {api, view};
 
 type(view, {

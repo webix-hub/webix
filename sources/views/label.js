@@ -7,7 +7,7 @@ import button from "../views/button";
 const api = {
 	name:"label",
 	defaults:{
-		template:"<div style='height:100%;line-height:#cheight#px'>#label#</div>"
+		template:"<div class='webix_el_box' style='width:#awidth#px;height:#aheight#px;line-height:#cheight#px'>#label#</div>"
 	},
 	$skin:function(){
 		this.defaults.height = $active.inputHeight;
@@ -17,7 +17,7 @@ const api = {
 		return this._dataobj.firstChild;
 	},
 	setHTML:function(html){
-		this._settings.template = function(){ return html; };
+		this._settings.label = html;
 		this.refresh();
 	},
 	setValue: function(value){

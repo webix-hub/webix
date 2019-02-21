@@ -1,57 +1,15 @@
-Version 6.1.5
+Version 6.2 (February 2019)
 ==================
 
-- [fix] areaselection in datatable and hidden columns
-- [fix] sidebar generates unnecessary popups
-- [fix] getSpan api in datatable and hidden columns
-- [fix] multicombo doesn't support fitMaster option
-- [fix] sparklines break math in datatable 
-- [fix] old math references not cleared in datatable
-- [fix] incorrect cursor for legend items in chart
-- [fix] label positition for textarea view
-- [fix] webix.requiere doesn't recognize css files with parameters
-- [fix] sometimes tabview renders incorrect when animate:false used
-- [fix] export comments widget to pdf and excel
-- [fix] input pattern can generate unnecessary onChange event
+### Major features
 
+- Tooltips are available for all widgets
+- Ability to export charts and images to PDF
+- Improved drag-n-drop
+- webix.proxy, webix.alert and webix.confirm work with promises
+- NodeJs backend for Spreadsheet and FileManager
 
-Version 6.1.4
-==================
-
-- [fix] subview not destroyed on parent row deletion
-- [fix] number formatting affects data saving logic
-- [fix] queryView doesn't collect all nodes in "all" mode
-- [fix] forminput and fieldset styling
-- [fix] labelPosition:top and forminput
-- [fix] there was no way to subclass fieldset of forminput widgets
-
-Version 6.1.3
-==================
-
-- [fix] comments widget can't be fully destroyed
-- [fix] incorrect styling for textarea with top label
-- [fix] incorrect styling for narrow tree items
-- [fix] regression in templates processing in strict mode
-- [fix] regression in dynamic scroll swithching in list and dataview widgets
-
-Version 6.1.2
-==================
-
-- [fix] regression in export to excel for datatable with complex content in headers
-- [fix] incorrect rendering of multicombo after adding a new value
-- [fix] incorrect rendering of combo editor while scrolling datatable
-- [fix] focus for form with disabled element
-- [fix] export to excel for datatable with hidden spans
-
-Version 6.1.1
-==================
-
-- [update] CollectValues can fetch visible values only
-- [update] select like filters can autofill self with visible values
-- [fix] regressions in IE8
-- [fix] incorrect behavior of counter with string value
-- [fix] using setValue for combo with dupplicate id
-- [fix] positions of icons in the comments widget
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_6_2.html)
 
 Version 6.1 (November 2018)
 ==================

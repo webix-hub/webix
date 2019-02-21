@@ -1,5 +1,4 @@
 import proto from "../views/proto";
-import AutoTooltip from "../core/autotooltip";
 import Group from "../core/group";
 import TreeAPI from "../core/treeapi";
 import SelectionModel from "../core/selectionmodel";
@@ -294,7 +293,7 @@ const api = {
 		classname:function(obj, common, marks){
 			var css = "webix_treemap_item";
 
-			if (common.css) css +=common.css+" ";
+			if (common.css) css += " "+common.css;
 
 			if (obj.$css){
 				if (typeof obj.$css == "object")
@@ -345,5 +344,5 @@ const api = {
 };
 
 
-const view = protoUI(api, AutoTooltip, Group, TreeAPI, SelectionModel, KeysNavigation, MouseEvents, Scrollable, TreeDataLoader, proto.view, TreeRenderStack, CopyPaste, EventSystem);
+const view = protoUI(api, Group, TreeAPI, SelectionModel, KeysNavigation, MouseEvents, Scrollable, TreeDataLoader, proto.view, TreeRenderStack, CopyPaste, EventSystem);
 export default {api, view};

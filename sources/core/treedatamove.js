@@ -1,6 +1,7 @@
 import {isArray, copy as makeCopy, uid, PowerArray} from "../webix/helpers";
 import {assert} from "../webix/debug";
 import DataMove from "../core/datamove";
+import DragControl from "../core/dragcontrol";
 
 
 /*
@@ -120,13 +121,13 @@ const TreeDataMove ={
 	},
 	//reaction on pause during dnd
 	_drag_pause:function(id){
-		if (id && !id.header) //ignore drag other header
+		if (id && !id.header && this.exists(id) && this._target_to_id(id) != DragControl._drag_context.start) //ignore drag other header
 			this.open(id);
 	},
 	$dropAllow:function(context){
 		if (context.from != context.to) return true;
-		for (var i=0; i<context.source.length; i++)
-			if (context.source ==  context.target || this._check_branch_child(context.source, context.target)) return false;
+		for (let i=0; i<context.source.length; i++)
+			if (this._check_branch_child(context.source, context.target)) return false;
 
 		return true;
 	},

@@ -39,7 +39,9 @@ const de = {
 		actualSize:"Aktuelles Ausmaß",
 		pageFit:"Seite Ausmaß",
 		pageWidth:"Seite Breite",
-		pageHeight:"Seite Höhe"
+		pageHeight:"Seite Höhe",
+		enterPassword:"Passwort eingeben",
+		passwordError:"Falsches passwort"
 	},
 	aria:{
 		calendar:"Kalender",

@@ -45,6 +45,11 @@ const api = {
 			return original.call(this,e,id);
 		};
 	},
+	_close_branches:function(context){
+		let source = !this._settings.prerender ? [context.start] : context.source;
+		for (let i=0; i<source.length; i++)
+			this.close(source[i]);
+	},
 	getState:function(){
 		var state = DataState.getState.call(this);
 		extend(state, TreeAPI.getState.call(this));

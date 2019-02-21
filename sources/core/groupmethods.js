@@ -4,8 +4,11 @@ const GroupMethods = {
 	sum:function(property, data){
 		data = data || this;
 		var summ = 0;
-		for (var i = 0; i < data.length; i++)
-			summ+=property(data[i])*1;
+		for (var i = 0; i < data.length; i++){
+			const num = parseFloat(property(data[i]), 10);
+			if (!isNaN(num))
+				summ+=num;
+		}
 
 		return summ;
 	},
@@ -13,19 +16,26 @@ const GroupMethods = {
 		data = data || this;
 		var min = Infinity;
 
-		for (var i = 0; i < data.length; i++)
-			if (property(data[i])*1 < min) min = property(data[i])*1;
 
-		return min*1;
+		for (var i = 0; i < data.length; i++){
+			const num = parseFloat(property(data[i]), 10);
+			if (isNaN(num)) continue;
+			if (num < min) min = num;
+		}
+
+		return min === Infinity ? 0 : min*1;
 	},
 	max:function(property, data){
 		data = data || this;
 		var max = -Infinity;
 
-		for (var i = 0; i < data.length; i++)
-			if (property(data[i])*1 > max) max = property(data[i])*1;
+		for (var i = 0; i < data.length; i++){
+			const num = parseFloat(property(data[i]), 10);
+			if (isNaN(num)) continue;
+			if (num > max) max = num;
+		}
 
-		return max*1;
+		return max === -Infinity ? 0 : max*1;
 	},
 	count:function(property, data){
 		var count = 0;

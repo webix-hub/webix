@@ -20,27 +20,19 @@ const GraphQL = {
 	save:function(data){
 		return this.load(data);
 	},
-	load:function(view, callback){
-
+	load:function(view){
 		var params = {
 			query: this.source
 		};
-
 		if (arguments.length === 1){
 			params.variables = view;
-			view = this;
 		}
 
-
-		return ajax().bind(view)
+		return ajax()
 			.headers({ "Content-type": "application/json" })
 			.post(this.url, params)
 			.then(function(data){
-				var flat = unbox(data.json().data);
-				if (callback)
-					ajax.$callback(view, callback, "", flat, -1);
-
-				return flat;
+				return unbox(data.json().data);
 			});
 	}
 };

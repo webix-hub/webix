@@ -2,47 +2,77 @@ import state from "../core/state";
 import i18n from "../webix/i18n";
 import rules from "../webix/rules";
 
-import {toNode} from "../webix/helpers";
+import {toNode, isUndefined} from "../webix/helpers";
 import { event } from "../webix/htmlevents";
 import {define} from "../services";
+import Promise from "../thirdparty/promiz";
+import {_uid} from "../ui/helpers";
+import {create} from "../webix/html";
 
-var _webix_msg_cfg = null;
 function callback(config, result){
+	(config.type.indexOf("confirm") != -1 && result === false) ? config._promise.reject() : config._promise.resolve(result);
+
 	var usercall = config.callback;
-	modality(false);
-	config.box.parentNode.removeChild(config.box);
-	_webix_msg_cfg = config.box = null;
 	if (usercall)
-		usercall(result,config.details);
+		usercall(result, config.details);
+
+	modalbox.hide(config.id);
 }
 function modal_key(e){
-	if (_webix_msg_cfg){
+	var count = modalbox.order.length;
+	if (count > 0 && message.keyboard){
 		e = e||event;
 		var code = e.which||event.keyCode;
-		if (message.keyboard){
-			if (code == 13 || code == 32)
-				callback(_webix_msg_cfg, true);
-			if (code == 27)
-				callback(_webix_msg_cfg, false);
-		
-			if (e.preventDefault)
-				e.preventDefault();
-			return !(e.cancelBubble = true);
-		}
+		var lastModalbox = modalbox.pull[modalbox.order[count-1]];
+
+		if (code == 13 || code == 32)
+			callback(lastModalbox, true);
+		if (code == 27)
+			callback(lastModalbox, false);
+
+		if (e.preventDefault)
+			e.preventDefault();
+		return !(e.cancelBubble = true);
 	}
 }
 
 event(document, "keydown", modal_key, { capture: true });
 	
-function modality(mode){
-	if(!modality.cover || !modality.cover.parentNode){
-		modality.cover = document.createElement("DIV");
-		//necessary for IE only
-		modality.cover.onkeydown = modal_key;
-		modality.cover.className = "webix_modal_cover";
-		document.body.appendChild(modality.cover);
+function modality(mode, container){
+	var node = container || document.body;
+	var cover;
+	if(isUndefined(node.modality)){
+		cover = create("DIV", {
+			class:"webix_modal_cover",
+			style:"position:"+(container ? "absolute" : "fixed")+";"
+		});
+		cover.onkeydown = modal_key;
+
+		if(container){
+			var position = window.getComputedStyle(container).position;
+			if(position != "fixed" && position != "absolute" && position != "sticky" && position != "relative")
+				node.style.position = "relative";
+		}
+		node.appendChild(cover);
+		node.modality = 1;
 	}
-	modality.cover.style.display = mode?"inline-block":"none";
+	else
+		mode ? node.modality ++ : node.modality --;
+
+	//trigger visibility only if necessary
+	if((mode && node.modality === 1) || node.modality === 0){
+		if(cover)
+			cover.style.display = "inline-block";
+		else{
+			cover = node.querySelectorAll(".webix_modal_cover");
+			for(var i = 0; i < cover.length; i++){
+				if(cover[i].parentNode == node){
+					cover[i].style.display = node.modality == 1 ? "inline-block" : "none";
+					break;
+				}
+			}
+		}	
+	}
 }
 
 function button(text, result, className){
@@ -62,7 +92,7 @@ function info(text){
 	t.hide(text.id);
 	var message = document.createElement("DIV");
 	message.innerHTML = "<div>"+text.text+"</div>";
-	message.className = "webix_info webix_" + text.type;
+	message.className = "webix_message webix_" + text.type;
 	message.onclick = function(){
 		t.hide(text.id);
 		text = null;
@@ -96,7 +126,7 @@ function _boxStructure(config, ok, cancel){
 	box.setAttribute("role", "alertdialog");
 	box.setAttribute("aria-label", config.title || "");
 	box.setAttribute("tabindex", "0");
-		
+
 	var inner = "";
 	if (config.width)
 		box.style.width = config.width+(rules.isNumber(config.width)?"px":"");
@@ -105,11 +135,11 @@ function _boxStructure(config, ok, cancel){
 	if (config.title)
 		inner+="<div class=\"webix_popup_title\">"+config.title+"</div>";
 	inner+="<div class=\"webix_popup_text\"><span>"+(config.content?"":config.text)+"</span></div><div  class=\"webix_popup_controls\">";
-	if (ok || config.ok)
-		inner += button(config.ok || i18n.message.ok, true,"confirm");
-	if (cancel || config.cancel)
+	if (cancel)
 		inner += button(config.cancel || i18n.message.cancel, false);
-	if (config.buttons){
+	if (ok)
+		inner += button(config.ok || i18n.message.ok, true,"confirm");
+	if (config.buttons && !ok && !cancel){
 		for (var i=0; i<config.buttons.length; i++)
 			inner += button(config.buttons[i],i);
 	}
@@ -136,22 +166,27 @@ function _boxStructure(config, ok, cancel){
 		}
 		e.cancelBubble = true;
 	};
-	config.box = box;
-	if (ok||cancel||config.buttons)
-		_webix_msg_cfg = config;
-
+	config._box = box;
 	return box;
 }
+
+modalbox.pull = {};
+modalbox.order = [];
+
 function _createBox(config, ok, cancel){
 	var box = config.tagName ? config : _boxStructure(config, ok, cancel);
-	
-	if (!config.hidden)
-		modality(true);
 
-	toNode(config.container || document.body).appendChild(box);
-		
-	var x = config.left||Math.abs(Math.floor(((window.innerWidth||document.documentElement.offsetWidth) - box.offsetWidth)/2));
-	var y = config.top||Math.abs(Math.floor(((window.innerHeight||document.documentElement.offsetHeight) - box.offsetHeight)/2));
+	var containerWidth = config.container ? config.container.offsetWidth : (window.innerWidth||document.documentElement.offsetWidth);
+	var containerHeight = config.container ? config.container.offsetHeight : (window.innerHeight||document.documentElement.offsetHeight);
+
+	if(config.container)
+		box.style.position = "absolute";
+
+	toNode((config.container || document.body).appendChild(box));
+	modality(true, config.container);
+
+	var x = config.left||Math.abs(Math.floor((containerWidth - box.offsetWidth)/2));
+	var y = config.top||Math.abs(Math.floor((containerHeight - box.offsetHeight)/2));
 	if (config.position == "top")
 		box.style.top = "-3px";
 	else
@@ -161,14 +196,22 @@ function _createBox(config, ok, cancel){
 	box.onkeydown = modal_key;
 
 	box.focus();
-	if (config.hidden)
-		modalbox.hide(box);
 
-	return box;
+	if (!config.id)
+		config.id = _uid("modalbox");
+	else if(modalbox.pull[config.id]){
+		modalbox.hide(config.id);
+	}
+
+	modalbox.order.push(config.id);
+	modalbox.pull[config.id] = config;
+
+	config._promise = Promise.defer();
+	return config._promise;
 }
 
 function alertPopup(config){
-	return _createBox(config, true, false);
+	return _createBox(config, true);
 }
 function confirmPopup(config){
 	return _createBox(config, true, true);
@@ -189,18 +232,18 @@ function box_params(text, type, callback){
 function params(text, type, expire, id){
 	if (typeof text != "object")
 		text = {text:text, type:type, expire:expire, id:id};
-	text.id = text.id||t.uid();
+	text.id = text.id||_uid("message");
 	text.expire = text.expire||t.expire;
 	return text;
 }
 export function alert(){
 	var text = box_params.apply(this, arguments);
-	text.type = text.type || "confirm";
+	text.type = text.type || "alert";
 	return alertPopup(text);
 }
 export function confirm(){
 	var text = box_params.apply(this, arguments);
-	text.type = text.type || "alert";
+	text.type = text.type || "confirm";
 	return confirmPopup(text);
 }
 
@@ -210,18 +253,24 @@ export function modalbox(){
 	return boxPopup(text);
 }
 
-modalbox.hide = function(node){
-	if(node){
-		while (node && node.getAttribute && !node.getAttribute("webixbox"))
-			node = node.parentNode;
-		if (node){
+modalbox.hide = function(id){
+	if(id && modalbox.pull[id]){
+		var node = modalbox.pull[id]._box;
+		if(node){
 			node.parentNode.removeChild(node);
+			modalbox.order.splice(modalbox.order.indexOf(id), 1);
+			modality(false, modalbox.pull[id].container);
+			delete modalbox.pull[id];
 		}
 	}
-
-	modality(false);
-	_webix_msg_cfg = null;
 };
+
+modalbox.hideAll = function(){
+	for (var id in modalbox.pull){
+		this.hide(id);
+	}
+};
+
 export function message(text, type, expire, id){ //eslint-disable-line
 	text = params.apply(this, arguments);
 	text.type = text.type||"info";
@@ -240,8 +289,6 @@ export function message(text, type, expire, id){ //eslint-disable-line
 }
 
 var t = message;
-t.seed = (new Date()).valueOf();
-t.uid = function(){return t.seed++;};
 t.expire = 4000;
 t.keyboard = true;
 t.position = "top";

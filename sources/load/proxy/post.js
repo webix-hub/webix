@@ -4,9 +4,9 @@ import {ajax} from "../ajax";
 
 const proxy = {
 	$proxy:true,
-	load:function(view, callback, params){
+	load:function(view, params){
 		params = extend(params||{}, this.params || {}, true);
-		ajax().bind(view).post(this.source, params, callback);
+		return ajax().post(this.source, params);
 	}
 };
 

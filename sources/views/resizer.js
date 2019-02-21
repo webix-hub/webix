@@ -54,7 +54,7 @@ const api = {
 		
 		this._viewobj.innerHTML = "<div class='webix_resizer_content'></div>";
 		if (dir == "y" && space>0) this._viewobj.style.marginBottom = "-"+(config.height||this.defaults.height)+"px";
-
+		this._viewobj.setAttribute("webix_disable_drag", "true");
 		this._viewobj.setAttribute("tabindex", "-1");
 		this._viewobj.setAttribute("aria-grabbed", "false");
 

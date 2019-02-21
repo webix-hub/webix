@@ -5,7 +5,7 @@ import DataDriver from "../load/drivers/index";
 
 import {ajax} from "../load/ajax";
 
-import {bind, isArray} from "../webix/helpers";
+import {bind} from "../webix/helpers";
 import {callEvent} from "../webix/customevents";
 
 const AtomDataLoader={
@@ -52,46 +52,44 @@ const AtomDataLoader={
 		} else if (!this.data.driver)
 			this.data.driver = DataDriver.json;
 
-		//load data by async ajax call
-		//loading_key - can be set by component, to ignore data from old async requests
-		var callback = [{
-			success: this._onLoad,
-			error: this._onLoadError
-		}];
-		
-		if (call){
-			if (isArray(call))
-				callback.push.apply(callback,call);
-			else
-				callback.push(call);
-		}
-		
+		var result;
+
 		//proxy	
 		url = proxy.$parse(url);
-		if (url.$proxy && url.load)
-			return url.load(this, callback, details);
-
+		if (url.$proxy && url.load){
+			result = url.load(this, details);
+		}
 		//promize
-		if (typeof url === "function"){
-			return url(details).then(
-				bind(function(data){
-					ajax.$callback(this, callback, "", data, -1);
-				}, this),
-				bind(function(x){
-					ajax.$callback(this, callback, "", null, x, true);
-				}, this)
-			);
+		else if (typeof url === "function"){
+			result = url.call(this, details);
+		}
+		//normal url
+		else {
+			result = ajax().bind(this).get(url);
 		}
 
-		//normal url
-		return ajax(url,callback,this);
+		//we wrap plain data in promise to keep the same processing for it
+		if(result && !result.then){
+			result = promise.resolve(result);
+		}
+
+		if(result && result.then){
+			result.then((data) => {
+				if (this.$destructed)
+					return;
+				this._onLoad(data);
+				if (call)
+					ajax.$callback(this, call, "", data, -1);
+			}, (x) => {
+				this._onLoadError(x);
+			});
+		}
+		return result;
 	},
 	//loads data from object
 	parse:function(data,type){
-		if (data && data.then && typeof data.then == "function"){
+		if (data && typeof data.then == "function"){
 			return data.then(bind(function(data){ 
-				if (data && typeof data.json == "function")
-					data = data.json();
 				this.parse(data, type); 
 			}, this));
 		}
@@ -104,7 +102,7 @@ const AtomDataLoader={
 			return promise.reject();
 
 		this.data.driver = DataDriver[type||"json"];
-		this._onLoad(data,null);
+		this._onLoad(data);
 	},
 	_syncData: function(data){
 		if(this.data)
@@ -127,7 +125,7 @@ const AtomDataLoader={
 		else
 			this.data = parsed;
 	},
-	_onLoadContinue:function(data, text, response, loader){
+	_onLoadContinue:function(data){
 		if (data){
 			if(!this.$onLoad || !this.$onLoad(data, this.data.driver)){
 				if(this.data && this.data._parse)
@@ -137,7 +135,7 @@ const AtomDataLoader={
 			}
 		}
 		else
-			this._onLoadError(text, response, loader);
+			this._onLoadError(data);
 
 		//data loaded, view rendered, call onready handler
 		if(this._call_onready)
@@ -147,46 +145,43 @@ const AtomDataLoader={
 		this.waitData.resolve();
 	},
 	//default after loading callback
-	_onLoad:function(text, response, loader){
-		var driver = this.data.driver;
-		var data;
-
-		if (loader === -1)
-			data = driver.toObject(response);
-		else{
-			//ignore data loading command if data was reloaded 
-			if(this._ajax_queue)
-				this._ajax_queue.remove(loader);
-			data = driver.toObject(text, response);
+	_onLoad:function(data){
+		if (data && typeof data.text === "function"){
+			data = data.text();
 		}
-			
-		if(!data || !data.then)
+
+		data = this.data.driver.toObject(data);
+		if(data && data.then)
+			data.then((data) => { this._onLoadContinue(data); });
+		else
 			this._onLoadContinue(data);
-		else if(data.then && typeof data.then == "function")
-			data.then(bind(this._onLoadContinue, this));
 	},
-	_onLoadError:function(text, xml, xhttp){
+	_onLoadError:function(xhttp){
 		this.callEvent("onAfterLoad",[]);
 		this.callEvent("onLoadError",arguments);
-		callEvent("onLoadError", [text, xml, xhttp, this]);
+		callEvent("onLoadError", [xhttp, this]);
 	},
 	_check_data_feed:function(data){
-		if (!this._settings.dataFeed || this._ignore_feed || !data) return true;
+		if (!this._settings.dataFeed || this._ignore_feed || !data)
+			return true;
+
 		var url = this._settings.dataFeed;
 		if (typeof url == "function")
 			return url.call(this, (data.id||data), data);
+
 		url = url+(url.indexOf("?")==-1?"?":"&")+"action=get&id="+encodeURIComponent(data.id||data);
-		if(!this.callEvent("onBeforeLoad",[])) 
+		if(!this.callEvent("onBeforeLoad",[]))
 			return false;
+
 		ajax(url, function(text,xml,loader){
-			this._ignore_feed=true;
+			this._ignore_feed = true;
 			var driver = DataDriver.json;
 			var data = driver.toObject(text, xml);
 			if (data)
 				this.setValues(driver.getDetails(driver.getRecords(data)[0]));
 			else
-				this._onLoadError(text,xml,loader);
-			this._ignore_feed=false;
+				this._onLoadError(loader);
+			this._ignore_feed = false;
 			this.callEvent("onAfterLoad",[]);
 		}, this);
 		return false;

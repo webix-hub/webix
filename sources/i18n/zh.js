@@ -39,7 +39,9 @@ const zh = {
 		actualSize:"实际尺寸",
 		pageFit:"页面大小",
 		pageWidth:"页面宽度",
-		pageHeight:"页面高度"
+		pageHeight:"页面高度",
+		enterPassword:"输入密码",
+		passwordError:"密码错误"
 	},
 	aria:{
 		calendar:"日历",

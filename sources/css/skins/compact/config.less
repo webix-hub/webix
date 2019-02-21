@@ -7,7 +7,7 @@
 /*shared scheme with all skins*/
 @baseColor: #3498db;
 @accentColor:#27ae60;
-@infoColor: #ff9;
+@infoColor: #ffd21a;
 @dangerColor: #ce5545;
 @backColor:#ffffff;	
 
@@ -456,6 +456,13 @@
 //-------------------------------------------///
 
 @windowRadius: 0px;
+
+@messagePadding: 5px 10px 5px 10px;
+@messageLineHeight: 16px;
+@messageBorderRadius: 3px;
+
+@modalboxLineHeight: 18px;
+
 .webix_view .webix_win_head{
 	border-bottom: 1px solid @borderColor;
 }
@@ -464,35 +471,11 @@
 	background: @backColor;
 	box-shadow: 0 -2px @mainColor inset;
 }
-.webix_modal_box{
-	.webix_popup_title{
-		color: @fontColor;
-		background: @backColor;
-		font-size: @fontSize;
-		text-shadow: none;
-	}
-}
-.webix_popup_text{
-	box-shadow: 0 3px @mainColor inset;
-	font-size: @fontSize;
-}
-.webix_alert-warning, .webix_confirm-warning{
-	.webix_popup_text{
-		box-shadow: 0 3px #ffd21a inset;
-	}
-}
-.webix_alert-error, .webix_confirm-error{
-	.webix_popup_text{
-		box-shadow: 0 3px #ff391b inset;
-	}
-}
 
 .webix_view.webix_popup{
 	border: 1px solid @borderColor;
 }
-.webix_modal_box {
-	border: 1px solid @borderColor;
-}
+
 .confirmButton{
 	.skinBlueButton;
 	text-shadow: none;
@@ -762,7 +745,7 @@
 }
 
 // drag-n-drop
-.webix_drag_over, .webix_drop_zone{
+.webix_drag_over, .webix_drop_zone, .webix_drop_area{
 	background-color: #f4f4f4;
 }
 

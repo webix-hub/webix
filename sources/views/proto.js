@@ -33,5 +33,5 @@ const api = {
 };
 
 
-const view = protoUI(api,  PagingAbility, DataMarks, AutoTooltip,ValidateCollection,RenderStack, DataLoader, base.view, EventSystem, Settings);
+const view = protoUI(api, PagingAbility, DataMarks, AutoTooltip, ValidateCollection, RenderStack, DataLoader, base.view, EventSystem, Settings);
 export default {api, view};

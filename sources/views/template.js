@@ -9,6 +9,7 @@ import {$active} from "../webix/skin";
 import base from "./view";
 import template from "../webix/template";
 
+import AutoTooltip from "../core/autotooltip";
 import AtomDataLoader from "../core/atomdataloader";
 import AtomRender from "../core/atomrender";
 import MouseEvents from "../core/mouseevents";
@@ -47,7 +48,8 @@ const api = {
 		return this.data;
 	},
 	$skin:function(){
-		this._template_types.header.height = this._template_types.section.height = $active.barHeight;
+		this._template_types.header.height = $active.barHeight - $active.borderWidth*2;
+		this._template_types.section.height = $active.barHeight;
 	},
 	_template_types:{
 		"header":{
@@ -166,5 +168,5 @@ const api = {
 	_one_time_scroll:true //scroll will appear only if set directly in config
 };
 
-const view = protoUI(api, Scrollable, AtomDataLoader, AtomRender, EventSystem, base.view);
+const view = protoUI(api, Scrollable, AutoTooltip, AtomDataLoader, AtomRender, EventSystem, base.view);
 export default { api, view };

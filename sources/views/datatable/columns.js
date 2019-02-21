@@ -218,6 +218,7 @@ const Mixin = {
 		}
 	},
 	refreshColumns:function(columns, reset){
+		this._dtable_column_refresh = true;
 		if ((columns && columns != this.config.columns) || reset){
 			this._clear_hidden_state();
 			this._filter_elements = {};
@@ -247,7 +248,8 @@ const Mixin = {
 		this.callEvent("onStructureUpdate");
 
 		this._update_scroll();
-		this.render();	
+		this.render();
+		this._dtable_column_refresh = 0;
 	},
 	_refresh_columns:function(){
 		this._dtable_fully_ready = 0;

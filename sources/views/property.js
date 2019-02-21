@@ -235,5 +235,5 @@ const api = {
 };
 
 
-const view = protoUI(api,  AutoTooltip, EditAbility, MapCollection, MouseEvents, Scrollable, SingleRender, AtomDataLoader, EventSystem, base.view);
+const view = protoUI(api, AutoTooltip, EditAbility, MapCollection, MouseEvents, Scrollable, SingleRender, AtomDataLoader, EventSystem, base.view);
 export default {api, view};

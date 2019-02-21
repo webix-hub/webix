@@ -29,7 +29,7 @@ const skin = {
 	//margin - distance between cells
 	layoutMargin:{ space:10, wide:10, clean:0, head:4, line:-1, toolbar:4, form:8, accordion: 10  },
 	//padding - distance insede cell between cell border and cell content
-	layoutPadding:{ space:10, wide:0, clean:0, head:0, line:0, toolbar:4, form:17, accordion: 0  },
+	layoutPadding:{ space:10, wide:0, clean:0, head:0, line:0, toolbar:3, form:17, accordion: 0  },
 	//space between tabs in tabbar
 	tabMargin:4,
 	tabOffset: 0,

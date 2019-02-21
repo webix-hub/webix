@@ -187,10 +187,8 @@ export const PowerArray={
 	insertAt:function(data,pos){
 		if (!pos && pos!==0)	//add to the end by default
 			this.push(data);
-		else {	
-			var b = this.splice(pos,(this.length-pos));
-			this[pos] = data;
-			this.push.apply(this,b); //reconstruct array without loosing this pointer
+		else {
+			this.splice(pos, 0, data); 
 		}
 	},
 	//return index of element, -1 if it doesn't exists

@@ -182,22 +182,25 @@ datafilter.serverSelectFilter = extend({
 datafilter.numberFilter = extend({
 	init:function(config){
 		config.prepare = function(value){
-			var equality = (value.indexOf("=") != -1)?1:0;
+			var equality = (value.indexOf("=") != -1);
 			var intvalue = this.format(value);
 			if (intvalue === "") return "";
 
-			if (value.indexOf(">") != -1) 
-				config.compare = this._greater;
-			else if (value.indexOf("<") != -1){
-				config.compare = this._lesser;
-				equality *= -1;
+			var compare;
+			if (value.indexOf(">") != -1){
+				compare = this._greater;
 			}
-			else {
-				config.compare = this._equal;
-				equality = 0;
+			else if (value.indexOf("<") != -1){
+				compare = this._lesser;
 			}
 
-			return intvalue - equality;
+			if (compare && equality) {
+				config.compare = (a,b) => this._equal(a,b) || compare(a,b);
+			} else {
+				config.compare = compare || this._equal; 
+			}
+
+			return intvalue;
 		};
 	},
 	format:function(value){
@@ -205,7 +208,7 @@ datafilter.numberFilter = extend({
 	},
 	_greater:function(a,b){ return a*1>b; },
 	_lesser:function(a,b){ return a!=="" && a*1<b; },
-	_equal:function(a,b){ return a*1==b; }	
+	_equal:function(a,b){ return a !== "" && a*1==b; }
 }, datafilter.textFilter);
 
 datafilter.dateFilter = extend({

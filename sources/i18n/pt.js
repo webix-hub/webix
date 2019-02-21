@@ -41,7 +41,9 @@ const pt = {
 		actualSize:"Tamanho atual",
 		pageFit:"Tamanho da página",
 		pageWidth:"Largura da página",
-		pageHeight:"Altura da página"
+		pageHeight:"Altura da página",
+		enterPassword:"Digite a senha",
+		passwordError:"Senha incorreta"
 	},
 	aria:{
 		calendar:"Calendário",

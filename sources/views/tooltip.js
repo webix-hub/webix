@@ -2,7 +2,7 @@ import base from "../views/view";
 import SingleRender from "../core/singlerender";
 import Settings from "../core/settings";
 import EventSystem from "../core/eventsystem";
-import {create, insertBefore} from "../webix/html";
+import {create, createCss, insertBefore} from "../webix/html";
 import {protoUI, $$} from "../ui/core";
 import {extend, bind} from "../webix/helpers";
 import {attachEvent, detachEvent} from "../webix/customevents";
@@ -31,8 +31,6 @@ const api = {
 			container = { template:container };
 		}
 
-		this.type = extend({}, this.type);
-
 		//create  container for future tooltip
 		this.$view = this._viewobj = this._contentobj = this._dataobj = create("DIV", {role:"alert", "aria-atomic":"true"});
 		this._contentobj.className = "webix_tooltip";
@@ -51,14 +49,33 @@ const api = {
 	//show tooptip
 	//pos - object, pos.x - left, pox.y - top
 	isVisible:function(){
-		return true;
+		return this._visible;
+	},
+	_alt_render:function(text){
+		if (this.callEvent("onBeforeRender",[text])){
+			//it is critical to have this as two commands
+			//its prevent destruction race in Chrome
+			this._dataobj.innerHTML = "";
+			this._dataobj.innerHTML = text;
+			this.callEvent("onAfterRender",[]);
+		}
+	},
+	css_setter:function(value){
+		if (typeof value === "object")
+			value = createCss(value);
+
+		this._viewobj.className = "webix_tooltip "+value;
+		return value;
 	},
 	show:function(data,pos){
 		if (this._disabled) return;
-		//render sefl only if new data was provided
-		if (this.data!=data){
-			this.data=extend({},data);
-			this.render(data);
+
+		this._visible = true;
+		if (typeof data === "string")
+			this._alt_render(data);
+		else {
+			this.data = extend({}, data);
+			this.render();
 		}
 
 		if (this._dataobj.firstChild){
@@ -68,7 +85,7 @@ const api = {
 			var positionX = w - pos.x;
 			var positionY = h - pos.y;
 
-			this._contentobj.style.display="block";
+			this._contentobj.style.display = "block";
 			
 			if(positionX - this._settings.dx > this._contentobj.offsetWidth)
 				positionX = pos.x;
@@ -83,8 +100,7 @@ const api = {
 				positionY = (pos.y - this._settings.dy) - this._contentobj.offsetHeight;
 			this._contentobj.style.left = positionX+this._settings.dx+"px";
 			this._contentobj.style.top = positionY+this._settings.dy+"px";
-		}
-		this._visible = true;
+		} else this.hide();
 	},
 	//hide tooltip
 	hide:function(){
@@ -99,7 +115,7 @@ const api = {
 		this._disabled = false;
 	},
 	type:{
-		template:template("{obj.id}"),
+		template:template("{obj.value}"),
 		templateStart:template.empty,
 		templateEnd:template.empty
 	}

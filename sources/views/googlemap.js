@@ -61,6 +61,7 @@ const api = {
 				mapTypeId: google.maps.MapTypeId[c.mapType]
 			});
 			this._waitMap.resolve(this._map);
+			this._contentobj.firstChild.setAttribute("webix_disable_drag", "true");
 		}
 	},
 	center_setter:function(config){

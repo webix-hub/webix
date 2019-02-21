@@ -27,9 +27,7 @@ const html = { denySelect, allowSelect, index, createCss, addStyle, removeStyle,
 export { html };
 
 //	import * as skin from "./skin";
-import { $active, set, material, mini, flat, compact, contrast } from "./skin";
-const skin = { $active, set, material, mini, flat, compact, contrast };
-export { skin };
+export { skin } from "./skin";
 
 export {debug} from "./debug";
 

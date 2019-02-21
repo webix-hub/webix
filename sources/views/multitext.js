@@ -73,6 +73,7 @@ const api = {
 				mode: "extra",
 				value: text || "",
 				icon: "wxi-minus-circle",
+				tooltip: config.tooltip,
 				suggest: config.suggest || null,
 				master: config.id
 			};

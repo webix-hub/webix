@@ -53,8 +53,6 @@ const api = {
 			config.series = series;
 		}
 
-		this.attachEvent("onMouseMove",this._switchSeries);
-
 		this.data.provideApi(this, true);
 	},
 	_after_init_call:function(){
@@ -168,11 +166,6 @@ const api = {
 			this.canvases = {};
 		}
 		this._contentobj.innerHTML="";
-		for(var i = 0; i < this._series.length; i++){
-			if(this._series[i].tooltip)
-				this._series[i].tooltip.destructor();
-		}
-		//	this.callEvent("onDestruct",[]);
 		this._series = [];
 	},
 	clearCanvas:function(){
@@ -736,27 +729,6 @@ const api = {
 		this._parseSettings(obj,{});
 		this._series.push(this._settings);
 		this._settings = temp;
-	},
-	/*switch global settings to serit in question*/
-	_switchSeries:function(id, e, tag) {
-		var tip;
-
-		if(!tag.getAttribute("userdata"))
-			return;
-
-		this._active_serie = this._series.length==1?this._getActiveSeries(e):tag.getAttribute("userdata");
-		if (!this._series[this._active_serie]) return;
-		for (var i=0; i < this._series.length; i++) {
-			tip = this._series[i].tooltip;
-
-			if (tip)
-				tip.disable();
-		}
-		if(!tag.getAttribute("disabled")){
-			tip = this._series[this._active_serie].tooltip;
-			if (tip)
-				tip.enable();
-		}
 	},
 	_getActiveSeries: function(e){
 		var a, areas, i, offset, pos, selection,  x, y;

@@ -1,5 +1,5 @@
 import {assert} from "../webix/debug";
-import {copy, isUndefined, bind} from "../webix/helpers";
+import {copy, isUndefined, bind, isArray} from "../webix/helpers";
 import {callEvent} from "../webix/customevents";
 import {define} from "../services";
 
@@ -7,6 +7,7 @@ import {$$, proto} from "../ui/core";
 
 import {ajax} from "../load/ajax";
 import proxy from "../load/proxy";
+import promise from "../thirdparty/promiz";
 
 import Settings from "../core/settings";
 import EventSystem from "../core/eventsystem";
@@ -210,7 +211,7 @@ export const DataProcessor = proto({
 		var to_send = [];
 		var url = this._settings.url;
 
-		for (var i = 0; i < marked.length; i++) {
+		for (let i = 0; i < marked.length; i++) {
 			var tosave = marked[i];
 
 			if (tosave._in_progress) continue;
@@ -218,8 +219,8 @@ export const DataProcessor = proto({
 
 			var id = tosave.id;
 			var operation = tosave.operation;
-			var precise_url = (typeof url == "object" && !url.$proxy) ? url[operation] : url;
-			var proxy = precise_url && (precise_url.$proxy || typeof precise_url === "function");
+			var precise_url = proxy.$parse((typeof url == "object" && !url.$proxy) ? url[operation] : url);
+			var custom = precise_url && (precise_url.$proxy || typeof precise_url === "function");
 
 			if (!precise_url) continue;
 
@@ -236,25 +237,20 @@ export const DataProcessor = proto({
 
 			var callback = this._send_callback({ id:tosave.id, status:tosave.operation });
 			if (precise_url.$proxy){
-				if (precise_url.save)
-					precise_url.save(this.config.master, tosave, this, callback);
+				if (precise_url.save){
+					//proxy
+					let result = precise_url.save(this.config.master, tosave, this);
+					this._proxy_on_save(result, callback);
+				}
 				to_send.push(tosave);
 			} else {
-				if (operation == "insert") delete tosave.data.id;
-
+				if (operation == "insert")
+					delete tosave.data.id;
 				
-				if (proxy){
-					//promise
-					precise_url(tosave.id, tosave.operation, tosave.data).then(
-						function(data){
-							if (data && typeof data.json == "function")
-								data = data.json();
-							callback.success("", data, -1);
-						},
-						function(error){
-							callback.error("", null, error);
-						}
-					);
+				if (custom){
+					//save function
+					let result = precise_url.call(this.config.master, tosave.id, tosave.operation, tosave.data);
+					this._proxy_on_save(result, callback);
 				} else {
 					//normal url
 					tosave.data[this._settings.operationName] = operation;
@@ -266,10 +262,35 @@ export const DataProcessor = proto({
 			this.callEvent("onAfterDataSend", [tosave]);
 		}
 
-		if (url.$proxy && url.saveAll && to_send.length)
-			url.saveAll(this.config.master, to_send, this, this._send_callback({}));
+		if (url.$proxy && url.saveAll && to_send.length){
+			let result = url.saveAll(this.config.master, to_send, this);
+			if(result){
+				if(!result.then)
+					result = promise.resolve(result);
+				result.then((data) => {
+					if (data && typeof data.json == "function")
+						data = data.json();
+					this._processResult(data);
+				}, 
+				(x) => {
+					this._processError(null, "", null, x);
+				});
+			}
+		}
 	},
-
+	_proxy_on_save:function(result, callback){
+		if(result){
+			if(!result.then)
+				result = promise.resolve(result);
+			result.then((data) => {
+				if (data && typeof data.json == "function")
+					data = data.json();
+				callback.success("", data, -1); //text, data, loader
+			}, (x) => {
+				callback.error("", null, x);
+			});
+		}
+	},
 
 	/*! process updates list to POST and GET params according dataprocessor protocol
 	 *	@param updates
@@ -336,6 +357,8 @@ export const DataProcessor = proto({
 		var update = this.getItemState(id);
 		update._in_progress = false;
 
+
+
 		if (error){
 			if (this.callEvent("onBeforeSaveError", [id, status, obj, details])){
 				update._invalid = true;
@@ -379,22 +402,29 @@ export const DataProcessor = proto({
 	_processResult: function(state, text, data, loader){
 		this.callEvent("onBeforeSync", [state, text, data, loader]);
 
-		if (loader === -1){
-			//callback from promise
-			this.processResult(state, data, {});
-		} else {
-			var proxy = this._settings.url;
-			if (proxy.$proxy && proxy.result)
-				proxy.result(state, this._settings.master, this, text,  data, loader);
-			else {
-				var hash;
-				if (text){
-					hash = data.json();
-					//invalid response
-					if (text && (hash === null || typeof hash == "undefined"))
-						hash = { status:"error" };
+		if(isArray(state)){ //saveAll results
+			state.forEach((one) => {
+				this.processResult(one, one, {});
+			});
+		}
+		else{
+			if (loader === -1){
+				//callback from promise
+				this.processResult(state, data, {});
+			} else {
+				var proxy = this._settings.url;
+				if (proxy.$proxy && proxy.result)
+					proxy.result(state, this._settings.master, this, text,  data, loader);
+				else {
+					var hash;
+					if (text){
+						hash = data.json();
+						//invalid response
+						if (text && (hash === null || typeof hash == "undefined"))
+							hash = { status:"error" };
+					}
+					this.processResult(state, hash,  {text:text, data:data, loader:loader});
 				}
-				this.processResult(state, hash,  {text:text, data:data, loader:loader});
 			}
 		}
 

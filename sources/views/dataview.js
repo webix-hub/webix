@@ -42,7 +42,7 @@ const api = {
 			this.$ready.unshift(this._after_init_call);
 		
 		var type = config.type || config.item;
-		var prerender = config.prerender || this.defaults.prerender || (type && type.width =="auto");
+		var prerender = config.prerender || this.defaults.prerender || (type && type.width =="auto") || config.drag == "move" || config.drag == "order";
 		
 		if (!prerender && !config.autoheight)
 			extend(this, VirtualRenderStack, true);
@@ -75,6 +75,7 @@ const api = {
 	_id:"webix_l_id",
 	_itemClassName:"webix_dataview_item",
 	_tilesPadding:0,
+	_drag_direction:"x",
 	on_click:{
 		webix_dataview_item:function(e,id){ 
 			if (this._settings.select){
@@ -97,17 +98,17 @@ const api = {
 		width:160,
 		height:50,
 		classname:function(obj, common, marks){
-			var css = "webix_dataview_item ";
+			var css = "webix_dataview_item";
 
-			if (common.css) css +=common.css+" ";
+			if (common.css) css += " "+common.css;
 			if (common.type && common.type.toString() == "tiles")
 				css += "tiles ";
 			if (obj.$css){
 				if (typeof obj.$css == "object")
 					obj.$css = createCss(obj.$css);
-				css +=obj.$css+" ";
+				css += " "+obj.$css;
 			}
-			if (marks && marks.$css) css +=marks.$css+" ";
+			if (marks && marks.$css) css += " "+marks.$css;
 			
 			return css;
 		},
@@ -178,5 +179,5 @@ const api = {
 };
 
 
-const view = protoUI(api,  DataMove, DragItem, MouseEvents, KeysNavigation, SelectionModel, Scrollable, CustomPrint, proto.view);
+const view = protoUI(api, DataMove, DragItem, MouseEvents, KeysNavigation, SelectionModel, Scrollable, CustomPrint, proto.view);
 export default {api, view};

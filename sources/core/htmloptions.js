@@ -10,7 +10,9 @@ import UIManager from "./uimanager";
 const HTMLOptions = {
 	$init:function(){
 		if($active.customRadio || this.addOption)
-			_event( this.$view, "keydown", this._moveSelection, {bind:this});
+			this.$ready.push(()=>{
+				_event( this.$view, "keydown", this._moveSelection, {bind:this});
+			});
 	},
 	_focus: function(){
 		if(!UIManager.canFocus(this))
@@ -61,6 +63,23 @@ const HTMLOptions = {
 				inp[index].focus();
 			}
 		}
+	},
+	_get_tooltip_data:function(t,e){
+		let node = e.target || e.srcElement;
+		while (node && !node.webix_tooltip){
+			let id = node.getAttribute("webix_t_id");
+			if (id)
+				return this.getOption(id);
+			node = node.parentNode;
+		}
+		return null;
+	},
+	getOption:function(id){
+		let options = this._check_options(this._settings.options);
+		for (let i=0; i<options.length; i++)
+			if (options[i].id == id)
+				return options[i];
+		return null;
 	}
 };
 

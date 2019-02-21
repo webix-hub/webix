@@ -42,7 +42,9 @@ const en = {
 		actualSize:"Actual Size",
 		pageFit:"Page Fit",
 		pageWidth:"Page Width",
-		pageHeight:"Page Height"
+		pageHeight:"Page Height",
+		enterPassword:"Enter password",
+		passwordError:"Wrong password"
 	},
 	aria:{
 		calendar:"Calendar",

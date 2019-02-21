@@ -29,7 +29,7 @@ const Movable = {
 				view._settings.left = parseInt(drag.style.left,10);
 			}
 
-			DragControl.top = DragControl.left = 5;
+			DragControl.top = DragControl.left = 0;
 			this.master.callEvent("onViewMoveEnd", []);
 			return;
 		},

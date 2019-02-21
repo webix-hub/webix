@@ -4,7 +4,7 @@ import Touch from "../core/touch";
 import {zIndex} from "../ui/helpers";
 import {toArray, toNode} from "../webix/helpers";
 import {_event, event, eventRemove} from "../webix/htmlevents";
-import {attachEvent} from "../webix/customevents";
+import {attachEvent, callEvent} from "../webix/customevents";
 
 
 /*
@@ -111,7 +111,7 @@ const DragControl ={
 		DragControl._clean_dom_after_drag(true);
 		if(!DragControl._html)
 			if (!DragControl.createDrag(DragControl._saved_event)) return;
-		
+
 		DragControl.sendSignal("start"); //useless for now
 		DragControl._webix_drag_mm = event(document.body,env.mouse.move,DragControl._moveDrag);
 		DragControl._webix_drag_mu = event(document,env.mouse.up,DragControl._stopDrag);
@@ -199,6 +199,7 @@ const DragControl ={
 	//mostly useless for now, can be used to add cross-frame dnd
 	sendSignal:function(signal){
 		DragControl.active=(signal=="start");
+		callEvent("onDragMode", [signal]);
 	},
 	
 	//return master for html area
@@ -276,14 +277,16 @@ const DragControl ={
 		else{
 			remove(DragControl._html);
 		}
-		DragControl._landing=DragControl._active=DragControl._last=DragControl._html=null;
+		if (DragControl._dropHTML)
+			remove(DragControl._dropHTML);
+		DragControl._landing=DragControl._active=DragControl._last=DragControl._html=DragControl._dropHTML=null;
 		//DragControl._x_offset = DragControl._y_offset = null;
 	},
 	_getActiveDragMaster: function(){
 		return DragControl._drag_masters[DragControl._active.webix_drag];
 	},
-	top:5,	 //relative position of drag marker to mouse cursor
-	left:5,
+	top:0,	 //relative position of drag marker to mouse cursor
+	left:0,
 	_setDragOffset:function(e){
 		var dragCtl = DragControl;
 		var pos = dragCtl._start_pos;

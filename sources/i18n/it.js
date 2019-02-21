@@ -39,7 +39,9 @@ const it = {
 		actualSize:"Dimensione reale",
 		pageFit:"Dimensioni della pagina",
 		pageWidth:"Larghezza della pagina",
-		pageHeight:"Altezza della pagina"
+		pageHeight:"Altezza della pagina",
+		enterPassword:"Inserisci la password",
+		passwordError:"Password errata"
 	},
 	aria:{
 		calendar:"Calendario",

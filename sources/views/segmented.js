@@ -52,9 +52,11 @@ const api = {
 			if(!obj.value)
 				obj.value = options[0].id;
 
+			let tooltip;
 			for(var i=0; i<options.length; i++){
+				tooltip = obj.tooltip ? " webix_t_id='"+options[i].id+"'" : "";
 				html+="<button type='button' style='width:"+(options[i].width || optionWidth)+"px' role='tab' aria-selected='"+(obj.value==options[i].id?"true":"false")+"' tabindex='"+(obj.value==options[i].id?"0":"-1")+"'";
-				html+="class='"+"webix_segment_"+((i==options.length-1)?"N":(i>0?1:0))+((obj.value==options[i].id)?" webix_selected ":"")+"' button_id='"+options[i].id+"' "+(options[i].tooltip?("title='"+options[i].tooltip+"'"):"")+">";
+				html+="class='"+"webix_segment_"+((i==options.length-1)?"N":(i>0?1:0))+((obj.value==options[i].id)?" webix_selected ":"")+"' button_id='"+options[i].id+"'"+tooltip+">";
 				html+= options[i].value+"</button>";
 			}
 			
@@ -176,5 +178,5 @@ const api = {
 	_set_inner_size:false
 };
 
-const view = protoUI(api, HTMLOptions, text.view);
+const view = protoUI(api, text.view, HTMLOptions);
 export default {api, view};

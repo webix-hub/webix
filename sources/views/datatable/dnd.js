@@ -1,9 +1,64 @@
 import {posRelative, offset, remove, removeCss, addCss} from "../../webix/html";
-import {isArray, bind} from "../../webix/helpers";
+import {isArray, bind, extend} from "../../webix/helpers";
 import {$$} from "../../ui/core";
 import DragItem from "../../core/dragitem";
 import DragControl from "../../core/dragcontrol";
 
+const DragOrder = {
+	_add_css:function(source){
+		let context = DragControl._drag_context;
+
+		if (!this._settings.prerender)
+			source = [context.start];
+
+		for (let i=0; i<source.length; i++){
+			for (let j=0; j<this._columns.length; j++){
+				let node = this.getItemNode({ row:source[i], cind:j});
+				if (node)
+					addCss(node, "webix_invisible");
+			}
+			this.data.addMark(source[i], "webix_invisible", 1, 1, true);
+		}
+	},
+	_remove_css:function(source){
+		let context = DragControl._drag_context;
+
+		if (!this._settings.prerender)
+			source = [context.start];
+
+		for (let i=0; i<source.length; i++){
+			for (let j=0; j<this._columns.length; j++){
+				let node = this.getItemNode({ row:source[i], cind:j});
+				if (node)
+					removeCss(node, "webix_invisible");
+			}
+			this.data.removeMark(source[i], "webix_invisible", 1);
+		}
+	},
+	_set_drop_area:function(target){
+		for (let i=0; i<this._columns.length; i++){
+			let column = this._columns[i];
+			let node = this.getItemNode({ row:target, cind:i});
+			if (node){
+				node.parentNode.insertBefore(DragControl._dropHTML[i], node);
+			} else column.node.appendChild(DragControl._dropHTML[i]);
+		}
+	},
+	_init_drop_area:function(){
+		let dropArea = [];
+		let count = this._columns.length;
+		let node = document.createElement("div");
+
+		node.className = "webix_drop_area";
+		node.style.height = this._settings.rowHeight + "px";
+		node.innerHTML = this.$dropHTML();
+
+		for (let i=0; i<count; i++)
+			dropArea.push(node.cloneNode(true));
+
+		return dropArea;
+	}
+};
 
 const Mixin = {
 	drag_setter:function(value){
@@ -12,13 +67,20 @@ const Mixin = {
 			return this._checkDragTopSplit(context.source);
 		});
 		this.attachEvent("onBeforeDragIn", function(context){
-			return this._checkDragTopSplit(context.target);
-		});
-		this.attachEvent("onBeforeDropOrder", function(startId, index){
-			return index<0 || index >= this._settings.topSplit;
+			let result = this._checkDragTopSplit(context.target);
+
+			if (!result && DragControl._dropHTML){
+				remove(DragControl._dropHTML);
+				this._marked_item_id = DragControl._dropHTML = null;
+			}
+			return result;
 		});
 
-		return DragItem.drag_setter.call(this,value);
+		DragItem.drag_setter.call(this,value);
+		if (value == "order" || value == "move")
+			extend(this, DragOrder, true);
+
+		return value;
 	},
 	_checkDragTopSplit: function(ids){
 		var i, index,
@@ -28,17 +90,17 @@ const Mixin = {
 				ids = [ids];
 			for(i=0; !frozen && i< ids.length;i++ ){
 				index = this.getIndexById(ids[i]);
-				frozen = index < this._settings.topSplit;
+				frozen = index >= 0 && index < this._settings.topSplit;
 			}
 		}
 		return !frozen;
 	},
-	$dragHTML:function(item){
+	_toHTML:function(obj){
 		var width = this._content_width - this._scrollSizeY;
-		var html="<div class='webix_dd_drag' style='width:"+(width-2)+"px;'>";
+		var html="<div class='webix_dd_drag' style='width:"+width+"px;'>";
 		var cols = this._settings.columns;
 		for (var i=0; i<cols.length; i++){
-			var value = this._getValue(item, cols[i]);
+			var value = this._getValue(obj, cols[i]);
 			html += "<div style='width:"+cols[i].width+"px;'>"+value+"</div>";
 		}
 		return html+"</div>";
@@ -69,7 +131,7 @@ const Mixin = {
 	getItemNode:function(id){
 		if (id && !id.header){
 			var row = id.row || id;
-			var rowindex = this.getIndexById(row);
+			var rowindex = (typeof id.rind === "number") ? id.rind : this.getIndexById(row);
 			var state = this._get_y_range();
 			var minRow = state[0]-this._settings.topSplit;
 			//row not visible
@@ -78,8 +140,9 @@ const Mixin = {
 			//get visible column
 			var x_range = this._get_x_range();
 			var colindex = this._settings.leftSplit ? 0 : x_range[0];
-			if (id.column){
-				colindex = this.getColumnIndex(id.column);
+			var specific = (typeof id.cind === "number");
+			if (id.column || specific){
+				colindex = specific ? id.cind : this.getColumnIndex(id.column);
 				//column not visible
 				if (colindex < this._rightSplit && colindex >= this._settings.leftSplit && ( colindex<x_range[0] || colindex > x_range[1]))
 					return;
@@ -87,20 +150,34 @@ const Mixin = {
 
 			var column = this._settings.columns[colindex];
 
-			if (column && column.attached && column.node){
-				var nodeIndex = rowindex < this._settings.topSplit?rowindex:(rowindex-minRow);
-				return column.node.childNodes[nodeIndex];
-			}
+			if (column.attached && column.node){
+				if (row === "$webix-drop")
+					return DragControl._dropHTML[colindex];
 
+				let nodeIndex = (rowindex<this._settings.topSplit || this._settings.prerender)?rowindex:(rowindex-minRow);
+				let nodes = column.node.childNodes;
+				let length = Math.min(nodes.length, nodeIndex+1);
+
+				for (let i=0; i<length; i++)
+					if (nodes[i].className === "webix_drop_area")
+						nodeIndex++;
+
+				return nodes[nodeIndex];
+			}
 		}
+	},
+	_isDraggable:function(e){
+		var nodeName = (e.target || e.srcElement).nodeName;
+		return nodeName != "INPUT" && nodeName != "TEXTAREA";
 	},
 	dragColumn_setter:function(value){
 		var control; //will be defined below
 		if (value == "order"){
 			control = {
 				$drag:bind(function(s,e){
+					if(!this._isDraggable(e) || this._rs_process) return false;
 					var id = this.locate(e);
-					if (this._rs_process || !id || !this.callEvent("onBeforeColumnDrag", [id.column, e])) return false;
+					if (!id || !this.callEvent("onBeforeColumnDrag", [id.column, e])) return false;
 					DragControl._drag_context = { from:control, start:id, custom:"column_dnd" };
 
 					var column = this.getColumnConfig(id.column);
@@ -174,8 +251,9 @@ const Mixin = {
 			control = {
 				_inner_drag_only:true,
 				$drag:bind(function(s,e){
+					if(!this._isDraggable(e) || this._rs_process) return false;
 					var id = this.locate(e);
-					if (this._rs_process || !id || !this.callEvent("onBeforeColumnDrag", [id.column, e])) return false;
+					if (!id || !this.callEvent("onBeforeColumnDrag", [id.column, e])) return false;
 					DragControl._drag_context = { from:control, start:id, custom:"column_dnd" };
 
 					var header = this.getColumnConfig(id.column).header;

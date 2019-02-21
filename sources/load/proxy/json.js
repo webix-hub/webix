@@ -3,12 +3,12 @@ import rest from "./rest";
 
 const proxy = {
 	$proxy:true,
-	load:function(view, callback){
-		ajax(this.source, callback, view);
+	load:function(){
+		return ajax(this.source);
 	},
-	save:function(view, update, dp, callback){
+	save:function(view, update){
 		var xhr = ajax().headers({ "Content-Type":"application/json" });
-		return rest._save_logic.call(this, view, update, dp, callback, xhr);
+		return rest._save_logic.call(this, update, xhr);
 	}
 };
 

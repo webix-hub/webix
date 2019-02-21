@@ -5,9 +5,9 @@
 @skin : "contrast";
 
 /*shared scheme with all skins*/
-@baseColor: #3498db;
+@baseColor: #b300b3;
 @accentColor:#27ae60;
-@infoColor: #ff9;
+@infoColor: #ffd21a;
 @dangerColor: #ce5545;
 @backColor:#ffffff;
 
@@ -318,6 +318,10 @@
 
 @windowRadius: 0px;
 
+@messagePadding: 5px 10px 5px 10px;
+@messageColor: @mainColor;
+
+
 .webix_view .webix_win_head{
 	border-bottom: 1px solid @borderColor;
 }
@@ -325,34 +329,11 @@
 	color: @barFontColor;
 	background: @mainColor;
 }
-.webix_modal_box{
-	.webix_popup_title{
-		color: @fontColor;
-		background: @backColor;
-		font-size: @fontSize;
-		text-shadow: none;
-	}
-}
-.webix_popup_text{
-	font-size: @fontSize;
-}
-.webix_alert-warning, .webix_confirm-warning{
-	.webix_popup_text{
-		box-shadow: 0 3px #ffd21a inset;
-	}
-}
-.webix_alert-error, .webix_confirm-error{
-	.webix_popup_text{
-		box-shadow: 0 3px #ff391b inset;
-	}
-}
 
 .webix_view.webix_popup{
 	border: 1px solid @borderColor;
 }
-.webix_modal_box {
-	border: 1px solid @borderColor;
-}
+
 .confirmButton{
 	.skinBlueButton;
 	text-shadow: none;
@@ -642,7 +623,7 @@
 }
 
 // drag-n-drop
-.webix_drag_over, .webix_drop_zone,
+.webix_drag_over, .webix_drop_zone, .webix_drop_area,
 .webix_column >  .webix_drag_over.webix_cell{
 	background-color: lighten(@backColor, 10%);
 }
@@ -1596,10 +1577,13 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 	background-position: center center;
 }
 
-
 .webix_view::-webkit-scrollbar-thumb,
 .webix_view ::-webkit-scrollbar-thumb{
 	background: @lightBgColor;
+}
+
+.webix_c_scroll_y div, .webix_c_scroll_x div{
+	background: rgba(255,255,255,0.4);
 }
 
 //sidebar

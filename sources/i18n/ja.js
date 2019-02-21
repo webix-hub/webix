@@ -39,7 +39,9 @@ const ja = {
 		actualSize:"実サイズ",
 		pageFit:"ページサイズ",
 		pageWidth:"ページ幅",
-		pageHeight:"ページの高さ"
+		pageHeight:"ページの高さ",
+		enterPassword:"パスワードを入力する",
+		passwordError:"間違ったパスワード"
 	},
 	aria:{
 		calendar:"カレンダー",

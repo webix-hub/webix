@@ -7,7 +7,7 @@ import promise from "../thirdparty/promiz";
 import xml from "./drivers/xml";
 import json from "./drivers/json";
 
-
+//saving _xhr_aborted is only for clearing data in IE9 and IE8, can be removed in 7.0
 export const _xhr_aborted = toArray();
 
 export function ajax(url,params,call){
@@ -34,10 +34,11 @@ ajax.prototype={
 	/*
 		send data to the server
 		params - hash of properties which will be added to the url
-		call - callback, can be an array of functions
+		call - callback, can be an object with success and error functions
 	*/
 	_send:function(url, params, call, mode){
 		var master;
+		//webix.ajax(url, callback) - can be called only by user
 		if (params && (isArray(params) || (typeof (params.success || params.error || params) == "function"))){
 			master = call;
 			call = params;
@@ -45,14 +46,7 @@ ajax.prototype={
 		}
 
 		var defer = promise.defer();
-
 		var x=this.getXHR();
-		if (!isArray(call))
-			call = [call];
-
-		call.push({ success: function(_, d){ defer.resolve(d);	},
-			error: function(){ defer.reject(x);	}});
-
 		var headers = this._header || {};
 
 		if (!callEvent("onBeforeAjax", [mode, url, params, x, headers, null, defer])) return;
@@ -109,12 +103,10 @@ ajax.prototype={
 		x.onreadystatechange = function(){
 			if (!x.readyState || x.readyState == 4){
 				ajax.count++;
-				if (call && self && !x.aborted){
+				if (!x.aborted){
 					//IE8 and IE9, handling .abort call
 					if (_xhr_aborted.find(x) != -1)
 						return _xhr_aborted.remove(x);
-
-					var owner = self.master||self;
 
 					var is_error = x.status >= 400 || x.status === 0;
 					var text, data;
@@ -125,11 +117,22 @@ ajax.prototype={
 						text = x.responseText||"";
 						data = self._data(x);
 					}
+					if (is_error){
+						callEvent("onAjaxError", [x]);
+						defer.reject(x);
+						if(call)
+							ajax.$callback((self.master || window), call, text, data, x, is_error);
+					} else {
+						defer.resolve(data);
+						if(call)
+							ajax.$callback((self.master || window), call, text, data, x, is_error);
+					}
 
-					ajax.$callback(owner, call, text, data, x, is_error);
 				}
-				if (self) self.master=null;
-				call=self=master=null;	//anti-leak
+				else{//anti-leak
+					self.master=null;
+					call=self=master=null;	
+				}	
 			}
 		};
 
@@ -143,15 +146,24 @@ ajax.prototype={
 					//abort handling in IE9
 					if (_xhr_aborted.find(x) != -1)
 						_xhr_aborted.remove(x);
-					else
+					else{
 						x.send(params||null);
+					}
 				}
 			}, 1);
 		else
 			x.send(params||null);
-
-		if (this.master && this.master._ajax_queue)
+		
+		if (this.master && this.master._ajax_queue && !this._sync){
 			this.master._ajax_queue.push(x);
+			defer.then(function(data){
+				self.master._ajax_queue.remove(x);
+				//anti-leak
+				self.master=null;
+				call=self=master=null;	
+				return data;
+			});
+		}
 
 		return this._sync?x:defer; //return XHR, which can be used in case of sync. mode
 	},
@@ -210,13 +222,6 @@ ajax.prototype={
 		this._response = value;
 		return this;
 	},
-	//deprecated, remove in 3.0
-	//[DEPRECATED]
-	header:function(header){
-		assert(false, "ajax.header is deprecated in favor of ajax.headers");
-		this._header = header;
-		return this;
-	},
 	headers:function(header){
 		this._header = extend(this._header||{},header);
 		return this;
@@ -233,25 +238,12 @@ ajax.$callback = function(owner, call, text, data, x, is_error){
 
 	if (is_error)
 		callEvent("onAjaxError", [x]);
-
-	if (!isArray(call))
-		call = [call];
-
-	if (!is_error)
-		for (let i=0; i < call.length; i++){
-			if (call[i]){
-				var before = call[i].before;
-				if (before)
-					before.call(owner, text, data, x);
-			}
-		}
-
-	for (let i=0; i < call.length; i++)	//there can be multiple callbacks
-		if (call[i]){
-			var method = (call[i].success||call[i]);
-			if (is_error)
-				method = call[i].error;
-			if (method && method.call)
-				method.call(owner,text,data,x);
-		}
+	
+	if (call){
+		var method = call.success || call;
+		if (is_error)
+			method = call.error;
+		if (method && method.call)
+			method.call(owner,text,data,x);
+	}
 };

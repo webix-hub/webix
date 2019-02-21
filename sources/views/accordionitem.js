@@ -95,15 +95,14 @@ const api = {
 			self_size[3] = size[3];
 
 		self_size[3] += dy;
-
 		if(this.getParentView()._vertical_orientation){
 			if (this._settings.collapsed){
-				self_size[2] = self_size[3] = this._getHeaderSize();
+				self_size[2] = self_size[3] = this._getHeaderSize()+dy;
 			} else if(this._settings.header)
 				header = this._settings.headerHeight;
 		} else {
 			if (this._settings.collapsed)
-				self_size[0] = self_size[1] = this._getHeaderSize();
+				self_size[0] = self_size[1] = this._getHeaderSize()+dx;
 			if(this._settings.header)
 				header = this._settings.headerHeight;
 		}
@@ -261,8 +260,7 @@ const api = {
 	},
 	$skin:function(){
 		var defaults = this.defaults;
-		defaults.headerAltHeight = defaults.headerHeight = $active.barHeight;
-		defaults.headerHeight -= $active.borderWidth;
+		defaults.headerAltHeight = defaults.headerHeight = $active.barHeight - $active.borderWidth*2;
 	},
 	defaults:{
 		header:false,

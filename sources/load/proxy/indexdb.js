@@ -1,5 +1,5 @@
 import {bind, delay} from  "../../webix/helpers";
-import {ajax} from "../ajax";
+import promise from "../../thirdparty/promiz";
 
 const indexdb = {
 	$proxy:true,
@@ -40,28 +40,36 @@ const indexdb = {
 			},this);
 		} else if (this.db)
 			callback.call(this);
-		else 
+		else
 			delay(this._get_db, this, [callback], 50);
 	},
 
-	load:function(view, callback){
+	load:function(){
+		var waitData = promise.defer();
+		
 		this._get_db(function(){
 			var store = this.db.transaction(this.source).objectStore(this.source);
 			var data = [];
+			var req = store.openCursor();
 
-			store.openCursor().onsuccess = function(e) {
+			req.onsuccess = function(e) {
 				var result = e.target.result;
 				if(result){
 					data.push(result.value);
 					result["continue"]();
 				} else {
-					view.parse(data);
-					ajax.$callback(view, callback, "[]", data);
+					waitData.resolve(data);
 				}
 			};
+			req.onerror  = function(e) {
+				waitData.reject(e);
+			};
 		});
+		return waitData;
 	},
-	save:function(view, update, dp){
+	save:function(view, update){
+		var waitData = promise.defer();
+
 		this._get_db(function(){
 			var mode = update.operation;
 			var data = update.data;
@@ -83,9 +91,13 @@ const indexdb = {
 				var result = { status: mode, id:update.id };
 				if (mode == "insert")
 					result.newid = e.target.result;
-				dp.processResult(result, result);
+				waitData.resolve(result);
+			};
+			req.onerror = function(e) {
+				waitData.reject(e);
 			};
 		});
+		return waitData;
 	}
 };
 

@@ -213,6 +213,17 @@ function Deferred(resolver) {
 		return d;
 	};
 
+	self["finally"] = function(_handler){
+		var _value;
+		const handler = function(value){
+			_value = value;
+			return _handler();
+		};
+		const value = function(){ return _value; };
+
+		return self.then(handler, handler).then(value, value);
+	};
+
 	self["catch"] = function (_er) {
 		return self["then"](null, _er);
 	};

@@ -2,7 +2,7 @@ import {pos, offset} from "../webix/html";
 import {use} from "../services";
 import env from "../webix/env";
 import Touch from "../core/touch";
-import {extend, delay, PowerArray} from "../webix/helpers";
+import {extend, delay, PowerArray, isArray} from "../webix/helpers";
 import {assert} from "../webix/debug";
 import DragControl from "../core/dragcontrol";
 import AutoScroll from "../core/autoscroll";
@@ -33,9 +33,9 @@ const DragItem ={
 	drag_setter:function(value){
 		if (value){
 			extend(this, AutoScroll, true);
-			if (value == "order")
+			if (value == "order" || value == "move")
 				extend(this, use("DragOrder"), true);
-			if (value == "inner")
+			if (value == "inner" || value == "order")
 				this._inner_drag_only = true;
 
 			this._initHandlers(this, value == "source", value == "target");
@@ -118,15 +118,7 @@ const DragItem ={
 		var context = DragControl._drag_context;
 		//finalize context details
 		context.to = this;
-		var target = this._target_to_id(context.target);
-
-		if (this.getBranchIndex){
-			if (target){
-				context.parent = this.getParentId(target);
-				context.index = this.getBranchIndex(target);
-			}
-		} else
-			context.index = target?this.getIndexById(target):this.count();
+		this._define_index(s,t,context);
 
 		//unmark last target
 		this.$dragMark({}, e);
@@ -140,6 +132,17 @@ const DragItem ={
 		this._context_to_move(context,e);
 		
 		this.callEvent("onAfterDrop",[context,e]);
+	},
+	_define_index:function(s,t,context){
+		var target = this._target_to_id(context.target);
+
+		if (this.getBranchIndex){
+			if (target){
+				context.parent = this.getParentId(target);
+				context.index = this.getBranchIndex(target);
+			} else context.index = -1;
+		} else
+			context.index = target?this.getIndexById(target):this.count();
 	},
 	_context_to_move:function(context){
 		assert(context.from, "Unsopported d-n-d combination");
@@ -163,7 +166,7 @@ const DragItem ={
 		if (id){
 			var list = [id];
 
-			if (this.getSelectedId && !this._do_not_drag_selection){ //has selection model
+			if (this.getSelectedId){ //has selection model
 				//if dragged item is one of selected - drag all selected
 				var selection = this.getSelectedId(true, true);	
 
@@ -189,13 +192,23 @@ const DragItem ={
 					Touch._start_context = null;
 
 				//set drag representation
-				return context.html||this.$dragHTML(this.getItem(id), e);
+				return context.html||this.$dragHTML(this.getItem(id), e, context);
 			}
 		}
 		return null;
 	},
-	$dragHTML:function(obj){
-		return this._toHTML(obj);
+	$dragHTML:function(obj,e,context){
+		let html = this._toHTML(obj);
+		if ( isArray(context.source) && context.source.length > 1 )
+			html = this._toMultipleHTML(html, context.source.length);
+		return html;
+	},
+	_toMultipleHTML:function(html, len){
+		html = "<div class='webix_drag_main'>"+html+"</div>";
+		let multiple = "<div class='webix_drag_multiple'></div>";
+		if ( len > 2 )
+			multiple = "<div class='webix_drag_multiple_last'></div>" + multiple;
+		return multiple+html+"<span class='webix_badge'>"+len+"</span>";
 	},
 	$dragMark:function(context){
 		var target = null;
@@ -219,6 +232,17 @@ const DragItem ={
 			return true;
 		}else
 			return false;
+	},
+
+	// methods used in order/move modes
+	$dropHTML: function(){
+		return "";
+	},
+	_set_drop_area:function(target, t){
+		let node = this.getItemNode(target);
+		if (node){
+			node.parentNode.insertBefore(DragControl._dropHTML[0], node);
+		} else t.children[0].appendChild(DragControl._dropHTML[0]);
 	}
 };
 

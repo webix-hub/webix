@@ -80,8 +80,8 @@
 	color:@fontColor;
 	//text-transform: uppercase;
 	//font-size:10px;
-	line-height: @inputHeight - 2*@skin_input_y_padding;
-	padding:@skin_input_y_padding @skin_input_x_padding;
+	//line-height: @inputHeight - 2*@skin_input_y_padding;
+	//padding:@skin_input_y_padding @skin_input_x_padding;
 }
 
 .webix_toolbar .webix_el_label{
@@ -348,6 +348,9 @@ body:not(:-moz-handler-blocked) .webix_el_select select{
 		-webkit-filter: grayscale(100%);
 		filter: grayscale(100%);
 	}
+}
+.webix_el_label.webix_disabled_view{
+	color: @disabledFontColor;
 }
 
 .webix_view.webix_control .webix_disabled_box{

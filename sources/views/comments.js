@@ -3,7 +3,7 @@ import layout from "../views/layout";
 import list from "../views/list";
 
 import {ui, $$} from "../ui/core";
-import {extend, bind, delay, toArray, copy} from "../webix/helpers";
+import {extend, bind, delay, toArray} from "../webix/helpers";
 import env from "../webix/env";
 import {setSelectionRange, preventEvent} from "../webix/html";
 import {attachEvent, detachEvent} from "../webix/customevents";
@@ -30,9 +30,6 @@ const api = {
 	},
 	$init: function(config){
 		this.$view.className +=" webix_comments";
-
-		if (!config.format)
-			config.format = "%Y-%m-%d %H:%i:%s";
 
 		config.rows = [this._configList(config)];
 		if(!config.readonly)
@@ -72,7 +69,9 @@ const api = {
 				this._changeTextarea(true);
 				delay(() => { this._input.focus(); });
 			}
-			else if(view !==this._sendButton && view !==this._listMenu && (!e || e.target.className.indexOf("webix_comments_menu") ===-1)){
+			else if(view !==this._sendButton && view !==this._listMenu && 
+				(!e || (e.target.className||"").toString().indexOf("webix_comments_menu") ===-1)
+			){
 				this._changeTextarea();
 			}
 		});
@@ -137,11 +136,6 @@ const api = {
 	},
 	$skin:function(){
 		this._inputHeight = $active.inputHeight+6;
-	},
-	format_setter(value){
-		this._strToDate = DateHelper.strToDate(value);
-		this._dateToStr = DateHelper.dateToStr(value);
-		return value;
 	},
 	getUsers: function(){
 		return this._users;
@@ -212,7 +206,7 @@ const api = {
 		text.resize();
 	},
 	_toggleButton(value){
-		if(!value) value = this._input.getInputNode().value;
+		if(!value) value = this._input.getValue();
 
 		if(value && !this._sendButton.isEnabled()) this._sendButton.enable();
 		else if(!value && this._sendButton.isEnabled()) this._sendButton.disable();
@@ -390,28 +384,20 @@ const api = {
 
 		type = extend(type, config.listItem || {}, true);
 
+		var scheme = {
+			$init:(obj) => {
+				if(obj.date)
+					obj.date = i18n.parseFormatDate(obj.date);
+			}
+		};
+
+		scheme = extend(scheme, config.scheme || {}, true);
+
 		var listConfig = {
 			view:"list",
 			navigation:false,
 			type: type,
-			scheme:{
-				$init:(obj) => {
-					if(obj.date)
-						obj.date = this._strToDate(obj.date);
-				},
-				$save: (obj) => {
-					if(obj.date)
-						obj.date = this._dateToStr(obj.date);
-				},
-				$serialize: (obj) => {
-					if(obj.date){
-						var item = copy(obj);
-						item.date = this._dateToStr(obj.date);
-						return item;
-					}
-					return obj;
-				}
-			},
+			scheme:scheme,
 			onClick: {
 				"webix_comments_menu": (ev, id) => {
 					if(this._listMenu.isVisible())

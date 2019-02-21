@@ -1,7 +1,7 @@
 import {addCss, createCss} from "../webix/html";
 import {protoUI} from "../ui/core";
 import {$active} from "../webix/skin";
-import {bind, extend} from "../webix/helpers";
+import {bind, extend, isArray} from "../webix/helpers";
 import template from "../webix/template";
 
 import env from "../webix/env";
@@ -38,14 +38,17 @@ const api = {
 			extend(this, VRenderStack, true);
 		return value;
 	},
-	$dragHTML:function(obj){
+	$dragHTML:function(obj,e,context){
+		let html;
 		if (this._settings.layout == "y" && this.type.width == "auto"){
 			this.type.width = this._content_width;
-			var node = this._toHTML(obj);
+			html = this._toHTML(obj);
 			this.type.width = "auto";
-			return node;
-		}
-		return this._toHTML(obj);
+		} else html = this._toHTML(obj);
+
+		if ( isArray(context.source) && context.source.length > 1 )
+			html = this._toMultipleHTML(html, context.source.length);
+		return html;
 	},
 	defaults:{
 		select:false,
@@ -133,6 +136,8 @@ const api = {
 		},
 		classname:function(obj, common, marks){
 			var css = "webix_list_item";
+
+			if (common.css) css += " "+common.css;
 			if (obj.$css){
 				if (typeof obj.$css == "object")
 					obj.$css = createCss(obj.$css);
