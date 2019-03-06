@@ -121,7 +121,8 @@ function info(text){
 }
 function _boxStructure(config, ok, cancel){
 	var box = document.createElement("DIV");
-	box.className = " webix_modal_box webix_"+config.type;
+	var css = config.css ? " "+config.css : "";
+	box.className = "webix_modal_box webix_"+config.type+css;
 	box.setAttribute("webixbox", 1);
 	box.setAttribute("role", "alertdialog");
 	box.setAttribute("aria-label", config.title || "");

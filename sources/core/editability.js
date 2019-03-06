@@ -317,6 +317,7 @@ const EditAbility ={
 		node.top = pos.top; //later will be used during y-scrolling
 
 		if (inline) pos.parent.appendChild(node);
+		return pos;
 	},
 	_for_each_editor:function(handler){
 		for (var editor in this._editors)

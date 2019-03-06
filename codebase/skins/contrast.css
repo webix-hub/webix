@@ -144,6 +144,9 @@ body.webix_full_screen {
   font-size: 18px;
   line-height: 43px;
 }
+.webix_header .webix_el_label .webix_el_box {
+  font-size: 18px;
+}
 .webix_header > div {
   line-height: 45px;
   padding-left: 10px;
@@ -285,6 +288,9 @@ button,
   line-height: 43px;
   cursor: pointer;
   overflow: hidden;
+}
+.webix_accordionitem_header .webix_el_label .webix_el_box {
+  font-size: 18px;
 }
 /* IE8 */
 .webix_ie.horizontal > .webix_accordionitem_header.collapsed {
@@ -978,6 +984,12 @@ button,
 .webix_hcell .webix_tree_open {
   margin-right: 5px;
 }
+.webix_table_checkbox,
+.webix_hcell input[type="checkbox"] {
+  margin-top: 0px;
+  margin-bottom: 2px;
+  vertical-align: middle;
+}
 .webix_ss_filter select,
 .webix_ss_filter input {
   width: 100%;
@@ -1300,6 +1312,9 @@ button,
   padding: 0px;
   text-align: center;
   line-height: 45px;
+}
+.webix_win_head > .webix_view > .webix_template .webix_el_label .webix_el_box {
+  font-size: 18px;
 }
 /*----------------------------*/
 /* DO NOT CHANGE STYLES BELOW */
@@ -1820,6 +1835,9 @@ button,
   line-height: 23px;
   border-bottom: 1px solid #ebebeb;
   line-height: 28px;
+}
+.webix_property_label_line .webix_el_label .webix_el_box {
+  font-size: 18px;
 }
 .webix_property_col_val {
   width: 100%;
@@ -2890,7 +2908,6 @@ input.webixtype_next {
   color: #fff;
 }
 .webix_toolbar .webix_el_label {
-  padding-left: 10px;
   text-transform: none;
 }
 .webix_el_select select {
@@ -3578,10 +3595,16 @@ legend.webix_required:after,
   font-size: 18px;
   background: #191919;
 }
+.webix_layout_toolbar .webix_el_label .webix_el_box {
+  font-size: 18px;
+}
 .webix_toolbar.webix_layout_subbar {
   color: #fff;
   font-size: 18px;
   background: #191919;
+}
+.webix_toolbar.webix_layout_subbar .webix_el_label .webix_el_box {
+  font-size: 18px;
 }
 .webix_toolbar .webix_layout_toolbar,
 .webix_toolbar .webix_layout_line,
@@ -4920,6 +4943,9 @@ body.webix_print {
   color: #fff;
   font-size: 18px;
   background: #191919;
+}
+.webix_layout_toolbar.webix_toolbar .webix_el_label .webix_el_box {
+  font-size: 18px;
 }
 .webix_layout_space > .webix_toolbar {
   border-radius: 0;

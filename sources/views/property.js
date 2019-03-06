@@ -11,7 +11,7 @@ import {locate, createCss} from "../webix/html";
 import {protoUI} from "../ui/core";
 import template from "../webix/template";
 import {$active} from "../webix/skin";
-import {uid, extend, clone} from "../webix/helpers";
+import {uid, extend, clone, isUndefined} from "../webix/helpers";
 import {addCss, removeCss} from "../webix/html";
 import RenderStack from "../core/renderstack";
 import CodeParser from "../core/codeparser";
@@ -154,7 +154,7 @@ const api = {
 	},
 	setValues:function(data, update){
 		if (this._settings.complexData)
-			data = CodeParser.collapseNames(data);
+			data = CodeParser.collapseNames(data, "", {}, (v) => isUndefined(this._idToLine[v]));
 
 		if(!update) this._clear();
 		for(var key in data){

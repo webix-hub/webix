@@ -1,5 +1,6 @@
 import {bind} from "../webix/helpers";
 import DataLoader from "../core/dataloader";
+import promise from "../thirdparty/promiz";
 
 
 const TreeDataLoader = {
@@ -12,14 +13,15 @@ const TreeDataLoader = {
 		// branch loading
 		var details = (count === 0?{parent: encodeURIComponent(id)}:null);
 
-		DataLoader.prototype._feed_common.call(this,id, count, callback, url, details);
+		return DataLoader.prototype._feed_common.call(this,id, count, callback, url, details);
 	},
 	//load next set of data rows
 	loadBranch:function(id, callback, url){
 		id = id ||0;
 		this.data.url = url || this.data.url;
 		if (this.callEvent("onDataRequest", [id,callback,this.data.url]) && this.data.url)
-			this.data.feed.call(this, id, 0, callback, url);
+			return this.data.feed.call(this, id, 0, callback, url);
+		return promise.reject();
 	},
 	_sync_hierarchy:function(id, data, mode){
 		if (!mode || mode == "add" || mode == "delete" || mode == "branch"){

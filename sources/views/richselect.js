@@ -2,6 +2,7 @@ import {protoUI, $$} from "../ui/core";
 import {$active} from "../webix/skin";
 import {isUndefined, bind} from "../webix/helpers";
 import {assert} from "../webix/debug";
+import {preventEvent} from "../webix/html";
 
 import text from "./text";
 
@@ -119,6 +120,10 @@ const api = {
 	},
 	getValue:function(){
 		return this._settings.value||"";
+	},
+	_ignoreLabelClick:function(ev){
+		this.focus();
+		preventEvent(ev);
 	}
 };
 

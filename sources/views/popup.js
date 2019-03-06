@@ -6,7 +6,6 @@ import window from "../views/window";
 import base from "../views/view";
 
 import {zIndex} from "../ui/helpers";
-import {bind} from "../webix/helpers";
 import {attachEvent} from "../webix/customevents";
 
 
@@ -15,7 +14,7 @@ const api = {
 	$init:function(){
 		this._settings.head = false;
 		this.$view.className += " webix_popup";
-		attachEvent("onClick", bind(this._hide, this));
+		attachEvent("onClick", (e)=>this._hide(e));
 		this.attachEvent("onHide", this._hide_point);
 	},
 	$skin:function(){

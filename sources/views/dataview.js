@@ -102,7 +102,7 @@ const api = {
 
 			if (common.css) css += " "+common.css;
 			if (common.type && common.type.toString() == "tiles")
-				css += "tiles ";
+				css += " tiles ";
 			if (obj.$css){
 				if (typeof obj.$css == "object")
 					obj.$css = createCss(obj.$css);

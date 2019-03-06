@@ -279,6 +279,7 @@ const api = {
 				switch(this._settings.align){
 					case "right":
 						handle.style.cssFloat = "right";
+						handle.style.textAlign = "right";
 						break;
 					case "center":
 						handle.style.display = "inline-block";

@@ -397,7 +397,7 @@
 //---------------------------------------------------------------//
 
 .layoutBarBG{
-	.webix_el_label{
+	.webix_el_label .webix_el_box{
 		.barFont();
 	}
 	&.webix_dark{
@@ -2272,7 +2272,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	}
 }
 // input labels
-.webix_inp_label, .webix_inp_top_label, legend.webix_forminput_label, .webix_el_label{
+.webix_inp_label, .webix_inp_top_label, legend.webix_forminput_label, .webix_el_label .webix_el_box{
 	.fontStyle(@fontSize, 500, @altFontColor);
 }
 .webix_inp_label{

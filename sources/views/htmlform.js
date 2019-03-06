@@ -68,8 +68,9 @@ var _set_value = {
 		el.value = value;
 	},
 	select: function(el, value) {
-		//select first option if no provided and if possible
-		el.value = value?value:el.firstElementChild.value||value;
+		el.value = value;
+		//incorrect option applied, select first option
+		if(el.selectedIndex === -1) el.value = el.firstElementChild.value;
 	},
 	other: function(el, value) {
 		el.innerHTML = value;
@@ -140,8 +141,14 @@ const api = {
 	_clear_invalid:function(id){
 		var el = this._viewobj.querySelector("[name=\"" + id + "\"]");
 		if (el) removeCss(el, "invalid");
+	},
+	focus:function(name){
+		if (!name && this.$view.contains(document.activeElement)){
+			// focus already inside of form, leaving
+			return false;
+		}
+		Values.focus.apply(this, arguments);
 	}
-
 };
 
 

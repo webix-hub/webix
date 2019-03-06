@@ -73,36 +73,47 @@ const AtomDataLoader={
 			result = promise.resolve(result);
 		}
 
+		const gen = this._data_generation;
 		if(result && result.then){
 			result.then((data) => {
-				if (this.$destructed)
-					return;
+				// component destroyed, or clearAll was issued
+				if (this.$destructed || (gen && this._data_generation !== gen))
+					// by returning rejection we are preventing the further executing chain
+					// if user have used list.load(data).then(do_something)
+					// the do_something will not be executed
+					// the error handler may be triggered though
+					return promise.reject();
+
 				this._onLoad(data);
 				if (call)
 					ajax.$callback(this, call, "", data, -1);
-			}, (x) => {
-				this._onLoadError(x);
-			});
+			}, x => this._onLoadError(x, gen));
 		}
 		return result;
 	},
 	//loads data from object
 	parse:function(data,type){
 		if (data && typeof data.then == "function"){
+			const generation = this._data_generation;
+			// component destroyed, or clearAll was issued
 			return data.then(bind(function(data){ 
+				if (this.$destructed || (generation && this._data_generation !== generation))
+					return promise.reject();
 				this.parse(data, type); 
 			}, this));
 		}
 
 		//loading data from other component
 		if (data && data.sync && this.sync)
-			return this._syncData(data);
-
-		if(!this.callEvent("onBeforeLoad",[]))
+			this._syncData(data);
+		else if(!this.callEvent("onBeforeLoad",[]))
 			return promise.reject();
+		else {
+			this.data.driver = DataDriver[type||"json"];
+			this._onLoad(data);
+		}
 
-		this.data.driver = DataDriver[type||"json"];
-		this._onLoad(data);
+		return promise.resolve();
 	},
 	_syncData: function(data){
 		if(this.data)
@@ -152,14 +163,19 @@ const AtomDataLoader={
 
 		data = this.data.driver.toObject(data);
 		if(data && data.then)
-			data.then((data) => { this._onLoadContinue(data); });
+			data.then(data => this._onLoadContinue(data));
 		else
 			this._onLoadContinue(data);
 	},
-	_onLoadError:function(xhttp){
-		this.callEvent("onAfterLoad",[]);
-		this.callEvent("onLoadError",arguments);
+	_onLoadError:function(xhttp, generation){
+		//ignore error for dead components
+		if (!this.$destructed && (!generation || this._data_generation === generation)){
+			this.callEvent("onAfterLoad",[]);
+			this.callEvent("onLoadError",arguments);
+		}
+
 		callEvent("onLoadError", [xhttp, this]);
+		return promise.reject(xhttp);
 	},
 	_check_data_feed:function(data){
 		if (!this._settings.dataFeed || this._ignore_feed || !data)

@@ -2,18 +2,21 @@ import {isDate, isArray} from "../webix/helpers";
 
 const CodeParser = {
 	//converts a complex object into an object with primitives properties
-	collapseNames:function(base, prefix, data){
+	collapseNames:function(base, prefix, data, filter){
 		data = data || {};
 		prefix = prefix || "";
+		filter  = filter || function(){ return true; };
 
 		if(!base || typeof base != "object")
 			return null;
 
 		for(var prop in base){
-			if(base[prop] && typeof base[prop] == "object" && !isDate(base[prop]) && !isArray(base[prop])){
-				CodeParser.collapseNames(base[prop], prefix+prop+".", data);
+			let value = base[prop];
+			let name = prefix+prop;
+			if(value && typeof value == "object" && !isDate(value) && !isArray(value) && filter(name, value)){
+				CodeParser.collapseNames(value, name+".", data, filter);
 			} else {
-				data[prefix+prop] = base[prop];
+				data[name] = value;
 			}
 		}
 		return data;

@@ -34,11 +34,21 @@ const api = {
 		else
 			this.$setValue(value);
 	},
+	$compareValue:function(value){
+		var result = richselect.api.$compareValue.apply(this, arguments);
+		if(result && value != this.getText())
+			this._revertValue();
+		return result;
+	},
 	defaults:{
 		template:function(config, common){
 			return common.$renderInput(config).replace(/(<input)\s*(?=\w)/, "$1"+" role='combobox'");
 		},
 		icon: "wxi-menu-down"
+	},
+	on_click:{
+		"webix_inp_label": function(e){this._ignoreLabelClick(e);},
+		"webix_inp_top_label": function(e){this._ignoreLabelClick(e);}
 	}
 };
 

@@ -85,6 +85,9 @@ const TooltipControl ={
 		else node = target.$view;
 
 		if (node.webix_tooltip){
+			if (this._last == node)
+				this._last = null;
+
 			delete node.webix_tooltip;
 			this._tooltip_exist--;
 		}

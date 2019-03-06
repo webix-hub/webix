@@ -1,3 +1,30 @@
+Version 6.2.1 (March 2019)
+==================
+
+### Updates
+
+- ability to style modal boxes
+
+### Fixes 
+
+- regression in item css for sidebar and dataview tiles
+- regression in masterCheckbox css in Datatable header
+- regression in Label alignment
+- applying custom css for Template with defined type
+- repeated calls can break loadNext logic
+- custom loading can throw an error if a component is destroyed before loading end
+- cancelled data loading calls are not tracked
+- initial Richtext value doesn't set from data property
+- complexData incorrectly collapses complex Form and Property values
+- close input's dropdown on a label click
+- tooltip breaks if a target component is removed
+- tooltip shows up after the target component is hidden
+- editor popup position while scrolling the Datatable with prerender:true
+- incorrect resetting Combo value on dropdown click in some cases
+- HtmlForm: don't reset input focus on clicking the inner input
+- HtmlForm: correct select box value if the corresponding option is not found
+
+
 Version 6.2 (February 2019)
 ==================
 

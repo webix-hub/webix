@@ -1,14 +1,11 @@
 import { log, assert } from "../webix/debug";
-import { isArray, toArray, extend } from "../webix/helpers";
+import { isArray, extend } from "../webix/helpers";
 import { stringify } from "../webix/stringify";
 import { callEvent } from "../webix/customevents";
 import promise from "../thirdparty/promiz";
 
 import xml from "./drivers/xml";
 import json from "./drivers/json";
-
-//saving _xhr_aborted is only for clearing data in IE9 and IE8, can be removed in 7.0
-export const _xhr_aborted = toArray();
 
 export function ajax(url,params,call){
 	//if parameters was provided - made fast call
@@ -49,7 +46,9 @@ ajax.prototype={
 		var x=this.getXHR();
 		var headers = this._header || {};
 
-		if (!callEvent("onBeforeAjax", [mode, url, params, x, headers, null, defer])) return;
+		if (!callEvent("onBeforeAjax", [mode, url, params, x, headers, null, defer])){
+			return defer.reject(x);
+		}
 
 		//add content-type to POST|PUT|DELETE
 		var json_mode = false;
@@ -103,35 +102,25 @@ ajax.prototype={
 		x.onreadystatechange = function(){
 			if (!x.readyState || x.readyState == 4){
 				ajax.count++;
-				if (!x.aborted){
-					//IE8 and IE9, handling .abort call
-					if (_xhr_aborted.find(x) != -1)
-						return _xhr_aborted.remove(x);
 
-					var is_error = x.status >= 400 || x.status === 0;
-					var text, data;
-					if (x.responseType == "blob" || x.responseType == "arraybuffer"){
-						text = "";
-						data = x.response;
-					} else {
-						text = x.responseText||"";
-						data = self._data(x);
-					}
-					if (is_error){
-						callEvent("onAjaxError", [x]);
-						defer.reject(x);
-						if(call)
-							ajax.$callback((self.master || window), call, text, data, x, is_error);
-					} else {
-						defer.resolve(data);
-						if(call)
-							ajax.$callback((self.master || window), call, text, data, x, is_error);
-					}
-
+				var is_error = x.status >= 400 || x.status === 0;
+				var text, data;
+				if (x.responseType == "blob" || x.responseType == "arraybuffer"){
+					text = "";
+					data = x.response;
+				} else {
+					text = x.responseText||"";
+					data = self._data(x);
 				}
-				else{//anti-leak
-					self.master=null;
-					call=self=master=null;	
+				if (is_error){
+					callEvent("onAjaxError", [x]);
+					defer.reject(x);
+					if(call)
+						ajax.$callback((self.master || window), call, text, data, x, is_error);
+				} else {
+					defer.resolve(data);
+					if(call)
+						ajax.$callback((self.master || window), call, text, data, x, is_error);
 				}	
 			}
 		};
@@ -142,22 +131,13 @@ ajax.prototype={
 		//IE can use sync mode sometimes, fix it
 		if (!this._sync)
 			setTimeout(function(){
-				if (!x.aborted){
-					//abort handling in IE9
-					if (_xhr_aborted.find(x) != -1)
-						_xhr_aborted.remove(x);
-					else{
-						x.send(params||null);
-					}
-				}
+				x.send(params||null);
 			}, 1);
 		else
 			x.send(params||null);
 		
-		if (this.master && this.master._ajax_queue && !this._sync){
-			this.master._ajax_queue.push(x);
+		if (this.master && !this._sync){
 			defer.then(function(data){
-				self.master._ajax_queue.remove(x);
 				//anti-leak
 				self.master=null;
 				call=self=master=null;	

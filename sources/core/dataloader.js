@@ -1,5 +1,5 @@
-import {ajax, _xhr_aborted} from "../load/ajax";
-import {toArray, bind, delay, extend, toFunctor} from "../webix/helpers";
+import {ajax} from "../load/ajax";
+import {bind, delay, extend, toFunctor} from "../webix/helpers";
 import {proto} from "../ui/core";
 
 import {dp} from "../load/dataprocessor";
@@ -21,13 +21,11 @@ const DataLoader =proto({
 	$init:function(config){
 		//prepare data store
 		config = config || "";
-		
-		//list of all active ajax requests
-		this._ajax_queue = toArray();
+
 		this._feed_last = {};
+		this._data_generation = 1;
 
 		this.data = new DataStore();
-
 		this.data.attachEvent("onClearAll",bind(this._call_onclearall,this));
 		this.data.attachEvent("onServerConfig", bind(this._call_on_config, this));
 		this.attachEvent("onDestruct", this._call_onclearall);
@@ -35,17 +33,20 @@ const DataLoader =proto({
 		this.data.feed = this._feed;
 		this.data.owner = config.id;
 	},
-	_feed:function(from,count,callback){
+	_feed:function(from,count,callback,defer){
 		//allow only single request at same time
-		if (this._load_count)
-			return (this._load_count=[from,count,callback]);	//save last ignored request
+		if (this._load_count){
+			defer = promise.defer();
+			this._load_count=[from,count,callback,defer];	//save last ignored request
+			return defer;
+		}
 		else
 			this._load_count=true;
 		this._feed_last.from = from;
 		this._feed_last.count = count;
-		return this._feed_common.call(this, from, count, callback);
+		return this._feed_common.call(this, from, count, callback, false, false, defer);
 	},
-	_feed_common:function(from, count, callback, url, details){
+	_feed_common:function(from, count, callback, url, details, defer){
 		var state = null;
 		url = url || this.data.url;
 
@@ -68,12 +69,10 @@ const DataLoader =proto({
 				if (state.filter)
 					details.filter = state.filter;
 			}
-			return this.load(url, 0, details).then((data)=>{
-				this._feed_callback();
-				if(callback)
-					ajax.$callback(this, callback, data);
-				return data;
-			});
+			return this.load(url, 0, details).then(
+				data => this._feed_on_load(data, callback, defer),
+				() => this._feed_callback()
+			);
 		} else { // GET
 			url = url+((url.indexOf("?")==-1)?"?":"&");
 
@@ -96,16 +95,22 @@ const DataLoader =proto({
 			url += params.join("&");
 			if (this._feed_last.url !== url){
 				this._feed_last.url = url;
-				return this.load(url).then((data)=>{
-					this._feed_callback();
-					if(callback)
-						ajax.$callback(this, callback, data);
-					return data;
-				});
+				return this.load(url).then(
+					data => this._feed_on_load(data, callback, defer),
+					() => this._feed_callback()
+				);
 			} else {
 				this._load_count = false;
 			}
 		}
+	},
+	_feed_on_load:function(data, callback, defer){
+		delay(()=> this._feed_callback(), "", "", 100);
+		if(callback)
+			ajax.$callback(this, callback, data);
+		if(defer)
+			defer.resolve(data);
+		return data;
 	},
 	_feed_callback:function(){
 		//after loading check if we have some ignored requests
@@ -131,10 +136,12 @@ const DataLoader =proto({
 		if (config.datathrottle && !now){
 			if (this._throttle_request)
 				window.clearTimeout(this._throttle_request);
+
+			let defer = promise.defer();
 			this._throttle_request = delay(function(){
-				this.loadNext(count, start, callback, url, true);
+				defer.resolve(this.loadNext(count, start, callback, url, true));
 			},this, 0, config.datathrottle);
-			return;
+			return defer;
 		}
 
 		if (!start && start !== 0) start = this.count();
@@ -142,8 +149,13 @@ const DataLoader =proto({
 			count = config.datafetch || this.count();
 
 		this.data.url = this.data.url || url;
-		if (this.callEvent("onDataRequest", [start,count,callback,url]) && this.data.url)
-			return this.data.feed.call(this, start, count, callback);
+		if (this.callEvent("onDataRequest", [start,count,callback,url]) && this.data.url){
+			let result = this.data.feed.call(this, start, count, callback);
+			if(result && result.then)
+				return result;
+			else //loading was blocked due to same url
+				return promise.reject("Attempt to load data with the same url");
+		}
 	},
 	_maybe_loading_already:function(count, from){
 		var last = this._feed_last;
@@ -212,11 +224,10 @@ const DataLoader =proto({
 					}
 					else if (url.$proxy) {
 						if (url.load){
-							url.load(this, { filter: filter }) .then((data) => { 
-								this._onLoad(data);
-							}, (x) => { 
-								this._onLoadError(x);
-							});
+							url.load(this, { filter: filter }).then(
+								data => this._onLoad(data),
+								x => this._onLoadError(x)
+							);
 						}
 					}
 				}
@@ -236,19 +247,10 @@ const DataLoader =proto({
 		}
 	},
 	_call_onclearall:function(soft){
-		for (var i = 0; i < this._ajax_queue.length; i++){
-			var xhr = this._ajax_queue[i];
-
-			//IE9 and IE8 deny extending of ActiveX wrappers
-			try { xhr.aborted = true; } catch(e){ 
-				_xhr_aborted.push(xhr);
-			}
-			xhr.abort();
-		}
+		this._data_generation++;
 		if (!soft){
 			this._load_count = false;
 			this._feed_last = {};
-			this._ajax_queue = toArray();
 			this.waitData = promise.defer();
 		}
 	},

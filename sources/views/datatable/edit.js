@@ -64,7 +64,8 @@ const Mixin = {
 		this._addEditor(id, type);
 
 		if (!type.$inline)
-			this._sizeToCell(id, node, true);
+			type._editor_pos = this._sizeToCell(id, node, true);
+		
 
 		if (type.afterRender)
 			type.afterRender();
@@ -308,14 +309,26 @@ const Mixin = {
 
 			var diff = this._last_editor_scroll.y - old.y;
 			this._for_each_editor(function(editor){
+
 				if (editor.getPopup){
-					var node = this.getItemNode(editor);
-					if (node)
-						editor.getPopup().show(node);
-					else
+					const node = this.getItemNode(editor);
+					let isHidden = false;
+
+					if(this._settings.prerender){
+						const pos = editor._editor_pos;
+						let ydiff = pos.top - this._scrollTop;
+						let xdiff = pos.left - this._scrollLeft;
+
+						isHidden = (ydiff < 0 || ydiff+pos.height > this._dtable_offset_height || 
+							xdiff < 0 || xdiff+pos.width > this.$width - this._scrollSizeX);
+					}
+					if(!node || isHidden)
 						editor.getPopup().show({ x:-10000, y:-10000 });
+					else
+						editor.getPopup().show(node);
+					
 				}
-				if (!editor.linkInput && !editor.$inline){
+				if (!this._settings.prerender && !editor.linkInput && !editor.$inline){
 					editor.node.top -= diff;
 					editor.node.style.top = editor.node.top + "px";
 				}

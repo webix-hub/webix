@@ -27,6 +27,7 @@ const api = {
 		this.defaults.titleHeight = $active.sidebarTitleHeight;
 	},
 	$init: function(){
+		this.$view.className += " webix_sidebar";
 		this.$ready.push(this._initSidebar);
 		this.$ready.push(this._initContextMenu);
 
@@ -344,7 +345,6 @@ const api = {
 type(tree.view, {
 	name:"sideBar",
 	height: "auto",
-	css: "webix_sidebar",
 	template: function(obj, common){
 		if(common.collapsed)
 			return common.icon(obj, common);

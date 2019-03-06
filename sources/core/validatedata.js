@@ -58,7 +58,7 @@ const ValidateData = {
 			var data = obj;
 
 			if (this._settings.complexData)
-				data = CodeParser.collapseNames(obj);
+				data = CodeParser.collapseNames(obj, "", {}, (v) => !rules[v]);
 
 			if (all)
 				for (let key in obj){

@@ -42,6 +42,7 @@ const api = {
 			on: {
 				onAfterRender: function() {
 					top._rendered_input = true;
+					top.refresh();
 					_event( 
 						top.getInputNode(),
 						"blur",
@@ -130,7 +131,7 @@ const api = {
 	},
 	refresh: function() {
 		if(this._rendered_input)
-			this.getInputNode().innerHTML = this.config.value;
+			this.getInputNode().innerHTML = this.config.value || "";
 	},
 	_execCommandOnElement:function(el, commandName) {
 		var sel, selText;
