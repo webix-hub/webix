@@ -72,7 +72,7 @@ const api = {
 		datafetch:50,
 		navigation:true
 	},
-	_id:"webix_l_id",
+	_id:/*@attr*/"webix_l_id",
 	_itemClassName:"webix_dataview_item",
 	_tilesPadding:0,
 	_drag_direction:"x",
@@ -125,7 +125,7 @@ const api = {
 		aria:function(obj, common, marks){
 			return "role=\"option\""+(marks && marks.webix_selected?" aria-selected=\"true\" tabindex=\"0\"":" tabindex=\"-1\"");
 		},
-		templateStart:template("<div webix_l_id=\"#id#\" class=\"{common.classname()}\" {common.aria()} style=\"width:{common.width}px; height:{common.height}px; float:left; overflow:hidden;\">{common.tilesStart()}"),
+		templateStart:template("<div "+/*@attr*/"webix_l_id"+"=\"#id#\" class=\"{common.classname()}\" {common.aria()} style=\"width:{common.width}px; height:{common.height}px; float:left; overflow:hidden;\">{common.tilesStart()}"),
 		templateEnd:template("{common.tilesEnd()}</div>")
 		
 	},

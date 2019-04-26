@@ -198,7 +198,7 @@ if (DEBUG){
 			onBeforeShow:function(e){
 				if (!e.ctrlKey) return false;
 
-				var view = locate(e, "view_id");
+				var view = locate(e, /*@attr*/"view_id");
 				if (!view) return false;
 				this.config.lastTarget = view;
 

@@ -86,7 +86,7 @@ const NavigationButtons = {
 		var item, config;
 		config = this._settings.navigation;
 		if(config.items){
-			this._linkAttr = config.linkAttr || "bind_id";
+			this._linkAttr = config.linkAttr || /*@attr*/"bind_id";
 
 			if(!this._navPanel)
 				this._renderPanel();

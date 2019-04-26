@@ -57,7 +57,7 @@ const api = {
 		navigation:true,
 		datafetch:50
 	},
-	_id:"webix_l_id",
+	_id:/*@attr*/"webix_l_id",
 	on_click:{
 		webix_list_item:function(e,id){
 			if (this._settings.select){
@@ -155,7 +155,7 @@ const api = {
 			return (obj.icon?("<span class='webix_list_icon webix_icon "+obj.icon+"'></span>"):"") + obj.value + (obj.badge?("<div class='webix_badge'>"+obj.badge+"</div>"):"");
 		},
 		width:"auto",
-		templateStart:template("<div webix_l_id=\"#id#\" class=\"{common.classname()}\" style=\"width:{common.widthSize()}; height:{common.heightSize()}; overflow:hidden;\" {common.aria()}>"),
+		templateStart:template("<div "+/*@attr*/"webix_l_id"+"=\"#id#\" class=\"{common.classname()}\" style=\"width:{common.widthSize()}; height:{common.heightSize()}; overflow:hidden;\" {common.aria()}>"),
 		templateEnd:template("</div>")
 	},
 	$skin:function(){

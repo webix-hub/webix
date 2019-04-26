@@ -213,8 +213,6 @@ ajax.prototype={
 };
 ajax.$callback = function(owner, call, text, data, x, is_error){
 	if (owner.$destructed) return;
-	if (x === -1 && data && typeof data.json == "function")
-		data = data.json();
 
 	if (is_error)
 		callEvent("onAjaxError", [x]);

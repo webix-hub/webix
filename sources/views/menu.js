@@ -142,7 +142,7 @@ const api = {
 		},
 		templateStart:function(obj, common, mark){
 			if (obj.$template === "Separator" || obj.$template === "Spacer"){
-				return "<div webix_l_id=\"#id#\" role=\"separator\" tabindex=\"-1\" class=\"webix_context_"+obj.$template.toLowerCase()+"\">";
+				return "<div "+/*@attr*/"webix_l_id"+"=\"#id#\" role=\"separator\" tabindex=\"-1\" class=\"webix_context_"+obj.$template.toLowerCase()+"\">";
 			}
 			var link = (obj.href?" href='"+obj.href+"' ":"")+(obj.target?" target='"+obj.target+"' ":"");
 			return list.api.type.templateStart(obj,common,mark).replace(/^<div/,"<a "+link)+((common._submenu(obj) && common.subsign)?"<div class='webix_submenu_icon'></div>":"");

@@ -586,17 +586,21 @@ const api = {
 		},
 		"1":{	//months
 			_isBlocked: function(i,calendar){
-				var blocked = false, minYear, maxYear,
-					min = calendar._settings.minDate||null,
-					max = calendar._settings.maxDate||null,
+				var blocked = false,
+					min = calendar._settings.minDate,
+					max = calendar._settings.maxDate,
 					year = calendar._settings.date.getFullYear();
 
-				if(min && max){
-					minYear = min.getFullYear();
-					maxYear = max.getFullYear();
-					if(year<minYear||year==minYear&&min.getMonth()>i || year>maxYear||year==maxYear&&max.getMonth()<i)
-						blocked = true;
+				if(min){
+					var minYear = min.getFullYear();
+					blocked = year<minYear || (year==minYear&&min.getMonth()>i);
 				}
+
+				if (max && !blocked){
+					var maxYear = max.getFullYear();
+					blocked = year>maxYear || (year==maxYear&&max.getMonth()<i);
+				}
+
 				return blocked;
 			},
 			_correctDate: function(date,calendar){
@@ -606,7 +610,8 @@ const api = {
 				else if(date > calendar._settings.maxDate){
 					date = DateHelper.copy(calendar._settings.maxDate);
 				}
-				return date;
+
+				return DateHelper.monthStart(date);
 			},
 			_getTitle:function(date){ return date.getFullYear(); },
 			_getContent:function(i){ return i18n.calendar.monthShort[i]; },
@@ -639,14 +644,12 @@ const api = {
 		"2":{	//years
 			_isBlocked: function(i,calendar){
 				i += calendar._zoom_start_date;
-				var blocked = false;
 				var min = calendar._settings.minDate;
 				var max = calendar._settings.maxDate;
 
-				if( min && max && (min.getFullYear()>i || max.getFullYear()<i)){
-					blocked = true;
-				}
-				return blocked;
+				if ((min && min.getFullYear() > i) || (max && max.getFullYear()<i))
+					return true;
+				return false;
 			},
 			_correctDate: function(date,calendar){
 				if(date < calendar._settings.minDate){
@@ -655,7 +658,7 @@ const api = {
 				else if(date > calendar._settings.maxDate){
 					date = DateHelper.copy(calendar._settings.maxDate);
 				}
-				return date;
+				return DateHelper.yearStart(date);
 			},
 			_getTitle:function(date, calendar){
 				var start = date.getFullYear();

@@ -31,13 +31,17 @@ const api = {
 		this.$ready.unshift(this._setLayout);
 	},
 	$onLoad:function(data, driver){
+		const left = this.$$("left");
+		const right = this.$$("right");
+
 		this._updateAndResize(function(){
-			this.$$("left").data.driver = driver;
-			this.$$("left").parse(data);
-			this.$$("right").data.driver = driver;
-			this.$$("right").parse(data);
+			left.data.driver = driver;
+			left.parse(data);
+			right.data.driver = driver;
+			right.parse(data);
 		});
 
+		this._data_ready = true;
 		this._refresh();
 		return true;
 	},
@@ -178,18 +182,24 @@ const api = {
 	},
 	setValue: function(value) {
 		this._moved = {};
-		if (typeof value !== "object")
-			value = value.toString().split(",");
-		for (var i = 0; i < value.length; i++)
-			this._moved[value[i]] = true;
+		if (value){
+			if (typeof value !== "object")
+				value = value.toString().split(",");
 
+			for (var i = 0; i < value.length; i++)
+				this._moved[value[i]] = true;
+		}
 		
 		this._refresh();
 	},
 	getValue: function() {
-		var value = [];
-		for (var key in this._moved)
-			value.push(key);
+		const value = [];
+		const list = this.$$("left");
+
+		for (var key in this._moved){
+			if (!this._data_ready || list.data.pull[key])
+				value.push(key);
+		}
 
 		return value.join(",");
 	}

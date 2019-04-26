@@ -215,7 +215,7 @@ const api = {
 				(common.css?" "+common.css:"")+
 				(obj.$css?" "+obj.$css:"");
 		},
-		templateStart:template("<div webix_l_id=\"#id#\" class=\"{common.classname()}\" style=\"width:{common.widthSize()}; height:{common.heightSize()};  overflow:hidden;\" {common.aria()}>"),
+		templateStart:template("<div "+/*@attr*/"webix_l_id"+"=\"#id#\" class=\"{common.classname()}\" style=\"width:{common.widthSize()}; height:{common.heightSize()};  overflow:hidden;\" {common.aria()}>"),
 		templateBack:template("#value#"),
 		templateItem:template("#value#"),
 		templateGroup:template("#value#"),

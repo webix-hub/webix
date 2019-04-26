@@ -124,7 +124,8 @@ const DragItem ={
 		this.$dragMark({}, e);
 
 		if( context.from && context.from != context.to && context.from.callEvent ){
-			context.from.callEvent("onBeforeDropOut", [context,e]);
+			if(!context.from.callEvent("onBeforeDropOut", [context,e]))
+				return;
 		}
 
 		if (!this.callEvent("onBeforeDrop",[context,e])) return;

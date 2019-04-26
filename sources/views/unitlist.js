@@ -9,7 +9,7 @@ import template from "../webix/template";
 
 const api = {
 	name:"unitlist",
-	_id:"webix_item_id",
+	_id:/*@attr*/"webix_item_id",
 	uniteBy_setter: template,
 	render:function(id,data,type){
 		var config = this._settings;
@@ -101,12 +101,12 @@ const api = {
 				return type.templateStartHeader.apply(this,arguments);
 			var className = "webix_list_item webix_list_"+(type.css)+"_item"+((marks&&marks.webix_selected)?" webix_selected":"")+(obj.$css?obj.$css:"");
 			var style = "width:"+type.widthSize(obj,type,marks)+"; height:"+type.heightSize(obj,type,marks)+"; overflow:hidden;"+(type.layout&&type.layout=="x"?"float:left;":"");
-			return "<div webix_item_id=\""+obj.id+"\" class=\""+className+"\" style=\""+style+"\" "+type.aria(obj, type, marks)+">";
+			return "<div "+/*@attr*/"webix_item_id"+"=\""+obj.id+"\" class=\""+className+"\" style=\""+style+"\" "+type.aria(obj, type, marks)+">";
 		},
 		templateStartHeader:function(obj,type,marks){
 			var className = "webix_unit_header webix_unit_"+(type.css)+"_header"+(obj.$selected?"_selected":"");
 			var style = "width:"+type.widthSize(obj,type,marks)+"; height:"+type.headerHeight+"px; overflow:hidden;";
-			return "<div webix_unit_id=\""+obj.$unit+"\" class=\""+className+"\" style=\""+style+"\">";
+			return "<div "+/*@attr*/"webix_unit_id"+"=\""+obj.$unit+"\" class=\""+className+"\" style=\""+style+"\">";
 		}
 	},
 	$skin:function(){

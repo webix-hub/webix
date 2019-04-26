@@ -20,12 +20,10 @@ import Scrollable from "../core/scrollable";
 const api = {
 	name:"template",
 	$init:function(config){
-		let subtype = this._template_types[config.type];
+		const subtype = this._template_types[config.type];
 		if (subtype){
-			if (subtype.css){
+			if (subtype.css && config.css)
 				this._viewobj.className += " "+subtype.css;
-				delete subtype.css;
-			}
 			extend(config, subtype);
 
 			//will reset borders for "section"

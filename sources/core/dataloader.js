@@ -101,6 +101,7 @@ const DataLoader =proto({
 				);
 			} else {
 				this._load_count = false;
+				return promise.reject();
 			}
 		}
 	},
@@ -149,13 +150,9 @@ const DataLoader =proto({
 			count = config.datafetch || this.count();
 
 		this.data.url = this.data.url || url;
-		if (this.callEvent("onDataRequest", [start,count,callback,url]) && this.data.url){
-			let result = this.data.feed.call(this, start, count, callback);
-			if(result && result.then)
-				return result;
-			else //loading was blocked due to same url
-				return promise.reject("Attempt to load data with the same url");
-		}
+		if (this.callEvent("onDataRequest", [start,count,callback,url]) && this.data.url)
+			return this.data.feed.call(this, start, count, callback);
+		return promise.reject();
 	},
 	_maybe_loading_already:function(count, from){
 		var last = this._feed_last;
@@ -190,6 +187,11 @@ const DataLoader =proto({
 			this.$ready.push(this._init_dataprocessor);
 
 		return value;
+	},
+	waitSave:function(handler){
+		return dp(this)._promise(() => {
+			handler.call(this);
+		}).then(many => many.length == 1 ? many[0] : many);
 	},
 	scheme_setter:function(value){
 		this.data.scheme(value);

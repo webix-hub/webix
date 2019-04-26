@@ -43,7 +43,7 @@ const api = {
 
 	},
 	//attribute , which will be used for ID storing
-	_id:"webix_tm_id",
+	_id:/*@attr*/"webix_tm_id",
 	//supports custom context menu
 	on_context:{},
 	on_dblclick:{
@@ -151,7 +151,7 @@ const api = {
 				(obj.$count?("aria-expanded=\""+(obj.open?"true":"false")+"\""):"")+"aria-level=\""+obj.$level+"\"";
 		},
 		templateCommon:template("{common.icon()} {common.folder()} <span>#value#</span>"),
-		templateStart:template("<div webix_tm_id=\"#id#\" class=\"{common.classname()}\" {common.aria()}>"),
+		templateStart:template("<div "+/*@attr*/"webix_tm_id"+"=\"#id#\" class=\"{common.classname()}\" {common.aria()}>"),
 		templateEnd:template("</div>"),
 		templateCopy: template("#value#")
 	}, TreeType)

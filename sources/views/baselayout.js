@@ -87,7 +87,10 @@ const api = {
 		return true;
 	},
 	_remove:function(view){
-		PowerArray.removeAt.call(this._cells, PowerArray.find.call(this._cells, view));
+		var index = PowerArray.find.call(this._cells, view);
+		if(this._beforeRemoveView)
+			this._beforeRemoveView(index);
+		PowerArray.removeAt.call(this._cells, index);
 		this.resizeChildren(true);
 	},
 	_replace:function(new_view,target_id){
@@ -101,17 +104,15 @@ const api = {
 			if (typeof target_id == "number"){
 				if (target_id<0 || target_id > this._cells.length)
 					target_id = this._cells.length;
-				var prev_node = (this._cells[target_id]||{})._viewobj;
 				PowerArray.insertAt.call(this._cells, new_view, target_id);
 				if (!new_view._settings.hidden)
-					insertBefore(new_view._viewobj, prev_node, this._dataobj);
+					this._insertBeforeView(new_view, this._cells[target_id]);
 			} else {
 				source = $$(target_id);
 				target_id = PowerArray.find.call(this._cells, source);
 				assert(target_id!=-1, "Attempt to replace the non-existing view");
-				var parent = source._viewobj.parentNode;
-				if (parent && !new_view._settings.hidden)
-					parent.insertBefore(new_view._viewobj, source._viewobj);
+				if (!new_view._settings.hidden)
+					this._insertBeforeView(new_view, source);
 
 				source.destructor();	
 				this._cells[target_id] = new_view;
@@ -250,18 +251,25 @@ const api = {
 				return i;
 		return -1;
 	},
+	_insertBeforeView:function(view, before){
+		if (before){
+			if (before._settings.hidden || view === before){
+				//index of sibling cell, next to which new item will appear
+				var index = this.index(before)+1;
+				//locate nearest visible cell
+				while (this._cells[index] && this._cells[index]._settings.hidden) index++;
+				before = this._cells[index] ? this._cells[index]._viewobj : null;
+			} else {
+				before = before._viewobj;
+			}
+		}
+		insertBefore(view._viewobj, before, (this._dataobj||this._viewobj));
+	},
 	_show:function(obj, settings, silent){
-
 		if (!obj._settings.hidden) return;
+		this._insertBeforeView(obj, obj);
 		obj._settings.hidden = false;
 
-		//index of sibling cell, next to which new item will appear
-		var index = this.index(obj)+1;
-		//locate nearest visible cell
-		while (this._cells[index] && this._cells[index]._settings.hidden) index++;
-		var view = this._cells[index] ? this._cells[index]._viewobj : null;
-
-		insertBefore(obj._viewobj, view, (this._dataobj||this._viewobj));
 		this._hiddencells--;
 
 		if (!silent){

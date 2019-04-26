@@ -1,6 +1,6 @@
 import {remove} from "../webix/html";
 import {protoUI, $$} from "../ui/core";
-import {delay, extend} from "../webix/helpers";
+import {delay, extend, isUndefined} from "../webix/helpers";
 import {each} from "../ui/helpers";
 import {debug_size_box_start, debug_size_box_end} from "../webix/debug";
 import {assert} from "../webix/debug";
@@ -70,18 +70,25 @@ const api = {
 			cell._render_hash = {};			
 		}
 	},
-	addView:function(){
+	addView:function(view, index){
+		var inc = !isUndefined(index) && index <= this._active_cell ? 1 : 0;
 		var id = baselayout.api.addView.apply(this, arguments);
-		if(this._settings.keepViews)
-			$$(id)._viewobj.style.display = "none";
-		else
-			remove($$(id)._viewobj);
+
+		if(this._cells.length > 1){
+			if(this._settings.keepViews)
+				$$(id)._viewobj.style.display = "none";
+			else
+				remove($$(id)._viewobj);
+
+			this._active_cell += inc;
+		}
+
 		return id;
 	},
 	_beforeRemoveView:function(index){
 		//removing current view
 		if (index == this._active_cell){
-			var next = Math.max(index-1, 0);
+			var next = index ? index-1 : 1;
 			if (this._cells[next]){
 				this._in_animation = false;
 				this._show(this._cells[next], false);

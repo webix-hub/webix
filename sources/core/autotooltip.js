@@ -17,17 +17,21 @@ const AutoTooltip = {
 			if (typeof value !== "object")
 				value = {};
 
-			TooltipControl.addTooltip(this);
-			this.attachEvent("onDestruct",function(){
-				TooltipControl.removeTooltip(this);
-			});
-			this.attachEvent("onAfterScroll", function(){
-				if (TooltipControl._tooltip_exist)
-					TooltipControl._hide_tooltip();
-			});
-
+			this._init_tooltip_once();
 			return value;
 		}
+	},
+	_init_tooltip_once:function(){
+		TooltipControl.addTooltip(this);
+		this.attachEvent("onDestruct",function(){
+			TooltipControl.removeTooltip(this);
+		});
+		this.attachEvent("onAfterScroll", function(){
+			if (TooltipControl._tooltip_exist)
+				TooltipControl._hide_tooltip();
+		});
+
+		this._init_tooltip_once = function(){};
 	},
 	$tooltipIn:function(t){
 		let tooltip = TooltipControl._tooltip;
@@ -38,7 +42,6 @@ const AutoTooltip = {
 	},
 	$tooltipOut:function(){
 		TooltipControl._hide_tooltip();
-		delete TooltipControl._tooltip.type.column;
 		return null;
 	},
 	$tooltipMove:function(t,e,text){
@@ -49,7 +52,7 @@ const AutoTooltip = {
 	},
 	_show_tooltip:function(t,e,text){
 		let data = text || this._get_tooltip_data(t,e);
-		if (!data)
+		if (!data || !this.isVisible())
 			return;
 
 		TooltipControl._tooltip.show(data,getPos(e));

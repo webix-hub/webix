@@ -394,7 +394,7 @@ const api = {
 
 		for (let i=0; i<this._columns.length; i++){
 			var node = this._columns[i].node;
-			node.setAttribute("column", i);
+			node.setAttribute(/*@attr*/"column", i);
 			node.className = "webix_column "+(this._columns[i].css||"")+(marks[i]||"");
 		}
 
@@ -527,7 +527,7 @@ const api = {
 	_find_header_content:function(sec, id){
 		var alltd = sec.getElementsByTagName("TD");
 		for (var i = 0; i < alltd.length; i++)
-			if (alltd[i].getAttribute("active_id") == id)
+			if (alltd[i].getAttribute(/*@attr*/"active_id") == id)
 				return alltd[i];
 	},
 	getHeaderContent:function(id){
@@ -570,7 +570,7 @@ const api = {
 		var count = this._columns[0][name].length;
 
 		for (var j = 0; j < count; j++){
-			html += "<tr section='"+name+"' role='row'>";
+			html += "<tr "+/*@attr*/"section"+"='"+name+"' role='row'>";
 			for (let i = start; i < end; i++){
 				var header = this._columns[i][name][j];
 				if (header === null) continue;
@@ -588,7 +588,7 @@ const api = {
 					this._has_active_headers = true;
 				}
 
-				html += "<td  role='presentation' column='"+(header.colspan?(header.colspan-1+i):i)+"'";
+				html += "<td  role='presentation' "+/*@attr*/"column"+"='"+(header.colspan?(header.colspan-1+i):i)+"'";
 
 				var hcss = "";
 				if (i==start)	
@@ -604,7 +604,7 @@ const api = {
 				var cell_height = heights[j];
 				var sheight="";
 				if (header.contentId)
-					html+=" active_id='"+header.contentId+"'";
+					html+=" "+/*@attr*/"active_id"+"='"+header.contentId+"'";
 				if (header.colspan)
 					html+=" colspan='"+header.colspan+"'";
 				if (header.rowspan){
@@ -655,12 +655,13 @@ const api = {
 			if (row_ind < state[0]+1 || row_ind >= state[1]-1 ){
 				//not visible currently
 				let summ = this._getHeightByIndexSumm((pager?this.data.$min:0),row_ind);
+				const itemHeight = this._getHeightByIndex(row_ind);
 				if (row_ind < state[0]+1){
 					//scroll top - show row at top of screen
 					summ = Math.max(0, summ-1) - this._top_split_height;
-				} else {
+				} else if(summ + itemHeight > this._dtable_offset_height) {
 					//scroll bottom - show row at bottom of screen
-					summ += this._getHeightByIndex(row_ind) - this._dtable_offset_height;
+					summ += itemHeight - this._dtable_offset_height;
 					//because of row rounding we neet to scroll some extra
 					//TODO: create a better heuristic
 					if (row_ind>0)
@@ -774,8 +775,8 @@ const api = {
 			var alltd = sec.getElementsByTagName("TD");
 
 			for (var i = 0; i < alltd.length; i++){
-				if (alltd[i].getAttribute("active_id")){
-					var obj = this._active_headers[alltd[i].getAttribute("active_id")];
+				if (alltd[i].getAttribute(/*@attr*/"active_id")){
+					var obj = this._active_headers[alltd[i].getAttribute(/*@attr*/"active_id")];
 					if (byId && byId != obj.columnId) continue;
 
 					
@@ -954,9 +955,9 @@ const api = {
 	_locate:function(node){
 		var cdiv = node.parentNode;
 		if (!cdiv) return null;
-		var column = (node.getAttribute("column") || cdiv.getAttribute("column"))*1;
+		var column = (node.getAttribute(/*@attr*/"column") || cdiv.getAttribute(/*@attr*/"column"))*1;
 		var rind = node.getAttribute("aria-rowindex");
-		var row = node.getAttribute("row") || (rind ? rind-1 : 0);
+		var row = node.getAttribute(/*@attr*/"row") || (rind ? rind-1 : 0);
 		var span = (node.getAttribute("colspan") || cdiv.getAttribute("colspan"))*1;
 
 		return { rind:row, cind:column, span: span };
@@ -1334,8 +1335,8 @@ const api = {
 
 			let row = this._rows_cache[i] = create("DIV", null , value);
 			row.className = "webix_cell "+(item.$sub ? ("webix_dtable_sub"+(this._settings.subview?"view":"row")) : "webix_dtable_colrow"+(item.$row?(" webix_topcell"+(this.data.getMark(item.id,"webix_selected")?" webix_selected":"")):""));
-			row.setAttribute("column", 0);
-			row.setAttribute("row", info.index);
+			row.setAttribute(/*@attr*/"column", 0);
+			row.setAttribute(/*@attr*/"row", info.index);
 
 			var height = (item.$height || this._settings.rowHeight);
 			if (item.$subopen)
@@ -1843,7 +1844,7 @@ const api = {
 		var cells = this._header.getElementsByTagName("TD");
 		var maybe = null;
 		for (var i = 0; i<cells.length; i++)
-			if (cells[i].getAttribute("column") == column && !cells[i].getAttribute("active_id")){
+			if (cells[i].getAttribute(/*@attr*/"column") == column && !cells[i].getAttribute(/*@attr*/"active_id")){
 				maybe = cells[i].firstChild;
 				if ((cells[i].colSpan||0) < 2) return maybe;
 			}
@@ -1907,7 +1908,7 @@ const api = {
 			}
 
 			if (trg.parentNode.getAttribute && !id){
-				var column = trg.parentNode.getAttribute("column") || trg.getAttribute("column");
+				var column = trg.parentNode.getAttribute(/*@attr*/"column") || trg.getAttribute(/*@attr*/"column");
 				if (column){ //we need to ignore TD - which is header|footer
 					var  isBody = trg.parentNode.tagName == "DIV";
 					
@@ -1916,10 +1917,10 @@ const api = {
 					
 					found = true;
 					if (isBody){
-						var index = trg.parentNode.getAttribute("row") || trg.getAttribute("row");
+						var index = trg.parentNode.getAttribute(/*@attr*/"row") || trg.getAttribute(/*@attr*/"row");
 						if (!index){
 							//click event occurs on column holder, we can't detect cell
-							if (trg.getAttribute("column")) return;
+							if (trg.getAttribute(/*@attr*/"column")) return;
 							index = getIndex(trg);
 							if (index >= this._settings.topSplit && !this._settings.prerender)
 								index += this._columns[column]._yr0 - this._settings.topSplit;
@@ -1941,7 +1942,7 @@ const api = {
 						}
 					}
 					else if (name == "ItemClick"){
-						var isHeader = (trg.parentNode.parentNode.getAttribute("section") == "header");
+						var isHeader = (trg.parentNode.parentNode.getAttribute(/*@attr*/"section") == "header");
 						if (isHeader && this.callEvent("onHeaderClick", [id, e, trg]))
 							this._on_header_click(id.column);
 					}
@@ -2001,7 +2002,12 @@ const api = {
 			} else tooltip.type.template = template(this._settings.tooltip.template);
 		}
 
-		return data || this.getItem(id.row);
+		return (data !== undefined) ? data : this.getItem(id.row);
+	},
+	$tooltipOut:function(){
+		TooltipControl._hide_tooltip();
+		delete TooltipControl._tooltip.type.column;
+		return null;
 	},
 	
 

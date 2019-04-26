@@ -58,7 +58,7 @@ const HTMLOptions = {
 				}
 			}
 			if(!isUndefined(index)){
-				var id = inp[index].getAttribute("button_id");
+				var id = inp[index].getAttribute(/*@attr*/"button_id");
 				this.setValue(id);
 				inp[index].focus();
 			}

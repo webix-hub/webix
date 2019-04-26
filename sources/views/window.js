@@ -9,7 +9,7 @@ import UIManager from "../core/uimanager";
 import Destruction from "../core/destruction";
 
 import {zIndex} from "../ui/helpers";
-import {bind, toNode, delay, clone, uid, toArray} from "../webix/helpers";
+import {bind, toNode, delay, clone, uid, toArray, extend} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 import {assert} from "../webix/debug";
 
@@ -38,7 +38,7 @@ const api = {
 		this._viewobj.setAttribute("tabindex", "0");
 		
 		this._head_cell = this._body_cell = null;
-		this._settings._inner = {top:false, left:false, right:false, bottom:false }; //set border flags
+		config._inner = {top:false, left:false, right:false, bottom:false }; //set border flags
 		if (!config.id) config.id = uid();
 
 		_event(this._contentobj, "click", bind(this._ignore_clicks, this));
@@ -55,6 +55,9 @@ const api = {
 		// hidden_setter handling
 		if(config.modal)
 			this._modal = true;
+		// head_setter handling
+		if(config.close)
+			this._settings.close = config.close;
 
 		this.attachEvent("onViewMoveEnd", function(){
 			if(this._settings.position)
@@ -82,17 +85,32 @@ const api = {
 		return value;
 	},
 	_remove:function(){ 
-		this._body_cell = { destructor:function(){} };	
+		this.body_setter();
 	},
-	_replace:function(new_view){
-		this._body_cell.destructor();
-		this._body_cell = new_view;
-		
-		this._bodyobj.appendChild(this._body_cell._viewobj);
+	_replace:function(new_view, old_view){
+		old_view = old_view || this._body_cell;
+		const isBody = old_view == this._body_cell;
 
-		var cell = this._body_cell._viewobj.style;
-		cell.borderTopWidth = cell.borderBottomWidth = cell.borderLeftWidth = cell.borderRightWidth = "1px";
-		this._body_cell._settings._inner = clone(this._settings._inner);
+		old_view.destructor();
+
+		if(isBody)
+			this._body_cell = new_view;
+		else 
+			this._head_cell = new_view;
+
+		(isBody ? this._bodyobj : this._headobj).appendChild(new_view._viewobj);
+
+		const cell = new_view._viewobj.style;
+
+		let settings = { top:true, left:true, right:true, bottom:true };
+		let size = "0px";
+
+		if(new_view.config.borderless === false){
+			settings = clone(this._settings._inner);
+			size = "1px";
+		}
+		new_view._settings._inner = settings;
+		cell.borderTopWidth = cell.borderBottomWidth = cell.borderLeftWidth = cell.borderRightWidth = size;
 
 		this.resize(true);
 	},
@@ -366,12 +384,24 @@ const api = {
 	},
 	head_setter:function(value){
 		if (value === false) return value;
-		if (typeof value != "object"){
+
+		const text = typeof value == "string";
+		const config = { padding:0, css: "webix_win_title", type:"header", borderless:true };
+		if(text){
 			this._viewobj.setAttribute("aria-label", value);
-			value = { template:value, padding:0 };
+			value = { template:value };
 		}
-		
-		value.borderless = true;
+		if(value.view == "template" || (!value.view && value.template)){
+			extend(value, config);
+		}
+		if(text && this.config.close){
+			value = { padding:{ left: $active.inputHeight+2, right:2 }, cols:[
+				value,
+				{ view:"icon", icon:"wxi-close", click:()=>{
+					this.hide();
+				}}
+			]};
+		}
 
 		state._parent_cell = this;
 		this._head_cell = ui._view(value);

@@ -34,6 +34,7 @@ const api = {
 		this._body_cell.destructor();
 		this._body_cell = n;
 		this._viewobj.appendChild(n._viewobj);
+		this.resize();
 	}
 };
 

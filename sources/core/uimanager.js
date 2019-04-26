@@ -113,7 +113,7 @@ const UIManager = {
 		return (view === this._view) ? true : false;
 	},
 	_focus: function(e, dont_clear) {
-		var view = locate(e, "view_id") || this._focus_was_there;
+		var view = locate(e, /*@attr*/"view_id") || this._focus_was_there;
 
 		//if html was repainted we can miss the view, so checking last processed one
 		view = $$(view);

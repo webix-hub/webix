@@ -1,7 +1,6 @@
 import {preventEvent} from "../webix/html";
-import {ajax} from "../load/ajax";
 import template from "../webix/template";
-import {bind, extend} from "../webix/helpers";
+import {extend} from "../webix/helpers";
 import {$$} from "../ui/core";
 import i18n from "../webix/i18n";
 import {_event} from "../webix/htmlevents";
@@ -106,33 +105,16 @@ const datafilter = {
 			node.component = master._settings.id;
 			master.registerFilter(node, value, this);
 
-			var data;
-			var options = value.options;
-			if (options){
-				if(typeof options =="string"){
-					data = value.options = [];
-					ajax(options).then(bind(function(data){
-						value.options = data.json();
-						this.refresh(master, node, value);
-					}, this));
-				} else
-					data = options;
-			}
-			else{
-				data = master.collectValues(value.columnId, value.collect);
-				data.unshift({ id:"", value:"" });
-			}
+			const data = datafilter._get_data(master, value);
+			if (value.emptyOption !== false)
+				data.unshift({id:"", value:value.emptyOption||""});
 
-			var optview = $$(options);
-			if(optview && optview.data && optview.data.getRange){
-				data = optview.data.getRange();
-			}
 			//slow in IE
 			//http://jsperf.com/select-options-vs-innerhtml
 
-			var select = document.createElement("select");
-			for (var i = 0; i < data.length; i++){
-				var option = document.createElement("option");
+			let select = document.createElement("select");
+			for (let i = 0; i < data.length; i++){
+				let option = document.createElement("option");
 				option.value = data[i].id;
 				option.text = data[i].value;
 				select.add(option);
@@ -147,12 +129,23 @@ const datafilter = {
 			select._comp_id = master._settings.id;
 			_event(select, "change", this._on_change);
 		},
-		render:function(master, config){  
+		render:function(master, config){
 			if (this.init) this.init(config);
 			config.css = "webix_ss_filter"; return ""; },
 		_on_change:function(){ 
 			$$(this._comp_id).filterByAll();
 		}
+	},
+	_get_data:function(master, value){
+		let data;
+		let options = value.options;
+
+		if (options){
+			data = master._collectValues.call(options, "id", "value");
+		} else
+			data = master.collectValues(value.columnId, value.collect);
+
+		return data;
 	}
 };
 

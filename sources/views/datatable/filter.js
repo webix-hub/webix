@@ -1,5 +1,4 @@
-import {extend, bind, isArray} from "../../webix/helpers";
-import {$$} from "../../ui/core";
+import {extend, bind} from "../../webix/helpers";
 import {assert} from "../../webix/debug";
 
 
@@ -91,55 +90,39 @@ const Mixin = {
 		this._filter_elements[config.columnId] = [node, config, obj];
 	},
 	collectValues:function(id, mode){
-		var values = [];
-		var checks = { "" : true };
+		let values;
+		let obj = this.getColumnConfig(id);
+		let options = (mode && mode.visible) ? null : obj.collection;
 
-		var obj = this.getColumnConfig(id);
-		var options = (mode && mode.visible) ? null : (obj.options||obj.collection);
+		if (options)
+			values = this._collectValues.call(options, "id", "value");
+		else values = this._collectValues(obj.id, obj.id);
 
-		if (options){
-			if (typeof options == "object" && !options.loadNext){
-				//raw object
-				if (isArray(options))
-					for (var i=0; i<options.length; i++) 
-						values.push({ id:options[i], value:options[i] });
-				else
-					for (var key in options) 
-						values.push({ id:key, value:options[key] });
-				return values;
-			} else {
-				//view
-				if (typeof options === "string")
-					options = $$(options);
-				if (options.getBody)
-					options = options.getBody();
-
-				this._collectValues.call(options, "id", "value", values, checks);
-			}
-		} else
-			this._collectValues(obj.id, obj.id, values, checks);
-
-		var result  = { values: values };
+		let result  = { values: values };
 		this.callEvent("onCollectValues", [id, result]);
 		return result.values;
 	},
-	_collectValues:function(id, value,  values, checks){
+	_collectValues:function(id, value){
+		let checks = { "" : true };
+		let values = [];
+
 		this.data.each(function(obj){
-			var test = obj ? obj[id] : "";
+			let test = obj ? obj[id] : "";
 			if (test !== undefined && !checks[test]){
 				checks[test] = true;
-				var lineid = obj[id];
+				let lineId = obj[id];
 				//special handling for 0 values
 				//convert to string to create a valid ID
-				if (lineid === 0) lineid = "0";
-				values.push({ id:lineid, value:obj[value] });
+				if (lineId === 0) lineId = "0";
+				values.push({ id:lineId, value:obj[value] });
 			}
 		}, this, true);
 
 		if (values.length){
-			var type = typeof values[0].value === "string" ? "string" : "raw";
+			let type = typeof values[0].value === "string" ? "string" : "raw";
 			values.sort( this.data.sorting.create({ as:type, by:"value", dir:"asc" }) );
 		}
+		return values;
 	},
 	_runServerFilter: function(){
 		this.loadNext(0, 0, 0, 0, 1).then((data) => {

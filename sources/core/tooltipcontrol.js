@@ -36,12 +36,11 @@ const TooltipControl ={
 
 		if(!this._tooltip){
 			this._tooltip = new ui.tooltip({});
+
 			this._webix_tooltip_mm = event(document,"mousemove",this._move_tooltip,{ bind:this });
 			this._webix_tooltip_ml = event(document,"mouseleave",this._hide_tooltip, { bind:this });
-			this._drag_event = attachEvent("onDragMode", function(){
-				if (TooltipControl._tooltip_exist)
-					TooltipControl._hide_tooltip();
-			});
+			this._drag_event = attachEvent("onDragMode", () => { this._hide_tooltip(); });
+			this._click_event = attachEvent("onClick", () => { this._hide_tooltip(); });
 		}
 	},
 	getTooltip:function(){
@@ -50,8 +49,8 @@ const TooltipControl ={
 	_move_tooltip:function(e){
 		let node = e.target || e.srcElement;
 		let text;
-		while (node && node.tagName!="HTML"){
-			if (node.webix_tooltip){
+		while (node instanceof Element && node.tagName != "HTML"){
+			if ( this._tooltip_masters[node.webix_tooltip] ){
 				if(this._last && this._last != node){
 					this.$tooltipOut(this._last,node,e);
 					this._last = null;
@@ -63,7 +62,7 @@ const TooltipControl ={
 				return;
 			}
 			text = text || node.getAttribute("webix_tooltip");
-			node = node.parentNode;
+			node = node.parentElement;
 		}
 		if (this._last)
 			this._last = this.$tooltipOut(this._last,null,e);
@@ -85,17 +84,22 @@ const TooltipControl ={
 		else node = target.$view;
 
 		if (node.webix_tooltip){
-			if (this._last == node)
+			if (this._last == node){
+				this._hide_tooltip();
 				this._last = null;
-
+			}
 			delete node.webix_tooltip;
 			this._tooltip_exist--;
 		}
 
-		if(!this._tooltip_exist && this._tooltip) {
+		if (!this._tooltip_exist && this._tooltip){
+			// detach events first
 			this._webix_tooltip_mm = eventRemove(this._webix_tooltip_mm);
 			this._webix_tooltip_ml = eventRemove(this._webix_tooltip_ml);
 			this._drag_event = detachEvent(this._drag_event);
+			this._click_event = detachEvent(this._click_event);
+
+			// then destroy the tooltip
 			this._tooltip.destructor();
 			this._tooltip = this._last = null;
 			this._tooltip_masters = toArray(["dummy"]);

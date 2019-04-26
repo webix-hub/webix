@@ -217,7 +217,7 @@ function $$(id){
 			return id;
 		name = (id.target||id.srcElement)||id;
 	}
-	return views[locate({ target:toNode(name)},"view_id")];
+	return views[locate({ target:toNode(name)},/*@attr*/"view_id")];
 }
 if (typeof window.$$ === "undefined") window.$$ = $$;
 	
@@ -343,7 +343,7 @@ attachEvent("onClick", function(e){
 		//loop through all parents
 		while (trg && trg.parentNode){
 			if (trg.getAttribute){
-				if (trg.getAttribute("view_id"))
+				if (trg.getAttribute(/*@attr*/"view_id"))
 					break;
 					
 				css=trg.className;

@@ -23,7 +23,8 @@ const TreeDataMove ={
 	_next_move_index:function(nid, next, source){
 		if (next && nid){
 			var new_index = this.getBranchIndex(nid);
-			return new_index+(source == this && source.getBranchIndex(next)<new_index?0:1);
+			var sameParent = this.getParentId(nid) == this.getParentId(next);
+			return new_index+(source == this && sameParent && source.getBranchIndex(next)<new_index?0:1);
 		}
 	},
 	_check_branch_child:function(parent, child){
@@ -35,6 +36,20 @@ const TreeDataMove ={
 			}
 		}
 		return false;
+	},
+	_remove_childs(ids){
+		for(var i = 0; i < ids.length; i++){
+			var id = ids[i];
+			while(this.getParentId(id)){
+				id = this.getParentId(id);
+				if(PowerArray.find.call(ids, id) != -1){
+					ids.splice(i,1);
+					i--;
+					continue;
+				}
+			}
+		}
+		return ids;
 	},
 	//move item to the new position
 	move:function(sid,tindex,tobj, details){
@@ -48,6 +63,7 @@ const TreeDataMove ={
 		if (!tobj.data) return;
 
 		if (isArray(sid)){
+			this._remove_childs(sid);
 			for (var i=0; i < sid.length; i++) {
 				//increase index for each next item in the set, so order of insertion will be equal to order in the array
 				var nid = this.move(sid[i], tindex, tobj, details);

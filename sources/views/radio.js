@@ -36,7 +36,7 @@ const api = {
 					customRadio = customRadio.replace(/(button_id=')\w*(?=')/, "$1"+options[i].id);
 				}
 				var rd = common._baseInputHTML("input")+" name='"+(config.name || config.id)+"' type='radio' "+(isChecked?"checked='1'":"")+"tabindex="+(isChecked || (i === 0 && !config.value)?"0":"-1")+" value='"+options[i].id+"' id='"+eachid+"' style='"+(customRadio?"display:none":"")+"' />";
-				var input = "<div radio_id='"+options[i].id+"' class='webix_inp_radio_border webix_radio_"+(isChecked?"1":"0")+"' role='presentation'>"+rd+customRadio+"</div>";
+				var input = "<div "+/*@attr*/"radio_id"+"='"+options[i].id+"' class='webix_inp_radio_border webix_radio_"+(isChecked?"1":"0")+"' role='presentation'>"+rd+customRadio+"</div>";
 				if (label)
 					label = "<label for='"+eachid+"' class='webix_label_right'>" + label + "</label>";
 
@@ -76,7 +76,7 @@ const api = {
 		var inp = this._dataobj.getElementsByTagName("input");
 
 		for (var i=0; i < inp.length; i++){
-			if (inp[i].parentNode.getAttribute("radio_id")==value){
+			if (inp[i].parentNode.getAttribute(/*@attr*/"radio_id")==value){
 				inp[i].checked = true;
 				inp[i].setAttribute("tabindex","0");
 			} else{
@@ -104,7 +104,7 @@ const api = {
 	blur: function(){ this._blur(); },
 	customRadio_setter: function(value){
 		if(value === true && $active.customRadio)
-			value = "<a role='presentation' onclick='javascript:void(0)'><button type='button' class='webix_custom_radio' button_id='' role='radio' aria-checked='false' aria-label='' aria-invalid='' tabindex=''></button></a>";
+			value = "<a role='presentation' onclick='javascript:void(0)'><button type='button' class='webix_custom_radio' "+/*@attr*/"button_id"+"='' role='radio' aria-checked='false' aria-label='' aria-invalid='' tabindex=''></button></a>";
 		return value;
 	},
 	$skin:function(){

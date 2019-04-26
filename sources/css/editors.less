@@ -7,9 +7,8 @@
 .webix_dt_editor input, .webix_dt_editor select{
 	width:100%; 
 	#box > .sizing;
-	/* to look perfect in IE it must be 1/9/0/9 */
-	padding: 1px 8px 0px 9px;
-	margin:0px;
+	padding: 0 (@dataPadding - 1);
+	margin: 0;
 	border:1px solid #ffd700;
 	height: 100%;
 
@@ -23,8 +22,7 @@
 	width:auto;
 }
 .webix_dt_editor select{
-	padding-right:0px;
-	padding-left:5px;
+	padding: 0 (@dataPadding - 5);
 }
 
 .webix_clipbuffer{

@@ -5,29 +5,51 @@
 	background-color: transparent;
 }
 .webix_pager_item, .webix_pager_item_selected{
-	//#box > .noselect;
 	padding: 0 6px;
-	//float:left;
 	text-align:center;
 	height: 100%;
 	width:auto;
 	min-width:32px;
 
-	border:1px solid @borderColor;
 	margin: 0 @skin_input_x_padding;
-	cursor:pointer;
-	background-color:white;
+	cursor: pointer;
 	#box > .sizing;
-	font-family: @fontFamily;
-	font-size: @fontSize;
+	#border > .radius(@skin_input_radius);
+
+	.webix_icon{
+		line-height: 0;
+		font-size: @fontSize;
+	}
+}
+
+.webix_pager_item{
+	.buttonBackground;
+	&:hover{
+		.darkHoverRule(@buttonColor);
+	}
+	&:focus{
+		.darkFocusRule(@buttonColor);
+	}
+	&:active{
+		.activeShadow;
+		.darkActiveRule(@buttonColor);
+	}
 }
 
 /*selected  button of pager*/
-.webix_pager_item_selected{	
+.webix_pager_item_selected{
 	cursor:default;
 
-	background-color:@selectColor;
-	border:1px solid @selectBorderColor;
+	&:hover{
+		.darkHoverRule(@formButtonColor);
+	}
+	&:focus{
+		.darkFocusRule(@formButtonColor);
+	}
+	&:active{
+		.activeShadow;
+		.darkActiveRule(@formButtonColor);
+	}
 }
 .webix_animation .webix_ss_header{
 	position: relative; z-index:10;

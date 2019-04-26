@@ -56,7 +56,7 @@ const api = {
 			for(var i=0; i<options.length; i++){
 				tooltip = obj.tooltip ? " webix_t_id='"+options[i].id+"'" : "";
 				html+="<button type='button' style='width:"+(options[i].width || optionWidth)+"px' role='tab' aria-selected='"+(obj.value==options[i].id?"true":"false")+"' tabindex='"+(obj.value==options[i].id?"0":"-1")+"'";
-				html+="class='"+"webix_segment_"+((i==options.length-1)?"N":(i>0?1:0))+((obj.value==options[i].id)?" webix_selected ":"")+"' button_id='"+options[i].id+"'"+tooltip+">";
+				html+="class='"+"webix_segment_"+((i==options.length-1)?"N":(i>0?1:0))+((obj.value==options[i].id)?" webix_selected ":"")+"' "+/*@attr*/"button_id='"+options[i].id+"'"+tooltip+">";
 				html+= options[i].value+"</button>";
 			}
 			
@@ -73,7 +73,7 @@ const api = {
 		var options = this._getInputNode();
 
 		for(var i=0; i<options.length; i++){
-			var id = options[i].getAttribute("button_id");
+			var id = options[i].getAttribute(/*@attr*/"button_id");
 			options[i].setAttribute("aria-selected", (value==id?"true":"false"));
 			options[i].setAttribute("tabindex", (value==id?"0":"-1"));
 			if(value==id)

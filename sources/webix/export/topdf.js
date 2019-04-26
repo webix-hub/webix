@@ -50,7 +50,7 @@ export const toPDF = function(id, options){
 						viewOptions: viewOptions
 					});
 					if(options.autowidth)
-						options.width = Math.max( options.width||0, getAutowidth(scheme) );
+						getAutowidth(scheme, options);
 				}
 			}
 			assert(view, errorMessage);
@@ -143,11 +143,12 @@ function getPDFImage(node){
 	});
 }
 
-function getAutowidth(scheme){
+function getAutowidth(scheme, options){
+	const prop = options.orientation && options.orientation == "landscape" ? "height" : "width";
 	let width = 80; //paddings
 	for(let i = 0; i<scheme.length; i++)
 		width += scheme[i].width;
-	return width;
+	options[prop] = Math.max(options[prop] || 0, width);
 }
 
 function addPDFDoc(options){

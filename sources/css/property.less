@@ -1,48 +1,50 @@
 .webix_property_line{
-	clear:both;
-	width:100%;
-	min-height:24px;
-	height:auto;
+	clear: both;
+	width: 100%;
+	min-height: @propertyItemHeight;
+	height: auto;
 }
 .webix_property_line.webix_focused,
 .webix_property_line:focus{
-	div{
-		background-color:lighten(@selectColor, 2%);
+	& > div{
+		background-color: lighten(@selectColor, 1%);
 	}
 }
 .webix_property_label, .webix_property_value{
-	height:@propertyItemHeight;
+	height: @propertyItemHeight;
 	line-height: @propertyItemHeight - 1;
-	padding-left: 10px; 
+	padding-left: @dataPadding;
 	float:left;
-	border-bottom:1px solid @borderColor;
+	border-bottom: 1px solid @dataBorderColor;
 	#box > .sizing;
 	overflow: hidden;
 }
 .webix_property_label{
-	border-right:1px solid @borderColor;
+	border-right:1px solid @dataBorderColor;
 }
 .webix_property_label_line{
 	.webix_common_header;
-	line-height: 23px;
-	border-bottom:1px solid @lightBorderColor;
-	line-height:@propertyItemHeight;
+	padding-left: @dataPadding;
+	border-bottom: 1px solid @dataBorderColor;
+	line-height: @propertyItemHeight;
 }
 
 .webix_property_col_val{
 	width:100%;
 	height: 100%;
+	line-height: inherit;
 	#box > .select;
 }
 
 .webix_property_col_ind{
-	float:right;
-	border:1px solid @borderColor;
+	float: right;
+	border: 1px solid @borderColor;
+	background: #ffffff;
 	border-radius: 3px;
-	width:16px;
-	cursor:pointer;
+	width: 16px;
 	height: 16px;
-	margin: 4px 10px 3px 0;
+	cursor: pointer;
+	margin: (@propertyItemHeight - 20)/2 8px 0 0;
 }
 
 .webix_property_value {
@@ -50,5 +52,6 @@
 	white-space: nowrap;
 }
 .webix_property_check{
-	margin-top:5px;
+	margin: 0;
+	vertical-align: middle;
 }

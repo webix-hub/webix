@@ -1,4 +1,4 @@
-import {toArray} from "../webix/helpers";
+import {toArray, uid, copy} from "../webix/helpers";
 import {assert} from "../webix/debug";
 import GroupMethods from "../core/groupmethods";
 
@@ -8,8 +8,10 @@ const GroupStore = {
 		this.attachEvent("onClearAll", this._reset_groups);
 	},
 	_reset_groups:function(){
-		this._not_grouped_order = this._not_grouped_pull = null;
-		this._group_level_count = 0;
+		if (this.getBranchIndex)
+			this._not_grouped_branches = this._created_groupes = null;
+		else
+			this._not_grouped_order = this._not_grouped_pull = null;
 	},
 	ungroup:function(skipRender){
 		if (this.getBranchIndex)
@@ -19,10 +21,9 @@ const GroupStore = {
 			this.order = this._not_grouped_order;
 			this.pull = this._not_grouped_pull;
 			this._not_grouped_pull = this._not_grouped_order = null;
-			if(!skipRender)
-				this.callEvent("onStoreUpdated",[]);
 		}
-
+		if(!skipRender)
+			this.callEvent("onStoreUpdated",[]);
 	},
 	_group_processing:function(scheme){
 		this.blockEvent();
@@ -32,98 +33,131 @@ const GroupStore = {
 	_group_prop_accessor:function(val){
 		if (typeof val == "function")
 			return val;
-		var acc = function(obj){ return obj[val]; };
+		const acc = function(obj){ return obj[val]; };
 		acc.$name = val;
 		return acc;
 	},	
-	group:function(stats){ 
+	group:function(config, target){
+		assert(config, "Empty config");
+		let input;
+
+		if (typeof config === "string"){
+			input = config;
+			config = { by:this._group_prop_accessor(config), map:{} };
+		} else if (typeof config === "function"){
+			config = { by:config, map:{} };
+		} else if (typeof config.by === "string"){
+			input = config.by;
+			config.by = this._group_prop_accessor(config.by);
+		}
+		config.map = config.map || {};
+		if (input && !config.map[input])
+			config.map[input] = [input];
+		config.missing = (config.missing === undefined) ? true : config.missing;
+
 		if (this.getBranchIndex)
-			return this._group_tree.apply(this, arguments);
-
-		if(typeof stats == "string")
-			stats = { by:stats, map:{}};
-		var input = typeof stats.by == "function" ? "value" : stats.by;
-		var key = this._group_prop_accessor(stats.by);
-
-		if (!stats.map[input])
-			stats.map[input] = [input, this._any];
+			return this._group_tree(config, target);
 			
-		var groups = {};
-		var labels = [];
+		const groups = {};
+		const labels = [];
+		const missed = [];
 		this.each(function(data){
-			var current = key(data);
+			let current = config.by(data);
+			if (!current && current !== 0)
+				if (config.missing === false) return;
+				else if (config.missing === true){
+					missed.push(data);
+					return;
+				} else current = config.missing;
+
 			if (!groups[current]){
-				labels.push({ id:current, $group:true, $row:stats.row });
+				labels.push({ id:current, value:current, $group:true, $row:config.row });
 				groups[current] = toArray();
 			}
 			groups[current].push(data);
 		});
-		for (var prop in stats.map){
-			var functor = (stats.map[prop][1]||"any");
-			var property = this._group_prop_accessor(stats.map[prop][0]);
-			if (typeof functor != "function"){
-				assert(GroupMethods[functor], "unknown grouping rule: "+functor);
-				functor = GroupMethods[functor];
-			}
 
-			for (let i=0; i < labels.length; i++) {
-				labels[i][prop]=functor.call(this, property, groups[labels[i].id]);
-			}
+		for (let i=0; i<labels.length; i++){
+			let group = labels[i];
+			this._map_group(config.map, group, groups[labels[i].id]);
+
+			if (this.hasEvent("onGroupCreated"))
+				this.callEvent("onGroupCreated", [group.id, group.value, groups[labels[i].id]]);
 		}
-			
-		this._not_grouped_order = this.order;
-		this._not_grouped_pull = this.pull;
+
+		if (!this._not_grouped_order){
+			this._not_grouped_order = this.order;
+			this._not_grouped_pull = this.pull;
+		}
 		
 		this.order = toArray();
 		this.pull = {};
-		for (let i=0; i < labels.length; i++){
-			var id = this.id(labels[i]);
-			this.pull[id] = labels[i];
-			this.order.push(id);
-			if (this._scheme_init)
-				this._scheme_init(labels[i]);
-		}
-		
+		this._fill_pull(labels);
+		this._fill_pull(missed);
+
 		this.callEvent("onStoreUpdated",[]);
 	},
-	_group_tree:function(input, parent){
-		this._group_level_count = (this._group_level_count||0) + 1;
+	_fill_pull:function(arr){
+		for (let i=0; i < arr.length; i++){
+			let id = this.id(arr[i]);
+			if (this.pull[id])
+				id = arr[i].id = uid();
 
-		//supports simplified group by syntax
-		var stats;
-		if (typeof input == "string"){
-			stats = { by:this._group_prop_accessor(input), map:{} };
-			stats.map[input] = [input];
-		} else if (typeof input == "function"){
-			stats = { by:input, map:{} };
-		} else
-			stats = input;
-		
+			this.pull[id] = arr[i];
+			this.order.push(id);
+			if (this._scheme_init)
+				this._scheme_init(arr[i]);
+		}
+	},
+	_map_group:function(map, group, data){
+		for (let prop in map){
+			let functor = (map[prop][1]||"any");
+			let property = this._group_prop_accessor(map[prop][0]);
+			if (typeof functor != "function"){
+				assert(GroupMethods[functor], "Unknown grouping rule: "+functor);
+				functor = GroupMethods[functor];
+			}
+
+			group[prop] = functor.call(this, property, data);
+		}
+	},
+	_group_tree:function(config, parent){
 		//prepare
-		var level;
+		let level = 0;
 		if (parent)
 			level = this.getItem(parent).$level;
-		else {
-			parent  = 0;
-			level = 0;
+		else parent = 0;
+
+		if (!this._not_grouped_branches){
+			this._not_grouped_branches = copy(this.branch);
+			this._created_groupes = [];
 		}
 		
-		var order = this.branch[parent];
-		var key = this._group_prop_accessor(stats.by);
-		
 		//run
-		var topbranch = [];
-		var labels = [];
+		const topbranch = [];
+		const labels = [];
+		const missed = [];
+
+		let order = this.branch[parent];
 		for (let i=0; i<order.length; i++){
-			var data = this.getItem(order[i]);
-			var current = key(data);
-			var current_id = level+"$"+current;
-			var ancestor = this.branch[current_id];
+			const data = this.getItem(order[i]);
+			let current = config.by(data);
+
+			if (!current && current !== 0)
+				if (config.missing === false) continue;
+				else if (config.missing === true){
+					missed.push(data.id);
+					continue;
+				} else current = config.missing;
+
+			let current_id = level+"$"+current;
+			let ancestor = this.branch[current_id];
 
 			if (!ancestor){
-				var newitem = this.pull[current_id] = { id:current_id, value:current, $group:true, $row:stats.row};
+				let newitem = this.pull[current_id] = { id:current_id, value:current, $group:true, $row:config.row};
 				if (this._scheme_init)
 					this._scheme_init(newitem);
+
 				labels.push(newitem);
 				ancestor = this.branch[current_id] = [];
 				ancestor._formath = [];
@@ -132,77 +166,40 @@ const GroupStore = {
 			ancestor.push(data.id);
 			ancestor._formath.push(data);
 		}
+		this._created_groupes = this._created_groupes.concat(topbranch);
 
-		this.branch[parent] = topbranch;
-		for (let prop in stats.map){
-			let functor = (stats.map[prop][1]||"any");
-			let property = this._group_prop_accessor(stats.map[prop][0]);
-			if (typeof functor != "function"){
-				assert(GroupMethods[functor], "unknown grouping rule: "+functor);
-				functor = GroupMethods[functor];
-			}
-				
-			for (let i=0; i < labels.length; i++)
-				labels[i][prop]=functor.call(this, property, this.branch[labels[i].id]._formath);
-		}
-
-		for (let i=0; i < labels.length; i++){
-			var group = labels[i];
+		this.branch[parent] = topbranch.concat(missed);
+		for (let i=0; i<labels.length; i++){
+			let group = labels[i];
+			this._map_group(config.map, group, this.branch[labels[i].id]._formath);
 
 			if (this.hasEvent("onGroupCreated"))
 				this.callEvent("onGroupCreated", [group.id, group.value, this.branch[group.id]._formath]);
 
-			if (stats.footer){
-				var id = "footer$"+group.id;
-				var footer = this.pull[id] = { id:id, $footer:true, value: group.value, $level:level, $count:0, $parent:group.id, $row:stats.footer.row};
-				for (let prop in stats.footer){
-					let functor = (stats.footer[prop][1]||"any");
-					let property = this._group_prop_accessor(stats.footer[prop][0]);
-					if (typeof functor != "function"){
-						assert(GroupMethods[functor], "unknown grouping rule: "+functor);
-						functor = GroupMethods[functor];
-					}
+			if (config.footer){
+				let id = "footer$"+group.id;
+				let footer = this.pull[id] = { id:id, $footer:true, value: group.value, $level:level, $count:0, $parent:group.id, $row:config.footer.row};
 
-					footer[prop]=functor.call(this, property, this.branch[labels[i].id]._formath);
-				}
+				this._map_group(config.footer, footer, this.branch[labels[i].id]._formath);
 				
 				this.branch[group.id].push(footer.id);
 				this.callEvent("onGroupFooter", [footer.id, footer.value, this.branch[group.id]._formath]);
 			}
-
 			delete this.branch[group.id]._formath;
 		}
-			
 
-		this._fix_group_levels(topbranch, parent, level+1);
-			
+		this._fix_group_levels(this.branch[parent], parent, level+1);
 		this.callEvent("onStoreUpdated",[]);
 	},
-	_ungroup_tree:function(skipRender, parent, force){
-		//not grouped
-		if (!force && !this._group_level_count) return;
-		this._group_level_count = Math.max(0, this._group_level_count -1 );
+	_ungroup_tree:function(skipRender){
+		if (this._not_grouped_branches){
+			this.branch = this._not_grouped_branches;
+			while (this._created_groupes.length)
+				delete this.pull[ this._created_groupes.pop() ];
 
-		parent = parent || 0;
-		var order = [];
-		var toporder = this.branch[parent];
-		for (let i=0; i<toporder.length; i++){
-			var id = toporder[i];
-			var branch = this.branch[id];
-			if (branch)
-				order = order.concat(branch);
-
-			delete this.pull[id];
-			delete this.branch[id];
+			this._not_grouped_branches = this._created_groupes = null;
+			this._fix_group_levels(this.branch[0], 0, 1);
 		}
-
-		this.branch[parent] = order;
-		for (let i = order.length - 1; i >= 0; i--) {
-			if (this.pull[order[i]].$footer)
-				order.splice(i,1);
-		}
-		this._fix_group_levels(order, 0, 1);
-
 		if (!skipRender)
 			this.callEvent("onStoreUpdated",[]);
 	},
@@ -210,11 +207,12 @@ const GroupStore = {
 		if (parent)
 			this.getItem(parent).$count = branch.length;
 
-		for (var i = 0; i < branch.length; i++) {
-			var item = this.pull[branch[i]];
+		for (let i = 0; i < branch.length; i++) {
+			const item = this.pull[branch[i]];
 			item.$level = level;
 			item.$parent = parent;
-			var next = this.branch[item.id];
+
+			const next = this.branch[item.id];
 			if (next)
 				this._fix_group_levels(next, item.id, level+1);
 		}

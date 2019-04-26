@@ -57,7 +57,7 @@ const api = {
 	},
 	getFormView:function(){
 		var parent = this.getParentView();
-		return (!parent || parent.setValues) ? parent : parent.getFormView();
+		return (!parent || parent._recollect_elements) ? parent : parent.getFormView();
 	},
 	getChildViews:function(){ return []; },
 	queryView:function(search, all){
@@ -188,7 +188,7 @@ const api = {
 		}
 		assert(!ui.views[value], "Non unique view id: "+value);
 		ui.views[value] = this;
-		this._viewobj.setAttribute("view_id", value);
+		this._viewobj.setAttribute(/*@attr*/"view_id", value);
 		return value;
 	},
 	$setSize:function(x,y){

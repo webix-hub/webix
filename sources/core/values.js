@@ -146,6 +146,10 @@ const Values = {
 				if(input)
 					input._settings.invalidMessage = state;
 			}
+			//add mark to current validation process
+			if (this._validate_details)
+				this._validate_details[name] = true;
+
 			this._mark_invalid(name);
 		}
 	},

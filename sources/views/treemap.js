@@ -234,7 +234,7 @@ const api = {
 		}
 		return true;
 	},
-	_id:"webix_dm_id",
+	_id:/*@attr*/"webix_dm_id",
 	on_click:{
 		webix_treemap_item:function(e,id){
 			if (this._settings.select){
@@ -248,7 +248,7 @@ const api = {
 			}
 		},
 		webix_treemap_header_item: function(e){
-			var id = locate(e, "webix_dm_header_id");
+			var id = locate(e, /*@attr*/"webix_dm_header_id");
 			this.define("branch", id);
 			this.refresh();
 		},
@@ -285,7 +285,7 @@ const api = {
 		},
 		headerItem: function(obj){
 			var template = this.config.headerTemplate(obj);
-			var html = "<a role=\"button\" tabindex=\"0\" aria-label=\""+template+"\" webix_dm_header_id=\""+obj.id+"\" class=\"webix_treemap_header_item\">";
+			var html = "<a role=\"button\" tabindex=\"0\" aria-label=\""+template+"\" "+/*@attr*/"webix_dm_header_id"+"=\""+obj.id+"\" class=\"webix_treemap_header_item\">";
 			html += template;
 			html += "</a>";
 			return html;
@@ -337,7 +337,7 @@ const api = {
 				style += "width: "+ xy.width +"px; height: " + xy.height+"px;";
 				style += "top: "+ xy.top+"px; left: " + xy.left+"px;";
 			}
-			return "<div role=\"treeitem\" aria-level=\""+obj.$level+"\" "+(marks && marks.webix_selected?"aria-selected=\"true\" tabindex=\"0\"":"")+" webix_dm_id=\""+obj.id+"\" class=\""+type.classname.call(this,obj,type,marks)+"\" style=\""+style+"\">";
+			return "<div role=\"treeitem\" aria-level=\""+obj.$level+"\" "+(marks && marks.webix_selected?"aria-selected=\"true\" tabindex=\"0\"":"")+" "+/*@attr*/"webix_dm_id"+"=\""+obj.id+"\" class=\""+type.classname.call(this,obj,type,marks)+"\" style=\""+style+"\">";
 		},
 		templateEnd:template("</div>")
 	}

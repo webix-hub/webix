@@ -267,6 +267,7 @@ const api = {
 	},
 	type_setter:function(value){ return value; },
 	_set_inner_size:false,
+	_set_default_css:function(){},
 	$setValue:function(value){
 		this.getInputNode().value = this._pattern(value);
 	},

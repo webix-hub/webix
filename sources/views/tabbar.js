@@ -225,7 +225,8 @@ const api = {
 
 		width = (tab.width||width);
 
-		html ="<div class=\"webix_item_tab"+className+"\" button_id=\""+tab.id+"\" role=\"tab\" aria-selected=\""+(tab.id== config.value?"true":"false")+"\" tabindex=\""+
+
+		html ="<div class=\"webix_item_tab"+className+"\" "+/*@attr*/"button_id=\""+tab.id+"\" role=\"tab\" aria-selected=\""+(tab.id== config.value?"true":"false")+"\" tabindex=\""+
 			(tab.id== config.value?"0":"-1")+"\" style=\"width:"+width+"px;\""+tooltip+">";
 
 		// a tab title

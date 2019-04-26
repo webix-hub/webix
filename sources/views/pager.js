@@ -85,7 +85,7 @@ const api = {
 			this.callEvent("onAfterPageChange",[id]);	
 		}
 	},
-	_id:"webix_p_id",
+	_id:/*@attr*/"webix_p_id",
 	template_setter:template,
 	type:{
 		template:function(a,b){ return a.template.call(this, a,b); },
@@ -129,7 +129,7 @@ const api = {
 		next:function(){
 			return this.button({ id:"next", index:i18n.pager.next, selected:"", label:i18n.aria.pages[2]});
 		},
-		button:template("<button type='button' webix_p_id='{obj.id}' class='webix_pager_item{obj.selected}' aria-label='{obj.label}'>{obj.index}</button>")
+		button:template("<button type='button' "+/*@attr*/"webix_p_id"+"='{obj.id}' class='webix_pager_item{obj.selected}' aria-label='{obj.label}'>{obj.index}</button>")
 	},
 	clone:function(pager){
 		if (!pager.$view){

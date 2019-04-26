@@ -122,7 +122,7 @@ const Mixin = {
 			if(rows.length){
 				var nodes = rows[row_index+1].childNodes;
 				for (var i=0; i<nodes.length; i++)
-					if (nodes[i].getAttribute("column") == ind)
+					if (nodes[i].getAttribute(/*@attr*/"column") == ind)
 						return nodes[i].firstChild;
 			}
 		}

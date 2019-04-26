@@ -26,7 +26,7 @@ const api = {
 			var title = "<div class='webix_slider_title"+(obj.moveTitle?" webix_slider_move":"")+"'"+(!obj.moveTitle && obj.vertical?(" style='line-height:"+(obj.aheight-obj.inputPadding*2)+"px;'"):"")+"></div>";
 			var left = "<div class='webix_slider_left'>&nbsp;</div>";
 			var right = "<div class='webix_slider_right'></div>";
-			var handle = "<div class='webix_slider_handle' webix_disable_drag='true' role='slider' aria-label='"+obj.label+(obj.title?(" "+obj.title(obj)):"")+"' aria-valuemax='"+obj.max+"' aria-valuemin='"+obj.min+"' aria-valuenow='"+obj.value+"' tabindex='0' id='"+id+"'>&nbsp;</div>";
+			var handle = "<div class='webix_slider_handle' "+/*@attr*/"webix_disable_drag"+"='true' role='slider' aria-label='"+obj.label+(obj.title?(" "+obj.title(obj)):"")+"' aria-valuemax='"+obj.max+"' aria-valuemin='"+obj.min+"' aria-valuenow='"+obj.value+"' tabindex='0' id='"+id+"'>&nbsp;</div>";
 			
 			if(obj.vertical) html =  "<div class='webix_slider_box'>"+right+left+handle+"</div>"+title;
 			else html = title+"<div class='webix_slider_box'>"+left+right+handle+"</div>";

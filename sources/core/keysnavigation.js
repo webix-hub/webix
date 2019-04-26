@@ -31,7 +31,7 @@ const KeysNavigation = {
 			var tag = (e.srcElement || e.target);
 
 			//ignore clipboard listener
-			if (!tag.getAttribute("webixignore")){
+			if (!tag.getAttribute(/*@attr*/"webixignore")){
 				//ignore hotkeys if focus in the common input
 				//to allow normal text edit operations
 				var name = tag.tagName;

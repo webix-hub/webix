@@ -27,11 +27,12 @@ const api = {
 	$setValue:function(value){
 		this._dataobj.firstChild.innerHTML = value;
 	},
-	_set_inner_size:function(){},
+	_set_inner_size:false,
+	_set_default_css:function(){},
 	_calc_size:function(config){
 		config = config || this._settings;
 		if (config.autowidth)
-			config.width = getTextSize((config.value||config.label), "webix_el_label").width;
+			config.width = getTextSize((config.value||config.label), "webix_el_box").width;
 	}
 };
 

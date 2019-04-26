@@ -34,6 +34,7 @@ const api = {
 	filter_setter:function(value){
 		return toFunctor(value, this.$scope);
 	},
+	_show_on_key_press:true,
 	$init:function(obj){
 		var temp = {};
 		extend(temp, copy(this.defaults.body));
@@ -83,26 +84,25 @@ const api = {
 		return obj;
 	},
 	_preselectMasterOption: function(data){
-		var master, node, text = "";
+		var master, node,
+			text = data.id ? this.getItemText(data.id) : (data.text||data.value);
 
-		if (data){
-			if (this._settings.master){
-				master = $$(this._settings.master);
-				node = master.getInputNode();
-				if(node && master.$setValueHere){
-					master.$setValueHere(data.value);
-				}
-				else if (node){
-					if(master.options_setter)
-						text = this.getItemText(data.id);
-					else if(data.value)
-						text = master._get_visible_text ? master._get_visible_text(data.value) : data.value.toString();
+		if (this._settings.master){
+			master = $$(this._settings.master);
+			node = master.getInputNode();
+			if(node && master.$setValueHere){
+				master.$setValueHere(text);
+			}
+			else if (node){
+				if(master.options_setter)
+					text = this.getItemText(data.id);
+				else if(data.value)
+					text = master._get_visible_text ? master._get_visible_text(data.value) : data.value.toString();
 
-					if (isUndefined(node.value))
-						node.innerHTML = text;
-					else
-						node.value = text.replace(/<[^>]*>/g,"");
-				}
+				if (isUndefined(node.value))
+					node.innerHTML = text;
+				else
+					node.value = text.replace(/<[^>]*>/g,"");
 			}
 		}
 		node = node || this._last_input_target;
@@ -277,11 +277,14 @@ const api = {
 			return this._escape_key(this,list);
 
 		// enter
-		if (code == 13)
+		if (code == 13){
+			if (this.isVisible())
+				preventEvent(e);
 			return this.$enterKey(this,list);
+		}
 
 		// up/down/right/left are used for navigation
-		if (this._navigate(e)) {
+		if (this._navigate(e) && this.isVisible()){
 			preventEvent(e);
 			return false;
 		}
@@ -291,7 +294,7 @@ const api = {
 		clearTimeout(this._last_delay);
 		this._last_delay = delay(function(){
 			//focus moved to the different control, suggest is not necessary
-			if (!this._non_ui_mode && 
+			if (!this._non_ui_mode &&
 					UIManager.getFocus() != $$(this._settings.master)) return;
 
 			this._resolve_popup = true;
@@ -395,7 +398,7 @@ const api = {
 			
 			popup.hide(true);
 		}
-		else
+		else if (this._show_on_key_press)
 			popup.show(this._last_input_target);
 	},
 	_escape_key: function(popup) {
@@ -414,25 +417,24 @@ const api = {
 		var data;
 
 		if( list.moveSelection && code < 41 && code > 32 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
-			// down arrow
-			if (code === 40 ) {
-				var visible = this.isVisible();
-				if (!visible)
+			// down and up arrows
+			if (code === 40 || code === 38) {
+				if (this._show_on_key_press && !this.isVisible())
 					this.show(this._last_input_target);
-				
-				list.moveSelection("down", false, false);
+
+				let dir = (code === 38) ? "up" : "down";
+				list.moveSelection(dir, false, false);
 			}// other arrows
 			else {
-				if((list.count && code !==38) || (!list.count && !list.isVisible()))
+				if(list.count || (!list.count && !list.isVisible()))
 					return false;
 
-				var dir;
+				let dir;
 				if(code == 33) dir = "pgup";
 				if(code == 34) dir = "pgdown";
 				if(code == 35) dir = "bottom";
 				if(code == 36) dir = "top";
 				if(code == 37) dir = "left";
-				if(code == 38) dir = "up";
 				if(code == 39) dir = "right";
 
 				list.moveSelection(dir, false, false);
@@ -444,8 +446,9 @@ const api = {
 				data = { value:list.getVisibleDate()};
 			else if(list.getValue)
 				data = { value:list.getValue() };
-			
-			this._preselectMasterOption(data);
+
+			if (this.isVisible())
+				this._preselectMasterOption(data);
 			return true;
 		}
 

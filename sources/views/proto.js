@@ -26,7 +26,7 @@ const api = {
 		if (base.api.$setSize.apply(this, arguments))
 			this.render();
 	},
-	_id:"webix_item",
+	_id:/*@attr*/"webix_item",
 	on_mouse_move:{
 	},
 	type:{}

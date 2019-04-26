@@ -34,11 +34,12 @@ const api = {
 		borderless:true
 	},
 	$renderInput:function(obj){
-		var css = "class='webixtype_"+(obj.type||"base")+"' ";
-		return "<button type='button' "+(obj.popup?"aria-haspopup='true'":"")+css+">"+template.escape(obj.label||obj.value)+"</button>";
+		return "<button type='button' "+(obj.popup?"aria-haspopup='true'":"")+" class='webix_button'>"+template.escape(obj.label||obj.value)+"</button>";
 	},
-	$init:function(){
+	$init:function(config){
 		this._viewobj.className += " webix_control webix_el_"+(this.$cssName||this.name);
+
+		this._set_default_css(config);
 
 		this.data = this._settings;
 		this._dataobj = this._viewobj;
@@ -55,7 +56,28 @@ const api = {
 			}
 		});
 	},
-
+	_set_default_css: function(config){
+		if(config.type && this._deprecated_css_types[config.type])
+			this._viewobj.className += " "+this._deprecated_css_types[config.type];
+		else if (!config.css || (config.css && !this._classes[config.css]))
+			this._viewobj.className += " webix_secondary";
+	},
+	_classes:{
+		webix_danger:1,
+		webix_transparent:1,
+		webix_primary:1
+	},
+	// will be deprecated in 7.0
+	_deprecated_css_types:{
+		form:"webix_primary",
+		danger:"webix_danger"
+	},
+	_deprecated_types:{
+		imageButton:"image",
+		imageButtonTop:"imageTop",
+		iconButton:"icon",
+		iconButtonTop:"iconTop"
+	},
 	_addElementHotKey: function(key, func, view){
 		var keyCode = UIManager.addHotKey(key, func, view);
 		this.attachEvent("onDestruct", function(){
@@ -63,31 +85,21 @@ const api = {
 		});
 	},
 	type_setter:function(value){
+		if(this._deprecated_types[value])
+			value = this._deprecated_types[value];
 		if (this._types[value])
 			this.$renderInput = template(this._types[value]);
-		if (value == "prev" || value == "next")
-			this._set_inner_size = this._set_inner_size_next;
-		else
-			this._set_inner_size = false;
 		return value;
 	},
+	_set_inner_size:false,
 	_types:{
-		htmlbutton: "<button type='button' class='webix_el_htmlbutton webixtype_base'>#label#</button>",
+		htmlbutton: "<button type='button' class='webix_button'>#label#</button>",
 
-		prev:"<input type='button' class='webixtype_prev' value='#label#' /><div class='webix_el_arrow webixtype_prev_arrow'></div>",
-		next:"<input type='button' class='webixtype_next' value='#label#' /><div class='webix_el_arrow webixtype_next_arrow'></div>",
+		image:"<button type='button' class='webix_button webix_img_btn' style='line-height:#cheight#px;'><img class='webix_image' style='max-width:#cheight#px; max-height:#cheight#px;' src = '#image#'>#label#</button>",
+		imageTop:"<button type='button' class='webix_button webix_img_btn_top'><div class='webix_image' style='width:100%;height:100%;background-image:url(#image#);'></div><div class='webix_img_btn_text'>#label#</div></button>",
 
-		imageButton:"<button type='button' class='webix_img_btn_abs webixtype_base' style='width:100%; line-height:#cheight#px'><div class='webix_image' style='width:#dheight#px;height:#dheight#px;background-image:url(#image#);'></div>#label#</button>",
-		imageButtonTop:"<button type='button' class='webix_img_btn_abs webix_img_btn_abs_top webixtype_base'><div class='webix_image' style='width:100%;height:100%;background-image:url(#image#);'></div><div class='webix_img_btn_text'>#label#</div></button>",
-
-		image:"<button type='button' class='webix_img_btn' style='line-height:#cheight#px;'><div class='webix_image' style='width:#cheight#px;height:#cheight#px;background-image:url(#image#);'></div>#label#</button>",
-		imageTop:"<button type='button' class='webix_img_btn_top'><div class='webix_image' style='width:100%;height:100%;background-image:url(#image#);'></div><div class='webix_img_btn_text'>#label#</div></button>",
-
-		icon:"<button type='button' class='webix_img_btn' style='line-height:#cheight#px;'><span class='webix_icon_btn #icon#' style='max-width:#cheight#px;'></span>#label#</button>",
-		iconButton:"<button type='button' class='webix_img_btn_abs webixtype_base' style='width:100%;'><span class='webix_icon #icon#'></span>#label#</button>",
-		iconTop:"<button type='button' class='webix_img_btn_top' style='width:100%;top:4px;text-align:center;'><span class='webix_icon #icon#'></span><div class='webix_img_btn_text'>#label#</div></button>",
-		iconButtonTop:"<button type='button' class='webix_img_btn_abs webix_img_btn_abs_top webixtype_base' style='width:100%;top:0px;text-align:center;'><span class='webix_icon #icon#'></span><div class='webix_img_btn_text'>#label#</div></button>"
-
+		icon:"<button type='button' class='webix_button webix_img_btn' style='line-height:#cheight#px;'><span class='webix_icon_btn #icon#' style='max-width:#cheight#px;'></span>#label#</button>",
+		iconTop:"<button type='button' class='webix_button webix_img_btn_top' style='width:100%;text-align:center;'><span class='webix_icon #icon#'></span><div class='webix_img_btn_text'>#label#</div></button>",
 	},
 	_findAllInputs: function(){
 		var result = [];
@@ -220,24 +232,6 @@ const api = {
 		return null;
 	},
 	_sqrt_2:Math.sqrt(2),
-	_set_inner_size_next:function(){
-		var cfg = this._settings;
-		var arrow = this._getBox().childNodes[1];
-		var button = arrow.previousSibling;
-		var style = cfg.type == "next"?"right":"left";
-		var height = cfg.aheight-$active.inputPadding*2-2*this._borderWidth; //-2 - borders
-
-		var arrowEdge = height*this._sqrt_2/2;
-		arrow.style.width = arrowEdge+"px";
-		arrow.style.height = arrowEdge+"px";
-		arrow.style.top = (height - arrowEdge)/2 + $active.inputPadding+ "px";
-		arrow.style[style] = (height - arrowEdge)/2 +this._sqrt_2/2+ "px";
-		button.style.width = cfg.awidth - height/2 -2  + "px";
-		button.style.height = height + 2 + "px";
-		button.style[style] =  height/2 + 2 + "px";
-		button.style.top = $active.inputPadding+ "px";
-
-	},
 	_calc_size:function(config){
 		config = config || this._settings;
 		if (config.autowidth)
@@ -317,7 +311,7 @@ const api = {
 
 	on_click:{
 		_handle_tab_click: function(ev){
-			var id = locate(ev, "button_id");
+			var id = locate(ev, /*@attr*/"button_id");
 			if (id && this.callEvent("onBeforeTabClick", [id, ev])){
 				this.setValue(id);
 				this.callEvent("onAfterTabClick", [id, ev]);
@@ -349,7 +343,7 @@ const api = {
 				this.toggle();
 		},
 		webix_inp_radio_border: function(e) {
-			var value = locate(e, "radio_id");
+			var value = locate(e, /*@attr*/"radio_id");
 			this.setValue(value);
 			this.focus();
 		},
@@ -362,7 +356,7 @@ const api = {
 			this.getPopup().show(node,null,true);
 		},
 		webix_tab_close:function(ev){
-			var id = locate(ev, "button_id");
+			var id = locate(ev, /*@attr*/"button_id");
 			if (id && this.callEvent("onBeforeTabClose", [id, ev]))
 				this.removeOption(id);
 		}

@@ -7,13 +7,14 @@ import {isUndefined, extend, delay} from "../webix/helpers";
 const ProgressBar = {
 	$init:function(){
 		if (isUndefined(this._progress) && this.attachEvent){
-			this.attachEvent("onBeforeLoad", this.showProgress);
-			this.attachEvent("onAfterLoad", this.hideProgress);
+			this.attachEvent("onBeforeLoad", () => this.showProgress());
+			this.attachEvent("onAfterLoad", () => this.hideProgress());
 			this._progress = null;
 		}
 	},
 	showProgress:function(config){
 		// { position: 0 - 1, delay: 2000ms by default, css : name of css class to use }
+		var width;
 		if (!this._progress){
 
 			config = extend({
@@ -25,8 +26,6 @@ const ProgressBar = {
 			}, (config||{}), true);
 
 			var incss = (config.type == "icon") ? (config.icon+" webix_spin") : "";
-
-
 
 			this._progress = create(
 				"DIV",
@@ -63,58 +62,60 @@ const ProgressBar = {
 				}
 			}
 
-
-			this._progress_delay = 1;
+			this._progress_animate = config.type != "icon";
 		}
 
-		if (config && config.type != "icon")
-			delay(function(){
-				if (this._progress){
-					var position = config.position || 1;
-					//check for css-transition support
-					if(this._progress.style[env.transitionDuration] !== undefined || !config.delay){
-						this._progress.firstChild.style.width = position*100+"%";
-						if (config.delay)
-							this._progress.firstChild.style[env.transitionDuration] = config.delay+"ms";
-					} else{
-					//if animation is not supported fallback to timeouts [IE9]
-						var count = 0,
-							start = 0,
-							step = position/config.delay*30,
-							view = this;
+		if (!config) return;
 
-						if(this._progressTimer){
-							//reset the existing progress
-							window.clearInterval(this._progressTimer);
-							start = this._progress.firstChild.offsetWidth/this._progress.offsetWidth*100;
-						}
-						this._progressTimer = window.setInterval(function(){
-							if(count*30 == config.delay){
-								window.clearInterval(view._progressTimer);
-							}
-							else{
-								if(view._progress && view._progress.firstChild)
-									view._progress.firstChild.style.width = start+count*step*position*100+"%";
-								count++;
-							}
-						},30);
-					}
-
-					if (config.hide)
-						delay(this.hideProgress, this, [1], config.delay);
-
+		if (this._progress_animate){
+			var position = config.position || 1;
+			//check for css-transition support
+			if(this._progress.style[env.transitionDuration] !== undefined || !config.delay){
+				if (config.delay){
+					// force reflow
+					width = this._viewobj.firstChild.offsetWidth;
+					this._progress.firstChild.style[env.transitionDuration] = config.delay+"ms";
 				}
-				this._progress_delay = 0;
-			}, this);
-		else if(config && config.type == "icon" && config.hide)
-			delay(this.hideProgress, this, [1], config.delay);
+
+				// animate to new value
+				this._progress.firstChild.style.width = position*100+"%";
+			} else{
+				//if animation is not supported fallback to timeouts [IE9]
+				var count = 0,
+					start = 0,
+					step = position/config.delay*30,
+					view = this;
+
+				if(this._progressTimer){
+					//reset the existing progress
+					window.clearInterval(this._progressTimer);
+					start = this._progress.firstChild.offsetWidth/this._progress.offsetWidth*100;
+				}
+				this._progressTimer = window.setInterval(function(){
+					if(count*30 == config.delay){
+						window.clearInterval(view._progressTimer);
+					}
+					else{
+						if(view._progress && view._progress.firstChild)
+							view._progress.firstChild.style.width = start+count*step*position*100+"%";
+						count++;
+					}
+				},30);
+			}
+		}
+
+		if (this._progress_hide)
+			clearTimeout(this._progress_hide);
+
+		if(config.hide)
+			this._progress_hide = delay(this.hideProgress, this, [1], config.delay);
+
+		// necessary to prevent code optimization
+		return width;
 	},
 	hideProgress:function(now){
-		if (this._progress_delay)
-			now = true;
-
 		if (this._progress){
-			if (now){
+			if (now || !this._progress_animate){
 				if(this._progressTimer)
 					window.clearInterval(this._progressTimer);
 				remove(this._progress);

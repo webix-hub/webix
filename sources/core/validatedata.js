@@ -20,6 +20,7 @@ const ValidateData = {
 		assert(this.callEvent, "using validate for eventless object");
 		
 		this.callEvent("onBeforeValidate", []);
+
 		var failed = this._validate_details = {};
 
 		//optimistic by default :) 

@@ -1,4 +1,4 @@
-import {uid, isArray, bind} from "../webix/helpers";
+import {uid, isArray} from "../webix/helpers";
 import {$$} from "../ui/core";
 
 import i18n from "../webix/i18n";
@@ -84,86 +84,98 @@ const MapCollection = {
 			this._map_options(columns[i]);
 		}
 	},
-	_map_options:function(element){
-		var options = element.options||element.collection;
-		if(options){
-			if (typeof options === "string"){
-				//id of some other view
-				var options_view = $$(options);
-				//or url
-				if (!options_view){
-					options_view = new (use("DataCollection"))({ url: options });
-					this._destroy_with_me.push(options_view);
-				}
-				//if it was a view, special check for suggests
-				if (options_view.getBody) options_view = options_view.getBody();
-				this._bind_collection(options_view, element);
-			} else if (!options.loadNext){
-				if (options[0] && typeof options[0] == "object"){
-					//[{ id:1, value:"one"}, ...]
-					options = new (use("DataCollection"))({ data:options });
-					this._bind_collection(options, element);
-					this._destroy_with_me.push(options);
-				} else {
-					//["one", "two"]
-					//or
-					//{ 1: "one", 2: "two"}
-					if (isArray(options)){
-						var data = {};
-						for (var ij=0; ij<options.length; ij++) data[options[ij]] = options[ij];
-						element.options = options = data;
-					}
-					element.template = element.template || this._collection_accesser(options, element.id, element.optionslist);
-				}
-			} else {
-				//data collection or view
-				this._bind_collection(options, element);
+	_create_collection:function(options){
+		if (typeof options === "string"){
+			let options_view = $$(options);										//id of some other view
+
+			if (!options_view){													//or url
+				options = new (use("DataCollection"))({ url: options });
+				this._destroy_with_me.push(options);
+			} else options = options_view;
+			if (options.getBody)												//if it was a view, special check for suggests
+				options = options_view.getBody();
+
+		} else if (typeof options === "function" || options.$proxy){			//proxy or function
+			options = new (use("DataCollection"))({ url:options });
+			this._destroy_with_me.push(options);
+
+		} else if (!options.loadNext){
+			let array = isArray(options);
+			let data = [];
+
+			if (array && typeof options[0] !== "object"){						//["one", "two"]
+				for (let i=0; i<options.length; i++)
+					data.push({id:options[i], value:options[i]});
+				options = data;
+			} else if (!array){													//{ 1:"one", 2:"two" }
+				for (let i in options)
+					data.push({id:i, value:options[i]});
+				options = data;
+			} 																	// else [{ id:1, value:"one"}, ...]
+
+			options = new (use("DataCollection"))({ data:options });
+			this._destroy_with_me.push(options);
+
+		} 																		// else data collection or view
+		return options;
+	},
+	_map_options:function(column){
+		let options = column.options||column.collection;
+		if (options){
+			options = this._create_collection(options);
+			this._bind_collection(options, column);
+		}
+		if (column.header){
+			this._map_header_options(column.header);
+			this._map_header_options(column.footer);
+		}
+	},
+	_map_header_options:function(arr){
+		arr = arr || [];
+		for (let i=0; i<arr.length; i++){
+			let config = arr[i];
+
+			if (config && config.options){
+				let options = config.options;
+				if (!options.loadNext)
+					options = config.options = this._create_collection(options);
+
+				let id = options.data.attachEvent("onStoreUpdated", () => {
+					if(this.refreshFilter)
+						this.refreshFilter(config.columnId);
+				});
+				this.attachEvent("onDestruct", function(){
+					if (!options.$destructed) options.data.detachEvent(id);
+				});
 			}
 		}
 	},
-	_bind_collection:function(options, element){
-		if (element){
-			delete element.options;
-			element.collection = options;
-			element.template = element.template || this._bind_accesser(options, element.id, element.optionslist);
-			var id = options.data.attachEvent("onStoreUpdated", bind(function(){
+	_bind_collection:function(options, column){
+		if (column){
+			delete column.options;
+			column.collection = options;
+			column.template = column.template || this._bind_template(options, column.id, column.optionslist);
+			let id = options.data.attachEvent("onStoreUpdated", () => {
 				this.refresh();
 				if(this.refreshFilter)
-					this.refreshFilter(element.id);
-			}, this));
+					this.refreshFilter(column.id);
+			});
 			this.attachEvent("onDestruct", function(){
 				if (!options.$destructed) options.data.detachEvent(id);
 			});
 		}
 	},
-	_collection_accesser:function(options, id, multi){
-		if (multi){
-			var separator = typeof multi=="string"?multi:",";
-			return function(obj){
-				var value = obj[id] || obj.value;
-				if (!value) return "";
-				var ids = value.split(separator);
-				for (var i = 0; i < ids.length; i++)
-					ids[i] = options[ids[i]] || "";
-				
-				return ids.join(", ");
-			};
-		} else {
-			return function(obj){
-				return options[obj[id]]||obj.value||"";
-			};
-		}
-	},
-	_bind_accesser:function(col, id, multi){
+	_bind_template:function(options, columnId, multi){
+		columnId = this.getColumnConfig ? columnId : "value";
 		if (multi) {
-			var separator = typeof multi=="string"?multi:",";
+			let separator = typeof multi=="string" ? multi : ",";
 			return function(obj){
-				var value = obj[id] || obj.value;
+				let value = obj[columnId];
 				if (!value) return "";
 
-				var ids = value.split(separator);
-				for (var i = 0; i < ids.length; i++){
-					var data = col.data.pull[ids[i]];
+				let ids = value.toString().split(separator);
+				for (let i = 0; i < ids.length; i++){
+					let data = options.data.pull[ids[i]];
 					ids[i] = data ? (data.value  || "") : "";
 				}
 				
@@ -171,9 +183,8 @@ const MapCollection = {
 			};
 		} else {
 			return function(obj){
-				var prop = obj[id]||obj.value,
-					data = col.data.pull[prop];
-				if (data && (data.value || data.value ===0))
+				let data = options.data.pull[ obj[columnId] ];
+				if (data && (data.value || data.value === 0))
 					return data.value;
 				return "";
 			};

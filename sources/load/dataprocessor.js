@@ -93,12 +93,27 @@ export const DataProcessor = proto({
 		this._settings.store = store;
 		return value;
 	},
+	_promise:function(handler){
+		const prev = this._waitSave;
+		this._waitSave = [];
+		
+		handler();
+		const result = Promise.all(this._waitSave);
+
+		this._waitSave = prev;
+		if (prev)
+			prev.push(result);
+
+		return result;
+	},
 	/*! attaching onStoreUpdated event
 	 **/
 	_after_init_call: function(){
-		assert(this._settings.store, "store or master need to be defined for the dataprocessor");
-		this._settings.store.attachEvent("onStoreUpdated", bind(this._onStoreUpdated, this));
-		this._settings.store.attachEvent("onDataMove", bind(this._onDataMove, this));
+		const store = this._settings.store;
+		if (store){
+			store.attachEvent("onStoreUpdated", bind(this._onStoreUpdated, this));
+			store.attachEvent("onDataMove", bind(this._onDataMove, this));
+		}
 	},
 	ignore:function(code,master){
 		var temp = this._ignore;
@@ -122,15 +137,18 @@ export const DataProcessor = proto({
 	},
 	save:function(id, operation, obj){
 		operation = operation || "update";
-		this._save_inner(id, (obj || this._settings.store.getItem(id)), operation);
+		return this._save_inner(id, obj, operation, true);
 	},
-	_save_inner:function(id, obj, operation){
+	_save_inner:function(id, obj, operation, now){
 		if (typeof id == "object") id = id.toString();
-		if (!id || this._ignore === true || !operation || operation == "paint") return true;
+		if (!id || this._ignore === true || !operation || operation == "paint") return;
 
 		var store = this._settings.store;
-		if (store && store._scheme_serialize)
-			obj = store._scheme_serialize(obj);
+		if (store){
+			obj = obj || this._settings.store.getItem(id);
+			if (store._scheme_serialize)
+				obj = store._scheme_serialize(obj);
+		}
 
 		var update = { id: id, data:this._copy_data(obj), operation:operation };
 		//save parent id
@@ -149,10 +167,10 @@ export const DataProcessor = proto({
 		if (this._check_unique(update))
 			this._updates.push(update);
 
-		if (this._settings.autoupdate)
-			this.send();
+		if (this._settings.autoupdate || now)
+			return this._sendData(id);
 			
-		return true;
+		return;
 	},
 	_onDataMove:function(sid, tindex, parent, targetid){
 		if (this._settings.trackMove){
@@ -201,12 +219,13 @@ export const DataProcessor = proto({
 		return true;
 	},
 	send:function(){
-		this._sendData();
+		return this._sendData();
 	},
-	_sendData: function(){
+	_sendData: function(triggerId){
 		if (!this._settings.url)
 			return;
 
+		var wait;
 		var marked = this._updates;
 		var to_send = [];
 		var url = this._settings.url;
@@ -218,14 +237,19 @@ export const DataProcessor = proto({
 			if (tosave._invalid) continue;
 
 			var id = tosave.id;
+			// call to .save(id) without autoupdate mode will send the specific object only
+			if (!this._settings.autoupdate && triggerId && triggerId != id)
+				continue;
+
 			var operation = tosave.operation;
 			var precise_url = proxy.$parse((typeof url == "object" && !url.$proxy) ? url[operation] : url);
 			var custom = precise_url && (precise_url.$proxy || typeof precise_url === "function");
 
 			if (!precise_url) continue;
 
-			if (this._settings.store._scheme_save)
-				this._settings.store._scheme_save(tosave.data);
+			const store = this._settings.store;
+			if (store && store._scheme_save)
+				store._scheme_save(tosave.data);
 
 			if (!this.callEvent("onBefore"+operation, [id, tosave]))
 				continue;
@@ -235,12 +259,11 @@ export const DataProcessor = proto({
 
 			tosave.data = this._updatesData(tosave.data);
 
-			var callback = this._send_callback({ id:tosave.id, status:tosave.operation });
+			let result;
 			if (precise_url.$proxy){
 				if (precise_url.save){
 					//proxy
-					let result = precise_url.save(this.config.master, tosave, this);
-					this._proxy_on_save(result, callback);
+					result = precise_url.save(this.config.master, tosave, this);
 				}
 				to_send.push(tosave);
 			} else {
@@ -249,13 +272,19 @@ export const DataProcessor = proto({
 				
 				if (custom){
 					//save function
-					let result = precise_url.call(this.config.master, tosave.id, tosave.operation, tosave.data);
-					this._proxy_on_save(result, callback);
+					result = precise_url.call(this.config.master, tosave.id, tosave.operation, tosave.data);
 				} else {
 					//normal url
 					tosave.data[this._settings.operationName] = operation;
 
-					this._send(precise_url, tosave.data, this._settings.mode, operation, callback);
+					result = this._send(precise_url, tosave.data, this._settings.mode);
+				}
+			}
+
+			if (result){
+				result = this._proxy_on_save(result, { id: tosave.id, status: tosave.operation });
+				if (triggerId && id === triggerId){
+					wait = result;
 				}
 			}
 
@@ -264,31 +293,44 @@ export const DataProcessor = proto({
 
 		if (url.$proxy && url.saveAll && to_send.length){
 			let result = url.saveAll(this.config.master, to_send, this);
-			if(result){
-				if(!result.then)
-					result = promise.resolve(result);
-				result.then((data) => {
-					if (data && typeof data.json == "function")
-						data = data.json();
-					this._processResult(data);
-				}, 
-				(x) => {
-					this._processError(null, "", null, x);
-				});
+			if (result){
+				result = this._proxy_on_save(result, null);
+				if (!wait)
+					wait = result;
 			}
 		}
+
+		return wait;
 	},
-	_proxy_on_save:function(result, callback){
+	_proxy_on_save:function(result, state){
 		if(result){
 			if(!result.then)
 				result = promise.resolve(result);
-			result.then((data) => {
+
+			result = result.then((data) => {
 				if (data && typeof data.json == "function")
 					data = data.json();
-				callback.success("", data, -1); //text, data, loader
+
+				var processed;
+				if (state === null){
+					processed = this._processResult(data); //array of responses
+				} else {
+					processed = this._processResult(state, "", data, -1); //text, data, loader
+				}
+
+				if (!processed)
+					throw processed; // trigger rejection
+
+				return processed;
 			}, (x) => {
-				callback.error("", null, x);
+				this._processError(state, "", null, x);
+				throw x;
 			});
+
+			if (this._waitSave)
+				this._waitSave.push(result);
+
+			return result;
 		}
 	},
 
@@ -323,20 +365,9 @@ export const DataProcessor = proto({
 	 *	@mode
 	 *		'post' or 'get'
 	 **/
-	_send: function(url, post, mode, operation, callback) {
+	_send: function(url, post, mode) {
 		assert(url, "url was not set for DataProcessor");
-
-		if (typeof url == "function")
-			return url(post, operation, callback);
-
-		ajax()[mode](url, post, callback);
-	},
-	_send_callback:function(id){
-		var self = this;
-		return {
-			success:function(t,d,l){ return self._processResult(id, t,d,l); },
-			error  :function(t,d,l){ return self._processError(id, t,d,l); }
-		};
+		return ajax()[mode](url, post);
 	},
 	attachProgress:function(start, end, error){
 		this.attachEvent("onBeforeDataSend", start);
@@ -374,14 +405,17 @@ export const DataProcessor = proto({
 		} else
 			this.setItemState(id, false);
 
-		//update from response
-		if (newid && id != newid)
-			this._settings.store.changeId(id, newid);
+		const store = this._settings.store;
+		if (store && store.exists(id)){
+			//update from response
+			if (newid && id != newid)
+				store.changeId(id, newid);
 
-		if (obj && status != "delete" && this._settings.updateFromResponse)
-			this.ignore(function(){				
-				this._settings.store.updateItem(newid || id, obj);
-			});
+			if (obj && status != "delete" && this._settings.updateFromResponse)
+				this.ignore(function(){				
+					store.updateItem(newid || id, obj);
+				});
+		}
 			
 
 		//clean undo history, for the saved record
@@ -390,32 +424,36 @@ export const DataProcessor = proto({
 
 		this.callEvent("onAfterSave",[obj, id, details]);
 		this.callEvent("onAfter"+status, [obj, id, details]);
+
+		return obj || {};
 	},
 	processResult: function(state, hash, details){
 		//compatibility with custom json response
 		var error = (hash && (hash.status == "error" || hash.status == "invalid"));
 		var newid = (hash ? ( hash.newid || hash.id ) : false);
 
-		this._innerProcessResult(error, state.id, newid, state.status, hash, details);
+		return this._innerProcessResult(error, state.id, newid, state.status, hash, details);
 	},
 	// process saving from result
 	_processResult: function(state, text, data, loader){
+		var finalResult;
 		this.callEvent("onBeforeSync", [state, text, data, loader]);
 
 		if(isArray(state)){ //saveAll results
+			finalResult = [];
 			state.forEach((one) => {
-				this.processResult(one, one, {});
+				finalResult.push(this.processResult(one, one, {}));
 			});
 		}
 		else{
 			if (loader === -1){
 				//callback from promise
-				this.processResult(state, data, {});
+				finalResult = this.processResult(state, data, {});
 			} else {
 				var proxy = this._settings.url;
-				if (proxy.$proxy && proxy.result)
-					proxy.result(state, this._settings.master, this, text,  data, loader);
-				else {
+				if (proxy.$proxy && proxy.result){
+					finalResult = proxy.result(state, this._settings.master, this, text,  data, loader) || {};
+				} else {
 					var hash;
 					if (text){
 						hash = data.json();
@@ -423,12 +461,13 @@ export const DataProcessor = proto({
 						if (text && (hash === null || typeof hash == "undefined"))
 							hash = { status:"error" };
 					}
-					this.processResult(state, hash,  {text:text, data:data, loader:loader});
+					finalResult = this.processResult(state, hash,  {text:text, data:data, loader:loader});
 				}
 			}
 		}
 
 		this.callEvent("onAfterSync", [state, text, data, loader]);
+		return finalResult;
 	},
 
 
@@ -457,9 +496,9 @@ export const DataProcessor = proto({
 		return this._updates[index] || null;
 	},
 	setItemState:function(id, state){
-		if (state)
-			this.save(id, state);
-		else{
+		if (state){
+			this._save_inner(id, null, "update");
+		} else{
 			var index = this._get_stack_index(id);
 			if (index > -1)
 				this._updates.splice(index, 1);

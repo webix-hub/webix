@@ -3,9 +3,9 @@ import layout from "../views/layout";
 import list from "../views/list";
 
 import {ui, $$} from "../ui/core";
-import {extend, bind, delay, toArray} from "../webix/helpers";
+import {extend, bind, delay, toArray, copy} from "../webix/helpers";
 import env from "../webix/env";
-import {setSelectionRange, preventEvent} from "../webix/html";
+import {setSelectionRange, getSelectionRange, preventEvent} from "../webix/html";
 import {attachEvent, detachEvent} from "../webix/customevents";
 import {confirm} from "../webix/message";
 import template from "../webix/template";
@@ -19,21 +19,23 @@ import AtomDataLoader from "../core/atomdataloader";
 import proxy from "../load/proxy";
 import {dp} from "../load/dataprocessor";
 import DataCollection from "../core/datacollection";
+import promise from "../thirdparty/promiz";
 
 
 const api = {
 	name:"comments",
 	defaults:{
 		sendAction:"click",
-		mode:"comments",
-		moreButton:template(i18n.comments.moreComments)
+		mode:"comments"
 	},
 	$init: function(config){
 		this.$view.className +=" webix_comments";
-
+		
 		config.rows = [this._configList(config)];
 		if(!config.readonly)
 			config.rows.push(this._configForm());
+		if(!config.moreButton)
+			config.moreButton = template(i18n.comments.moreComments);
 
 		this._destroy_with_me = [];
 
@@ -50,6 +52,9 @@ const api = {
 		this._form = this.queryView({view:"form"});
 		this._sendButton = this.queryView({view:"button"});
 		this._input = this.queryView({view:"textarea"});
+
+		if(this.config.mentions)
+			this._initMentions(this.config.mentions);
 
 		//provide data-like API
 		this._list.data.provideApi(this, true);
@@ -336,7 +341,23 @@ const api = {
 				});
 				return text;
 			},
+			templateMentioned: (obj) => {
+				if (!this._mentioned[obj.id]) return obj.text;
+
+				const field = this._userList._settings.textValue || "value";
+				const order = this._mentioned[obj.id];
+
+				for (let i=0; i<order.length; i++){
+					let mention = this._users.getItem(order[i])[field];
+					obj.text = obj.text.replace(new RegExp("@"+mention, "g"), "<span class='webix_comments_mention'>@"+mention+"</span>");
+				}
+				return obj.text;
+			},
 			templateText: (obj, common) => {
+				if(this._settings.mentions && this._mentioned){
+					obj = copy(obj);
+					obj.text = common.templateMentioned(obj, common);
+				}
 				return "<div class = '"+css+"message'>"+common.templateLinks(obj)+"</div>";
 			},
 			templateAvatar: (obj, common) => {
@@ -446,9 +467,126 @@ const api = {
 			else
 				this._users.parse(value||[]);
 		}
-		this._users.data.attachEvent("onStoreUpdated", () => {
+		this._users.data.attachEvent("onStoreUpdated", (id, obj, mode) => {
+			if(this._settings.mentions && mode && mode !== "paint"){
+				this._list.data.each((obj) => {
+					this._findMentioned(obj, true);
+				});
+			}
 			this._list.refresh();
 		});
+	},
+	_initMentions:function(value){
+		this._mentioned = {};
+		this._initUserList(value);
+
+		promise.all([this._list.waitData, this._users.waitData]).then(() => {
+			this._list.data.each((obj) => this._findMentioned(obj));
+			this._list.refresh();
+		});
+
+		this._list.data.attachEvent("onStoreUpdated", (id, obj, mode) => {
+			if (id && ( mode === "add" || mode === "update")){
+				this._findMentioned(obj, true);
+				this._list.refresh(id);
+			}
+		});
+	},
+	_initUserList:function(value){
+		var config = typeof value != "object"? {} : value;
+
+		config = extend({
+			view:"suggest",
+			filter:(item, value) => {
+				value = value.substring(0, this._last_cursor_pos);
+				if (value.indexOf("@") === -1) return false;
+				else {
+					value = value.substring(value.lastIndexOf("@")+1);
+					if (value.length){
+						let type = this._userList.getList().type;
+						let text = type.template(item, type);
+						return text.toString().toLowerCase().indexOf(value.toLowerCase()) !== -1;
+					}
+					return false;
+				}
+			}
+		}, config);
+
+		if (typeof config.body !== "object")
+			config.body = { data:this._users };
+		else
+			config.body.data = this._users;
+
+		this._userList = ui(config);
+		this._userList._show_on_key_press = false;
+
+		this._input.$setValueHere = function(){ };
+		this._input.setValueHere = (v) => {
+			if (v){
+				let value = this._input.getValue();
+				let last = value.substring(this._last_cursor_pos);
+
+				value = value.substring(0, this._last_cursor_pos);
+				value = value.substring(0, value.lastIndexOf("@")+1) + v;
+
+				this._input.setValue(value + last);
+				setSelectionRange(this._input.getInputNode(), value.length);
+				this._last_cursor_pos = value.length;
+			}
+		};
+
+		this._destroy_with_me.push(this._userList);
+		this._input.attachEvent("onAfterRender", ()=>{
+			this._userList.linkInput(this._input);
+			this._userList.getList().data.attachEvent("onBeforeFilter", () => {
+				this._last_cursor_pos = getSelectionRange(this._input.getInputNode()).start;
+			});
+		});
+	},
+	_findMentioned:function(obj, announce){
+		const id = obj.id;
+		const indexes = {};
+		const field = this._userList._settings.textValue || "value";
+
+		this._users.data.each((user) => {
+			const value = "@" + user[field];
+			let text = obj.text;
+			let index = text.indexOf(value);
+			let cut_off = 0;
+
+			while (index !== -1){
+				let real_index = cut_off + index;
+				if (indexes[real_index]){
+					let last_value = this._users.getItem(indexes[real_index])[field];
+					if (value.length > last_value.length + 1)
+						indexes[real_index] = user.id;
+				} else indexes[real_index] = user.id;
+
+				cut_off += index + value.length;
+				text = text.substring(index + value.length);
+				index = text.indexOf(value);
+			}
+		});
+
+		const last = this._mentioned[id];
+		const mention = [];
+
+		for (let i in indexes)
+			if (mention.indexOf(indexes[i]) === -1){
+				mention.push(indexes[i]);
+
+				if (announce && (!last || last.indexOf(indexes[i]) === -1))
+					this.callEvent("onUserMentioned", [indexes[i], id]);
+			}
+
+		if (mention.length){
+			this._mentioned[id] = mention;
+			mention.sort((a, b) => {
+				a = this._users.getItem(a)[field];
+				b = this._users.getItem(b)[field];
+				return (a.length === b.length) ? 0: (a.length > b.length) ? -1: 1;
+			});
+		} else delete this._mentioned[id];
 	}
 };
 

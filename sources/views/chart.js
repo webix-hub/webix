@@ -32,6 +32,7 @@ import Scatter from "./chart/scatter";
 import Presets from "./chart/presets";
 import SplineArea from "./chart/splinearea";
 import DynamicChart from "./chart/dynamic";
+import TooltipControl from "../core/tooltipcontrol";
 
 const api = {
 	name:"chart",
@@ -92,10 +93,10 @@ const api = {
 		origin:"auto",
 		scale: "linear"
 	},
-	_id:"webix_area_id",
+	_id:/*@attr*/"webix_area_id",
 	on_click:{
 		webix_chart_legend_item: function(e,id,obj){
-			var series = obj.getAttribute("series_id");
+			var series = obj.getAttribute(/*@attr*/"series_id");
 			if(this.callEvent("onLegendClick",[e,series,obj])){
 				if((typeof series != "undefined")&&this._series.length>1){
 					var config = this._settings;
@@ -289,16 +290,13 @@ const api = {
 		return data;
 	},
 	series_setter:function(config){
-		if(typeof config!="object"){
-			assert(config,"Chart :: Series must be an array or object");	
-		}
-		else{
-
-			this._parseSettings(!config.length?config:config[0]);
+		if (!config || typeof config != "object"){
+			assert(config,"Chart :: Series must be an array or object");
+		} else {
+			this._parseSettings(!config.length ? config : config[0]);
 			this._series = [this._settings];
 
-
-			for(var i=1;i< config.length;i++)
+			for (let i=1; i<config.length; i++)
 				this.addSeries(config[i]);
 		}
 		return config;
@@ -621,8 +619,10 @@ const api = {
 		}
 		if(this._settings.origin!="auto"&&this._settings.origin<nmin)
 			nmin = this._settings.origin;
-		var step,start,end;
-		step = this._normStep(((nmax-nmin)/8)||1);
+
+		var	start,end;
+		var step = this._normStep(((nmax-nmin)/8)||1);
+		var power = Math.floor(this._log10(step));
 
 		if(step>Math.abs(nmin))
 			start = (nmin<0?-step:0);
@@ -637,13 +637,14 @@ const api = {
 			while(nmin<0?start<=nmin:start>=nmin)
 				start -= step;
 			if(nmin<0) start =-start-2*step;
-			
+
+			start = start - (start % step);
+			start = parseFloat((start*1.0).toFixed(Math.abs(power)));
 		}
 		if ((nmax-start) > 10)
 			step = this._normStep(((nmax-start)/8)||1);
 		end = start;
 
-		var power = Math.floor(this._log10(step));
 		while(end<nmax){
 			end += step;
 			end = parseFloat((end*1.0).toFixed(Math.abs(power)));
@@ -724,11 +725,25 @@ const api = {
 	*   @param: obj - obj with configuration properties
 	*/
 	addSeries:function(obj){
-		var temp = extend({},this._settings);
-		this._settings = extend({},temp);
-		this._parseSettings(obj,{});
+		const temp = extend({}, this._settings);
+
+		this._settings = extend({}, temp);
+		this._parseSettings(obj);
 		this._series.push(this._settings);
 		this._settings = temp;
+	},
+	$tooltipIn:function(t){
+		return t;
+	},
+	_get_tooltip_data:function(t,e){
+		let id = this.locate(e);
+		if (!id) return null;
+
+		let active = this._getActiveSeries(e);
+		let def = extend({dx:20, dy:0, template:"{obj.value}", css:""}, (this._series[active].tooltip || {template:""}), true);
+
+		TooltipControl._tooltip.define( def );
+		return this.getItem(id);
 	},
 	_getActiveSeries: function(e){
 		var a, areas, i, offset, pos, selection,  x, y;
@@ -887,7 +902,7 @@ const api = {
 			"aria-label":(i18n.aria[(disabled?"show":"hide")+"Chart"])+" "+value
 		},value);
 		if(arguments.length>2)
-			text.setAttribute("series_id",series);
+			text.setAttribute(/*@attr*/"series_id",series);
 		cont.appendChild(text);
 		return text;
 	},

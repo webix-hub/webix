@@ -55,7 +55,7 @@
 	}
 }
 
-.webix_message, .webix_popup_button, .webix_button{
+.webix_message, .webix_popup_button{
 	cursor:pointer;
 }
 
@@ -64,7 +64,7 @@
 }
 @modalButtonHeight: @inputHeight - (@skin_input_y_padding * 2) - 2;
 
-.webix_popup_button, .webix_button{
+.webix_popup_button{
 	height:@modalButtonHeight;
 	line-height:@modalButtonHeight;
 
@@ -97,41 +97,16 @@ div.webix_modal_cover {
 }
 
 /*Skin section*/
-.webix_button, .webix_popup_button{
+.webix_popup_button{
 	font-size: @fontSize;
+	.buttonStyle;
 	.buttonBackground;
 	outline: none;
 }
 
 .webix_popup_button.confirm{
-	.confirmButton;
-}
-
-.webix_button:active, .webix_popup_button.confirm:active, .webix_popup_button:active{
-	.activeShadow;
-}
-
-@formButtonColor:@selectColor;
-
-.webix_popup_button{
-	&.confirm:hover{
-		.darkHoverRule(@formButtonColor);
-	}
-	&.confirm:focus{
-		.darkFocusRule(@formButtonColor);
-	}
-	&.confirm:active{
-		.darkActiveRule(@formButtonColor);
-	}
-	&:hover{
-		.darkHoverRule(@buttonColor);
-	}
-	&:focus{
-		.darkFocusRule(@buttonColor);
-	}
-	&:active{
-		.darkActiveRule(@buttonColor);
-	}
+	.buttonStyle;
+	.buttonBackground(@formButtonColor, @formButtonFontColor);
 }
 
 .webix_popup_title{

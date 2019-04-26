@@ -48,7 +48,7 @@ const api = {
 	on_edit:{
 		label:false
 	},
-	_id:"webix_f_id",
+	_id:/*@attr*/"webix_f_id",
 	on_click:{
 		webix_property_check:function(ev){
 			var id = this.locate(ev);
@@ -80,7 +80,7 @@ const api = {
 			line.label 	=	line.label||"";
 			line.value 	=	line.value||"";
 			this._idToLine[line.id] = i;
-			this.template = this._map_options(data[i]);
+			this._map_options(data[i]);
 		}
 		return data;
 	},
@@ -204,7 +204,7 @@ const api = {
 				if (data.css && typeof data.css == "object")
 					data.css = createCss(data.css);
 
-				var pre = "<div webix_f_id=\""+data.id+"\""+(data.type!=="label"?"role=\"option\" tabindex=\"0\"":"")+" class=\"webix_property_line "+(data.css||"")+"\">";
+				var pre = "<div "+/*@attr*/"webix_f_id"+"=\""+data.id+"\""+(data.type!=="label"?"role=\"option\" tabindex=\"0\"":"")+" class=\"webix_property_line "+(data.css||"")+"\">";
 				if (data.type == "label")
 					html[i] = pre+"<div class='webix_property_label_line'>"+data.label+"</div></div>";
 				else {
@@ -212,7 +212,7 @@ const api = {
 						content;
 					var post = "<div class='webix_property_label' style='width:"+this._settings.nameWidth+"px'>"+data.label+"</div><div class='webix_property_value' style='width:"+this._data_width+"px'>";
 					if(data.collection || data.options){
-						content = data.template(data, data.value);
+						content = data.template(data);
 					}else if(data.format)
 						content = data.format(data.value);
 					else

@@ -22,7 +22,8 @@ const api = {
 				"</div>";
 		}
 	},
-	_set_inner_size:function(){},
+	_set_inner_size:false,
+	_set_default_css:function(){},
 	$setValue:function(){}
 };
 

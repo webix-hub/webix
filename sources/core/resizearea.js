@@ -21,7 +21,7 @@ const ResizeArea = {
 
 			this._rwHandle = create("DIV",{
 				"class"	: "webix_resize_handle",
-				"webix_disable_drag" : "true"
+				/*@attr*/"webix_disable_drag" : "true"
 			});
 			rp.appendChild(this._rwHandle);
 			_event(this._rwHandle, env.mouse.down, this._wrDown, {bind:this});

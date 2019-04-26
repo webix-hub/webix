@@ -29,7 +29,7 @@ const Mixin = {
 	_childOf:function(e, tag){
 		var src = e.target||e.srcElement;
 		while (src){
-			if (src.getAttribute && src.getAttribute("webixignore")) return false;
+			if (src.getAttribute && src.getAttribute(/*@attr*/"webixignore")) return false;
 			if (src == tag)
 				return true;
 			src = src.parentNode;

@@ -69,7 +69,7 @@ const ActiveContent = {
 			var button_id = button._settings.id;
 			var html = this.getItemNode(id).getElementsByTagName("DIV");
 			for (var i=0; i < html.length; i++) {
-				if (html[i].getAttribute("view_id") == button_id){
+				if (html[i].getAttribute(/*@attr*/"view_id") == button_id){
 					button._viewobj = button._dataobj = html[i];
 					break;
 				}
@@ -82,7 +82,7 @@ const ActiveContent = {
 			if (e){
 				var trg=e.target||e.srcElement;
 				while (trg){
-					if (trg.getAttribute && trg.getAttribute("view_id")){
+					if (trg.getAttribute && trg.getAttribute(/*@attr*/"view_id")){
 						master._setActiveContentView(el,trg);
 						if (master.locate){
 							var id = master.locate(trg.parentNode);

@@ -21,7 +21,7 @@ const clipbuffer = {
 		// creates new textarea
 		this._area = document.createElement("textarea");
 		this._area.className = "webix_clipbuffer";
-		this._area.setAttribute("webixignore", 1);
+		this._area.setAttribute(/*@attr*/"webixignore", 1);
 		this._area.setAttribute("spellcheck", "false");
 		this._area.setAttribute("autocapitalize", "off");
 		this._area.setAttribute("autocorrect", "off");

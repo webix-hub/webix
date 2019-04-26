@@ -18,7 +18,7 @@ import animate from "../webix/animate";
 const api = {
 	name:"accordionitem",
 	$init:function(config){
-		this._viewobj.innerHTML = "<div tabindex='0' webix_ai_id='"+config.id+"'  class='webix_accordionitem_header'><div class='webix_accordionitem_button' ></div><div class='webix_accordionitem_label' ></div></div><div class='webix_accordionitem_body'></div>";
+		this._viewobj.innerHTML = "<div tabindex='0' "+/*@attr*/"webix_ai_id"+"='"+config.id+"'  class='webix_accordionitem_header'><div class='webix_accordionitem_button' ></div><div class='webix_accordionitem_label' ></div></div><div class='webix_accordionitem_body'></div>";
 		this._contentobj = this._viewobj;
 		this._headobj = this._contentobj.childNodes[0];
 		if(!config.header)
@@ -36,7 +36,7 @@ const api = {
 		this.attachEvent("onKeyPress", this._onKeyPress);
 	},
 	_remove:function(){
-		this._body_cell = { destructor:function(){} };
+		this.body_setter();
 	},
 	_replace:function(new_view){
 		this._body_cell.destructor();
@@ -45,7 +45,7 @@ const api = {
 		this._bodyobj.appendChild(this._body_cell._viewobj);
 		this.resize();
 	},
-	_id:"webix_ai_id",
+	_id:/*@attr*/"webix_ai_id",
 	getChildViews:function(){
 		return [this._body_cell];
 	},

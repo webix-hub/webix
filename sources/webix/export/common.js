@@ -1,5 +1,5 @@
 import {$active} from "../../webix/skin";
-import {extend, copy as wcopy} from "../../webix/helpers";
+import {extend, isUndefined, copy as wcopy} from "../../webix/helpers";
 
 export const errorMessage = "non-existing view for export";
 
@@ -16,6 +16,12 @@ export function getExportScheme(view, options){
 	var isTable = view.getColumnConfig;
 	var columns = options.columns;
 	var raw = !!options.rawValues;
+	var isTree = view.data.name == "TreeStore";
+
+	var treeLines = options.treeLines;
+	if(treeLines === true || isUndefined(treeLines))
+		treeLines = "value";
+
 	scheme.heights = {};
 
 	if (!columns){
@@ -26,7 +32,7 @@ export function getExportScheme(view, options){
 			var obj = view.data.pull[view.data.order[0]];
 			for (let key in obj)
 				if(key !== "id" && key[0] != "$")
-					columns.push({id:key});
+					columns.push({id:key, isTree: isTree && key === treeLines});
 		}
 	}
 	else if(!columns.length){
@@ -65,6 +71,8 @@ export function getExportScheme(view, options){
 		columns = [].concat(columns.slice(0,index)).concat(copy).concat(columns.slice(index+1));
 	}
 
+	var treeColumn;
+
 	for (let j = 0; j < columns.length; j++) {
 		let column = columns[j];
 		let key = column.id;
@@ -89,6 +97,9 @@ export function getExportScheme(view, options){
 			width:      ((column.width   || 200) * (options.export_mode==="excel"?8.43/70:1 )),
 			header:     (column.header!==false?(column.header||key)  : "")
 		};
+
+		if(isTree && key === treeLines)
+			record.isTree = treeColumn = true;
 
 		if(options.export_mode === "excel"){
 			extend(record, {
@@ -125,6 +136,10 @@ export function getExportScheme(view, options){
 		}
 		scheme.push(record);
 	}
+
+
+	if(!treeColumn && isTree && options.treeLines != treeLines && scheme[0])
+		scheme[0].isTree = true;
 
 	for(let i =0; i<scheme.length; i++){
 
@@ -179,8 +194,7 @@ export function getExportData(view, options, scheme){
 	}
 	options.yCorrection = (options.yCorrection||0)-data.length;
 
-	var isTree = (view.data.name == "TreeStore");
-	var treeline = (options.flatTree || options.plainOutput) ? "" : " - ";
+	var treeline = (options.flatTree || options.plainOutput) ? "" : "-";
 
 	view.data.each(function(item){
 		if(!options.filter || options.filter(item)){
@@ -205,9 +219,9 @@ export function getExportData(view, options, scheme){
 				if(!cell){
 					cell = column.template(item, view.type, item[column.id], column, i);
 					if (!cell && cell !== 0) cell = "";
+					if(column.isTree && treeline)
+						cell = " "+Array(item.$level).join(treeline)+" "+cell;
 					if (filterHTML && typeof cell === "string"){
-						if(isTree)
-							cell = cell.replace(/<div class=.webix_tree_none.><\/div>/, treeline);
 						cell = cell.replace(htmlFilter, "");
 					}
 					//remove end/start spaces(ex.hierarchy data)

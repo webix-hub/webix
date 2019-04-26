@@ -24,7 +24,7 @@ const api = {
 	},
 	$init:function(){
 		_event(this._viewobj, "click", bind(function(e){
-			var value = locate(e, "webix_val");
+			var value = locate(e, /*@attr*/"webix_val");
 			
 			this.setValue(value);
 			this.callEvent("onItemClick", [this._settings.value, e]);
@@ -220,7 +220,7 @@ const api = {
 			if(ind.row>=0)
 				cell = this._viewobj.lastChild.childNodes[ind.row].childNodes[ind.col];
 			if(cell){
-				value =  cell.getAttribute("webix_val");
+				value =  cell.getAttribute(/*@attr*/"webix_val");
 				this.setValue(value);
 				this.callEvent("onSelect", [this._settings.value]);
 
@@ -242,7 +242,7 @@ const api = {
 
 		this.callEvent("onBeforeRender",[]);
 		var config = this._settings,
-			itemTpl = template("<div role='gridcell' tabindex='-1' aria-label=\"{obj.val}\" style=\"width:{obj.width}px;height:{obj.height}px;\" webix_val=\"{obj.val}\">" + (config.template||"") + "</div>"),
+			itemTpl = template("<div role='gridcell' tabindex='-1' aria-label=\"{obj.val}\" style=\"width:{obj.width}px;height:{obj.height}px;\" "+/*@attr*/"webix_val"+"=\"{obj.val}\">" + (config.template||"") + "</div>"),
 			data = {width: 0, height:0, val:0},
 			width = this.$width,
 			height =  this.$height,

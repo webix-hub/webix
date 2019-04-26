@@ -3,9 +3,8 @@ import SingleRender from "../core/singlerender";
 import Settings from "../core/settings";
 import EventSystem from "../core/eventsystem";
 import {create, createCss, insertBefore} from "../webix/html";
-import {protoUI, $$} from "../ui/core";
-import {extend, bind} from "../webix/helpers";
-import {attachEvent, detachEvent} from "../webix/customevents";
+import {protoUI} from "../ui/core";
+import {extend} from "../webix/helpers";
 import template from "../webix/template";
 
 
@@ -26,28 +25,17 @@ const api = {
 		dy:0,
 		dx:20
 	},
-	$init:function(container){
-		if (typeof container == "string"){
-			container = { template:container };
+	$init:function(config){
+		if (typeof config == "string"){
+			config = { template:config };
 		}
 
 		//create  container for future tooltip
 		this.$view = this._viewobj = this._contentobj = this._dataobj = create("DIV", {role:"alert", "aria-atomic":"true"});
 		this._contentobj.className = "webix_tooltip";
 		insertBefore(this._contentobj,document.body.firstChild,document.body);
-		this._hideHandler = attachEvent("onClick", bind(function(e){
-			if (this._visible && $$(e) != this)
-				this.hide();
-		}, this));
-		
-		//detach global event handler on destruction
-		this.attachEvent("onDestruct", function(){
-			detachEvent(this._hideHandler);
-		});
 	},
 	adjust:function(){  },
-	//show tooptip
-	//pos - object, pos.x - left, pox.y - top
 	isVisible:function(){
 		return this._visible;
 	},
@@ -67,6 +55,8 @@ const api = {
 		this._viewobj.className = "webix_tooltip "+value;
 		return value;
 	},
+	//show tooltip
+	//pos - object, pos.x - left, pox.y - top
 	show:function(data,pos){
 		if (this._disabled) return;
 
@@ -104,9 +94,11 @@ const api = {
 	},
 	//hide tooltip
 	hide:function(){
-		this.data=null; //nulify, to be sure that on next show it will be fresh-rendered
-		this._contentobj.style.display="none";
-		this._visible = false;
+		if (this._visible){
+			this.data = null; //nulify, to be sure that on next show it will be fresh-rendered
+			this._contentobj.style.display = "none";
+			this._visible = false;
+		}
 	},
 	disable:function(){
 		this._disabled = true;

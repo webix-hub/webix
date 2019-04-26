@@ -24,7 +24,7 @@ const api = {
 
 		if (this._settings.scroll || !this._settings.autoheight){
 			sizes[2] =  this._settings.height || this._settings.minHeight || 0;
-			sizes[3] += 100000;
+			sizes[3] = this._settings.height || 100000;
 		}
 		
 		return sizes;

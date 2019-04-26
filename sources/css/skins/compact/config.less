@@ -159,34 +159,31 @@
 	.webix_el_label .webix_el_box{
 		font-size: @barFontSize;
 	}
-/*.webix_el_button input, .webix_el_toggle input {
-	   border: none;
-
-   }*/
-	.webixtype_base, .webixtype_prev, .webixtype_next,
+	.webix_secondary button{
+		border-color: @barFontColor;
+	}
+	.webix_transparent{
+		.webix_icon, .webix_img_btn_text, .webix_icon_btn, button{
+			color: @barFontColor;
+		}
+		.webix_disabled_box{
+			button, .webix_img_btn_text{
+				color: @disabledFontColor;
+			}
+		}
+	}
 	.webix_inp_counter_next, .webix_inp_counter_prev,
 	.webix_segment_0, .webix_segment_1, .webix_segment_N{
 		.barButton;
 	}
-	.webix_el_arrow.webixtype_next_arrow{
-		border-left: none;
-		border-bottom: none;
-	}
-	.webix_el_arrow.webixtype_prev_arrow{
-		border-right: none;
-		border-bottom: none;
-	}
-	.webixtype_base:hover,
 	.webix_inp_counter_next:hover, .webix_inp_counter_prev:hover,
 	.webix_segment_0:hover, .webix_segment_1:hover, .webix_segment_N:hover{
 		.barButtonHover;
 	}
-	.webixtype_base:focus,
 	.webix_inp_counter_next:focus, .webix_inp_counter_prev:focus,
 	.webix_segment_0:focus, .webix_segment_1:focus, .webix_segment_N:focus{
 		.barButtonFocus;
 	}
-	.webixtype_base:active,
 	.webix_inp_counter_next:active, .webix_inp_counter_prev:active,
 	.webix_segment_0:active, .webix_segment_1:active, .webix_segment_N:active{
 		.barButtonActive;
@@ -210,13 +207,6 @@
 		background-color: rgba(0,0,0,0);
 		color: @fontColor;
 	}
-	.webix_pressed{
-		.webixtype_base, .webixtype_prev, .webixtype_next, .webix_el_arrow,
-		.webix_inp_counter_next, .webix_inp_counter_prev, .webix_input_icon,
-		.webix_segment_0, .webix_segment_1, .webix_segment_N{
-			.barButtonActive;
-		}
-	}
 	.webix_selected.webix_segment_0, .webix_selected.webix_segment_1, .webix_selected.webix_segment_N{
 		.barButton(@selectFontColor, @selectColor,@selectColor);
 	}
@@ -234,41 +224,14 @@
 		border-left: none;
 
 	}
-
-/*.webixtype_prev:active, .webixtype_next:active, .webixtype_base:active, .webix_inp_counter_next:active, .webix_inp_counter_prev:active{
-	   background-color: @barButtonActiveColor;
-   }*/
-	.webix_img_btn:hover, .webix_img_btn_top:hover{
-		.darkHoverRule(@barButtonColor);
-	}
-	.webix_img_btn:focus, .webix_img_btn_top:focus{
-		.darkFocusRule(@barButtonColor);
-	}
-	.webix_img_btn:active, .webix_img_btn_top:active{
-		.darkActiveRule(@barButtonColor);
-		.activeShadow;
-	}
 	.webix_el_icon .webix_el_box{
 		#border > .radius(@skin_input_radius);
 	}
-	.webix_img_btn_top .webix_img_btn_text, .webix_img_btn_top .webix_icon, .webix_el_icon, .webix_img_btn, .webix_icon_btn, .webix_icon_button{
-		color: @barFontColor ;
-	}
-	.webix_img_btn_abs .webix_icon, .webix_img_btn_abs .webix_img_btn_text{
-		color: @barFontColor;
-	}
-	.webix_img_btn_abs{
-		color: @barFontColor ;
-	}
-	.webix_el_box .webix_img_btn_abs:hover,.webix_el_icon .webix_el_box:hover{
+	.webix_el_icon .webix_el_box:hover{
 		.darkHoverRule(@barButtonColor)
 	}
 	.webix_el_icon .webix_el_box:focus{
 		.darkFocusRule(@barButtonColor);
-	}
-	.webix_el_box .webix_img_btn_abs:active{
-		.darkActiveRule(@barButtonColor);
-		.activeShadow;
 	}
 
 	.webix_control{
@@ -277,12 +240,8 @@
 	.webix_icon_button .webix_icon{
 		color: @barFontColor ;
 	}
-	.webix_img_btn, .webix_img_btn_top{
-		border-width:0;
-	}
-
 }
-.webix_layout_toolbar.webix_toolbar{
+.webix_toolbar{
 	.layoutBarBG;
 }
 .webix_layout_space > .webix_toolbar{
@@ -299,21 +258,6 @@
 .webix_view.webix_layout_accordion{
 	background-color: @spaceLayoutColor;
 }
-/*.webix_layout_accordion > .webix_accordionitem > .webix_accordionitem_header,
-.webix_layout_space > .webix_accordionitem > .webix_accordionitem_header,
-.webix_layout_wide > .webix_accordionitem > .webix_accordionitem_header{
-	#border > .top(@layoutRadius);
-}
-.webix_layout_accordion > .webix_accordionitem.collapsed,
-.webix_layout_space > .webix_accordionitem.collapsed,
-.webix_layout_wide > .webix_accordionitem.collapsed{
-	#border > .radius(@layoutRadius);
-}
-.webix_layout_accordion > .webix_accordionitem > .webix_accordionitem_body,
-.webix_layout_space > .webix_accordionitem > .webix_accordionitem_body,
-.webix_layout_wide > .webix_accordionitem > .webix_accordionitem_body{
-	#border > .bottom(@layoutRadius);
-}*/
 
 @accordionLeftMargin: (@barHeight - 18)/2;
 @accordionTopMargin: (@barHeight - 17)/2;
@@ -463,29 +407,17 @@
 
 @modalboxLineHeight: 18px;
 
-.webix_view .webix_win_head{
-	border-bottom: 1px solid @borderColor;
+.webix_win_head{
+	border-bottom: 2px solid @mainColor;
 }
-.webix_view .webix_win_head > .webix_view > .webix_template{
+
+.webix_win_title{
 	color: @fontColor;
 	background: @backColor;
-	box-shadow: 0 -2px @mainColor inset;
 }
 
 .webix_view.webix_popup{
 	border: 1px solid @borderColor;
-}
-
-.confirmButton{
-	.skinBlueButton;
-	text-shadow: none;
-	color: @selectFontColor;
-}
-.confirmButtonActive{
-	.darkFocusRule(@formButtonColor);
-}
-.alertButtonActive{
-	.darkFocusRule(@buttonColor);
 }
 
 //-------------------------------------------///
@@ -587,7 +519,7 @@
 // do not highlight borders for edited item
 .webix_view .webix_dt_editor{
 	input, select{
-		border:1px solid @buttonColor;
+		border-color: @buttonColor;
 	}
 }
 
@@ -616,26 +548,21 @@
 		background-color:lighten(@selectColor, 45%);
 	}
 }	
+
 .webix_view .webix_pager_item{
+	.buttonStyle;
 	.buttonBackground;
 	font-size: @fontSize;
-	&:hover{
-		.darkHoverRule(@buttonBgColor);
-	}
-	&:focus{
-		.darkFocusRule(@buttonBgColor);
-	}
 }
 .webix_view .webix_pager_item_selected{
-	.skinBlueButton;
+	.buttonStyle;
+	.buttonBackground(@formButtonColor, @formButtonFontColor);
 }
 .webix_view{
 	.webix_pager_item,.webix_pager_item_selected{
 		#border > .radius(@skin_input_radius);
 	}
 }
-
-
 
 .webix_list .webix_unit_header{
 	font-weight: normal;
@@ -728,12 +655,9 @@
 
 //property
 .webix_property{
-	.webix_property_label, .webix_property_value{
-		border-color: @dataBorderColor;
-	}
 	.webix_property_line.webix_focused,
 	.webix_property_line:focus{
-		div{ 
+		& > div{
 			background-color:#f6f6f6;
 		}
 	}
@@ -753,9 +677,7 @@
 //                   Controls                ///
 //-------------------------------------------///
 
-@buttonColor:  #3498db;// #3db1ff;
-@saturatedButtonBgColor: @alterColor;
-@buttonBgColor: @buttonColor;
+@buttonColor:  #3498db;
 @buttonFontColor: #fff;
 @inputBorderColor: darken(@backColor,20%);
 @optionHeight: 23px;
@@ -865,13 +787,16 @@
 	color: @buttonColor;
 }
 
+.buttonBorderStyle(@color:@buttonColor){
+	border: 1px solid @color;
+	border-bottom: 1px solid darken(@color,4%);
+}
 .buttonStyle{
-	color: @buttonFontColor;
-	font-size: @fontSize;
-	padding:auto 6px;
 	font-family: @fontFamily;
-	border: 1px solid @buttonBgColor;
-	border-bottom: 1px solid darken(@buttonBgColor,4%);
+	font-size: @fontSize;
+	color: @buttonFontColor;
+	padding: auto 6px;
+	.buttonBorderStyle;
 	outline: none;
 }
 
@@ -901,7 +826,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		.inputStyle;
 	}
 	.webix_inp_counter_prev, .webix_inp_counter_next{
-		background: @buttonBgColor;
+		background: @buttonColor;
 		width: 29px;
 		.buttonStyle;
 		font-weight: bold;
@@ -1098,105 +1023,30 @@ div.webix_item_tab.webix_selected{
 	background: @mainColor;
 }
 
-
-
-
-.buttonBackground(){
-	.buttonStyle;
-	color: @buttonFontColor;
-	background: @buttonBgColor;
-	border-bottom: 1px solid darken( @buttonColor, 7%);
-}
-
-
+@transparentButtonIconColor: @fontColor;
 @formButtonColor: @selectColor;
-.skinBlueButton(){
-	.buttonStyle;
-	background: @selectColor;
-	color: @selectFontColor;
-	border-color: @formButtonColor;
-	border-bottom: 1px solid darken( @formButtonColor, 7%);
-	box-shadow: none;
-}
-.skinBlueButtonActive(){
-}
+@formButtonFontColor: @selectFontColor;
 
-//@saturatedButtonActiveColor: darken(@formButtonColor,3%);
-.webix_el_box .webixtype_form:hover{
-	.darkHoverRule(@formButtonColor)
-}
-.webix_el_box .webixtype_form:focus{
-	.darkFocusRule(@formButtonColor);
-}
-.webix_el_box .webixtype_form:active{
-	.darkActiveRule(@formButtonColor);
-	.activeShadow;
-}
-// red button
-.skinRedButton(){
-	background: @dangerColor;
-	border: 1px solid @dangerColor;
-	border-bottom: 1px solid darken(@dangerColor,10%);
-	color: #fff;
-}
-.webixtype_danger:hover{
-	.darkHoverRule(@dangerColor);
-}
-.webixtype_danger:focus{
-	.darkFocusRule(@dangerColor);
-}
-.webixtype_danger:active{
-	.darkActiveRule(@dangerColor);
-	.activeShadow;
-}
-
-.webixtype_prev:hover, .webixtype_prev:hover  +.webixtype_prev_arrow,
-.webixtype_next:hover, .webixtype_next:hover  +.webixtype_next_arrow{
-	.darkHoverRule(@buttonBgColor);
-}
-
-.webixtype_prev:focus, .webixtype_prev:focus  +.webixtype_prev_arrow,
-.webixtype_next:focus, .webixtype_next:focus  +.webixtype_next_arrow{
-	.darkFocusRule(@buttonBgColor);
-}
-
-/*.webix_img_btn:active, .webix_img_btn_top:active{
-	background-color:rgba(100,100,100,0.1);
-};*/
-
-
-//@buttonActiveColor: lighten(@buttonBgColor,4%);//saturate(lighten(@mainColor, 45%),3%);
-
-
-.webix_el_box .webixtype_form {
-	color: @fontColor;
-	.skinBlueButton;
-}
-
-
-.webixbutton:hover, .webixtype_base:hover,
 .webix_inp_counter_next:hover, .webix_inp_counter_prev:hover,
 .webix_segment_0:hover, .webix_segment_1:hover, .webix_segment_N:hover{
-	.darkHoverRule(@buttonBgColor);
+	.darkHoverRule(@buttonColor);
 }
-.webixbutton:active, .webixtype_base:active,
+.webix_inp_counter_next:focus, .webix_inp_counter_prev:focus,
+.webix_segment_0:focus, .webix_segment_1:focus, .webix_segment_N:focus{
+	.darkFocusRule(@buttonColor);
+}
 .webix_inp_counter_next:active, .webix_inp_counter_prev:active,
 .webix_segment_0:active, .webix_segment_1:active, .webix_segment_N:active{
-	.darkActiveRule(@buttonBgColor);
+	.darkActiveRule(@buttonColor);
 	.activeShadow;
 }
 
 .webix_el_text .webix_input_icon:hover, .webix_el_text .webix_input_icon:active{
-	color: @buttonBgColor;
+	color: @buttonColor;
 	background: inherit;
 	cursor:pointer;
 }
 
-.webixbutton:focus, .webixtype_base:focus,
-.webix_inp_counter_next:focus, .webix_inp_counter_prev:focus,
-.webix_segment_0:focus, .webix_segment_1:focus, .webix_segment_N:focus{
-	.darkFocusRule(@buttonBgColor);
-}
 .webix_selected.webix_segment_0:hover, .webix_selected.webix_segment_1:hover, .webix_selected.webix_segment_N:hover{
 	.darkHoverRule(@selectColor);
 }
@@ -1218,10 +1068,6 @@ div.webix_item_tab.webix_selected{
 	border-color: @selectColor;
 }
 
-.confirmStyle(){
-	.skinBlueButton;
-
-}
 .altSliderStyle(){
 	.webix_slider_left{
 		border: 1px solid @inputBorderColor;
@@ -1292,50 +1138,6 @@ div.webix_item_tab.webix_selected{
 .activeShadow{
 	box-shadow: inset 0 3px 5px rgba(0,0,0,0.125)
 }
-.toggleShadow{
-	box-shadow: inset 0 3px 5px rgba(0,0,0,0.18)
-}
-.webix_el_toggle{
-	.webix_pressed .webix_img_btn, .webix_pressed .webix_img_btn_top{
-		.activeShadow;
-	}
-	.webix_pressed .webixtype_danger{
-		.activeShadow;
-		.darkHoverRule(@dangerColor);
-	}
-	.webix_pressed .webixtype_form{
-		.activeShadow;
-		.darkHoverRule(@formButtonColor);
-	}
-	.webix_el_box.webix_pressed{
-		.webixtype_base, .webix_img_btn_abs{
-			.activeShadow;
-			.darkActiveRule(@buttonBgColor);
-		}
-	}
-}
-
-.webix_img_btn_abs_top .webix_icon{
-	font-size: 22px;
-}
-
-.webix_img_btn:hover,.webix_img_btn_top:hover{
-	.darkHoverRuleA;
-}
-.webix_img_btn:focus,.webix_img_btn_top:focus{
-	.darkActiveRuleA;
-}
-.webix_img_btn:active,.webix_img_btn_top:active{
-	.darkActiveRuleA;
-	.activeShadow;
-}
-/*
-.webix_el_box .webix_img_btn_abs:active + input, .webix_el_box .webix_img_btn_abs + input:active{
-	.darkActiveRule(@buttonBgColor);
-}
-.webix_el_box .webix_img_btn_abs:hover + input, .webix_el_box .webix_img_btn_abs + input:hover{
-	.darkHoverRule(@buttonBgColor);
-}*/
 
 .webix_control.webix_el_search span {
 	.altBackColor;
@@ -1475,17 +1277,6 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 .webix_cal_outside{
 	font-weight: normal;
 	color: #bbb;
-}
-.webix_time_footer, .webix_cal_footer{
-	.webix_cal_done{
-		.buttonBackground();
-	}
-	.webix_cal_done:hover{
-		.darkHoverRule(@buttonBgColor);
-	}
-	.webix_cal_done:focus{
-		.darkFocusRule(@buttonBgColor);
-	}
 }
 
 .webix_cal_month {

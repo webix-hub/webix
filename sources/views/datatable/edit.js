@@ -147,7 +147,7 @@ const Mixin = {
 						area = this._spans_areas[i];
 						for(j=0; !cell && j < area.childNodes.length; j++){
 							node = area.childNodes[j];
-							if(node.getAttribute("row") == index && node.getAttribute("column") == this.getColumnIndex(id.column))
+							if(node.getAttribute(/*@attr*/"row") == index && node.getAttribute(/*@attr*/"column") == this.getColumnIndex(id.column))
 								cell = node;
 						}
 					}

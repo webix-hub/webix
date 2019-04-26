@@ -114,10 +114,10 @@
 	background-color: darken(@color,4%);
 }
 .darkHoverRuleA(){
-	background-color: rgba(0,0,0,0.4);
+	background-color: rgba(0,0,0,0.04);
 }
 .darkActiveRuleA(){
-	background-color: rgba(0,0,0,0.5);
+	background-color: rgba(0,0,0,0.05);
 }
 .radioHoverRule(@color){
 	color:darken(@color,6%);
@@ -159,6 +159,8 @@
 .layoutDarkBarBG(){
 	@barButtonColor: @mainColor;
 	@barButtonBgColor:rgba(0,0,0,0.2);
+	@barButtonHoverColor:rgba(0,0,0,0.4);
+	@barButtonActiveColor:rgba(0,0,0,0.5);
 
 	.barButton(@fColor: @darkBarFontColor, @color: transparent, @shadowColor: darken(@mainColor,10%)){
 		background-color:@barButtonBgColor;
@@ -167,14 +169,14 @@
 	}
 	.barButtonHover(@fColor: @darkBarFontColor, @color: @barButtonColor, @shadowColor: darken(@mainColor,10%)){
 		color: @fColor;
-		.darkHoverRuleA;
+		background-color: @barButtonHoverColor;
 	}
 	.barButtonFocus(@fColor: @darkBarFontColor, @color: @barButtonColor, @shadowColor: darken(@mainColor,10%)){
-		.darkHoverRuleA;
+		background-color: @barButtonHoverColor;
 		color: @fColor;
 	}
 	.barButtonActive(@fColor: @darkBarFontColor, @color: @barButtonColor, @shadowColor: darken(@mainColor,10%)){
-		.darkActiveRuleA;
+		background-color: @barButtonActiveColor;
 		color: @fColor;
 		.activeShadow;
 	}
@@ -182,11 +184,24 @@
 	background: @secondaryBg;
 	border-color: @secondaryBg;
 
-	.webix_el_button, .webix_el_label, .webix_inp_label{
+	.webix_el_button, .webix_el_label .webix_el_box, .webix_inp_label{
 		color: @darkBarFontColor;
 	}
-	.webixtype_base, .webixtype_prev, .webixtype_next,
-	.webix_inp_counter_next, .webix_inp_counter_prev,
+	.webix_secondary, .webix_transparent{
+		.webix_icon, .webix_img_btn_text, .webix_icon_btn{
+			color: @darkBarFontColor;
+		}
+	}
+	.webix_transparent button{
+		color: @darkBarFontColor;
+		&:hover, &:focus{
+			background-color: @barButtonBgColor;
+		}
+		&:active{
+			background-color: @barButtonHoverColor;
+		}
+	}
+	.webix_secondary button, .webix_inp_counter_next, .webix_inp_counter_prev,
 	.webix_segment_0, .webix_segment_1, .webix_segment_N, .webix_menu-x .webix_list_item{
 		.barButton;
 	}
@@ -195,41 +210,17 @@
 		color: @backColor;
 		background-color: @secondaryBg;
 	}
-	/* we cannot apply opacity to arrow buttons - so use the hard-coded hex */
-	@arrowButtonBgColor: #515e6a;
-	.darkArrowButtonRule(@color:darken(@arrowButtonBgColor, 6%)){
-		&:focus, &:focus  +.webixtype_prev_arrow,
-		&:focus, &:focus  +.webixtype_next_arrow{
-			.darkFocusRule(@color);
-		}
-		&:hover, &:hover  +.webixtype_prev_arrow,
-		&:hover, &:hover  +.webixtype_next_arrow{
-			.darkHoverRule(@color);
-		}
-		&:active, &:active  +.webixtype_prev_arrow,
-		&:active, &:active  +.webixtype_next_arrow{
-			.darkActiveRule(@color);
-		}
-	}
-	.webixtype_prev, .webixtype_next{
-		background-color:@arrowButtonBgColor;
-		.darkArrowButtonRule;
-	}
-	.webix_el_arrow.webixtype_next_arrow,
-	.webix_el_arrow.webixtype_prev_arrow {
-		background-color:@arrowButtonBgColor;
-	}
-	.webixtype_base:hover, .webix_menu-x .webix_list_item:hover,
+	.webix_secondary button:hover, .webix_menu-x .webix_list_item:hover,
 	.webix_inp_counter_next:hover, .webix_inp_counter_prev:hover,
 	.webix_segment_0:hover, .webix_segment_1:hover, .webix_segment_N:hover{
 		.barButtonHover;
 	}
-	.webixtype_base:focus, .webix_menu-x .webix_list_item:focus,
+	.webix_secondary button:focus, .webix_menu-x .webix_list_item:focus,
 	.webix_inp_counter_next:focus, .webix_inp_counter_prev:focus,
 	.webix_segment_0:focus, .webix_segment_1:focus, .webix_segment_N:focus{
 		.barButtonFocus;
 	}
-	.webixtype_base:active, .webix_menu-x .webix_list_item:active,
+	.webix_secondary button:active, .webix_menu-x .webix_list_item:active,
 	.webix_inp_counter_next:active, .webix_inp_counter_prev:active,
 	.webix_segment_0:active, .webix_segment_1:active, .webix_segment_N:active{
 		.barButtonActive;
@@ -262,54 +253,12 @@
 	.webix_input_icon{
 		color: @barkBarInputColor;
 	}
-	.webix_pressed{
-		.webixtype_base, .webixtype_prev, .webixtype_next, .webix_el_arrow,
-		.webix_inp_counter_next, .webix_inp_counter_prev, .webix_input_icon,
-		.webix_segment_0, .webix_segment_1, .webix_segment_N{
-			.barButtonActive;
-			.activeShadow(rgba(0,0,0,0.3));
-		}
-	}
+
 	.webix_selected.webix_segment_0, .webix_selected.webix_segment_1, .webix_selected.webix_segment_N{
-		.barButton(@selectFontColor, @selectColor,@selectColor);
-		.skinBlueButton();
-		border-width: 0;
-	}
-	.webix_selected.webix_segment_0:hover, .webix_selected.webix_segment_1:hover, .webix_selected.webix_segment_N:hover{
-		.darkHoverRule(@formButtonColor);;
-	}
-	.webix_selected.webix_segment_0:focus, .webix_selected.webix_segment_1:focus, .webix_selected.webix_segment_N:focus{
-		.darkFocusRule(@formButtonColor);
-	}
-	.webix_selected.webix_segment_0:active, .webix_selected.webix_segment_1:active, .webix_selected.webix_segment_N:active{
-		.darkActiveRule(@formButtonColor);
-		.activeShadow;
-	}
-	.webix_img_btn:hover, .webix_img_btn_top:hover{
-		.darkHoverRule(@barButtonBgColor);
-	}
-	.webix_img_btn:focus, .webix_img_btn_top:focus{
-		.darkFocusRule(@barButtonBgColor);
-	}
-	.webix_img_btn:active, .webix_img_btn_top:active{
-		.darkHoverRuleA;
-		.activeShadow;
+		.buttonBackground(@formButtonColor, @formButtonFontColor);
 	}
 	.webix_img_btn_top .webix_img_btn_text, .webix_img_btn_top .webix_icon, .webix_el_icon, .webix_img_btn, .webix_icon_btn, .webix_icon_button{
 		color: @darkBarFontColor ;
-	}
-	.webix_img_btn_abs .webix_icon, .webix_img_btn_abs .webix_img_btn_text{
-		color: @darkBarFontColor;
-	}
-	.webix_img_btn_abs{
-		color: @darkBarFontColor ;
-	}
-	.webix_el_box .webix_img_btn_abs:hover{
-		.darkHoverRuleA;
-	}
-	.webix_el_box .webix_img_btn_abs:active{
-		.darkActiveRuleA;
-		.activeShadow;
 	}
 	.webix_control{
 		border-color: @mainColor;
@@ -353,13 +302,8 @@
 	}
 	.webix_view.webix_control{
 		.webix_disabled_box{
-			.webixtype_base, .webixtype_prev, .webixtype_next, .webixtype_danger, .webixtype_form, .webix_img_btn{
+			button{
 				.buttonDisabled;
-			}
-			.webix_el_arrow, .webixtype_next, .webixtype_prev{
-				color: @disabledFontColor;
-				background: @arrowDisablesButtonBgColor;
-				border-color: transparent;
 			}
 			.webix_img_btn_text{
 				color: @disabledFontColor;
@@ -407,7 +351,7 @@
 
 //---------------------------------------------------------------//
 
-.webix_layout_toolbar.webix_toolbar{
+.webix_toolbar{
 	.layoutBarBG;
 }
 .webix_layout_space > .webix_toolbar{
@@ -592,18 +536,6 @@
 
 @modalboxLineHeight: 18px;
 
-.confirmButton{
-	.skinBlueButton;
-}
-
-.webix_view .webix_win_head{
-	border-bottom: 1px solid @borderColor;
-}
-.webix_view .webix_win_head > .webix_view > .webix_template{
-	color: @fontColor;
-	background: @backColor;
-}
-
 .webix_popup_button{
 	border-color: @buttonColor;
 	&.confirm{
@@ -777,9 +709,8 @@
 // do not highlight borders for edited item
 .webix_view .webix_dt_editor{
 	input, select{
-		border:1px solid @baseColor;
+		border-color: @baseColor;
 		#border > .radius(@skin_input_radius);
-		padding: 0 8px;
 	}
 }
 
@@ -804,31 +735,14 @@
 		border-color: lighten(@baseColor, 20%);
 	}
 }
+
 .webix_view .webix_pager_item{
+	.buttonStyle;
 	.buttonBackground;
-	&:hover{
-		.darkHoverRule(@buttonBgColor);
-	}
-	&:focus{
-		.darkFocusRule(@buttonBgColor);
-	}
-	&:active{
-		.darkActiveRule(@buttonBgColor);
-		.activeShadow;
-	}
 }
 .webix_view .webix_pager_item_selected{
-	.skinBlueButton;
-	&:hover{
-		.darkHoverRule(@baseColor);
-	}
-	&:focus{
-		.darkFocusRule(@baseColor);
-	}
-	&:active{
-		.darkActiveRule(@baseColor);
-		.activeShadow;
-	}
+	.buttonStyle;
+	.buttonBackground(@formButtonColor, @formButtonFontColor);
 }
 .webix_view{
 	.webix_pager_item,.webix_pager_item_selected{
@@ -836,8 +750,6 @@
 		border-width: 0px;
 	}
 }
-
-
 
 .webix_list .webix_unit_header{
 	font-weight: normal;
@@ -988,10 +900,6 @@
 
 //property
 .webix_property{
-	.webix_property_label, .webix_property_value, .webix_property_label_line{
-		border-color: @dataBorderColor;
-		padding-left: 12px;
-	}
 	.webix_property_label_line{
 		background-color: @dataHeaderBgColor;
 	}
@@ -1007,8 +915,6 @@
 //-------------------------------------------///
 
 @buttonColor:  @accentBg;
-//@saturatedButtonBgColor: @alterColor; //not used anywhere, can be removed
-@buttonBgColor: @buttonColor; //in most cases they coincide, if not used outside - we can leave only one var
 @buttonFontColor: @baseColor;
 @optionHeight: 24px;
 
@@ -1172,12 +1078,13 @@
 	padding-top:5px;
 }
 
+.buttonBorderStyle(){
+}
 .buttonStyle{
 	.buttonFont;
 	color: @buttonFontColor;
-	padding:auto 6px;
-	border: 1px solid @buttonBgColor;
-	border-bottom: 1px solid darken(@buttonBgColor,4%);
+	padding: auto 6px;
+	.buttonBorderStyle;
 	outline: none;
 }
 
@@ -1205,7 +1112,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		.inputStyle;
 	}
 	.webix_inp_counter_prev, .webix_inp_counter_next{
-		background: @buttonBgColor;
+		background: @buttonColor;
 		width: 30px;
 		border: 1px solid @inputBorderColor;
 		font-weight: bold;
@@ -1389,80 +1296,17 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	color: @baseColor;
 }
 
-.buttonBackground(){
-	.buttonStyle;
-	color: @buttonFontColor;
-	background: @buttonBgColor;
-	border-bottom: 1px solid darken( @buttonColor, 7%);
-}
-
-
+@transparentButtonIconColor: @inactiveFontColor;
 @formButtonColor: @baseColor;
-.skinBlueButton(){
+@formButtonFontColor: @backColor;
+
+.webix_uploader button{
 	.buttonStyle;
-	background: @formButtonColor;
-	color: @backColor;
-	border-color: @formButtonColor;
-	border-bottom: 1px solid darken( @formButtonColor, 7%);
-	box-shadow: none;
-}
-.skinBlueButtonActive(){
+	.buttonBackground(@formButtonColor, @formButtonFontColor);
 }
 
-//@saturatedButtonActiveColor: darken(@formButtonColor,3%);
-.webix_el_box .webixtype_form:focus, .webix_uploader button:focus{
-	.darkFocusRule(@formButtonColor);
-}
-.webix_el_box .webixtype_form:hover, .webix_uploader button:hover{
-	.darkHoverRule(@formButtonColor)
-}
-.webix_el_box .webixtype_form:active, .webix_uploader button:active{
-	.darkActiveRule(@formButtonColor);
-	.activeShadow;
-}
-// red button
-.skinRedButton(){
-	background: @dangerColor;
-	border: 1px solid @dangerColor;
-	border-bottom: 1px solid darken(@dangerColor,10%);
-	color: #fff;
-
-}
-.webixtype_danger:hover{
-	.darkHoverRule(@dangerColor);
-}
-.webixtype_danger:focus{
-	.darkFocusRule(@dangerColor);
-}
-.webixtype_danger:active{
-	.darkActiveRule(@dangerColor);
-	.activeShadow;
-}
-
-.webixtype_prev:focus, .webixtype_prev:focus  +.webixtype_prev_arrow,
-.webixtype_next:focus, .webixtype_next:focus  +.webixtype_next_arrow{
-	.darkFocusRule(@buttonBgColor);
-}
-
-.webixtype_prev:hover, .webixtype_prev:hover  +.webixtype_prev_arrow,
-.webixtype_next:hover, .webixtype_next:hover  +.webixtype_next_arrow{
-	.darkHoverRule(@buttonBgColor);
-}
-
-.webixtype_prev:active, .webixtype_prev:active  +.webixtype_prev_arrow,
-.webixtype_next:active, .webixtype_next:active  +.webixtype_next_arrow{
-	.darkActiveRule(@buttonBgColor);
-}
-
-.webix_el_arrow.webixtype_next_arrow, .webix_el_arrow.webixtype_prev_arrow {
-	border-color:transparent;
-}
-
-.webix_el_box .webixtype_form, .webix_uploader button{
-	.skinBlueButton;
-}
 .webix_uploader{
-	.webix_img_btn .webix_icon, .webix_img_btn_abs .webix_icon{
+	.webix_img_btn .webix_icon{
 		color:@backColor;
 	}
 }
@@ -1492,17 +1336,14 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	}
 }
 
-.webixbutton:hover, .webixtype_base:hover,
 .webix_inp_counter_next:hover, .webix_inp_counter_prev:hover{
-	.darkHoverRule(@buttonBgColor);
+	.darkHoverRule(@buttonColor);
 }
-.webixbutton:focus, .webixtype_base:focus,
 .webix_inp_counter_next:focus, .webix_inp_counter_prev:focus{
-	.darkFocusRule(@buttonBgColor);
+	.darkFocusRule(@buttonColor);
 }
-.webixbutton:active, .webixtype_base:active,
 .webix_inp_counter_next:active, .webix_inp_counter_prev:active{
-	.darkActiveRule(@buttonBgColor);
+	.darkActiveRule(@buttonColor);
 	.activeShadow;
 }
 .webix_el_text span.webix_input_icon{
@@ -1515,10 +1356,8 @@ div.webix_inp_static,.webix_el_textarea textarea {
 }
 
 // Button border
-.webix_el_button input, .webix_el_toggle input, .webix_el_button button, .webix_el_toggle button,
-.webix_el_toggle button.webixtype_danger, .webix_el_toggle button.webixtype_form,
-.webixbutton, .webix_el_button .webixtype_danger, .webix_el_button .webixtype_form,
-.webix_view button, .webix_view input[type=button]{
+.webix_el_button button, .webix_el_toggle button,
+.webixbutton, .webix_view button, .webix_view input[type=button]{
 	border-width:0px;
 }
 
@@ -1561,10 +1400,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	color:@backColor;
 }
 
-.confirmStyle(){
-	.skinBlueButton;
-
-}
 .altSliderStyle(){
 	.webix_slider_left{
 		border: 1px solid @inputBorderColor;
@@ -1626,41 +1461,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 .activeShadow(@color:rgba(0,0,0,0.125)){
 
 }
-.toggleShadow{
-	box-shadow: inset 0 3px 5px rgba(0,0,0,0.18);
-}
-.webix_el_toggle{
-	.webix_pressed .webix_img_btn, .webix_pressed .webix_img_btn_top{
-		.activeShadow;
-		.darkHoverRule(@selectColor);
-	}
-	.webix_pressed .webixtype_danger{
-		.activeShadow;
-		.darkHoverRule(@dangerColor);
-	}
-	.webix_pressed .webixtype_form{
-		.activeShadow;
-		.darkHoverRule(@formButtonColor);
-	}
-	.webix_el_box.webix_pressed{
-		.webixtype_base, .webix_img_btn_abs{
-			.darkActiveRule(@buttonBgColor);
-			.activeShadow;
-		}
-	}
-}
-
-.webix_img_btn:hover,.webix_img_btn_top:hover{
-	background-color: @selectColor;
-}
-.webix_img_btn:focus,.webix_img_btn_top:focus{
-	background-color: @selectColor;
-}
-.webix_img_btn:active,.webix_img_btn_top:active{
-	.darkHoverRule(@selectColor);
-	.activeShadow;
-}
-
 
 .webix_section > .webix_template{
 	.fontStyle(@smallFontSize);
@@ -1879,22 +1679,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		span:hover{
 			background-color: transparent;
 		}
-	}
-}
-
-.webix_time_footer, .webix_cal_footer{
-	.webix_cal_done{
-		.buttonBackground();
-	}
-	.webix_cal_done:hover{
-		.darkHoverRule(@buttonBgColor);
-	}
-	.webix_cal_done:focus{
-		.darkFocusRule(@buttonBgColor);
-	}
-	.webix_cal_done:active{
-		.darkActiveRule(@buttonBgColor);
-		.activeShadow;
 	}
 }
 
@@ -2227,18 +2011,10 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	font-size: 20px;
 	width: 20px;
 }
-.webix_img_btn_abs_top, .webix_img_btn_top{
-	.webix_icon{
-		font-size: 20px;
-	}
-}
 .webix_img_btn_top .webix_icon{
 	color: @inactiveFontColor;
 }
-.webix_img_btn_abs .webix_icon {
-	font-size: 20px;
-}
-.webix_icon_btn, .webix_img_btn_abs .webix_icon{
+.webix_icon_btn{
 	vertical-align: text-bottom;
 }
 

@@ -1,29 +1,16 @@
-Webix UI v.6.2.1
+Webix UI v.6.3.1
 ================
 
 [![npm version](https://badge.fury.io/js/webix.svg)](https://badge.fury.io/js/webix)
 
-[![webix 6.2](https://cdn.webix.com/assets/github/header62.png)](https://webix.com/)
+https://webix.com
 
-Webix is an extremely small (about 100 kb of compressed code) and ultra fast JavaScript
-library for building desktop and mobile web apps based on the latest web standards
-(HTML5, CSS3).
-
-Read more on [webix.com](https://webix.com)
-
-### If you don't know where to start
-
-Check next links
+If you don't know where to start - check 
 
 - https://webix.com/quick-start/#!/1
 - https://docs.webix.com/
 - https://forum.webix.com
 
-### Webix 6.2 Release Overview
-
-[Read more >>](https://blog.webix.com/webix-6-2-release-improved-loading-logic-tooltips-everywhere-and-the-new-drag-n-drop-mode/)
-
-[![webix demo](https://cdn.webix.com/assets/github/webix62.png)](https://blog.webix.com/webix-6-2-release-improved-loading-logic-tooltips-everywhere-and-the-new-drag-n-drop-mode/)
 
 ### Demos
 
