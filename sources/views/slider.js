@@ -23,7 +23,7 @@ const api = {
 		template:function(obj, common){
 			var id = common._handle_id = "x" +uid();
 			var html = "";
-			var title = "<div class='webix_slider_title"+(obj.moveTitle?" webix_slider_move":"")+"'"+(!obj.moveTitle && obj.vertical?(" style='line-height:"+(obj.aheight-obj.inputPadding*2)+"px;'"):"")+"></div>";
+			var title = "<div class='webix_slider_title"+(obj.moveTitle?" webix_slider_move":"")+"'"+(!obj.moveTitle && obj.vertical?(" style='line-height:"+(obj.aheight-obj.inputPadding*2)+"px;'"):"")+">&nbsp;</div>";
 			var left = "<div class='webix_slider_left'>&nbsp;</div>";
 			var right = "<div class='webix_slider_right'></div>";
 			var handle = "<div class='webix_slider_handle' "+/*@attr*/"webix_disable_drag"+"='true' role='slider' aria-label='"+obj.label+(obj.title?(" "+obj.title(obj)):"")+"' aria-valuemax='"+obj.max+"' aria-valuemin='"+obj.min+"' aria-valuenow='"+obj.value+"' tabindex='0' id='"+id+"'>&nbsp;</div>";
@@ -185,6 +185,8 @@ const api = {
 		}
 	},
 	_on_mouse_down_start:function(e){
+		if (this._handle_drag_events) return;
+
 		var trg = e.target || e.srcElement;
 		if(this._mouse_down_process){
 			this._mouse_down_process(e);
@@ -230,7 +232,7 @@ const api = {
 				eventRemove(this._handle_drag_events[0]);
 				eventRemove(this._handle_drag_events[1]);
 			}
-			this._handle_drag_events = [];
+			this._handle_drag_events = null;
 		}
 
 		removeCss(document.body,"webix_noselect");

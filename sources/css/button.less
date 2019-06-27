@@ -17,57 +17,54 @@
 
 //button customization
 .webixCustomButton(@background:@buttonColor, @color:@buttonFontColor){
-	button{
+	.webix_button{
 		.buttonBackground(@background, @color);
 		.webix_icon, .webix_img_btn_text, .webix_icon_btn{
 			color: @color;
 		}
 	}
-	.webix_pressed button{
+	.webix_pressed .webix_button{
 		.darkActiveRule(@background);
 	}
 }
-
-.webix_el_button, .webix_el_toggle{
-	&.webix_secondary{
-		.webixCustomButton;
-	}
-	&.webix_primary{
-		.webixCustomButton(@formButtonColor, @formButtonFontColor);
-	}
-	&.webix_danger{
-		.webixCustomButton(@dangerColor, #ffffff);
-	}
-	&.webix_transparent{
-		button{
+.webix_secondary{
+	.webixCustomButton;
+}
+.webix_primary{
+	.webixCustomButton(@formButtonColor, @formButtonFontColor);
+}
+.webix_danger{
+	.webixCustomButton(@dangerColor, #ffffff);
+}
+.webix_transparent{
+	.webix_button{
+		color: @fontColor;
+		background: transparent;
+		border: none;
+		.webix_img_btn_text{
 			color: @fontColor;
-			background: transparent;
-			border: none;
-			.webix_img_btn_text{
-				color: @fontColor;
-			}
-			.webix_icon, .webix_icon_btn{
-				color: @transparentButtonIconColor;
-			}
+		}
+		.webix_icon, .webix_icon_btn{
+			color: @transparentButtonIconColor;
+		}
 
-			&:hover{
-				.darkHoverRuleA;
-			}
-			&:focus{
-				.darkHoverRuleA;
-			}
-			&:active{
-				.darkActiveRuleA;
-				.activeShadow;
-			}
+		&:hover{
+			.darkHoverRuleA;
 		}
-		.webix_pressed button{
+		&:focus{
+			.darkHoverRuleA;
+		}
+		&:active{
 			.darkActiveRuleA;
+			.activeShadow;
 		}
+	}
+	.webix_pressed .webix_button{
+		.darkActiveRuleA;
 	}
 }
 
-.webix_el_button button, .webix_el_toggle button, .webixbutton{
+.webix_button, .webixbutton{
  	border-radius:@skin_input_radius;
 	height:100%; width:100%;
  	cursor:pointer;
@@ -81,7 +78,6 @@
 // /*Image buttons*/
 .webix_img_btn, .webix_img_btn_top{
 	vertical-align:top;
-	background-color: transparent;
 	border: none;
 	width:100%;
 	padding: 0;
@@ -120,14 +116,14 @@
 
 
 //Toggle
-.webix_pressed button{
+.webix_pressed .webix_button{
 	box-shadow: inset 0 3px 5px rgba(0,0,0,0.125);
 	.activeShadow;
 }
 
 .webix_view.webix_control{
 	.webix_disabled_box{
-		button{
+		.webix_button{
 			.buttonDisabled;
 		}
 		.webix_img_btn_text{
@@ -143,7 +139,7 @@
 		color: @disabledFontColor;
 	}
 }
-.webix_layout_toolbar.webix_toolbar .webix_disabled_view.webix_control{
+.webix_toolbar .webix_disabled_view.webix_control{
 	.webix_icon, .webix_disabled_box .webix_img_btn_text, .webix_icon_btn{
 		color: @disabledFontColor;
 	}

@@ -23,23 +23,23 @@ const BaseBind = {
 
 		target.addBind(this._settings.id, rule, format);
 		this._bind_source = target._settings.id;
+		this._bind_id = this._settings.id;
 
-		var target_id = this._settings.id;
 		//FIXME - check for touchable is not the best solution, to detect necessary event
 		this._bind_refresh_handler = this.attachEvent(this.touchable?"onAfterRender":"onBindRequest", function(){
-			return target.getBindData(target_id);
+			return target.getBindData(this._bind_id);
 		});
 
-		if (this.refresh && this.isVisible(this._settings.id))
+		if (this.refresh && this.isVisible(this._bind_id))
 			this.refresh();
 	},
 	unbind:function(){
 		if (this._bind_source){
 			var target = $$(this._bind_source);
 			if (target)
-				target.removeBind(this._settings.id);
+				target.removeBind(this._bind_id);
 			this.detachEvent(this._bind_refresh_handler);
-			this._bind_source = null;
+			this._bind_source = this._bind_refresh_handler = null;
 		}
 	},
 	_bind_ready:function(){

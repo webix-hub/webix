@@ -6,6 +6,7 @@ import GroupMethods from "../core/groupmethods";
 const GroupStore = {
 	$init:function(){
 		this.attachEvent("onClearAll", this._reset_groups);
+		this.attachEvent("onSyncApply", this._reset_groups);
 	},
 	_reset_groups:function(){
 		if (this.getBranchIndex)

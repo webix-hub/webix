@@ -182,16 +182,6 @@ const api = {
 
 		}
 	},
-	_fix_container_borders:function(style, inner){
-		if (inner.top) 
-			style.borderTopWidth="0px";
-		if (inner.left) 
-			style.borderLeftWidth="0px";
-		if (inner.right) 
-			style.borderRightWidth="0px";
-		if (inner.bottom) 
-			style.borderBottomWidth="0px";
-	},
 	_afterResetBorders:function(collection){
 		var start = 0; 
 		for (let i=0; i<collection.length; i++){

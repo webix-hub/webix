@@ -1,40 +1,11 @@
-import {posRelative, offset, remove, removeCss, addCss} from "../../webix/html";
-import {isArray, bind, extend} from "../../webix/helpers";
+import {posRelative, pos as getPos, offset, remove, removeCss, addCss} from "../../webix/html";
+import {isArray, bind, extend, delay} from "../../webix/helpers";
 import {$$} from "../../ui/core";
 import DragItem from "../../core/dragitem";
 import DragControl from "../../core/dragcontrol";
+import AutoScroll from "../../core/autoscroll";
 
 const DragOrder = {
-	_add_css:function(source){
-		let context = DragControl._drag_context;
-
-		if (!this._settings.prerender)
-			source = [context.start];
-
-		for (let i=0; i<source.length; i++){
-			for (let j=0; j<this._columns.length; j++){
-				let node = this.getItemNode({ row:source[i], cind:j});
-				if (node)
-					addCss(node, "webix_invisible");
-			}
-			this.data.addMark(source[i], "webix_invisible", 1, 1, true);
-		}
-	},
-	_remove_css:function(source){
-		let context = DragControl._drag_context;
-
-		if (!this._settings.prerender)
-			source = [context.start];
-
-		for (let i=0; i<source.length; i++){
-			for (let j=0; j<this._columns.length; j++){
-				let node = this.getItemNode({ row:source[i], cind:j});
-				if (node)
-					removeCss(node, "webix_invisible");
-			}
-			this.data.removeMark(source[i], "webix_invisible", 1);
-		}
-	},
 	_set_drop_area:function(target){
 		for (let i=0; i<this._columns.length; i++){
 			let column = this._columns[i];
@@ -81,6 +52,36 @@ const Mixin = {
 			extend(this, DragOrder, true);
 
 		return value;
+	},
+	_add_css:function(source, css, mark){
+		let context = DragControl._drag_context;
+
+		if (!this._settings.prerender && !mark)
+			source = [context.start];
+
+		for (let i=0; i<source.length; i++){
+			for (let j=0; j<this._columns.length; j++){
+				let node = this.getItemNode({ row:source[i], cind:j});
+				if (node)
+					addCss(node, css);
+			}
+			this.data.addMark(source[i], css, 1, 1, true);
+		}
+	},
+	_remove_css:function(source, css, mark){
+		let context = DragControl._drag_context;
+
+		if (!this._settings.prerender && !mark)
+			source = [context.start];
+
+		for (let i=0; i<source.length; i++){
+			for (let j=0; j<this._columns.length; j++){
+				let node = this.getItemNode({ row:source[i], cind:j});
+				if (node)
+					removeCss(node, css);
+			}
+			this.data.removeMark(source[i], css, 1, true);
+		}
 	},
 	_checkDragTopSplit: function(ids){
 		var i, index,
@@ -185,6 +186,7 @@ const Mixin = {
 					this._relative_column_drag = posRelative(e);
 					this._limit_column_drag = column.width;
 
+					this._auto_scroll_force = true;
 					return "<div class='webix_dd_drag_column' style='width:"+column.width+"px'>"+(column.header[0].text||"&nbsp;")+"</div>";
 				}, this),
 				$dragPos:bind(function(pos, e, node){
@@ -235,10 +237,19 @@ const Mixin = {
 							pos.x = max;
 					}
 					DragControl._skip = true;
-				
+
+					if (this._auto_scroll_delay)
+						this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
+
+					if (this._settings.dragscroll !== false)
+						this._auto_scroll_delay = delay((pos) => this._auto_scroll_column(pos), this, [getPos(e)], 250);
 				}, this),
 				$dragDestroy:bind(function(a, node){
+					this._auto_scroll_force = null;
+					if (this._auto_scroll_delay)
+						this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
 					remove(node);
+
 					//clean dnd source element
 					if(this._dragTarget)
 						remove(this._dragTarget);
@@ -264,6 +275,7 @@ const Mixin = {
 							break;
 						}
 
+					this._auto_scroll_force = true;
 					return "<div class='webix_dd_drag_column'>"+text+"</div>";
 				}, this),
 				$drop:bind(function(s,t,e){
@@ -297,6 +309,13 @@ const Mixin = {
 						if (!target) return;
 					}
 
+
+					if (this._auto_scroll_delay)
+						this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
+
+					if (this._settings.dragscroll !== false)
+						this._auto_scroll_delay = delay((pos) => this._auto_scroll_column(pos), this, [getPos(e)], 250);
+
 					if (target != this._drag_column_last){	//new target
 						if (this._drag_column_last)
 							removeCss(this._drag_column_last, "webix_dd_over_column");
@@ -306,6 +325,10 @@ const Mixin = {
 					return (this._drag_column_last = target);
 				}, this),
 				$dragDestroy:bind(function(a,h){
+					this._auto_scroll_force = null;
+					if (this._auto_scroll_delay)
+						this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
+
 					if (this._drag_column_last)
 						removeCss(this._drag_column_last, "webix_dd_over_column");
 					remove(h);
@@ -316,6 +339,8 @@ const Mixin = {
 		if (value){
 			DragControl.addDrag(this._header, control);
 			DragControl.addDrop(this._header, control, true);
+			if (!this._auto_scroll)
+				extend(this, AutoScroll, true);
 		}
 	}
 };

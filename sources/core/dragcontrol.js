@@ -273,10 +273,12 @@ const DragControl ={
 			DragControl._skipDropH = eventRemove(DragControl._skipDropH);
 			if(DragControl._html)
 				master.$dragDestroy(a,DragControl._html,e);
-		}
-		else{
+		} else
 			remove(DragControl._html);
-		}
+
+		if (master && master._auto_scroll_delay)
+			master._auto_scroll_delay = window.clearTimeout(master._auto_scroll_delay);
+
 		if (DragControl._dropHTML)
 			remove(DragControl._dropHTML);
 		DragControl._landing=DragControl._active=DragControl._last=DragControl._html=DragControl._dropHTML=null;

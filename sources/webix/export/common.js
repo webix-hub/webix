@@ -1,5 +1,5 @@
 import {$active} from "../../webix/skin";
-import {extend, isUndefined, copy as wcopy} from "../../webix/helpers";
+import {extend, isUndefined} from "../../webix/helpers";
 
 export const errorMessage = "non-existing view for export";
 
@@ -109,7 +109,7 @@ export function getExportScheme(view, options){
 		}
 
 		if(typeof record.header === "string") record.header = [{text:record.header}];
-		else record.header = wcopy(record.header);
+		else record.header = [].concat(record.header);
 
 		for(let i = 0; i<record.header.length; i++){
 			const hcell = record.header[i] || {};
@@ -125,7 +125,7 @@ export function getExportScheme(view, options){
 		if(view._settings.footer){
 			let footer = column.footer || "";
 			if(typeof footer == "string") footer = [{text:footer}];
-			else footer = wcopy(footer);
+			else footer = [].concat(footer);
 
 			for(let i = 0; i<footer.length; i++){
 				if(footer[i]) footer[i] = footer[i].contentId?view.getHeaderContent(footer[i].contentId).getValue():footer[i].text;

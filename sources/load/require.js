@@ -31,13 +31,15 @@ export default function require(module, callback, master){
 					promise.resolve();
 			};
 			for (let file in module)
-				require(file, callback2, master);
+				require(file).then(callback2, () => promise.reject());
 		} else {
 			// [ file, other ]
 			let callback2 = function(){
 				if (count){
 					count--;
-					require(module[module.length - count - 1], callback2, master);
+					require(module[module.length - count - 1])
+						.then(callback2, () => promise.reject());
+
 				} else {
 					promise.resolve();
 				}
@@ -48,48 +50,51 @@ export default function require(module, callback, master){
 	}
 
 	if (_modules[module] !== true){
-		var fullpath = module;
+		const fullpath = module;
+
+		if (callback === true){
+			//sync mode
+			exec( ajax().sync().get(fullpath).responseText );
+			_modules[module]=true;
+			return promise.resolve();
+		}
+
+		if (!_modules[module])	//first call
+			_modules[module] = [promise];
+		else {
+			_modules[module].push(promise);
+			return promise;
+		}
+
+		const onerror = function(){
+			const calls = _modules[module];
+			_modules[module] = false;
+			for (var i=0; i<calls.length; i++)
+				calls[i].reject();
+		};
+
+		const onload = function(){
+			const calls = _modules[module];
+			_modules[module] = true;
+			for (var i=0; i<calls.length; i++)
+				calls[i].resolve();
+		};
 
 		//css, async, no waiting
 		var parts = module.split("?");
 		if (parts[0].substr(parts[0].length-4) == ".css") {
 			var link = create("LINK",{  type:"text/css", rel:"stylesheet", href:fullpath});
+			link.onload = onload;
+			link.onerror = onerror;
+
 			document.getElementsByTagName("head")[0].appendChild(link);
-			promise.resolve();
-			return promise;
-		}
-
-		//js, async, waiting
-		if (callback === true){
-			//sync mode
-			exec( ajax().sync().get(fullpath).responseText );
-			_modules[module]=true;
-
 		} else {
+			var newScript = document.createElement("script");
+			newScript.onload = onload;
+			newScript.onerror = onerror;
 
-			if (!_modules[module]){	//first call
-				_modules[module] = [promise];
-
-				var newScript = document.createElement("script");
-				var calls = _modules[module];	//callbacks
-
-				newScript.onerror = function(){
-					_modules[module] = false;
-					for (var i=0; i<calls.length; i++)
-						calls[i].reject();
-				};
-
-				newScript.onload = function(){
-					_modules[module] = true;
-					for (var i=0; i<calls.length; i++)
-						calls[i].resolve();
-				};
-				document.getElementsByTagName("head")[0].appendChild(newScript);
-				newScript.src = fullpath;
-				
-			} else	//module already loading
-				_modules[module].push(promise);
-
+			document.getElementsByTagName("head")[0].appendChild(newScript);
+			newScript.src = fullpath;
 		}
 	} else 
 		promise.resolve();

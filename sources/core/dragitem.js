@@ -68,10 +68,11 @@ const DragItem ={
 		if (this._auto_scroll_delay)
 			this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
 
-		this._auto_scroll_delay = delay(function(pos,id){
-			this._drag_pause(id);
-			this._auto_scroll(pos,id);
-		}, this, [pos(e), id], 250);
+		if (this._settings.dragscroll !== false)
+			this._auto_scroll_delay = delay(function(pos,id){
+				this._drag_pause(id);
+				this._auto_scroll(pos,id);
+			}, this, [pos(e), id], 250);
 
 		if (!this.$dropAllow(context, e)  || !this.callEvent("onBeforeDragIn",[context, e])){
 			context.to = context.target = null;
@@ -100,10 +101,8 @@ const DragItem ={
 
 		//still over previous target
 		if ((context.target||"").toString() == (id||"").toString()) return null;
-		if (this._auto_scroll_delay){
-			this._auto_scroll_force = null;
+		if (this._auto_scroll_delay)
 			this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
-		}
 
 		//unmark previous target
 		context.target = context.to = null;
@@ -111,10 +110,7 @@ const DragItem ={
 		return null;
 	},
 	//called when drag moved on target and button is released
-	$drop:function(s,t,e){ 
-		if (this._auto_scroll_delay)
-			this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
-
+	$drop:function(s,t,e){
 		var context = DragControl._drag_context;
 		//finalize context details
 		context.to = this;
@@ -217,15 +213,14 @@ const DragItem ={
 			target = this._target_to_id(context.target);
 
 		//touch webkit will stop touchmove event if source node removed
-		//datatable can't repaint rows without repainting
 		if (this._marked && this._marked != target){
-			if (!context.fragile) this.removeCss(this._marked, "webix_drag_over");
+			if (!context.fragile) this._remove_css([this._marked], "webix_drag_over", true);
 			this._marked = null;
 		}
 
 		if (!this._marked && target){
 			this._marked = target;
-			if (!context.fragile) this.addCss(target, "webix_drag_over");
+			if (!context.fragile) this._add_css([target], "webix_drag_over", true);
 			return target;
 		}
 		
@@ -233,6 +228,14 @@ const DragItem ={
 			return true;
 		}else
 			return false;
+	},
+	_add_css:function(source, css){
+		for (let i=0; i<source.length; i++)
+			this.addCss(source[i], css);
+	},
+	_remove_css:function(source, css){
+		for (let i=0; i<source.length; i++)
+			this.removeCss(source[i], css);
 	},
 
 	// methods used in order/move modes

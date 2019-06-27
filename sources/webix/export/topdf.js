@@ -134,12 +134,13 @@ function addText(doc, type, text){
 
 function getPDFImage(node){
 	return window.html2canvas(node, {background:"#fff", logging:false}).then(function(canvas){
-		const defer = promise.defer();
 		const image = canvas.toDataURL("image/jpeg");
-		pdfjs.load(image, function(err, buffer){
-			defer.resolve(new pdfjs.Image(buffer));
-		});
-		return defer;
+		const binary_string =  window.atob(image.split("base64,")[1]);
+		const length = binary_string.length;
+		const bytes = new Uint8Array(length);
+		for (let i = 0; i < length; i++)
+			bytes[i] = binary_string.charCodeAt(i);
+		return new pdfjs.Image(bytes.buffer);
 	});
 }
 

@@ -30,7 +30,7 @@ const TextPattern = {
 
 		if(pattern || (format && !this.format_setter)){
 			this.attachEvent("onKeyPress", function(code, e){
-				if(e.ctrlKey || e.altKey || this._custom_format)
+				if(e.ctrlKey || e.altKey || this._settings.readonly || this._custom_format)
 					return;
 
 				if(code>105 && code<112) //numpad operators

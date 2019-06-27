@@ -133,16 +133,16 @@ const api = {
 		if(this._rendered_input)
 			this.getInputNode().innerHTML = this.config.value || "";
 	},
-	_execCommandOnElement:function(el, commandName) {
-		var sel, selText;
+	_execCommandOnElement:function(commandName) {
+		let sel, selText;
 
-		if(window.getSelection()) {
+		if (window.getSelection) {
 			sel = window.getSelection();
 			selText = sel.toString().length;
-		} else {
-			sel = document.selection.createRange();
-			selText = sel.text.length;
-		}
+
+			const input = this.getInputNode();
+			if (!input.contains(sel.anchorNode) || !input.contains(sel.focusNode)) return;
+		} else return; //ie8
 
 		if(selText > 0) {
 			for (var i = 0; i < sel.rangeCount; ++i) {
@@ -163,25 +163,21 @@ const api = {
 					range.setEnd(focusEl, endWord);
 					sel.removeAllRanges();
 
-					window.getSelection().addRange(range);
+					sel.addRange(range);
 					document.execCommand(commandName, false, "");
 				}   
 			}
 		}
 	},
 	_add_data:function() {
-		var top = this.getTopParentView();
-		var editableElement = top.getInputNode();
-
-		if(this.$view.contains(this.getInputNode())){
-			top._execCommandOnElement(editableElement, this.config.action);
-		}
+		const top = this.getTopParentView();
+		top._execCommandOnElement(this.config.action);
 	},
 	focus: function() {
 		if(!UIManager.canFocus(this))
 			return false;
 
-		var editableElement = this.$view.querySelector(".webix_richtext_editor");
+		var editableElement = this.getInputNode();
 		editableElement.focus();
 	},
 	_updateValue: function(value){

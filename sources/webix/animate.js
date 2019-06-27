@@ -217,8 +217,9 @@ animate.start = function(node, animation){
 			});
 			window.setTimeout(function(){
 				if(!transitionEnded){
+					let master = settings.master||window;
 					node._has_animation = null;
-					if (settings.callback) settings.callback.call((settings.master||window), node,settings);
+					if (!master.$destructed && settings.callback) settings.callback.call(master, node,settings);
 					transitionEnded = true;
 					eventRemove(tid);
 				}

@@ -103,6 +103,8 @@
 @propertyItemHeight:28px;
 @menuMargin: 0px;
 @menuHeight: 34px;
+@dataPadding: 10px;
+
 //-------------------------------------------///
 //                View, layout              ///
 //-------------------------------------------///
@@ -269,11 +271,6 @@
 }
 
 
-
-
-.webix_toolbar.webix_layout_toolbar{
-
-}
 .webix_toolbar.webix_layout_subbar{
 	background: transparent;
 	.webix_view{
@@ -354,7 +351,6 @@
 //data
 @dataHeaderBorderColor: lighten(@dataHeaderBgColor, 9%);
 @dataBorderColor: lighten(@backColor,8%);
-@dataPadding: 10px;
 @dataHeaderFontSize: @fontSize;
 @dataHeaderBgColor: @alterColor;
 @selectBorderColor: @dataBorderColor;
@@ -561,7 +557,7 @@
 			text-align: left;
 		}
 	}
-	.webix_list_item:hover, .webix_list_item:active{
+	.webix_list_item:hover, .webix_list_item:active, .webix_list_item:focus{
 		.darkHoverRule(@buttonColor);
 	}
 	.webix_list_item:first-child{
@@ -738,7 +734,6 @@
 .buttonStyle{
 	color: @buttonFontColor;
 	font-size: @fontSize;
-	padding:auto 6px;
 	font-family: @fontFamily;
 	.buttonBorderStyle;
 	outline: none;
@@ -782,22 +777,18 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		border-color: @foreColor;
 
 	}
-
-
-
 	input[type=text]:focus{
 		border:1px solid @foreColor;
 	}
-
 }
 
 .webix_control{
 	background: transparent;
 }
 
-/* .webix_layout_line > .webix_control, .webix_layout_clean > .webix_control{
+.webix_layout_line, .webix_multiview, .webix_layout_clean, .webix_layout_accordion{
 	background: @backColor;
-}*/
+}
 
 
 .webix_view.webix_control.webix_el_tabbar{
@@ -1025,7 +1016,7 @@ div.webix_item_tab.webix_selected{
 // segmented button
 
 .webix_segment_1:not(.webix_selected),.webix_segment_N:not(.webix_selected){
- 	border-left: none;
+ 	border-left-color: transparent;
 }
 
 .segmentActive(){
@@ -1045,7 +1036,6 @@ div.webix_item_tab.webix_selected{
 		background-color: @buttonColor;
 		border: 1px solid @buttonBorderColor;
 		top:(@inputHeight - 18)/2;
-		width:11px;
 		&:focus{
 			background:@buttonBorderColor;
 			border-color:lighten(@buttonBorderColor, 5%);
@@ -1331,6 +1321,9 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 .webix_cal_month_name{
 	font-size: (@fontSize - 1);
 	font-weight: normal;
+}
+.webix_cal_month_name.webix_readonly:hover, .webix_cal_month_name.webix_readonly:focus{
+	color: @linkFontColor;
 }
 
 .webix_cal_next_button,

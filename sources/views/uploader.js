@@ -3,6 +3,7 @@ import {protoUI, $$} from "../ui/core";
 import {isUndefined, extend, delay, uid, toNode, bind} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 import {assert} from "../webix/debug";
+import {$name} from "../webix/skin";
 
 import base from "../views/view";
 import button from "../views/button";
@@ -61,6 +62,10 @@ const api = {
 	send:function(){},
 	fileDialog:function(){},
 	stopUpload:function(){},
+	$skin:function(){
+		if($name == "material" || $name == "mini")
+			this.defaults.css = "webix_primary";
+	},
 
 	$init:function(){
 		var driver = UploadDriver.html5;

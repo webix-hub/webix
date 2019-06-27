@@ -68,8 +68,6 @@ const api = {
 		rightSplit:0,
 		topSplit:0,
 		columnWidth:100,
-		minColumnWidth:20,
-		minColumnHeight:26,
 		prerender:false,
 		autoheight:false,
 		autowidth:false,
@@ -83,7 +81,9 @@ const api = {
 	},
 	$skin:function(){
 		this.defaults.rowHeight = $active.rowHeight;
+		this.defaults.minRowHeight = $active.rowHeight-6;
 		this.defaults.headerRowHeight = $active.barHeight - $active.borderWidth*2;
+		this.defaults.minColumnWidth = $active.dataPadding*2;
 	},
 	on_click:{
 		webix_richfilter:function(){
@@ -655,26 +655,29 @@ const api = {
 			if (row_ind < state[0]+1 || row_ind >= state[1]-1 ){
 				//not visible currently
 				let summ = this._getHeightByIndexSumm((pager?this.data.$min:0),row_ind);
+				let dataHeight = this._dtable_offset_height+1;
 				const itemHeight = this._getHeightByIndex(row_ind);
 				if (row_ind < state[0]+1){
 					//scroll top - show row at top of screen
-					summ = Math.max(0, summ-1) - this._top_split_height;
-				} else if(summ + itemHeight > this._dtable_offset_height) {
+					summ = Math.max(0, summ) - this._top_split_height;
+				} else if(summ + itemHeight > dataHeight) {
 					//scroll bottom - show row at bottom of screen
-					summ += itemHeight - this._dtable_offset_height;
-					//because of row rounding we neet to scroll some extra
-					//TODO: create a better heuristic
-					if (row_ind>0)
-						summ += this._getHeightByIndex(row_ind-1)-1;
-				}
+					summ += itemHeight - dataHeight;
+					//because of row rounding we need to scroll some extra
+					for (let cur_ind = row_ind; cur_ind>0 && dataHeight>0 ; cur_ind--)
+						dataHeight -= this._getHeightByIndex(cur_ind);
+
+					if (row_ind>0 && dataHeight)
+						summ += this._getHeightByIndex(row_ind+1);
+				} else { summ = scroll.y; }
 
 				scroll.y = summ;
 			}
 		}
 		if (column_ind != -1){
 			//ignore split columns - they are always visible
-			if (column_ind < this._settings.leftSplit) return;
-			if (column_ind >= this._rightSplit) return;
+			if (column_ind < this._settings.leftSplit || column_ind >= this._rightSplit)
+				return this.scrollTo(scroll.x, scroll.y);
 
 			//very similar to y-logic above
 			let state = this._get_x_range();
@@ -684,13 +687,15 @@ const api = {
 				for (var i=this._settings.leftSplit; i<column_ind; i++)
 					summ += this._columns[i].width;
 
+				const itemWidth = this._columns[column_ind].width;
 				/*jsl:ignore*/
 				if (column_ind < state[0]+1){
 					//scroll to left border
-				} else {
+				} else if(summ + itemWidth > this._center_width){
 					//scroll to right border
-					summ += this._columns[column_ind].width - this._center_width;
-				}	
+					summ += itemWidth - this._center_width;
+				} else{ summ = scroll.x; }
+
 				/*jsl:end*/
 				scroll.x = summ;
 			}
@@ -1083,8 +1088,8 @@ const api = {
 	},
 	setRowHeight:function(rowId, height){
 		if (isNaN(height)) return;
-		if (height<this._settings.minColumnHeight)
-			height = this._settings.minColumnHeight;
+		if (height<this._settings.minRowHeight)
+			height = this._settings.minRowHeight;
 
 		var item = this.getItem(rowId);
 		var old_height = item.$height||this._settings.rowHeight;
@@ -1982,15 +1987,14 @@ const api = {
 			data = config;
 		} else {
 			let config = tooltip.type.column = this.getColumnConfig(id.column);
-			let def = !config.tooltip || config.tooltip === true;
 
 			//empty tooltip - ignoring
 			if (!config.tooltip && config.tooltip !== undefined)
 				return null;
 
-			if (def && !this._settings.tooltip.template){
+			if (config.tooltip === true || (!config.tooltip && isUndefined(this._settings.tooltip.template))){
 				data = this.getText(id.row, id.column).toString();
-			} else if (!def){
+			} else if (config.tooltip){
 				let area = (e.target||e.srcElement).getAttribute("webix_area");
 
 				if (area){

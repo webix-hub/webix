@@ -12,6 +12,7 @@ import {zIndex} from "../ui/helpers";
 import {bind, toNode, delay, clone, uid, toArray, extend} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 import {assert} from "../webix/debug";
+import {callEvent} from "../webix/customevents";
 
 import EventSystem from "../core/eventsystem";
 import Movable from "../core/movable";
@@ -293,7 +294,7 @@ const api = {
 			if (myindex <= index) return;
 		}
 
-		this.hide();
+		this._hide_single();
 	},
 	hidden_setter:function(value){
 		if(value) 
@@ -302,21 +303,17 @@ const api = {
 			this.show();
 		return !!value;
 	},
-	hide:function(force){
-		if (this.$destructed) return;
-
-		if (!force)
-			if(this._settings.hidden) return;
+	hide:function(){
+		const index = this._hide_single();
+		this._hide_sub_popups(index);
+	},
+	_hide_single:function(){
+		if (this.$destructed || this._settings.hidden) return;
 
 		if (this._settings.modal)
 			this._modal_set(false);
 			
-		if (this._settings.position == "top"){
-			animate(this._viewobj, {type: "slide", x:0, y:-(this._content_height+20), duration: 300,
-				callback:this._hide_callback, master:this});
-		}
-		else 
-			this._hide_callback();
+		this._hiding_process();
 
 		if (this._settings.autofocus){
 			var el = document.activeElement;
@@ -327,20 +324,28 @@ const api = {
 			}
 		}
 
-		this._hide_sub_popups();
+		//clean state
+		const index = state._popups.find(this);
+		if (index > -1)
+			state._popups.removeAt(index);
+
+		return index;
+	},
+	_hiding_process:function(){
+		if (this._settings.position == "top"){
+			animate(this._viewobj, {type: "slide", x:0, y:-(this._content_height+20), duration: 300,
+				callback:this._hide_callback, master:this});
+		} else 
+			this._hide_callback();
 	},
 	//hide all child-popups
-	_hide_sub_popups:function(){
-		var order = state._popups;
-		var index = order.find(this);
-		var size = order.length - 1;
-
-		if (index > -1)
-			for (var i = size; i > index; i--)
+	_hide_sub_popups:function(index){
+		if (index > -1){
+			const order = state._popups;
+			for (let i=order.length-1; i>=index; i--)
 				if (order[i]._hide_point)	//hide only popups, skip windows
-					order[i].hide();
-		
-		order.removeAt(index);
+					order[i]._hide_single();
+		}
 	},
 	destructor: function() {
 		this._modal_set(false);
@@ -402,6 +407,8 @@ const api = {
 				}}
 			]};
 		}
+		else
+			extend(value, {borderless:true});
 
 		state._parent_cell = this;
 		this._head_cell = ui._view(value);
@@ -422,6 +429,7 @@ const api = {
 	},
 	resize:function(){
 		baseview.api.adjust.call(this);
+		callEvent("onResize", []);
 		if (this.isVisible()){
 			this._setPosition(this._settings.left, this._settings.top);
 		}

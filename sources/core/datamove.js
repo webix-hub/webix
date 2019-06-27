@@ -80,7 +80,8 @@ const DataMove ={
 	},
 	//move item on one position up
 	moveUp:function(id,step){
-		return this.move(id,this.getIndexById(id)-(step||1));
+		const index = this.getIndexById(id)-(step||1);
+		return this.move(id,(index<0)?0:index);
 	},
 	//move item on one position down
 	moveDown:function(id,step){

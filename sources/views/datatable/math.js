@@ -33,27 +33,23 @@ const Mixin = {
 			if (action == "add")
 				this._exprs_by_columns(obj);
 
-			for (let i=0; i<this._columns.length; i++)
-				this._parse_cell_math(id, this._columns[i].id, action !== "add");
+			for (let i=0; i<this._columns.length; i++){
+				this._math_recalc = {};
+				this._parse_cell_math(id, this._columns[i].id);
+			}
 			this._math_recalc = {};
 		}
 	},
-	_parse_cell_math: function(row, col, _inner_call) {
+	_parse_cell_math: function(row, col) {
 		var item = this.getItem(row);
 		var value;
 
-		// if it's outer call we should use inputted value otherwise to take formula, not calculated value
-		if (_inner_call === true)
-			value = item[this._math_pref + col] || item[col];
-		else {
-			value = item[col];
-			this._math_recalc = {};
-		}
+		// use previosly saved formula if available
+		value = item[this._math_pref + col] || item[col];
 
 		if (value && value.length > 0 && value.toString().substr(0, 1) === "=") {
 			// calculate math value
-			if (!item[this._math_pref + col] || (_inner_call !== true))
-				item[this._math_pref + col] = item[col];
+			item[this._math_pref + col] = value;
 			item[col] = this._calculate(value, row, col);
 			//this.updateItem(item);
 		} else {
@@ -69,7 +65,7 @@ const Mixin = {
 				var name = item.depends[col][i][0] + "__" + item.depends[col][i][1];
 				if (typeof(this._math_recalc[name]) === "undefined") {
 					this._math_recalc[name] = true;
-					this._parse_cell_math(item.depends[col][i][0], item.depends[col][i][1], true);
+					this._parse_cell_math(item.depends[col][i][0], item.depends[col][i][1]);
 				}
 			}
 		}
@@ -89,6 +85,7 @@ const Mixin = {
 		for (var j = 0; j < this._columns.length; j++){
 			var col = this.columnId(j);
 			this.data.each(function(obj){
+				this._math_recalc = {};
 				this._parse_cell_math(obj.id, col);
 			}, this);
 		}

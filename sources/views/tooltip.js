@@ -77,17 +77,19 @@ const api = {
 
 			this._contentobj.style.display = "block";
 			
-			if(positionX - this._settings.dx > this._contentobj.offsetWidth)
+			if (positionX - this._settings.dx > this._contentobj.offsetWidth)
 				positionX = pos.x;
 			else {
 				positionX = (pos.x - (this._settings.dx * 2)) - this._contentobj.offsetWidth;
-				if(positionX <= 0) positionX = 0;
+				if (positionX < 0) positionX = 0;
 			}
 
-			if(positionY - this._settings.dy > this._contentobj.offsetHeight)
+			if (positionY - this._settings.dy > this._contentobj.offsetHeight)
 				positionY = pos.y;
-			else 
-				positionY = (pos.y - this._settings.dy) - this._contentobj.offsetHeight;
+			else {
+				positionY = (pos.y - (this._settings.dy * 2)) - this._contentobj.offsetHeight;
+				if (positionY < 0) positionY = 0;
+			}
 			this._contentobj.style.left = positionX+this._settings.dx+"px";
 			this._contentobj.style.top = positionY+this._settings.dy+"px";
 		} else this.hide();

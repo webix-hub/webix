@@ -127,7 +127,7 @@ const api = {
 		}
 
 		if (!refresh){
-			this.hide(true);
+			this.hide();
 			if (this._last_input_target)
 				this._last_input_target.focus();
 		}
@@ -326,7 +326,7 @@ const api = {
 			this.show(this._last_input_target,null,true);
 			this._dont_unfilter = false;
 		} else {
-			this.hide(true);
+			this.hide();
 			this._last_input_target = null;
 		}
 	},
@@ -396,16 +396,16 @@ const api = {
 			if (value)
 				this.setMasterValue(value);
 			
-			popup.hide(true);
+			popup.hide();
 		}
 		else if (this._show_on_key_press)
 			popup.show(this._last_input_target);
 	},
 	_escape_key: function(popup) {
-		return popup.hide(true);
+		return popup.hide();
 	},
 	_tab_key: function(popup) {
-		return popup.hide(true);
+		return popup.hide();
 	},
 	/*! suggestions navigation: up/down buttons move selection
 	 *	@param e

@@ -136,12 +136,14 @@ const api = {
 			this._restorePadding = 1;
 			config.bottomPadding = config.bottomPadding || height || 18;	
 			this.render();
+			this.adjust();
 			this.resize();
 		} else if (!message && this._restorePadding){
 			config.bottomPadding = this._restorePadding = 0;
 			//textarea
 			if (!config.height)
 				this.render();
+			this.adjust();
 			this.resize();
 		} else
 			this.render();

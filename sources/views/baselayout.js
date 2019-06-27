@@ -341,6 +341,16 @@ const api = {
 		if (this._parse_cells_ext_end)
 			this._parse_cells_ext_end(collection);	
 	},
+	_fix_container_borders:function(style, inner){
+		if (inner.top) 
+			style.borderTopWidth="0px";
+		if (inner.left) 
+			style.borderLeftWidth="0px";
+		if (inner.right) 
+			style.borderRightWidth="0px";
+		if (inner.bottom) 
+			style.borderBottomWidth="0px";
+	},
 	_bubble_size:function(prop, size, vertical){
 		if (this._vertical_orientation != vertical)
 			for (var i=0; i<this._cells.length; i++){
@@ -546,16 +556,16 @@ const api = {
 
 			if (this._vertical_orientation){
 				height = this._set_child_size_a(sizes,2,3);
-				if (height < 0)	{ auto.push(i); continue; }
+				if (height < 0)	{ auto.push({oldIndex:i, view:this._cells[i]}); continue; }
 			} else {
 				width = this._set_child_size_a(sizes,0,1);
-				if (width < 0)	{ auto.push(i); continue; }
+				if (width < 0)	{ auto.push({oldIndex:i, view:this._cells[i]}); continue; }
 			}
 			this._cells[i].$setSize(width,height);
 		}
 
 		for (let i = 0; i < auto.length; i++){
-			var index = auto[i];
+			var index = auto[i].oldIndex;
 			let sizes = this._sizes[index];
 			var dx = Math.round(this._set_size_delta * sizes[4]/this._set_size_gravity);
 			this._set_size_delta -= dx; this._set_size_gravity -= sizes[4];
@@ -565,7 +575,7 @@ const api = {
 				width = dx;
 			}
 
-			this._cells[index].$setSize(width,height);
+			auto[i].view.$setSize(width,height);
 		}
 
 		state._child_sizing_active -= 1;

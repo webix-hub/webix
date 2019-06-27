@@ -57,15 +57,22 @@ const api = {
 		});
 	},
 	_set_default_css: function(config){
-		if(config.type && this._deprecated_css_types[config.type])
+		if(config.type && this._deprecated_css_types[config.type]){
 			this._viewobj.className += " "+this._deprecated_css_types[config.type];
-		else if (!config.css || (config.css && !this._classes[config.css]))
+		}
+		else if (!config.css || !this._get_class(config.css) || (this.defaults.css && !this._get_class(this.defaults.css))){
 			this._viewobj.className += " webix_secondary";
+		}
 	},
-	_classes:{
-		webix_danger:1,
-		webix_transparent:1,
-		webix_primary:1
+	_get_class:function(css){
+		if(typeof css == "string"){
+			const classes = { webix_danger:1, webix_transparent:1, webix_primary:1 };
+			for(let i in classes){
+				if(css.indexOf(i)!==-1)
+					return true;
+			}
+		}
+		return false;
 	},
 	// will be deprecated in 7.0
 	_deprecated_css_types:{
@@ -234,11 +241,15 @@ const api = {
 	_sqrt_2:Math.sqrt(2),
 	_calc_size:function(config){
 		config = config || this._settings;
-		if (config.autowidth)
-			config.width = getTextSize((config.value||config.label || ""), "webixbutton").width +
+		if (config.autowidth){
+			let width = getTextSize((config.value||config.label || ""), "webixbutton").width +
 				(config.badge ? 16 : 0) +
 				((config.type === "iconButton" || config.type === "icon") ? 24 : 0) +
 				((config.type === "imageButton" || config.type === "image") ? config.height-$active.inputPadding : 0);
+
+			width = Math.max(config.minWidth || 0, width);
+			config.width = Math.min(config.maxWidth || Infinity, width);
+		}
 	},
 	_calck_input_size:function(){
 		//use width for both width and inputWidth settings in clever way

@@ -1,3 +1,20 @@
+Version 6.4.0 (June 2019)
+==================
+
+### Major features
+
+- .Net Core demos for major widgets
+- AWS S3 backend for FileManager widget
+
+### Minor features
+
+- wjet cli tool update
+- monthHeader property in the Calendar widget
+- drag scroll during column drag-n-drop in the Datatable
+
+[Full list of changes and fixes](http://docs.webix.com/desktop__whats_new_6_4.html)
+
+
 Version 6.3 (April 2019)
 ==================
 

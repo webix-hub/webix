@@ -45,6 +45,8 @@ const skin = {
 
 	popupPadding: 0,
 
+	dataPadding: 12,
+
 	calendar:{ timepickerHeight:24 },
 	calendarHeight: 70,
 	padding:0,

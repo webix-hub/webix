@@ -143,10 +143,9 @@ const api = {
 	},
 	refresh:function(){
 		var s = this._settings;
-		if (!s.count) return;
 
 		//max page number
-		s.limit = Math.ceil(s.count/s.size);
+		s.limit = Math.ceil(s.count/s.size) || 1;
 
 		var newPage = Math.min(s.limit-1, s.page);
 

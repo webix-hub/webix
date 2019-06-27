@@ -227,8 +227,10 @@ export function getTextSize(text, css, basewidth){
 
 	for (var i = 0; i < all.length; i++) {
 		d.innerHTML = all[i];
-		width = Math.max(width, d.offsetWidth);
-		height = Math.max(height, d.offsetHeight);
+		//we need to add 1 to offsetWidth/Height because these methods return value as an integer
+		//we can use ie9+ d.getBoundingClientRect().width
+		width = Math.max(width, d.offsetWidth+1);
+		height = Math.max(height, d.offsetHeight+1);
 	}
     
 	remove(d);

@@ -155,10 +155,11 @@ const api = {
 				var arrow = obj.submenu||obj.data||obj.item ? "<div class=\"webix_icon "+ icon+"\"></div>" : "";
 				return arrow+obj.value;
 			};
+			var css = config.css ? " "+config.css : "";
 
 			var popupConfig = {
 				view:"popup",
-				css: "webix_sidebar_popup "+dirClassName+" "+config.css,
+				css: "webix_sidebar_popup "+dirClassName+css,
 				autofit: false,
 				width: this._fullWidth - this.config.collapsedWidth,
 				borderless: true,
@@ -184,7 +185,7 @@ const api = {
 							select: true,
 							borderless: true,
 							autoheight: true,
-							css: "webix_sidebar_popup_list "+dirClassName+" "+config.css,
+							css: "webix_sidebar_popup_list "+dirClassName+css,
 							template: menuTemplate,
 							type:{ subsign:false },
 							submenuConfig:{
@@ -193,7 +194,7 @@ const api = {
 								template:menuTemplate,
 								select:true,
 								type:{ subsign:false },
-								css:"webix_sidebar_popup_list "+dirClassName+" "+config.css,
+								css:"webix_sidebar_popup_list "+dirClassName+css,
 								on:{
 									onShow:function(){
 										this.clearCss("webix_sidebar_selected");

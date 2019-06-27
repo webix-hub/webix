@@ -1,6 +1,6 @@
 const rules = {
 	isEmail: function(value){
-		return (/\S+@[^@\s]+\.[^@\s]+$/).test((value || "").toString());
+		return (/^[^\s@]+@[^\s@]+\.[^\s@]+$/).test((value || "").toString());
 	},
 	isNumber: function(value){
 		return (parseFloat(value) == value);

@@ -74,7 +74,7 @@ const api = {
 				this._changeTextarea(true);
 				delay(() => { this._input.focus(); });
 			}
-			else if(view !==this._sendButton && view !==this._listMenu && 
+			else if(view !==this._sendButton && view !==this._listMenu && (!this._userList || view !== this._userList.getList()) && 
 				(!e || (e.target.className||"").toString().indexOf("webix_comments_menu") ===-1)
 			){
 				this._changeTextarea();
@@ -128,7 +128,7 @@ const api = {
 		//normal parse
 		else{
 			if(more && !list.exists("$more")){
-				more = { id:"$more", value:more };
+				more = { id:"$more", value:more, $css:"webix_comments_more_item" };
 				if(this._settings.mode == "chat")
 					data.unshift(more);
 				else

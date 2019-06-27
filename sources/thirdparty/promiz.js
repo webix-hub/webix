@@ -219,7 +219,14 @@ function Deferred(resolver) {
 			_value = value;
 			return _handler();
 		};
-		const value = function(){ return _value; };
+		
+		const value = function(){
+			const d = new Deferred();
+			if(state == 4)
+				return d.reject(_value);
+			else
+				return d.resolve(_value);
+		};
 
 		return self.then(handler, handler).then(value, value);
 	};

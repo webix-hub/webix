@@ -24,11 +24,11 @@ const api = {
 		navigation: true,
 		monthSelect: true,
 		weekHeader: true,
+		monthHeader: true,
 		weekNumber: false,
 		skipEmptyWeeks: false,
 
 		calendarHeader: "%F %Y",
-		calendarWeekHeader: "W#",
 		//calendarTime: "%H:%i",
 		events:DateHelper.isHoliday,
 		minuteStep: 5,
@@ -45,7 +45,6 @@ const api = {
 
 	dayTemplate_setter: template,
 	calendarHeader_setter:DateHelper.dateToStr,
-	calendarWeekHeader_setter:DateHelper.dateToStr,
 	calendarTime_setter:function(format){
 		this._calendarTime = format;
 		return DateHelper.dateToStr(format);
@@ -111,6 +110,9 @@ const api = {
 		this.attachEvent("onAfterZoom", function(zoom){
 			if(zoom >= 0) this.$view.querySelector(".webix_cal_month_name").blur();
 		});
+	},
+	minuteStep_setter(value){
+		return Math.max( Math.min(value, 60), this.defaults.minuteStep );
 	},
 	type_setter: function(value){
 		if(value == "time"){
@@ -271,10 +273,13 @@ const api = {
 		var width = sizes[0];
 		var height = sizes[1];
 
-		var html = "<div class='webix_cal_month'><span role='button' tabindex='0' aria-live='assertive' aria-atomic='true' class='webix_cal_month_name"+(!this._settings.monthSelect?" webix_readonly":"")+"'>"+s.calendarHeader(date)+"</span>";
-		if (s.navigation)
-			html += "<div role='button' tabindex='0' aria-label='"+i18n.aria.navMonth[0]+"' class='webix_cal_prev_button'></div><div role='button' tabindex='0' aria-label='"+i18n.aria.navMonth[1]+"' class='webix_cal_next_button'></div>";
-		html += "</div>";
+		var html = "";
+		if (s.monthHeader){
+			html += "<div class='webix_cal_month'><span aria-live='assertive' aria-atomic='true' class='webix_cal_month_name"+((!s.monthSelect || !s.navigation)?" webix_readonly'":"' role='button' tabindex='0'")+">"+s.calendarHeader(date)+"</span>";
+			if (s.navigation)
+				html += "<div role='button' tabindex='0' aria-label='"+i18n.aria.navMonth[0]+"' class='webix_cal_prev_button'></div><div role='button' tabindex='0' aria-label='"+i18n.aria.navMonth[1]+"' class='webix_cal_next_button'></div>";
+			html += "</div>";
+		}
 
 		if(s.weekHeader)
 			html += "<div class='webix_cal_header' aria-hidden='true'>"+this._week_template(width)+"</div>";
@@ -356,7 +361,7 @@ const api = {
 
 		if(s.weekNumber) {
 			correction = 1;
-			week_template += "<div class='webix_cal_week_header' style='width: "+widths[0]+"px;' >"+s.calendarWeekHeader()+"</div>";
+			week_template += "<div class='webix_cal_week_header' style='width: "+widths[0]+"px;' >"+s.calendarWeekHeader+"</div>";
 		}
 		
 		var k = (DateHelper.startOnMonday)?1:0;
@@ -808,7 +813,7 @@ const api = {
 
 				html += "<div aria-label='"+DateHelper.dateToStr(i18n.aria.minuteFormat)(temp)+"' role='gridcell' tabindex='"+(selected==i?"0":"-1")+
 					"' aria-selected='"+(selected==i?"true":"false")+"' class='webix_cal_block webix_cal_block_min"+css+"' data-value='"+i+"' style='"+
-					this._getCalSizesString(width,height)+(i%2===0?"clear:both;":"")+"'><span style='display:inline-block; "+
+					this._getCalSizesString(width,height)+((i/config.minuteStep)%2===0?"clear:both;":"")+"'><span style='display:inline-block; "+
 					this._getCalSizesString(sqSize,sqSize)+"'>"+DateHelper.toFixed(i)+"</span></div>";
 			}
 			html += "</div>";
@@ -823,8 +828,10 @@ const api = {
 			var header = sections[0].childNodes;
 			var labels = i18n.aria["nav"+(this._zoom_level==1?"Year":"Decade")];
 			header[0].innerHTML = zlogic._getTitle(config.date, this);
-			header[1].setAttribute("aria-label", labels[0]);
-			header[2].setAttribute("aria-label", labels[1]);
+			if (config.navigation){
+				header[1].setAttribute("aria-label", labels[0]);
+				header[2].setAttribute("aria-label", labels[1]);
+			}
 
 			height = Math.floor(this._reserve_box_height/3);
 			width = Math.floor(this._reserve_box_width/4);
@@ -965,6 +972,8 @@ const api = {
 			this._selectDate(date);
 		},
 		webix_cal_month_name:function(){
+			if (!this._settings.navigation) return;
+
 			this._zoom_in = false;
 			//maximum zoom reached
 			if (this._zoom_level == 2 || !this._settings.monthSelect) return;

@@ -115,7 +115,8 @@ const Mixin = {
 			rules.font.name = base["font-family"].replace(/,.*$/, ""); // cut off fallback font;
 			rules.font.sz = base["font-size"].replace("px", "")*0.75; //px to pt conversion
 			rules.font.color = {rgb:color.rgbToHex(base["color"])};
-			if(base["font-weight"] !== "normal") rules.font.bold = true;
+
+			if(base["font-weight"] !== "normal" && base["font-weight"] != 400) rules.font.bold = true;
 			if(base["text-decoration-line"] === "underline") rules.font.underline = true;
 			if(base["font-style"] === "italic") rules.font.italic = true;
 			if(base["text-decoration-line"] === "line-through") rules.font.strike = true;

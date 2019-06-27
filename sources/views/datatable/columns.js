@@ -244,10 +244,10 @@ const Mixin = {
 
 		this._dtable_fully_ready = 0;
 		this._define_structure();
+		this._update_scroll();
 
 		this.callEvent("onStructureUpdate");
 
-		this._update_scroll();
 		this.render();
 		this._dtable_column_refresh = 0;
 	},

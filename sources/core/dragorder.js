@@ -20,17 +20,9 @@ const DragOrder ={
 
 		if (isArray(context.source) && !context.fragile){
 			DragControl._setDragOffset(e);
-			this._add_css(context.source);
+			this._add_css(context.source, "webix_invisible");
 		}
 		return html;
-	},
-	_add_css:function(source){
-		for (let i=0; i<source.length; i++)
-			this.addCss(source[i], "webix_invisible");
-	},
-	_remove_css:function(source){
-		for (let i=0; i<source.length; i++)
-			this.removeCss(source[i], "webix_invisible");
 	},
 	$dragIn:function(s,t,e){
 		let html = DragItem.$dragIn.apply(this, arguments);
@@ -85,7 +77,7 @@ const DragOrder ={
 			}
 		} else {
 			box.y += (this._header_height||0) - 12;
-			pos.x = (this._drag_order_stored_left||box.x) + 8;
+			pos.x = box.x + 8 + (this._drag_order_stored_left||0);
 			pos.y = pos.y - 18;
 
 			if (pos.y < box.y)
@@ -123,7 +115,7 @@ const DragOrder ={
 		let context = DragControl._drag_context;
 
 		if (isArray(context.source) && !context.fragile)
-			this._remove_css(context.source);
+			this._remove_css(context.source, "webix_invisible");
 
 		remove(DragControl._html);
 	},

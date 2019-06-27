@@ -98,6 +98,8 @@
 @propertyItemHeight:28px;
 @menuMargin: 0px;
 @menuHeight: 34px;
+@dataPadding: 10px;
+
 //-------------------------------------------///
 //                View, layout              ///
 //-------------------------------------------///
@@ -151,7 +153,7 @@
 	.layoutBarFont;
 	background: @mainColor;
 
-// buttons in bars:
+	// buttons in bars:
 
 	.webix_el_button, .webix_el_label, .webix_inp_label{
 		color: @barFontColor;
@@ -195,17 +197,19 @@
 		border-color: @backColor;
 		box-shadow: none;
 	}
-	.webix_input_icon{
-		.barButton;
-		color: @fontColor;
-	}
-	.webix_input_icon:hover{
-		background-color: rgba(0,0,0,0);
-		color: @fontColor;
-	}
-	.webix_input_icon:active, .webix_input_icon:focus{
-		background-color: rgba(0,0,0,0);
-		color: @fontColor;
+	.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
+		.webix_input_icon{
+			.barButton;
+			color: @fontColor;
+		}
+		.webix_input_icon:hover{
+			background-color: rgba(0,0,0,0);
+			color: @fontColor;
+		}
+		.webix_input_icon:active, .webix_input_icon:focus{
+			background-color: rgba(0,0,0,0);
+			color: @fontColor;
+		}
 	}
 	.webix_selected.webix_segment_0, .webix_selected.webix_segment_1, .webix_selected.webix_segment_N{
 		.barButton(@selectFontColor, @selectColor,@selectColor);
@@ -222,7 +226,9 @@
 	.webix_segment_1, .webix_segment_N, .webix_selected.webix_segment_1, .webix_selected.webix_segment_N{
 		margin-left: 0;
 		border-left: none;
-
+	}
+	.webix_el_radio .webix_label_right{
+		color: @barFontColor;
 	}
 	.webix_el_icon .webix_el_box{
 		#border > .radius(@skin_input_radius);
@@ -345,11 +351,6 @@
 }
 
 
-
-
-.webix_toolbar.webix_layout_toolbar{
-
-}
 .webix_toolbar.webix_layout_subbar{
 	background: transparent;
 	.webix_view{
@@ -421,7 +422,6 @@
 //data
 @dataHeaderBorderColor: darken(@dataHeaderBgColor, 9%);
 @dataBorderColor: darken(@backColor,8%);
-@dataPadding: 10px;
 @dataHeaderFontSize: @fontSize;
 @dataHeaderBgColor: @alterColor;
 @selectBorderColor: @dataBorderColor;
@@ -704,13 +704,12 @@
 }
 
 .webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
-	   span.webix_input_icon{
-		   background-color: @buttonColor;
-		   color: @buttonFontColor;
-		   #border > .corners(0,@skin_input_radius,@skin_input_radius,0);
-
-	   }
-   }
+	.webix_input_icon{
+		background-color: @buttonColor;
+		color: @buttonFontColor;
+		#border > .corners(0,@skin_input_radius,@skin_input_radius,0);
+	}
+}
 
 .focusStyle{
 	border: 1px solid @buttonColor;
@@ -730,13 +729,6 @@
 		.focusStyle;
 	}
 
-}
-.webix_el_counter{
-	input[type=text]:focus{
-		border-top: 1px solid @buttonColor;
-		border-bottom: 1px solid @buttonColor;
-		box-shadow: 0 0 1px @buttonColor inset;
-	}
 }
 .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
 	.webix_inp_static{
@@ -797,7 +789,6 @@
 	font-family: @fontFamily;
 	font-size: @fontSize;
 	color: @buttonFontColor;
-	padding: auto 6px;
 	.buttonBorderStyle;
 	outline: none;
 }
@@ -820,25 +811,22 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	border-color: @borderColor
 }
 
-.webix_el_counter{
-	.webix_inp_counter_value{
-		width: 40px;
-		.inputStyle;
+.webix_inp_counter_value{
+	width: 40px;
+	.inputStyle;
+	&:focus{
+		border-top: 1px solid @buttonColor;
+		border-bottom: 1px solid @buttonColor;
+		box-shadow: 0 0 1px @buttonColor inset;
 	}
-	.webix_inp_counter_prev, .webix_inp_counter_next{
-		background: @buttonColor;
-		width: 29px;
-		.buttonStyle;
-		font-weight: bold;
-		font-family: "Courier New",Courier,monospace;
-	}
-	.webix_inp_counter_prev{
-		font-size: 20px;
-
-	}
-	.webix_inp_counter_next{
-		font-size: 20px;
-	}
+}
+.webix_inp_counter_prev, .webix_inp_counter_next{
+	background: @buttonColor;
+	width: 29px;
+	.buttonStyle;
+	font-weight: bold;
+	font-family: "Courier New",Courier,monospace;
+	font-size: 20px;
 }
 
 
@@ -1062,12 +1050,12 @@ div.webix_item_tab.webix_selected{
 }
 
 // segmented button
-.webix_all_segments{
-	.webix_segment_1, .webix_segment_N{
-		margin-left: 1px;
-		border-left: none;
-	}
+
+.webix_segment_1, .webix_segment_N{
+	margin-left: 1px;
+	border-left: none;
 }
+
 .segmentActive(){
 	border-color: @selectColor;
 }
@@ -1084,7 +1072,6 @@ div.webix_item_tab.webix_selected{
 		background-color: @backColor;
 		border: 1px solid @inputBorderColor;
 		top:(@inputHeight - 18)/2;
-		width:11px;
 	}
 }
 .sliderStyle(){

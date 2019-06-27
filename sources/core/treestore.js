@@ -265,21 +265,21 @@ const TreeStore = {
 	}, 
 	_sync_to_order:function(master){
 		this.order = toArray();
-		this._sync_each_child(0, master);
+
+		// send current order to prevent simultaneous use in synс mode
+		this._sync_each_child(this.order, 0, master);
 	},
-	_sync_each_child:function(start, master){
+	_sync_each_child:function(order, start, master){
 		var branch = this.branch[start];
 		for (var i=0; i<branch.length; i++){
 			var id = branch[i];
-			this.order.push(id);
+			order.push(id);
 			var item = this.pull[id];
-			if (item){
-				if (item.open){
-					if (item.$count == -1)
-						master.loadBranch(id);
-					else if (item.$count)
-						this._sync_each_child(id, master);
-				}
+			if (item && item.open){
+				if (item.$count == -1)
+					master.loadBranch(id);
+				else if (item.$count)
+					this._sync_each_child(order, id, master);
 			}
 		}
 	},

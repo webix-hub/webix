@@ -43,6 +43,7 @@
 @propertyItemHeight:28px;
 @menuMargin: 0px;
 @menuHeight: 36px;
+@dataPadding: 12px;
 
 //basic icons
 
@@ -311,7 +312,7 @@
 			color: @disabledFontColor;
 		}
 	}
-	.webix_layout_toolbar.webix_toolbar .webix_disabled_view.webix_control{
+	.webix_toolbar .webix_disabled_view.webix_control{
 		.webix_icon, .webix_disabled_box .webix_img_btn_text, .webix_icon_btn{
 			color: @disabledFontColor;
 		}
@@ -547,7 +548,6 @@
 
 //data
 @dataHeaderBorderColor: @borderColor;
-@dataPadding: 12px;
 @dataHeaderBgColor: @accentBg;
 @selectBorderColor: @dataBorderColor;
 @selectFontColor: @fontColor;
@@ -862,6 +862,9 @@
 			color: #fff;
 			text-align: left;
 		}
+		&.webix_selected{
+			box-shadow:none;
+		}
 	}
 	.webix_list_item:hover, .webix_list_item:active, .webix_list_item:focus{
 		.darkHoverRule(@mainColor);
@@ -1074,13 +1077,8 @@
 	padding-top:5px;
 }
 
-.buttonBorderStyle(){
-}
 .buttonStyle{
 	.buttonFont;
-	color: @buttonFontColor;
-	padding: auto 6px;
-	.buttonBorderStyle;
 	outline: none;
 }
 
@@ -1299,16 +1297,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 @formButtonColor: @baseColor;
 @formButtonFontColor: @backColor;
 
-.webix_uploader button{
-	.buttonStyle;
-	.buttonBackground(@formButtonColor, @formButtonFontColor);
-}
-
-.webix_uploader{
-	.webix_img_btn .webix_icon{
-		color:@backColor;
-	}
-}
 .webix_remove_upload .cancel_icon{
 	background-image: none;
 	font-family: @iconFamily;
@@ -1411,7 +1399,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		background-color: @backColor;
 		border: 1px solid @inputBorderColor;
 		top:(@inputHeight - 18)/2;
-		width:11px;
 	}
 }
 .sliderStyle(){
@@ -1564,6 +1551,9 @@ div.webix_inp_static,.webix_el_textarea textarea {
 }
 .webix_cal_month_name{
 	.fontStyle(@fontSize, 500, @altFontColor);
+}
+.webix_cal_month_name.webix_readonly:hover, .webix_cal_month_name.webix_readonly:focus{
+	color: @altFontColor;
 }
 .webix_cal_icons, .webix_cal_time{
 	padding: 4px;
@@ -2037,6 +2027,15 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	}
 }
 // input labels
+
+.webixlabel{
+	font-weight: @boldStyle;
+}
+
+.webixtoolbarlabel{
+	letter-spacing:0;
+}
+
 .webix_inp_label, .webix_inp_top_label, legend.webix_forminput_label, .webix_el_label .webix_el_box{
 	.fontStyle(@fontSize, 500, @altFontColor);
 }
@@ -2141,6 +2140,9 @@ div.webix_inp_static,.webix_el_textarea textarea {
     .webix_icon_btn {
     	font-size: 20px;
     	vertical-align: middle;
+	}
+	.webix_img_btn:focus, .webix_img_btn:hover{
+		background-color:darken(@pdfBG, 5%);
 	}
 }
 

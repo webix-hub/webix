@@ -223,10 +223,13 @@
 		color: @mainColor;
 	}
 }
-.webix_cal_month_name.webix_readonly:hover{
+
+.webix_cal_month_name.webix_readonly{
+	cursor: default;
+}
+.webix_cal_month_name.webix_readonly:hover, .webix_cal_month_name.webix_readonly:focus{
 	text-decoration: none;
-	color: @fontColor;
-	cursor:default;
+	color: inherit;
 }
 // time view
 .webix_time_header{

@@ -152,8 +152,15 @@ const UIManager = {
 			return false;
 		return this._focus(e, true);
 	},
+	_top_modal: function(view){
+		if(!document.querySelector(".webix_modal"))
+			return true;
+
+		const win =  view.queryView(a => a.config.modal, "parent");
+		return (win && win.$view.style.zIndex >= state._modality);
+	},
 	canFocus:function(view){
-		return view.isVisible() && view.isEnabled() && !view.queryView({disabled:true}, "parent");
+		return view.isVisible() && view.isEnabled() && !view.config.disabled && this._top_modal(view) && !view.queryView({disabled:true}, "parent");
 	},
 
 	_moveChildFocus: function(check_view){
@@ -216,26 +223,29 @@ const UIManager = {
 	},
 
 	// dir - getNext or getPrev
-	_focus_logic: function(dir) {
-		if (!this.getFocus()) return null;
+	_focus_logic: function(dir, focus) {
+		var next = focus||this.getFocus();
+		if(next){
+			dir = dir || "getNext";
+			var start = next;
+			var marker = uid();
 
-		dir = dir || "getNext";
-		var next = this.getFocus();
-		var start = next;
-		var marker = uid();
+			while (true) { // eslint-disable-line
+				next = this[dir](next);
+				// view with focus ability
+				if (next && this.canFocus(next))
+					return this.setFocus(next);
 
-		while (true) { // eslint-disable-line
-			next = this[dir](next);
-			// view with focus ability
-			if (next && this.canFocus(next))
-				return this.setFocus(next);
+				// elements with focus ability not found
+				if (next === start || next.$fmarker == marker){
+					if(focus)
+						document.activeElement.blur();
+					return null;
+				}
 
-			// elements with focus ability not found
-			if (next === start || next.$fmarker == marker)
-				return null;
-			
-			//prevents infinity loop
-			next.$fmarker = marker;
+				//prevents infinity loop
+				next.$fmarker = marker;
+			}
 		}
 	},
 	_tab_logic:function(view, e){
@@ -253,8 +263,11 @@ const UIManager = {
 			}
 		} else
 			delay(function(){
-				UIManager.setFocus($$(document.activeElement), true, true);
-			},1);
+				view = $$(document.activeElement);
+				if(view && !UIManager.canFocus(view))
+					return UIManager._focus_logic(mode ? "getNext" : "getPrev", view);
+				UIManager.setFocus(view, true, true);
+			});
 	},
 	getTop: function(id) {
 		var next, view = $$(id);
@@ -267,7 +280,10 @@ const UIManager = {
 	getNext: function(view, _inner_call) {
 		var cells = view.getChildViews();
 		//tab to first children
-		if (cells.length && !_inner_call) return cells[0];
+		if (cells.length && !_inner_call)
+			for (var i = 0; i < cells.length; i++)
+				if(this.canFocus(cells[i]))
+					return cells[i];
 
 		//unique case - single view without child and parent
 		var parent = view.getParentView();
@@ -293,14 +309,17 @@ const UIManager = {
 	getPrev: function(view, _inner_call) {
 		var cells = view.getChildViews();
 		//last child of last child
-		if (cells.length && _inner_call) 
-			return this.getPrev(cells[cells.length - 1], true);
-		if (_inner_call) return view;
+		if (cells.length && _inner_call)
+			for (var i = cells.length - 1; i >= 0; i--)
+				if(this.canFocus(cells[i]))
+					return this.getPrev(cells[i], true);
+
+		if (_inner_call && this.canFocus(view)) return view;
 
 		//fallback from top to bottom
 		var parent = view.getParentView();
-		if (!parent) return this.getPrev(view, true);
-
+		if (!parent)
+			return this.canFocus(view) ? this.getPrev(view, true) : view;
 
 		var p_cells = parent.getChildViews();
 		if (p_cells) {
@@ -312,7 +331,7 @@ const UIManager = {
 			}
 		}
 
-		return parent;
+		return this.getPrev(parent, true);
 	},
 	addHotKey: function(keys, handler, view) {
 		assert(handler, "Hot key handler is not defined");

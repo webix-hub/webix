@@ -331,9 +331,11 @@ DataStore.prototype={
 					this.pull[key] = copy(data.pull[key]);
 					if (old && old.open) this.pull[key].open = true;
 				}
+			} else {
+				this.pull = {};
+				for (let key in data.pull)
+					this.pull[key] = data.pull[key];
 			}
-			else
-				this.pull = data.pull;
 
 			if (data.branch && this.branch){
 				this.branch = copy(data.branch);
@@ -391,7 +393,7 @@ DataStore.prototype={
 			filter = null;
 		}
 		
-		if (source.name != "DataStore"){
+		if (source.name != "DataStore" && source.name != "TreeStore"){
 			if (source.data && (source.data.name === "DataStore" || source.data.name === "TreeStore"))
 				source = source.data;
 			else {
@@ -450,8 +452,8 @@ DataStore.prototype={
 		if (this._sync_source){
 			var source = this._sync_source;
 
-			if (source.name != "DataStore" &&
-					(!source.data || source.data.name != "DataStore")){
+			if ((source.name != "DataStore" && source.name != "TreeStore") &&
+					(!source.data || source.data.name != "DataStore" || source.data.name != "TreeStore")){
 				//data sync with external component
 				callEvent("onUnSyncUnknown", [this, source]);
 			} else {
@@ -610,7 +612,10 @@ DataStore.prototype={
 		if (typeof by == "function")
 			sort = {as:by, dir:dir};
 		else if (typeof by == "string")
-			sort = {by:by.replace(/#/g,""), dir:dir, as:as};
+			sort = {by:by, dir:dir, as:as};
+
+		if(typeof sort.by == "string")
+			sort.by = sort.by.replace(/#/g,"");
 
 		
 		var parameters = [sort.by, sort.dir, sort.as, sort];

@@ -52,16 +52,24 @@ const ResizeArea = {
 	_wrMove:function(e){
 		if (this._wsReady !== false){
 			var elPos = getPos(e);
-			var progress = {x:elPos.x - this._wsReady.x+10, y: elPos.y - this._wsReady.y+10};
+			var progress = {x:elPos.x - this._wsReady.x, y: elPos.y - this._wsReady.y};
 
 			if (this.$resizeMove)
 				this.$resizeMove(progress);
 			else {
-				var width = Math.abs(this._wsReady.x - elPos.x), 
-					height = Math.abs(this._wsReady.y - elPos.y);
-				if (width < (this.config.minWidth||100) || height < (this.config.minHeight||100)
-					|| width > this._settings.maxWidth || height > this._settings.maxHeight
-				) return;
+				var config = this.config;
+				var minWidth = config.minWidth||100;
+				var minHeight = config.minHeight||100;
+
+				if (progress.x < minWidth)
+					progress.x = minWidth;
+				else if(progress.x > config.maxWidth)
+					progress.x = config.maxWidth;
+
+				if (progress.y < minHeight)
+					progress.y = minHeight;
+				else if(progress.y > config.maxHeight)
+					progress.y = config.maxHeight;
 			}
 
 			this._wsProgress = progress;

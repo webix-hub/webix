@@ -345,6 +345,8 @@ const Pie = {
 		var config = this._settings;
 		var coord = this._getPieParameters(point0,point1);
 		var pieRadius = (config.radius?config.radius:coord.radius);
+		if (pieRadius <= 0)
+			return;
 		var innerRadius = ((config.innerRadius&&(config.innerRadius<pieRadius))?config.innerRadius:pieRadius/3);
 		var x0 = (config.x?config.x:coord.x);
 		var y0 = (config.y?config.y:coord.y);

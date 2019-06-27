@@ -94,7 +94,7 @@ function info(text){
 	message.innerHTML = "<div>"+text.text+"</div>";
 	message.className = "webix_message webix_" + text.type;
 	message.onclick = function(){
-		t.hide(text.id);
+		if (text) t.hide(text.id);
 		text = null;
 	};
 

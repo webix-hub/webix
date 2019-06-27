@@ -40,6 +40,11 @@ const wDate = {
 
 		if(env.strict){
 			return function(date){
+				if (!date)
+					return "";
+				if (!date.getMonth)
+					date = i18n.parseFormatDate(date);
+
 				var str = "";
 				var lastPos = 0;
 				format.replace(/%[a-zA-Z]/g,function(s,pos){

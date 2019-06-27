@@ -1,6 +1,6 @@
 import {remove} from "../webix/html";
 import {protoUI, $$} from "../ui/core";
-import {delay, extend, isUndefined} from "../webix/helpers";
+import {clone, delay, extend, isUndefined} from "../webix/helpers";
 import {each} from "../ui/helpers";
 import {debug_size_box_start, debug_size_box_end} from "../webix/debug";
 import {assert} from "../webix/debug";
@@ -85,6 +85,16 @@ const api = {
 
 		return id;
 	},
+	_replace:function(view){
+		if(!view._settings.borderless){
+			const settings = clone(this._settings._inner);
+			view._settings._inner = settings;
+			let style = view._viewobj.style;
+			style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = "1px";
+			this._fix_container_borders(style, settings);
+		}
+		baselayout.api._replace.apply(this, arguments);
+	},
 	_beforeRemoveView:function(index){
 		//removing current view
 		if (index == this._active_cell){
@@ -118,17 +128,9 @@ const api = {
 			
 		for (let i=0; i<collection.length; i++){
 			var cell = this._cells[i];
-			if (cell._cells && !cell._render_borders) continue; 
-			
-			var _inner = cell._settings._inner;
-			if (_inner.top) 
-				cell._viewobj.style.borderTopWidth="0px";
-			if (_inner.left) 
-				cell._viewobj.style.borderLeftWidth="0px";
-			if (_inner.right) 
-				cell._viewobj.style.borderRightWidth="0px";
-			if (_inner.bottom) 
-				cell._viewobj.style.borderBottomWidth="0px";
+			if (cell._cells && !cell._render_borders) continue;
+
+			this._fix_container_borders(cell._viewobj.style, cell._settings._inner);
 
 			cell._viewobj.setAttribute("role", "tabpanel");
 		}
@@ -277,6 +279,10 @@ const api = {
 		}
 		return null;
 
+	},
+	_insertBeforeView:function(view, before){
+		if (this._settings.keepViews || (!before || before == this._cells[this._active_cell]))
+			baselayout.api._insertBeforeView.call(this, view, before);
 	}
 };
 

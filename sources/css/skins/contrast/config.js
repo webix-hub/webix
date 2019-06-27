@@ -41,6 +41,8 @@ const skin = {
 
 	popupPadding: 8,
 
+	dataPadding: 10,
+
 	calendarHeight: 70,
 	padding:0,
 	accordionType: "accordion",

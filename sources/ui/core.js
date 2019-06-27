@@ -331,7 +331,7 @@ attachEvent("onClick", function(e){
 		element.getNode(e);
 		//reaction on custom css elements in buttons
 		var trg=e.target||e.srcElement;
-		if (trg.className == "webix_disabled")
+		if (element.config.disabled)
 			return;
 
 		var css = "";

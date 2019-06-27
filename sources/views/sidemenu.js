@@ -142,12 +142,13 @@ const api = {
 			this.setPosition(state.left, state.top);
 		}
 	},
+	_state:{},
 	_isAnimationSupported: function(){
 		return animate.isSupported() && this._settings.animate && !(env.isIE && navigator.appVersion.indexOf("MSIE 9")!=-1);
 	},
 	hidden_setter:function(value){
 		if(value)
-			this.hide(true);
+			this.hide();
 		else
 			this.show();
 		return !!value;
@@ -209,39 +210,20 @@ const api = {
 			}
 		}
 	},
-	hide:function(force){
+	_hiding_process:function(){
+		const maxWidth = (window.innerWidth||document.documentElement.offsetWidth);
+		const maxHeight = (window.innerHeight||document.documentElement.offsetHeight);
 
-		if (this.$destructed) return;
-
-		if (this._settings.modal)
-			this._modal_set(false);
-
-		var maxWidth = (window.innerWidth||document.documentElement.offsetWidth);
-		var maxHeight = (window.innerHeight||document.documentElement.offsetHeight);
-
-		if (!force && this._isAnimationSupported() && maxWidth == this._state.maxWidth && maxHeight == this._state.maxHeight){
+		if (this._isAnimationSupported() && maxWidth == this._state.maxWidth && maxHeight == this._state.maxHeight){
 			// call 'hide' animation handler
 			this._animate[this._settings.position].hide.call(this, this._state);
 			// hide popup
-			var tid = event(this.$view, env.transitionEnd, bind(function(){
+			const tid = event(this.$view, env.transitionEnd, bind(function(){
 				this._hide_callback();
 				eventRemove(tid);
 			},this));
-		}
-		else{
+		} else
 			this._hide_callback();
-		}
-
-		if (this._settings.autofocus){
-			var el = document.activeElement;
-			if (el && this._viewobj && this._viewobj.contains(el)){
-				UIManager.setFocus(this._prev_focus);
-				this._prev_focus = null;
-			}
-		}
-
-		this._hide_sub_popups();
-
 	}
 
 };
