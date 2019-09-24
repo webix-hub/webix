@@ -28,7 +28,7 @@ const DataMove ={
 	_next_move_index:function(nid, next, source){
 		if (next && nid){
 			var new_index = this.getIndexById(nid);
-			return new_index+(source == this && source.getIndexById(next)<new_index?0:1);
+			return new_index + ((source == this && source.getIndexById(next) < new_index) ? 0 : 1);
 		}
 	},
 	//move item to the new position

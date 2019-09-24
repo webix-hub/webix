@@ -1,7 +1,6 @@
 import {_getClassName, locate} from "../webix/html";
-import state from "./state";
 import UIManager from "../core/uimanager";
-import {extend, isUndefined, bind, toFunctor} from "../webix/helpers";
+import {extend, delay, toFunctor} from "../webix/helpers";
 import env from "../webix/env";
 import {_event} from "../webix/htmlevents";
 
@@ -94,31 +93,26 @@ const MouseEvents={
 		if (this.$destructed) return;
 		if (document.createEventObject)	//make a copy of event, will be used in timed call
 			e = document.createEventObject(event);
-		else if (!state.$testmode && !isUndefined(e.movementY) && !e.movementY && !e.movementX)
-			return; //logitech mouse driver can send false signals in Chrome
-			
-			
-			
-			
+
 		if (this._mouse_move_timer)	//clear old event timer
 			window.clearTimeout(this._mouse_move_timer);
-				
+
 		//this event just inform about moving operation, we don't care about details
 		this.callEvent("onMouseMoving",[e]);
 		//set new event timer
-		this._mouse_move_timer = window.setTimeout(bind(function(){
+		this._mouse_move_timer = delay(function(e){
 			//called only when we have at least 100ms after previous event
 			if (e.type == "mousemove")
 				this._onMouseMove(e);
 			else
 				this._onMouseOut(e);
-		},this),(this._settings.mouseEventDelay||500));
+		}, this, [e], (this._settings.mouseEventDelay||500));
 	},
 
 	//inner mousemove object handler
 	_onMouseMove: function(e) {
 		if (!this._mouseEvent(e,this.on_mouse_move,"MouseMove"))
-			this.callEvent("onMouseOut",[e||event]);
+			this._onMouseOut(e);
 	},
 	//inner mouseout object handler
 	_onMouseOut: function(e) {
@@ -151,6 +145,12 @@ const MouseEvents={
 			if (!found && trg.getAttribute){													//if element with ID mark is not detected yet
 				id = trg.getAttribute(this._id);							//check id of current one
 				if (id){
+					// prevent clicking on disabled items
+					if (trg.getAttribute("webix_disabled")){
+						this._item_clicked = null;
+						return;
+					}
+
 					this._item_clicked = id;
 					if (this.callEvent){
 						//it will be triggered only for first detected ID, in case of nested elements

@@ -83,16 +83,19 @@ const api = {
 	_get_extendable_cell:function(obj){
 		return obj;
 	},
+	_get_details:function(){
+		return null;
+	},
 	_preselectMasterOption: function(data){
-		var master, node,
-			text = data.id ? this.getItemText(data.id) : (data.text||data.value);
+		let node;
 
-		if (this._settings.master){
-			master = $$(this._settings.master);
+		if (data && this._settings.master){
+			const master = $$(this._settings.master);
+			let text = data.id ? this.getItemText(data.id) : (data.text||data.value);
+
 			node = master.getInputNode();
-			if(node && master.$setValueHere){
-				master.$setValueHere(text);
-			}
+			if (node && master.$setValueHere)
+				master.$setValueHere(text, data, this._get_details());
 			else if (node){
 				if(master.options_setter)
 					text = this.getItemText(data.id);
@@ -118,13 +121,15 @@ const api = {
 				master.refresh();
 			else if (master.options_setter)
 				master.setValue(data.$empty?"":data.id);
-			else if(master.setValueHere)
-				master.setValueHere(text);
+			else if (master.setValueHere)
+				master.setValueHere(text, data, this._get_details());
 			else
 				master.setValue(text);
-		} else if (this._last_input_target){
-			this._last_input_target.value = text;
 		}
+		else if (this._last_input_target && this._set_input_value)
+			this._set_input_value(text);
+		else if (this._last_input_target)
+			this._last_input_target.value = text;
 
 		if (!refresh){
 			this.hide();
@@ -181,7 +186,10 @@ const api = {
 		}
 
 		//complex id in datatable
-		if (id && typeof id == "object") id = id+"";
+		if (id){
+			if (typeof id == "object") id = id+"";
+			if (list.getItem(id).$empty) return null;
+		}
 		return id;
 	},
 	getList:function(){
@@ -237,7 +245,7 @@ const api = {
 		_event(node,"keydown",function(e){
 			if ((node != document.body || this.isVisible()) && (input.config ? (!input.config.readonly) : (!node.getAttribute("readonly"))))
 				this._suggestions(e);
-		},{bind:this});
+		}, {bind:this});
 		
 		if(input._getInputDiv)
 			node = input._getInputDiv();
@@ -262,26 +270,21 @@ const api = {
 		this._last_input_target = trg;
 		this._settings.master = trg.webix_master_id;
 
-		window.clearTimeout(this._key_timer);
-
 		var code = e.keyCode;
 		//shift and ctrl
 		if (code == 16 || code == 17) return;
 
 		// tab - hide popup and do nothing
 		if (code == 9)
-			return this._tab_key(this,list);
+			return this._tab_key(e,list);
 
 		// escape - hide popup
 		if (code == 27)
-			return this._escape_key(this,list);
+			return this._escape_key(e,list);
 
 		// enter
-		if (code == 13){
-			if (this.isVisible())
-				preventEvent(e);
-			return this.$enterKey(this,list);
-		}
+		if (code == 13)
+			return this.$enterKey(e,list);
 
 		// up/down/right/left are used for navigation
 		if (this._navigate(e) && this.isVisible()){
@@ -289,17 +292,22 @@ const api = {
 			return false;
 		}
 
-		if (isUndefined(trg.value)) return;
+		if (isUndefined(trg.value) && !trg.isContentEditable) return;
 
-		clearTimeout(this._last_delay);
+		if (this._last_delay)
+			this._last_delay = clearTimeout(this._last_delay);
+
 		this._last_delay = delay(function(){
 			//focus moved to the different control, suggest is not necessary
 			if (!this._non_ui_mode &&
 					UIManager.getFocus() != $$(this._settings.master)) return;
 
 			this._resolve_popup = true;
-			//for multicombo
-			var val = trg.value;
+			//spreadsheet use contentEditable div for cell highlighting
+			var val = trg.isContentEditable ? trg.innerText : trg.value;
+
+			if (this._before_filtering)
+				this._before_filtering();
 
 			// used to prevent showing popup when it was initialized
 			if (list.config.dataFeed)
@@ -309,7 +317,7 @@ const api = {
 					return this._settings.filter.call(this,item,val);
 				}, this));
 			}
-		},this, [], this._settings.keyPressTimeout);
+		}, this, [], this._settings.keyPressTimeout);
 	},
 	_suggest_after_filter: function() {
 		if (!this._resolve_popup) return true;
@@ -332,13 +340,13 @@ const api = {
 	},
 
 	show:function(node){
-		if (!this.isVisible()){
+		if (!this.isVisible() || this._last_input_target != node){
 			var list = this.getList();
 			if (list.filter && !this._dont_unfilter){
 				list.filter("");
 			}
 
-			if(this.$customWidth){
+			if (this.$customWidth){
 				this.$customWidth(node);
 			}
 			else if (node.tagName && this._settings.fitMaster){
@@ -351,7 +359,7 @@ const api = {
 			this.adjust();
 
 			// needed to return focus
-			if(node.tagName == "INPUT")
+			if (node.tagName == "INPUT" || node.tagName == "TEXTAREA")
 				this._last_input_target = node;
 		}
 		popup.api.show.apply(this, arguments);
@@ -377,35 +385,43 @@ const api = {
 			list.setValue(value);
 		}
 	},
-	$enterKey: function(popup,list) {
-		var value;
+	$enterKey:function(e, list){
+		const visible = this.isVisible();
+		let value;
+		let master;
 
-		if (popup.isVisible()) {
+		if (this._settings.master)
+			master = $$(this._settings.master);
+
+		if (master && master._settings.editable && master._applyChanges)
+			master._applyChanges();
+		else if (visible){
 			if (list.count && list.count()){
 				value = list.getSelectedId(false, true);
-				if(list.count()==1 && list.getFirstId()!=value)
+				if (list.count()==1 && list.getFirstId()!=value)
 					value = list.getFirstId();
-				if(value)
+				if (value)
 					value = list.getItem(value);
 			}
-			else if(list.getSelectedDate && list.getSelectedDate())
+			else if (list.getSelectedDate && list.getSelectedDate())
 				value = { value:list.getSelectedDate() };
-			else if(list.getValue && list.getValue())
-				value = {value: list.getValue() };
+			else if (list.getValue && list.getValue())
+				value = { value:list.getValue() };
 			
 			if (value)
 				this.setMasterValue(value);
-			
-			popup.hide();
 		}
+
+		if (visible)
+			this.hide();
 		else if (this._show_on_key_press)
-			popup.show(this._last_input_target);
+			this.show(this._last_input_target);
 	},
-	_escape_key: function(popup) {
-		return popup.hide();
+	_escape_key:function(){
+		return this.hide();
 	},
-	_tab_key: function(popup) {
-		return popup.hide();
+	_tab_key:function(){
+		return this.hide();
 	},
 	/*! suggestions navigation: up/down buttons move selection
 	 *	@param e

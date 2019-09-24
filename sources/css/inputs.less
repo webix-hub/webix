@@ -44,6 +44,10 @@
 	color: @fontColor;
 	text-transform: none;
 	font-size: @formFontSize;
+
+	text-overflow:ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
 }
 
 /*.webix_toolbar .webix_inp_label{
@@ -56,9 +60,6 @@
 	padding-top: 1px;
 	padding-left: 0;
 	padding-right:@skin_content_padding * 0.75;
-	text-overflow:ellipsis;
-	overflow: hidden;
-	white-space: nowrap;
 }
 .webix_inp_top_label{
 	float:none;
@@ -75,7 +76,7 @@
 	//padding-top:(@inputHeight - 16 )/2;
 }
 .webix_el_checkbox .webix_label_right{
-	display: inline-block;
+	display: block;
 	padding-top:2px;
 }
 
@@ -203,6 +204,15 @@ body:not(:-moz-handler-blocked) .webix_el_select select{
 	.selectLine;
 	.segmentActive;
 }
+.webix_segment_0.webix_disabled, .webix_segment_1.webix_disabled, .webix_segment_N.webix_disabled {
+	color: @disabledFontColor;
+	background-color: @disabledColor;
+	border-color: transparent;
+	cursor: not-allowed;
+	&:hover, &:focus, &:active, &.webix_selected, &.webix_selected:hover{
+		background-color: @disabledColor;
+	}
+}
 
 
 
@@ -291,7 +301,17 @@ body:not(:-moz-handler-blocked) .webix_el_select select{
 }
 
 
-
+.webix_radio_option.webix_disabled{
+	.webix_label_right, .webix_inp_radio_border{
+		color: @disabledFontColor;
+		cursor: not-allowed;
+		#box > .noselect;
+	}
+}
+.webix_el_radio .webix_radio_option.webix_disabled .webix_custom_radio{
+	color: @disabledFontColor;
+	cursor: not-allowed;
+}
 
 .webix_radio_option{
 	display: table;

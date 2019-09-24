@@ -2,7 +2,7 @@
 	position:absolute;
 	z-index:2;
 	overflow:visible;
-	background:white;
+	background:@backColor;
 }
 .webix_dt_editor input, .webix_dt_editor select{
 	width:100%; 
@@ -16,8 +16,9 @@
 	.dataFont;
 }
 
+@dtCheckboxMarginTop: (@rowHeight - 14)/2 + 1;
 .webix_dt_editor input[type="checkbox"]{
-	margin:6px 8px 4px 14px;
+	margin:@dtCheckboxMarginTop (@dataPadding + 1) 0px;
 	height:auto;
 	width:auto;
 }

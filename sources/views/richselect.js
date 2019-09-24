@@ -58,6 +58,8 @@ const api = {
 			this.$setValue(value);
 	},
 	$skin:function(){
+		text.api.$skin.call(this);
+
 		this.defaults.inputPadding = $active.inputPadding;
 	},
 	$render:function(obj){

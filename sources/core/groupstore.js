@@ -1,30 +1,62 @@
-import {toArray, uid, copy} from "../webix/helpers";
+import {_to_array, uid} from "../webix/helpers";
 import {assert} from "../webix/debug";
 import GroupMethods from "../core/groupmethods";
 
 
 const GroupStore = {
 	$init:function(){
-		this.attachEvent("onClearAll", this._reset_groups);
-		this.attachEvent("onSyncApply", this._reset_groups);
+		this.attachEvent("onClearAll", () => this._not_grouped_order = null);
+		this.attachEvent("onSyncApply", () => this._not_grouped_order = null);
 	},
-	_reset_groups:function(){
-		if (this.getBranchIndex)
-			this._not_grouped_branches = this._created_groupes = null;
-		else
-			this._not_grouped_order = this._not_grouped_pull = null;
-	},
-	ungroup:function(skipRender){
-		if (this.getBranchIndex)
-			return this._ungroup_tree.apply(this, arguments);
+	ungroup:function(target){
+		if (this.getBranchIndex){
+			if (!this._ungroupLevel(target)) return;
+		} else {
+			if (!this._not_grouped_order) return;
 
-		if (this._not_grouped_order){
 			this.order = this._not_grouped_order;
 			this.pull = this._not_grouped_pull;
-			this._not_grouped_pull = this._not_grouped_order = null;
 		}
-		if(!skipRender)
-			this.callEvent("onStoreUpdated",[]);
+		
+		this.callEvent("onStoreUpdated",[]);
+	},
+	_ungroupLevel(target){
+		const parent = target || 0;
+		const level = parent == "0" ? 1 : this.getItem(parent).$level + 1;
+		let changed = false;
+		const top = this.branch[parent];
+		let order = [];
+
+		for (var i=0; i<top.length; i++){
+			const id = top[i];
+			if (this.pull[id].$group){
+				changed = true;
+				var group = this.branch[id];
+
+				if (group)
+					this.branch[id] = group.filter(a => {
+						if (!this.pull[a].$footer)
+							return a;
+						this._unregisterItem(a);
+					});
+				order = order.concat(this.branch[id] || []);
+				this._unregisterItem(id);
+			} else
+				order.push(id);
+		}
+
+		if (!changed) return false;
+		this.branch[parent] = order;
+		this._fix_group_levels(this.branch[parent], parent, level);
+
+		if (typeof target === "undefined")
+			this._ungroupLevel();
+
+		return true;
+	},
+	_unregisterItem(id){
+		delete this.pull[id];
+		delete this.branch[id];
 	},
 	_group_processing:function(scheme){
 		this.blockEvent();
@@ -58,22 +90,30 @@ const GroupStore = {
 
 		if (this.getBranchIndex)
 			return this._group_tree(config, target);
-			
+		
+		if (!this._not_grouped_order){
+			this._not_grouped_order = this.order;
+			this._not_grouped_pull = this.pull;
+		}
+
 		const groups = {};
 		const labels = [];
 		const missed = [];
+		const misGroup = config.missing;
 		this.each(function(data){
 			let current = config.by(data);
-			if (!current && current !== 0)
-				if (config.missing === false) return;
-				else if (config.missing === true){
+			if (!current && current !== 0){
+				if (misGroup === false) return;
+				if (misGroup === true){
 					missed.push(data);
 					return;
-				} else current = config.missing;
+				}
+				current = misGroup;
+			}
 
 			if (!groups[current]){
 				labels.push({ id:current, value:current, $group:true, $row:config.row });
-				groups[current] = toArray();
+				groups[current] = _to_array();
 			}
 			groups[current].push(data);
 		});
@@ -86,12 +126,7 @@ const GroupStore = {
 				this.callEvent("onGroupCreated", [group.id, group.value, groups[labels[i].id]]);
 		}
 
-		if (!this._not_grouped_order){
-			this._not_grouped_order = this.order;
-			this._not_grouped_pull = this.pull;
-		}
-		
-		this.order = toArray();
+		this.order = _to_array();
 		this.pull = {};
 		this._fill_pull(labels);
 		this._fill_pull(missed);
@@ -129,11 +164,6 @@ const GroupStore = {
 			level = this.getItem(parent).$level;
 		else parent = 0;
 
-		if (!this._not_grouped_branches){
-			this._not_grouped_branches = copy(this.branch);
-			this._created_groupes = [];
-		}
-		
 		//run
 		const topbranch = [];
 		const labels = [];
@@ -167,7 +197,6 @@ const GroupStore = {
 			ancestor.push(data.id);
 			ancestor._formath.push(data);
 		}
-		this._created_groupes = this._created_groupes.concat(topbranch);
 
 		this.branch[parent] = topbranch.concat(missed);
 		for (let i=0; i<labels.length; i++){
@@ -191,18 +220,6 @@ const GroupStore = {
 
 		this._fix_group_levels(this.branch[parent], parent, level+1);
 		this.callEvent("onStoreUpdated",[]);
-	},
-	_ungroup_tree:function(skipRender){
-		if (this._not_grouped_branches){
-			this.branch = this._not_grouped_branches;
-			while (this._created_groupes.length)
-				delete this.pull[ this._created_groupes.pop() ];
-
-			this._not_grouped_branches = this._created_groupes = null;
-			this._fix_group_levels(this.branch[0], 0, 1);
-		}
-		if (!skipRender)
-			this.callEvent("onStoreUpdated",[]);
 	},
 	_fix_group_levels:function(branch, parent, level){
 		if (parent)

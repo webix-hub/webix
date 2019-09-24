@@ -3,9 +3,9 @@ import layout from "../views/layout";
 import list from "../views/list";
 
 import {ui, $$} from "../ui/core";
-import {extend, bind, delay, toArray, copy} from "../webix/helpers";
+import {extend, delay, _to_array, copy} from "../webix/helpers";
 import env from "../webix/env";
-import {setSelectionRange, getSelectionRange, preventEvent} from "../webix/html";
+import {setSelectionRange, preventEvent} from "../webix/html";
 import {attachEvent, detachEvent} from "../webix/customevents";
 import {confirm} from "../webix/message";
 import template from "../webix/template";
@@ -30,17 +30,18 @@ const api = {
 	},
 	$init: function(config){
 		this.$view.className +=" webix_comments";
+		this._destroy_with_me = [];
 		
 		config.rows = [this._configList(config)];
-		if(!config.readonly)
-			config.rows.push(this._configForm());
 		if(!config.moreButton)
 			config.moreButton = template(i18n.comments.moreComments);
-
-		this._destroy_with_me = [];
+		
+		if(!config.readonly){
+			config.rows.push(this._configForm());
+			this._initMenu();
+		}
 
 		this._initUsers(config.users);
-		this._initMenu();
 		this.$ready.push(this._afterInit);
 	},
 	$exportView:function(){
@@ -68,22 +69,28 @@ const api = {
 		};
 
 		//tune input zone
-		this._clickHandler = attachEvent("onClick", (e) => {
-			var view = $$(e);
-			if(view == this._input){
-				this._changeTextarea(true);
-				delay(() => { this._input.focus(); });
-			}
-			else if(view !==this._sendButton && view !==this._listMenu && (!this._userList || view !== this._userList.getList()) && 
-				(!e || (e.target.className||"").toString().indexOf("webix_comments_menu") ===-1)
-			){
-				this._changeTextarea();
-			}
-		});
+		if(!this._settings.readonly){
+			this._clickHandler = attachEvent("onClick", (e) => {
+				var view = $$(e);
+				if(view == this._input){
+					this._changeTextarea(true);
+					delay(() => { this._input.focus(); });
+				}
+				else if(view !==this._sendButton && view !==this._listMenu && (!this._userList || view !== this._userList.getList()) && 
+					(!e || (e.target.className||"").toString().indexOf("webix_comments_menu") ===-1)
+				){
+					this._changeTextarea();
+				}
+			});
 
-		this.attachEvent("onDestruct", function(){
-			detachEvent(this._clickHandler);
-		});
+			this.attachEvent("onDestruct", function(){
+				detachEvent(this._clickHandler);
+			});
+
+			this._list.attachEvent("onAfterScroll", ()=>{
+				this._listMenu.hide();
+			});
+		}
 	},
 	$onLoad: function(data, driver){
 		this._fillList(data, driver);
@@ -103,10 +110,10 @@ const api = {
 				var order = list.data.order, pos = 1;
 				
 				if(this._settings.mode == "chat")
-					list.data.order = toArray([order[0]].concat(new Array(data.length), order.slice(1)));
+					list.data.order = _to_array([order[0]].concat(new Array(data.length), order.slice(1)));
 				else{
 					var start = list.getIndexById("$more");
-					list.data.order = toArray(order.slice(0, start).concat(new Array(data.length), order.slice(start)));
+					list.data.order = _to_array(order.slice(0, start).concat(new Array(data.length), order.slice(start)));
 					pos = start;
 				}
 
@@ -135,11 +142,15 @@ const api = {
 					data.push(more);
 			}
 			list.parse(data);
-			if(this._settings.mode == "chat")
-				list.showItem(list.getLastId());
+			
+			if(this._settings.mode == "chat"){ //wait until rendered
+				list.waitData.then(() => list.showItem(list.getLastId()));
+			}
 		}
 	},
 	$skin:function(){
+		layout.api.$skin.call(this);
+
 		this._inputHeight = $active.inputHeight+6;
 	},
 	getUsers: function(){
@@ -154,7 +165,7 @@ const api = {
 		this._list.refresh();
 	},
 	edit: function(id){
-		if(this.callEvent("onBeforeEditStart", [id])){
+		if(!this.config.readonly && this.callEvent("onBeforeEditStart", [id])){
 			this._changeTextarea(true);
 			
 			var values = this._list.getItem(id);
@@ -296,8 +307,7 @@ const api = {
 						{
 							view:"button",
 							disabled:true,
-							css: "webix_comments_send",
-							type:"form",
+							css: "webix_comments_send webix_primary",
 							value: locale["send"],
 							autowidth:true,
 							click: () => { this._saveComment(); }
@@ -323,7 +333,7 @@ const api = {
 				return name;
 			},
 			templateMenu: () => {
-				return "<span class='webix_icon wxi-dots "+css+"menu'></span>";
+				return this.config.readonly ? "" : "<span class='webix_icon wxi-dots "+css+"menu'></span>";
 			},
 			templateDate: (obj) => {
 				var format = DateHelper.dateToStr("%d %M, %H:%i");
@@ -344,7 +354,7 @@ const api = {
 			templateMentioned: (obj) => {
 				if (!this._mentioned[obj.id]) return obj.text;
 
-				const field = this._userList._settings.textValue || "value";
+				const field = this._userList ? (this._userList._settings.textValue || "value") : "value";
 				const order = this._mentioned[obj.id];
 
 				for (let i=0; i<order.length; i++){
@@ -444,12 +454,6 @@ const api = {
 						this.load(url, callback, { pos:pos, more:more });
 					}
 				}
-			},
-			on:{
-				onAfterScroll: bind(function(){
-					//menu moves with scroll
-					this._listMenu.hide();
-				}, this)
 			}
 		};
 		if(config.save)
@@ -478,7 +482,9 @@ const api = {
 	},
 	_initMentions:function(value){
 		this._mentioned = {};
-		this._initUserList(value);
+		if(!this.config.readonly){
+			this._initUserList(value);
+		}
 
 		promise.all([this._list.waitData, this._users.waitData]).then(() => {
 			this._list.data.each((obj) => this._findMentioned(obj));
@@ -495,58 +501,20 @@ const api = {
 	_initUserList:function(value){
 		var config = typeof value != "object"? {} : value;
 
-		config = extend({
-			view:"suggest",
-			filter:(item, value) => {
-				value = value.substring(0, this._last_cursor_pos);
-				if (value.indexOf("@") === -1) return false;
-				else {
-					value = value.substring(value.lastIndexOf("@")+1);
-					if (value.length){
-						let type = this._userList.getList().type;
-						let text = type.template(item, type);
-						return text.toString().toLowerCase().indexOf(value.toLowerCase()) !== -1;
-					}
-					return false;
-				}
-			}
-		}, config);
-
 		if (typeof config.body !== "object")
 			config.body = { data:this._users };
 		else
 			config.body.data = this._users;
 
-		this._userList = ui(config);
-		this._userList._show_on_key_press = false;
+		extend(config, { view:"mentionsuggest" }, true);
 
-		this._input.$setValueHere = function(){ };
-		this._input.setValueHere = (v) => {
-			if (v){
-				let value = this._input.getValue();
-				let last = value.substring(this._last_cursor_pos);
-
-				value = value.substring(0, this._last_cursor_pos);
-				value = value.substring(0, value.lastIndexOf("@")+1) + v;
-
-				this._input.setValue(value + last);
-				setSelectionRange(this._input.getInputNode(), value.length);
-				this._last_cursor_pos = value.length;
-			}
-		};
-
-		this._destroy_with_me.push(this._userList);
-		this._input.attachEvent("onAfterRender", ()=>{
-			this._userList.linkInput(this._input);
-			this._userList.getList().data.attachEvent("onBeforeFilter", () => {
-				this._last_cursor_pos = getSelectionRange(this._input.getInputNode()).start;
-			});
-		});
+		const suggest = this._input.define("suggest", config);
+		this._userList = $$(suggest);
 	},
 	_findMentioned:function(obj, announce){
 		const id = obj.id;
 		const indexes = {};
-		const field = this._userList._settings.textValue || "value";
+		const field = this._userList ? (this._userList._settings.textValue || "value") : "value";
 
 		this._users.data.each((user) => {
 			const value = "@" + user[field];

@@ -1,4 +1,4 @@
-import {extend, toFunctor, bind, uid, toArray} from "../webix/helpers.js";
+import {extend, toFunctor, bind, uid, _to_array} from "../webix/helpers.js";
 import {assert, log, debug_mode} from "../webix/debug.js";
 
 //event system
@@ -74,7 +74,7 @@ const EventSystem={
 		id=id||uid(); //ID can be used for detachEvent
 		functor = toFunctor(functor, this.$scope);	//functor can be a name of method
 
-		var event_stack=this._evs_events[type]||toArray();
+		var event_stack=this._evs_events[type]||_to_array();
 		//save new event handler
 		if (arguments[3])
 			event_stack.unshift(functor);
@@ -90,7 +90,7 @@ const EventSystem={
 		if(!this._evs_handlers[id]){
 			var name = (id+"").toLowerCase();
 			if (this._evs_events[name]){
-				this._evs_events[name] = toArray();
+				this._evs_events[name] = _to_array();
 			}
 			return;
 		}

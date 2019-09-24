@@ -133,7 +133,7 @@ function addText(doc, type, text){
 }
 
 function getPDFImage(node){
-	return window.html2canvas(node, {background:"#fff", logging:false}).then(function(canvas){
+	return window.html2canvas(node, {background:"#fff", logging:false, useCORS:true}).then(function(canvas){
 		const image = canvas.toDataURL("image/jpeg");
 		const binary_string =  window.atob(image.split("base64,")[1]);
 		const length = binary_string.length;

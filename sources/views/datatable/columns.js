@@ -1,4 +1,4 @@
-import {toArray, PowerArray} from "../../webix/helpers";
+import {_to_array, _power_array} from "../../webix/helpers";
 import {assert} from "../../webix/debug";
 
 
@@ -9,7 +9,7 @@ const Mixin = {
 	},
 	_clear_hidden_state:function(){
 		this._hidden_column_hash = {};
-		this._hidden_column_order = toArray();
+		this._hidden_column_order = _to_array();
 		this._hidden_split=[0,0];
 	},
 	_hideInitialColumns:function(){
@@ -42,12 +42,12 @@ const Mixin = {
 
 		var start = columns.splice(start_index,1);
 		var pos = index - (index>start_index?1:0);
-		PowerArray.insertAt.call(columns, start[0], pos);
+		_power_array.insertAt.call(columns, start[0], pos);
 
 		var order = this._hidden_column_order;
 		// order exists even if columns are not reordered, so checking for length
 		if (order.length){
-			order = toArray(order);
+			order = _to_array(order);
 
 			var hidden_index = order.find(id);
 			order.removeAt(hidden_index);
@@ -155,7 +155,7 @@ const Mixin = {
 			for (let i=hindex+span-1; i>=hindex; i--){
 				let column = hhash[horder[i]];
 				if(column){ //can be already shown by another action
-					PowerArray.insertAt.call(cols, column, index);
+					_power_array.insertAt.call(cols, column, index);
 					delete column.hidden;
 					delete hhash[column.id];
 					this._columns_pull[column.id] = column;

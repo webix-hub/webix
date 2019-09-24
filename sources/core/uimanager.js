@@ -2,7 +2,7 @@ import ready from "../webix/ready";
 
 import {assert} from "../webix/debug";
 import {event, _event} from "../webix/htmlevents";
-import {bind,delay,uid,PowerArray,isUndefined,isArray} from "../webix/helpers";
+import {bind,delay,uid,_power_array,isUndefined,isArray} from "../webix/helpers";
 import {callEvent} from "../webix/customevents";
 import {locate,preventEvent} from "../webix/html";
 
@@ -130,8 +130,6 @@ const UIManager = {
 		if (view){
 			view = $$(view);
 			if (this.canFocus(view)){
-				//[ACTIVECONTENT] focus operations for active content
-				if (view.getNode) view.getNode(e);
 				this.setFocus(view);
 			}
 		} else if (!dont_clear)
@@ -292,7 +290,7 @@ const UIManager = {
 
 		var p_cells = parent.getChildViews();
 		if (p_cells.length){
-			var index = PowerArray.find.call(p_cells, view)+1;
+			var index = _power_array.find.call(p_cells, view)+1;
 			while (index < p_cells.length) {
 				//next visible child
 				if (this.canFocus(p_cells[index])) 
@@ -323,7 +321,7 @@ const UIManager = {
 
 		var p_cells = parent.getChildViews();
 		if (p_cells) {
-			var index = PowerArray.find.call(p_cells, view)-1;
+			var index = _power_array.find.call(p_cells, view)-1;
 			while (index >= 0) {
 				if (this.canFocus(p_cells[index]))
 					return this.getPrev(p_cells[index], true);

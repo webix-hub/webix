@@ -48,6 +48,11 @@ const api = {
 	getNode:function(){
 		return this._viewobj;
 	},
+	// needed only to maintain the deprecated ActiveContent module
+	// do not use it anywhere else
+	$setNode:function(node){
+		this._viewobj = this._dataobj = this.$view = node;
+	},
 	getParentView:function(){
 		return this._parent_cell||null;	
 	},

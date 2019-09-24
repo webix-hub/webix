@@ -23,7 +23,7 @@ const api = {
 	_button:function(name){
 		return {
 			view: "toggle",
-			type: "iconButton",
+			type: "icon",
 			icon: "wxi-"+name, name: name, id:name,
 			label: i18n.richtext[name],
 			autowidth: true, 

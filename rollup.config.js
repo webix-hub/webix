@@ -47,7 +47,9 @@ This software is allowed to use under GPL or you need to obtain Commercial Licen
 				[
 					"@babel/preset-env",
 					{
-						targets: { "ie": "8" }
+						loose: true,
+						targets: { "ie": "8" },
+						exclude: [ "transform-function-name" ]				
 					}
 				]
 			]

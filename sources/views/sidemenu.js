@@ -28,6 +28,8 @@ const api = {
 		this.$view.className += " webix_sidemenu";
 	},
 	$skin:function(){
+		popup.api.$skin.call(this);
+
 		this.defaults.padding = 0;
 	},
 	position_setter: function(value){

@@ -7,6 +7,8 @@ import button from "./button";
 const api = {
 	name:"icon",
 	$skin:function(){
+		button.api.$skin.call(this);
+
 		this.defaults.height = $active.inputHeight;
 		this.defaults.width = $active.inputHeight;
 	},
@@ -18,7 +20,7 @@ const api = {
                 "<span class='webix_icon "+obj.icon+"'></span></button>";
 
 			return "<div class='webix_el_box' style='width:"+obj.awidth+"px;height:"+obj.aheight+"px;line-height:"+obj.aheight+
-				"px;margin-top:"+top+"px'>"+inner+(obj.badge ? "<span class='webix_badge'>"+obj.badge+"</span>":"")+
+				"px;margin-top:"+top+"px'>"+inner+(obj.badge||obj.badge===0 ? "<span class='webix_badge'>"+obj.badge+"</span>":"")+
 				"</div>";
 		}
 	},

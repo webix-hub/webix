@@ -1,0 +1,46 @@
+.webix_timeline .webix_scroll_cont{
+	padding-top:28px;
+}
+.webix_timeline_item{
+	height:@timelineItemHeight;
+	padding:0 @dataPadding;
+}
+.webix_timeline_value{
+	font-weight: @boldStyle;
+	
+	line-height:18px;
+}
+.webix_timeline_details{
+	color:@inactiveFontColor;
+	padding-top:2px;
+}
+.webix_timeline_date{
+	white-space: nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	line-height:18px;
+}
+.webix_timeline .webix_timeline_node{
+	stroke-width:2px;
+	fill:@backColor;
+}
+
+.webix_timeline_item.webix_timeline_left{
+	.webix_timeline_date{
+		text-align: right;
+		margin-right:14px;
+	}
+	.webix_timeline_details, .webix_timeline_value{
+		margin-left:14px;
+	}
+}
+
+.webix_timeline_item.webix_timeline_right{
+	.webix_timeline_date{
+		margin-left:14px;
+	}
+	.webix_timeline_details, .webix_timeline_value{
+		margin-right:14px;
+		text-align:right;
+	}
+}

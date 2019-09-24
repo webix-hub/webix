@@ -40,7 +40,7 @@ const ContextHelper = {
 		this._area = area;
 	},
 	_show_at_node:function(e){
-		this._area = toNode(e||event);
+		this._area = toNode(e||window.event);
 		return this._show_at(e);
 	},
 	_show_at_ui:function(id, e){

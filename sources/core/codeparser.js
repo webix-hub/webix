@@ -13,7 +13,7 @@ const CodeParser = {
 		for(var prop in base){
 			let value = base[prop];
 			let name = prefix+prop;
-			if(value && typeof value == "object" && !isDate(value) && !isArray(value) && filter(name, value)){
+			if(value && typeof value == "object" && !isDate(value) && !isArray(value) && filter(name)){
 				CodeParser.collapseNames(value, name+".", data, filter);
 			} else {
 				data[name] = value;

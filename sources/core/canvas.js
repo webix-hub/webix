@@ -1,12 +1,6 @@
-import env from "../webix/env";
-
 import {create, remove} from "../webix/html";
 import {isUndefined, toNode} from "../webix/helpers";
 import {proto} from "../ui/core";
-import {assert} from "../webix/debug";
-
-import require from "../load/require";
-
 
 const Canvas = proto({
 	$init:function(container){
@@ -23,16 +17,6 @@ const Canvas = proto({
 		//canvas has the same size as master object
 		this._canvas = create("canvas",{ title:title, width:x, height:y, canvas_id:name, style:(style||"")});
 		this._obj.appendChild(this._canvas);
-		//use excanvas in IE
-		if (!this._canvas.getContext){
-			if (env.isIE){
-				require("legacy/excanvas/excanvas.js", true);	//sync loading
-				/* global G_vmlCanvasManager */
-				G_vmlCanvasManager.init_(document);
-				G_vmlCanvasManager.initElement(this._canvas);
-			} else	//some other not supported browser
-				assert(this._canvas.getContext,"Canvas is not supported in the browser");
-		}
 		return this._canvas;
 	}, 
 	getCanvas:function(context){

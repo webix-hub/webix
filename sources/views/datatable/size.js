@@ -56,7 +56,7 @@ const Mixin = {
 
 		if (width>0){
 			for (let i=0; i<cols.length; i++)
-				if (!fill[i]) width -= (cols[i].width || this.config.columnWidth);
+				if (!fill[i]) width -= (cols[i].width || this._settings.columnWidth);
 
 			for (let i = 0; i < fill.length; i++)
 				if (fill[i]){
@@ -72,7 +72,7 @@ const Mixin = {
 	},
 	_getColumnConfigSize:function(ind, headers){
 		var config = this._settings.columns[ind];
-		var max = config.minColumnWidth || 10;
+		var max = config.minWidth || this._settings.minColumnWidth;
 
 		//get max data width
 		if (headers != "header"){
@@ -103,8 +103,9 @@ const Mixin = {
 			if (config.sort) max += 10;  // add 10px for sort marker
 		}
 
-		//1px to compensate offsetWidth rounding
-		return max+1+(env.isIE?$active.layoutPadding.space:0);
+		max = max+(env.isIE?$active.layoutPadding.space:0);
+
+		return Math.min(max, config.maxWidth||this._settings.maxColumnWidth||100000);
 	},
 	_adjustColumn:function(ind, headers, ignore){
 		if (ind >= 0){
@@ -116,62 +117,53 @@ const Mixin = {
 		this._adjustColumn(this.getColumnIndex(id), headers);
 	},
 	adjustRowHeight:function(id, silent){
-		if(id) {
-			var config = this.getColumnConfig(id);
-			var container;
-			var d = create("DIV",{"class":"webix_table_cell webix_measure_size webix_cell"},"");
-			d.style.cssText = "width:"+config.width+"px; height:1px; visibility:hidden; position:absolute; top:0px; left:0px; overflow:hidden;";
-			this.$view.appendChild(d);
+		if (id)
+			this._adjustRowHeight(id);
+		else {
+			const heights = {};
+			const cols = this._settings.columns;
 
-			if (d.offsetHeight < 1){
-				//hidden container, height detection is broken
-				//reattach to the body
-				container = this.$view.cloneNode(true);
-				document.body.appendChild(container);
-				container.appendChild(d);
-			}
+			for (let i = 0; i < cols.length; i++)
+				this._adjustRowHeight(cols[i].id, heights);			//adjust size for single columns
 
 			this.data.each(function(obj){
-				d.innerHTML = this._getValue(obj, config, 0);
-				obj.$height = Math.max(d.scrollHeight, this._settings.rowHeight);
-			}, this);
-
-			d = remove(d);
-			if (container)
-				remove(container);
-		} else {
-			//set size of array based on data size
-			//can be not-reliable for tree-like components anyway
-			var heightsArr = new Array(this.data.order.length);
-			var cols = this.config.columns;
-
-			//set 0 as initial height
-			var j = 0;
-			//iterate through all possible items
-			//we need to be sure that heightsArr is not lesser than real data count
-			for (let key in this.data.pull){ //eslint-disable-line
-				heightsArr[j] = 0;
-				j++;
-			}
-
-			for (let i = 0; i < cols.length; i++) {
-				//adjust size for single columns
-				this.adjustRowHeight(cols[i].id, true);
-				//for each row, set height as maximum between all columns
-				let j = 0;
-				this.data.each(function(obj){
-					//index is not reliable for tree-components, using a custom counter
-					if (obj.$height > heightsArr[j]) {
-						heightsArr[j] = obj.$height;
-					}
-					obj.$height = heightsArr[j];
-					j++;
-				});
-			}
+				obj.$height = heights[obj.id];
+			});
 		}
 
 		if (!silent)
 			this.refresh();
+	},
+	_adjustRowHeight:function(id, size){
+		const config = this.getColumnConfig(id);
+		let container;
+		let d = create("DIV",{"class":"webix_table_cell webix_measure_size webix_cell"},"");
+		d.style.cssText = "width:"+config.width+"px; height:1px; visibility:hidden; position:absolute; top:0px; left:0px; overflow:hidden;";
+		this.$view.appendChild(d);
+
+		if (d.offsetHeight < 1){
+			//hidden container, height detection is broken
+			//reattach to the body
+			container = this.$view.cloneNode(true);
+			document.body.appendChild(container);
+			container.appendChild(d);
+		}
+
+		this.data.each(function(obj){
+			let height;
+
+			d.innerHTML = this._getValue(obj, config, 0);
+			height = Math.max(d.scrollHeight, this._settings.rowHeight, this._settings.minRowHeight||0);
+			height = Math.min(height, this._settings.maxRowHeight||100000);
+
+			if (size)
+				size[obj.id] = Math.max(height, size[obj.id]||0);
+			else obj.$height = height;
+		}, this);
+
+		d = remove(d);
+		if (container)
+			remove(container);
 	}
 };
 

@@ -12,27 +12,28 @@ const api = {
 			this.toggle();
 		});
 	},
+	$renderInput:function(obj){
+		return "<button type='button' "+(obj.popup?"aria-haspopup='true'":"")+" class='webix_button'>"+obj.label+"</button>";
+	},
 	$setValue:function(value){
-		var input = this.getInputNode();
-		var obj = this._settings;
-		var isPressed = (value && value != "0");
-		var text = (isPressed ? obj.onLabel : obj.offLabel) || obj.label;
-		var textNode = input.lastChild;
+		const input = this.getInputNode();
+		const obj = this._settings;
+		const isPressed = (value && value != "0");
+		const text = (isPressed ? obj.onLabel : obj.offLabel) || obj.label;
+		const first = input.firstChild;
 		
-		input.setAttribute("aria-pressed", isPressed?"true":false);
-		input.value = text;
-		if (textNode)
-			(textNode.firstChild || textNode).nodeValue = text;
+		input.setAttribute("aria-pressed", isPressed?"true":"false");
+		input.innerHTML = text;
 
 		//icon or image button
-		if(input.firstChild && input.firstChild.nodeName ==="SPAN" && obj.onIcon && obj.offIcon && obj.onIcon !==obj.offIcon)
-			input.firstChild.className = input.firstChild.className.replace((isPressed?obj.offIcon:obj.onIcon),  (isPressed?obj.onIcon:obj.offIcon));
+		if (first && !!this._types[obj.type]){
+			if (first.nodeName === "SPAN" && obj.onIcon && obj.offIcon && obj.onIcon!==obj.offIcon)
+				first.className = first.className.replace((isPressed?obj.offIcon:obj.onIcon), (isPressed?obj.onIcon:obj.offIcon));
+			input.insertBefore(first, input.firstChild);
+		}
 		
-		var parent = input.parentNode;
-		if(isPressed)
-			addCss(parent, "webix_pressed");
-		else
-			removeCss(parent, "webix_pressed");
+		const changeCss = isPressed ? addCss : removeCss;
+		changeCss(input.parentNode, "webix_pressed");
 	},
 	toggle:function(){
 		this.setValue(!this.getValue());
@@ -51,7 +52,7 @@ const api = {
 			
 			var html =  "<div class='webix_el_box"+css+"' style='width:"+obj.awidth+"px; height:"+obj.aheight+"px'>"+common.$renderInput(obj, common)+"</div>";
 			html = html.replace(/(button)\s*(?=\w)/, "$1"+(" aria-pressed='"+(isPressed?"true":"false")+"' "));
-			if (obj.badge)
+			if (obj.badge||obj.badge===0)
 				html = html.replace(/<\/div>$/, "<span class='webix_badge'>"+obj.badge+"</span></div>");
 			
 			return html;

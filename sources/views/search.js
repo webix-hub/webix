@@ -13,6 +13,8 @@ const api = {
 		}
 	},
 	$skin:function(){
+		text.api.$skin.call(this);
+
 		this.defaults.inputPadding = $active.inputPadding;
 	},
 	defaults:{

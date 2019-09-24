@@ -8,7 +8,7 @@ import RenderStack from "../core/renderstack";
 import type from "../webix/type";
 
 import {protoUI} from "../ui/core";
-import {extend, bind, copy, delay, toArray, clone} from "../webix/helpers";
+import {extend, bind, copy, delay, _to_array, clone} from "../webix/helpers";
 import animate from "../webix/animate";
 import template from "../webix/template";
 
@@ -115,7 +115,7 @@ const api = {
 		if (!this._nested_cursor.length)
 			this._nested_cursor = this.data.branch[0];
 
-		this.data.order = toArray([].concat(this._nested_chain).concat(this._nested_cursor));
+		this.data.order = _to_array([].concat(this._nested_chain).concat(this._nested_cursor));
 			
 		if (this.callEvent("onBeforeRender",[this.data])){
 			if(this._no_animation || !this._dataobj.innerHTML || !(animate.isSupported() && this._settings.animate) || (this._prev_nested_chain_length == this._nested_chain.length)) { // if dataobj is empty or animation is not supported

@@ -18,7 +18,8 @@ const api = {
 		this.attachEvent("onHide", this._hide_point);
 	},
 	$skin:function(){
-		this.defaults.headHeight = $active.barHeight;
+		window.api.$skin.call(this);
+
 		this.defaults.padding = $active.popupPadding;
 		this.defaults.point = !$active.popupNoPoint;
 		this.defaults.borderless = $active.borderlessPopup;

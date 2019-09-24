@@ -9,6 +9,7 @@ const skin = {
 	listItemHeight:28,		//list, grouplist, dataview, etc.
 	unitHeaderHeight:20,
 	propertyItemHeight:24,
+	timelineItemHeight:50,
 	inputHeight: 30,
 	buttonHeight: 30,
 	inputPadding: 3,
@@ -43,11 +44,12 @@ const skin = {
 
 	dataPadding: 10,
 
-	calendarHeight: 70,
+	calendarWeekHeaderHeight: 24,
 	padding:0,
 	accordionType: "accordion",
 
-	optionHeight: 23
+	optionHeight: 23,
+	timelineColor:"#3498db"
 };
 
 export default skin;

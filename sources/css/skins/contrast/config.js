@@ -14,6 +14,7 @@ const skin = {
 	menuHeight: 34,
 	labelTopHeight: 22,
 	propertyItemHeight: 28,
+	timelineItemHeight:70,
 
 	inputSpacing: 4,
 	borderWidth: 1,
@@ -40,14 +41,14 @@ const skin = {
 	customRadio: true,
 
 	popupPadding: 8,
-
 	dataPadding: 10,
 
-	calendarHeight: 70,
+	calendarWeekHeaderHeight: 24,
 	padding:0,
 	accordionType: "accordion",
 
-	optionHeight: 32
+	optionHeight: 32,
+	timelineColor:"#b300b3"
 };
 
 export default skin;

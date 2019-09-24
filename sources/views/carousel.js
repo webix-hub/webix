@@ -1,6 +1,6 @@
 import {protoUI, ui, $$} from "../ui/core";
 import {copy, extend, bind} from "../webix/helpers";
-import {each} from "../ui/helpers";
+import {_each} from "../ui/helpers";
 import animate from "../webix/animate";
 import {assert} from "../webix/debug";
 import {attachEvent} from "../webix/customevents";
@@ -110,7 +110,7 @@ const api = {
 			this.callEvent("onShow",[this.getActiveId()]);
 		},this));
 
-		each(this._layout, function(view){
+		_each(this._layout, function(view){
 			view._viewobj.setAttribute("role", "tabpanel");
 		});
 	},

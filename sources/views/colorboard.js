@@ -62,11 +62,18 @@ const api = {
 	_getBox:function(){
 		return this._viewobj.firstChild;
 	},
-	setValue:function(value){
-		if(value && value.toString().charAt(0) != "#")
+	$prepareValue:function(value){
+		value = value ? value.toString(16) : "";
+		if (value && value.charAt(0) != "#" && /^[0-9a-fA-F]+$/.test(value))
 			value = "#" + value;
-
-		var oldvalue = this._settings.value;
+		return value;
+	},
+	value_setter:function(value){
+		return this.$prepareValue(value);
+	},
+	setValue:function(value){
+		value = this.$prepareValue(value);
+		const oldvalue = this._settings.value;
 
 		this._settings.value = value;
 		this.$setValue(value, oldvalue);

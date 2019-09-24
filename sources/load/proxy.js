@@ -2,16 +2,10 @@ import {assert} from "../webix/debug";
 import {extend, copy as makeCopy} from "../webix/helpers";
 
 import binary from "./proxy/binary";
-import connector from "./proxy/connector";
 import debug from "./proxy/debug";
-import faye from "./proxy/faye";
-import indexdb from "./proxy/indexdb";
 import json from "./proxy/json";
 import post from "./proxy/post";
 import rest from "./proxy/rest";
-import offline from "./proxy/offline";
-import cache from "./proxy/cache";
-import local from "./proxy/local";
 import graphql from "./proxy/graphql";
 
 function proxy(name, source, extra){
@@ -36,17 +30,10 @@ proxy.$parse = function(value){
 };
 
 proxy.binary = binary;
-proxy.connector = connector;
 proxy.debug = debug;
-proxy.faye = faye;
-proxy.indexdb = indexdb;
 proxy.json = json;
 proxy.post = post;
 proxy.rest = rest;
-proxy.offline = offline;
-proxy.cache = cache;
-proxy.local = local;
-proxy.local = local;
 proxy.GraphQL = graphql;
 
 export default proxy;

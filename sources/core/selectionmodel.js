@@ -1,5 +1,5 @@
 import {addCss, removeCss} from "../webix/html";
-import {toArray, bind, isArray} from "../webix/helpers";
+import {_to_array, bind, isArray} from "../webix/helpers";
 import {_event, event} from "../webix/htmlevents";
 import {assert} from "../webix/debug";
 
@@ -20,7 +20,7 @@ import state from "../core/state";
 const SelectionModel ={
 	$init:function(){
 		//collection of selected IDs
-		this._selected = toArray();
+		this._selected = _to_array();
 		assert(this.data, "SelectionModel :: Component doesn't have DataStore");
 
 		//remove selection from deleted items
@@ -34,7 +34,7 @@ const SelectionModel ={
 	_set_noselect: function(){
 		if (this._settings.select=="multiselect" || this._settings.multiselect || this._settings.select=="area")
 			_event(this.$view,"mousedown", function(e){
-				var shiftKey = (e||event).shiftKey;
+				var shiftKey = (e||window.event).shiftKey;
 				if(shiftKey){
 					state._noselect_element = this;
 					addCss(this,"webix_noselect",1);
@@ -66,7 +66,7 @@ const SelectionModel ={
 				this._selected.remove(id);
 		}
 		else if (!id && !this.data.count() && !this.data._filter_order){	//remove selection for clearAll
-			this._selected = toArray();
+			this._selected = _to_array();
 		}
 	},
 	_data_loaded:function(){
@@ -178,7 +178,7 @@ const SelectionModel ={
 			this._select_mark(id,false,refresh);	//unmark selected only
 		},this);
 		
-		this._selected=toArray();
+		this._selected=_to_array();
 		this._refresh_selection(refresh);	//repaint self
 	},
 	//returns true if item is selected

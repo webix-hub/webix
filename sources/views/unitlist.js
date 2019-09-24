@@ -2,7 +2,7 @@ import list from "../views/list";
 import {insertBefore, remove} from "../webix/html";
 import {protoUI} from "../ui/core";
 import {$active} from "../webix/skin";
-import {toArray} from "../webix/helpers";
+import {_to_array} from "../webix/helpers";
 import {assert} from "../webix/debug";
 import template from "../webix/template";
 
@@ -73,12 +73,12 @@ const api = {
 			for(i=0;i < unit.length;i++){
 				if (count == min) data = [{$unit:u}];
 				data.push(this.getItem(unit[i]));
-				if (count == max) return toArray(data);
+				if (count == max) return _to_array(data);
 				count++;
 			}
 		}
 
-		return toArray(data);
+		return _to_array(data);
 	},
 	_setUnits: function(){
 		var list = this;
@@ -110,6 +110,8 @@ const api = {
 		}
 	},
 	$skin:function(){
+		list.api.$skin.call(this);
+
 		this.type.headerHeight = $active.unitHeaderHeight;
 	}
 };

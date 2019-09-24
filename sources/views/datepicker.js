@@ -32,14 +32,16 @@ const api = {
 		separator:", "
 	},
 	_onBlur:function(){
-		if (this._settings.text == this.getText() || (isUndefined(this._settings.text) && !this.getText()))
+		const text = this.getText();
+		if (this._settings.text == text || (isUndefined(this._settings.text) && !text))
 			return;
 
-		var value = this.getPopup().getValue();
-		if (value)
-			this.setValue(value);
+		const value = this._settings.editable ? this.getValue() : this.getPopup().getValue();
+		this.setValue(value||"");
 	},
 	$skin:function(){
+		text.api.$skin.call(this);
+
 		this.defaults.inputPadding = $active.inputPadding;
 		this.defaults.point = !$active.popupNoPoint;
 	},

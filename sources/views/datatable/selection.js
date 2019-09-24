@@ -2,7 +2,7 @@ import {bind, extend, isUndefined} from "../../webix/helpers";
 import {event} from "../../webix/htmlevents";
 import {assert} from "../../webix/debug";
 import SelectionModel from "../../core/selectionmodel";
-
+import env from "../../webix/env";
 
 const Mixin = {
 	hover_setter:function(value){
@@ -10,9 +10,14 @@ const Mixin = {
 			this._enable_mouse_move();
 			this.config.experimental = true;
 
-			this.attachEvent("onMouseMoving", function(){
-				var row = this.locate(arguments[0]);
-				row = row ? row.row : null;
+			this.attachEvent("onMouseMoving", e => {
+				let pos = this.locate(e);
+
+				// when we click inner html element, edge calls mousemove with incorrect e.target
+				if(!pos && env.isEdge && e.relatedTarget)
+					pos = this.locate(e.relatedTarget);
+
+				const row = pos ? pos.row : null;
 
 				if (this._last_hover != row){
 					if (this._last_hover)
@@ -24,12 +29,19 @@ const Mixin = {
 				}
 			});
 
-			event(this.$view, "mouseout", bind(function(e){
-				if (this._last_hover && document.body.contains(e.target)){
-					this.removeRowCss(this._last_hover, this._settings.hover);
-					this._last_hover = null;
+			event(this.$view, "mouseout", e => {
+				const trg = e.target||e.srcElement;
+
+				// inner html elements blinking in case of hover:true
+				// ie and edge call mouseout when clicking inner html element
+				if (this._last_hover && document.body.contains(trg)){
+					const pos = e.relatedTarget ? this.locate(e.relatedTarget) : null;
+					if (!pos){
+						this.removeRowCss(this._last_hover, this._settings.hover);
+						this._last_hover = null;
+					}
 				}
-			}, this));
+			});
 
 			this._hover_initialized = 1;
 		}

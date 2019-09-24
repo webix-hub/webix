@@ -3,7 +3,8 @@ import {debug_size_box_start, debug_size_box_end} from "../webix/debug";
 
 import {callEvent} from "../webix/customevents";
 import {insertBefore, remove} from "../webix/html";
-import {extend, PowerArray, isUndefined, copy} from "../webix/helpers";
+import {extend, _power_array, isUndefined, copy} from "../webix/helpers";
+import {_each} from "../ui/helpers";
 
 import {$$,ui,protoUI} from "../ui/core";
 
@@ -87,10 +88,10 @@ const api = {
 		return true;
 	},
 	_remove:function(view){
-		var index = PowerArray.find.call(this._cells, view);
+		var index = _power_array.find.call(this._cells, view);
 		if(this._beforeRemoveView)
 			this._beforeRemoveView(index);
-		PowerArray.removeAt.call(this._cells, index);
+		_power_array.removeAt.call(this._cells, index);
 		this.resizeChildren(true);
 	},
 	_replace:function(new_view,target_id){
@@ -104,12 +105,12 @@ const api = {
 			if (typeof target_id == "number"){
 				if (target_id<0 || target_id > this._cells.length)
 					target_id = this._cells.length;
-				PowerArray.insertAt.call(this._cells, new_view, target_id);
+				_power_array.insertAt.call(this._cells, new_view, target_id);
 				if (!new_view._settings.hidden)
 					this._insertBeforeView(new_view, this._cells[target_id]);
 			} else {
 				source = $$(target_id);
-				target_id = PowerArray.find.call(this._cells, source);
+				target_id = _power_array.find.call(this._cells, source);
 				assert(target_id!=-1, "Attempt to replace the non-existing view");
 				if (!new_view._settings.hidden)
 					this._insertBeforeView(new_view, source);
@@ -150,7 +151,7 @@ const api = {
 		else
 			view = id;
 
-		var target = PowerArray.find.call(this._cells, view);
+		var target = _power_array.find.call(this._cells, view);
 		if (target >= 0){
 			if (this._beforeRemoveView)
 				this._beforeRemoveView(target, view);
@@ -159,7 +160,7 @@ const api = {
 
 			this._cells.splice(target, 1);
 			if (form)
-				ui.each(view, function(sub){
+				_each(view, function(sub){
 					if (sub.name)
 						delete form.getCleanValues()[sub.config.name];
 				}, form, true);				
@@ -280,7 +281,7 @@ const api = {
 
 		if (obj.callEvent){
 			obj.callEvent("onViewShow", []);
-			ui.each(obj, this._signal_hidden_cells);
+			_each(obj, this._signal_hidden_cells);
 		}
 	},
 	showBatch:function(name, mode){

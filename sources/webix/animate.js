@@ -54,7 +54,7 @@ animate.end = function(node, animation){
 	state._wait_animate = delay(animate, this, [node,animation],10);
 };
 animate.isSupported=function(){
-	return !state.$testmode && !state.noanimate && env.transform && env.transition && !env.isOpera;
+	return !state.$testmode && env.transform && env.transition && !env.isOpera;
 };
 animate.formLine=function(next, current, animation){
 	var direction = animation.direction;

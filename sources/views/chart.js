@@ -630,7 +630,11 @@ const api = {
 			var absNmin = Math.abs(nmin);
 			var powerStart = Math.floor(this._log10(absNmin));
 			var nminVal = absNmin/Math.pow(10,powerStart);
-			start = Math.ceil(nminVal*10)/10*Math.pow(10,powerStart)-step;
+			if (powerStart != 0 || step >= 0.1)
+				start = Math.ceil(nminVal*10)/10*Math.pow(10,powerStart)-step;
+			else
+				start = absNmin;
+
 			if(absNmin>1&&step>0.1){
 				start = Math.ceil(start);
 			}
@@ -644,6 +648,9 @@ const api = {
 		if ((nmax-start) > 10)
 			step = this._normStep(((nmax-start)/8)||1);
 		end = start;
+
+		if(nmax == 0 && nmax == nmin)
+			nmax = step;
 
 		while(end<nmax){
 			end += step;
@@ -725,11 +732,12 @@ const api = {
 	*   @param: obj - obj with configuration properties
 	*/
 	addSeries:function(obj){
-		const temp = extend({}, this._settings);
+		const temp = this._settings;
 
 		this._settings = extend({}, temp);
 		this._parseSettings(obj);
 		this._series.push(this._settings);
+
 		this._settings = temp;
 	},
 	$tooltipIn:function(t){

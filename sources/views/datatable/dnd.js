@@ -339,6 +339,8 @@ const Mixin = {
 		if (value){
 			DragControl.addDrag(this._header, control);
 			DragControl.addDrop(this._header, control, true);
+			this.attachEvent("onDestruct", () => DragControl.unlink(control));
+
 			if (!this._auto_scroll)
 				extend(this, AutoScroll, true);
 		}

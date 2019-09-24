@@ -96,8 +96,9 @@ const KeysNavigation = {
 				return;
 			}
 
+			const dir = (mode == "up" || mode == "left" || mode == "pgdown" || mode == "bottom")?-1:1;
 			if(this._skip_item)
-				selected = this._skip_item(selected, prev, mode);
+				selected = this._skip_item(selected, prev, dir);
 
 			this.showItem(selected);
 			this.select(selected);

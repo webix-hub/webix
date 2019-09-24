@@ -7,12 +7,15 @@ const Group = {
 		extend(this.data, GroupStore);
 	},
 	group:function(config, target){
-		if (!target && target !== 0)
-			this.data.ungroup(true);
+		if (!target && target !== 0){
+			this.$blockRender=true;
+			this.data.ungroup();
+			this.$blockRender=false;
+		}
 		this.data.group(config, target);
 	},
-	ungroup:function(skipRender){
-		this.data.ungroup(skipRender);
+	ungroup:function(target){
+		this.data.ungroup(target);
 	}
 };
 

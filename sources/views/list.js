@@ -138,6 +138,7 @@ const api = {
 			var css = "webix_list_item";
 
 			if (common.css) css += " "+common.css;
+			if (obj.disabled) css += " webix_disabled";
 			if (obj.$css){
 				if (typeof obj.$css == "object")
 					obj.$css = createCss(obj.$css);
@@ -149,10 +150,11 @@ const api = {
 			return css;
 		},
 		aria:function(obj, common, marks){
-			return "role=\"option\""+(marks && marks.webix_selected?" aria-selected=\"true\" tabindex=\"0\"":" tabindex=\"-1\"")+(obj.$count && obj.$template?"aria-expanded=\"true\"":"");
+			return "role=\"option\""+(marks && marks.webix_selected?" aria-selected=\"true\" tabindex=\"0\"":" tabindex=\"-1\"")+(obj.$count && obj.$template?"aria-expanded=\"true\"":"")+
+				(obj.disabled?" aria-disabled=\"true\" webix_disabled=\"true\"":"");
 		},
 		template:function(obj){
-			return (obj.icon?("<span class='webix_list_icon webix_icon "+obj.icon+"'></span>"):"") + obj.value + (obj.badge?("<div class='webix_badge'>"+obj.badge+"</div>"):"");
+			return (obj.icon?("<span class='webix_list_icon webix_icon "+obj.icon+"'></span>"):"") + obj.value + (obj.badge||obj.badge===0?("<div class='webix_badge'>"+obj.badge+"</div>"):"");
 		},
 		width:"auto",
 		templateStart:template("<div "+/*@attr*/"webix_l_id"+"=\"#id#\" class=\"{common.classname()}\" style=\"width:{common.widthSize()}; height:{common.heightSize()}; overflow:hidden;\" {common.aria()}>"),
@@ -160,6 +162,30 @@ const api = {
 	},
 	$skin:function(){
 		this.type.height = $active.listItemHeight;
+	},
+	disableItem:function(id){
+		this._set_item_disabled(id, true);
+	},
+	enableItem:function(id){
+		this._set_item_disabled(id, false);
+	},
+	_set_item_disabled(id, state){
+		const item = this.getItem(id);
+		if (item){
+			item.disabled = state;
+			this.refresh(id);
+		}
+	},
+	isItemEnabled:function(id){
+		const item = this.getItem(id);
+		return item && !item.disabled;
+	},
+	_skip_item:function(id, prev, dir){
+		if (!this.isItemEnabled(id)){
+			id = this.getNextId(id, dir) || null;
+			return (id && id != prev)? this._skip_item(id, prev, dir) : prev;
+		}
+		return id;
 	}
 };
 

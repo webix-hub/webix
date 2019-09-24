@@ -26,7 +26,7 @@ export const toPNG = function(id, options){
 		var node = view ? view.$view : toNode(id);
 		var filename = (options.filename||"Data")+".png";
 
-		window.html2canvas(node, {background:"#fff", logging:false}).then(function(canvas) {
+		window.html2canvas(node, {background:"#fff", logging:false, useCORS:true}).then(function(canvas) {
 			var callback = function(data){
 				if(options.download !== false)
 					download(data, filename);

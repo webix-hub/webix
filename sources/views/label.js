@@ -10,6 +10,8 @@ const api = {
 		template:"<div class='webix_el_box' style='width:#awidth#px;height:#aheight#px;line-height:#cheight#px'>#label#</div>"
 	},
 	$skin:function(){
+		button.api.$skin.call(this);
+
 		this.defaults.height = $active.inputHeight;
 	},
 	focus:function(){ return false; },

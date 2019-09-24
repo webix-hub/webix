@@ -1,9 +1,9 @@
-import {extend, copy, PowerArray} from "../webix/helpers";
+import {extend, copy, _power_array} from "../webix/helpers";
 
 
 const Undo = {
 	$init:function(){
-		this._undoHistory = extend([],PowerArray,true);
+		this._undoHistory = extend([],_power_array,true);
 		this._undoCursor = -1;
 	},
 	undo_setter: function(value){

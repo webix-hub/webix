@@ -140,6 +140,8 @@ const api = {
 		}
 	},
 	$skin: function(){
+		text.api.$skin.call(this);
+
 		this._sliderHandleWidth = $active.sliderHandleWidth; //8 - width of handle / 2
 		this._sliderPadding = $active.sliderPadding;//10 - padding of webix_slider_box ( 20 = 10*2 )
 		this._sliderBorder = $active.sliderBorder;//1px border

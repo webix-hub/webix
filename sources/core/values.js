@@ -31,7 +31,7 @@ const Values = {
 	},
 	setValues:function(data, update){
 		if (this._settings.complexData)
-			data = CodeParser.collapseNames(data, "", {}, (v) => isUndefined(this._values[v]));
+			data = CodeParser.collapseNames(data, "", {}, (v) => !this.elements[v]);
 		this._inner_setValues(data, update);
 	},
 	_inner_setValues:function(data, update){

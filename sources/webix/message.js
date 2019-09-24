@@ -21,8 +21,8 @@ function callback(config, result){
 function modal_key(e){
 	var count = modalbox.order.length;
 	if (count > 0 && message.keyboard){
-		e = e||event;
-		var code = e.which||event.keyCode;
+		e = e||window.event;
+		var code = e.which||e.keyCode;
 		var lastModalbox = modalbox.pull[modalbox.order[count-1]];
 
 		if (code == 13 || code == 32)
@@ -43,7 +43,7 @@ function modality(mode, container){
 	var cover;
 	if(isUndefined(node.modality)){
 		cover = create("DIV", {
-			class:"webix_modal_cover",
+			"class":"webix_modal_cover",
 			style:"position:"+(container ? "absolute" : "fixed")+";"
 		});
 		cover.onkeydown = modal_key;
@@ -157,7 +157,7 @@ function _boxStructure(config, ok, cancel){
 	}
 
 	box.onclick = function(e){
-		e = e ||event;
+		e = e ||window.event;
 		var source = e.target || e.srcElement;
 		if (!source.className) source = source.parentNode;
 		if (source.className.indexOf("webix_popup_button")!=-1){

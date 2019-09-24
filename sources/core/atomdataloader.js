@@ -8,6 +8,8 @@ import {ajax} from "../load/ajax";
 import {bind} from "../webix/helpers";
 import {callEvent} from "../webix/customevents";
 
+const silentErrorMarker = {};
+
 const AtomDataLoader={
 	$init:function(config){
 		//prepare data store
@@ -40,19 +42,31 @@ const AtomDataLoader={
 	},
 	//loads data from external URL
 	load:function(url,call){
-		var details = arguments[2] || null;
-
-		if(!this.callEvent("onBeforeLoad",[]))
-			return promise.reject();		
+		var type, details = (arguments[2] || null);
 
 		if (typeof call == "string"){	//second parameter can be a loading type or callback
 			//we are not using setDriver as data may be a non-datastore here
-			this.data.driver = DataDriver[call];
+			type = call;
 			call = arguments[2];
-		} else if (!this.data.driver)
-			this.data.driver = DataDriver.json;
+		}
 
+		const d = this._fetch(url, type, details);
+		if (d && d.then)
+			return d.then(data => {
+				this._onLoad(data);
+				if (call)
+					ajax.$callback(this, call, "", data, -1);
+				return data;
+			}, x => this._onLoadError(x));
+	},
+	_fetch:function(url, type, details){
 		var result;
+
+		if (type || !this.data.driver)
+			this.data.driver = DataDriver[type||"json"];
+
+		if(!this.callEvent("onBeforeLoad",[]))
+			return promise.reject();		
 
 		//proxy	
 		url = proxy.$parse(url);
@@ -82,12 +96,10 @@ const AtomDataLoader={
 					// if user have used list.load(data).then(do_something)
 					// the do_something will not be executed
 					// the error handler may be triggered though
-					return promise.reject();
+					return promise.reject(silentErrorMarker);
 
-				this._onLoad(data);
-				if (call)
-					ajax.$callback(this, call, "", data, -1);
-			}, x => this._onLoadError(x, gen));
+				return data;
+			});
 		}
 		return result;
 	},
@@ -109,7 +121,8 @@ const AtomDataLoader={
 		else if(!this.callEvent("onBeforeLoad",[]))
 			return promise.reject();
 		else {
-			this.data.driver = DataDriver[type||"json"];
+			if(type || !this.data.driver)
+				this.data.driver = DataDriver[type||"json"];
 			this._onLoad(data);
 		}
 
@@ -157,7 +170,8 @@ const AtomDataLoader={
 	},
 	//default after loading callback
 	_onLoad:function(data){
-		if (data && typeof data.text === "function"){
+		// webix loading object or uploaded file structure
+		if (data && typeof data.text === "function" && !data.name){
 			data = data.text();
 		}
 
@@ -167,14 +181,16 @@ const AtomDataLoader={
 		else
 			this._onLoadContinue(data);
 	},
-	_onLoadError:function(xhttp, generation){
-		//ignore error for dead components
-		if (!this.$destructed && (!generation || this._data_generation === generation)){
-			this.callEvent("onAfterLoad",[]);
-			this.callEvent("onLoadError",arguments);
-		}
+	_onLoadError:function(xhttp){
+		if (xhttp !== silentErrorMarker){
+			//ignore error for dead components
+			if (!this.$destructed){
+				this.callEvent("onAfterLoad",[]);
+				this.callEvent("onLoadError",arguments);
+			}
 
-		callEvent("onLoadError", [xhttp, this]);
+			callEvent("onLoadError", [xhttp, this]);
+		}
 		return promise.reject(xhttp);
 	},
 	_check_data_feed:function(data){

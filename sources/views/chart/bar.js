@@ -96,6 +96,9 @@ const BarChart = {
 			if(this._logScaleCalc)
 				value = this._log10(value);
 
+			if(!value || isNaN(value))
+				continue;
+
 			if(value>maxValue) value = maxValue;
 			value -= minValue;
 			value *= valueFactor;
@@ -108,8 +111,11 @@ const BarChart = {
 			var border = this._settings.border?1:0;
 			var label = this._settings.label(data[i]);
 			
+			/*takes start value into consideration */
+			if(!yax&&!(this._settings.origin!="auto"&&xax)) 
+				value += startValue/unit;
 			/* don't draw borders and labels for not painted values (on y-Axis or lower) */
-			if(value == this._settings.origin || (this._settings.origin =="auto" && this._settings.value(data[i]) == minValue)){
+			else if(value == this._settings.origin || (this._settings.origin =="auto" && this._settings.value(data[i]) == minValue)){
 				border = 0;
 				label = "";
 			}
@@ -117,9 +123,6 @@ const BarChart = {
 				value = border = 0;
 				label = "";
 			}
-			/*takes start value into consideration */
-			else if(!yax&&!(this._settings.origin!="auto"&&xax)) 
-				value += startValue/unit;
 
 			/*drawing bar body*/
 			ctx.globalAlpha = this._settings.alpha.call(this,data[i]);

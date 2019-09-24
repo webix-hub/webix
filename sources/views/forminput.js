@@ -38,7 +38,7 @@ const api = {
 	$skin:function(){
 		this._inputPadding = $active.inputPadding;
 		this._inputSpacing = $active.inputSpacing;
-		this._labelTopHeight = $active.labelTopHeight||15;
+		this._labelTopHeight = $active.labelTopHeight;
 	},
 	$init:function(obj){
 		this.$ready.push(function(){

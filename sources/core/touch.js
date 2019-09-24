@@ -212,13 +212,11 @@ const Touch = {
 		Touch._set_matrix(node,x,y,speed);
 	},
 	_set_matrix:function(node, xv, yv, speed){
-		if(!Touch._in_anim_frame && window.setAnimationFrame){
-			window.setAnimationFrame(function(){
-				Touch._in_anim_frame = true;
-				return Touch._set_matrix(node, xv, yv, speed);
-			});
+		if (!speed){
+			node.style[env.transform] = "";
+			return;
 		}
-		Touch._in_anim_frame = null;
+
 		Touch._active_transion = true;
 		if (node){
 			var trans = Touch.config.translate || env.translate;
@@ -365,7 +363,7 @@ const Touch = {
 			return true;
 	},
 	_touchstart :function(e){
-		var target = e.target || event.srcElement;
+		var target = e.target || window.event.srcElement;
 
 		if (Touch._disabled || (target.tagName&&target.tagName.toLowerCase() == "textarea" && target.offsetHeight<target.scrollHeight)) return;
 		Touch._long_touched = null;

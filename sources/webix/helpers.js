@@ -23,7 +23,7 @@ let extend = function(base, source, force){
 	assert(source,"Invalid mixing source");
 
 	if (base.$protoWait){
-		PowerArray.insertAt.call(base.$protoWait, source,1);
+		_power_array.insertAt.call(base.$protoWait, source,1);
 		return base;
 	}
 
@@ -152,10 +152,6 @@ export function toNode(node){
 	if (typeof node == "string") return document.getElementById(node);
 	return node;
 }
-//adds extra methods for the array
-export function toArray(array){ 
-	return extend((array||[]),PowerArray, true);
-}
 //resolve function name
 export function toFunctor(str, scope){ 
 	if (typeof(str)=="string"){
@@ -173,8 +169,12 @@ export function isDate(obj){
 	return obj instanceof Date;
 }
 
-//can be used by toArray()
-export const PowerArray={
+//adds extra methods for the array
+export function _to_array(array){ 
+	return extend((array||[]),_power_array, true);
+}
+//can be used by _to_array()
+export const _power_array={
 	//remove element at specified position
 	removeAt:function(pos,len){
 		if (pos>=0) this.splice(pos,(len||1));

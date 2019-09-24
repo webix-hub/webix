@@ -96,6 +96,7 @@
 @listItemHeight: 34px;
 @unitHeaderHeight:20px;
 @propertyItemHeight:28px;
+@timelineItemHeight:46px;
 @menuMargin: 0px;
 @menuHeight: 34px;
 @dataPadding: 10px;
@@ -589,6 +590,20 @@
 	content: "\F025"; //close folder
 }
 
+// dbllist
+@dblistSelColor: #FFFFFF;
+@dblistButtonIconColor: #888;
+@dblistButtonBg: lighten(@buttonColor, 43%);
+
+.webix_dbllist{
+	.bottom_label{
+		text-transform: uppercase;
+	}
+	.webix_list_item, .webix_list_item.webix_selected{
+		border:none;
+	}
+}
+
 
 // Menu
 
@@ -629,7 +644,10 @@
 		border-right: none;
 		#border > .corners(0,@borderRadius,@borderRadius,0);
 	}
-
+	.webix_list_item.webix_disabled{
+		color: @disabledFontColor;
+		background-color: @disabledColor;
+	}
 }
 .webix_menu.webix_view{
 	.webix_list_item:hover, .webix_list_item:active{
@@ -642,6 +660,9 @@
 	}
 	.webix_list_item.webix_selected{
 		background: @selectColor;
+	}
+	.webix_list_item.webix_disabled{
+		background-color: @backColor;
 	}
 }
 
@@ -842,12 +863,12 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		border: none;
 	}
 }
-div.webix_item_tab{
+.webix_item_tab{
 	border-color: @inactiveBarColor;
 	padding-top: 3px;
 	font-size: @barFontSize;
 }
-div.webix_item_tab.webix_selected{
+.webix_item_tab.webix_selected{
 	padding-top: 2px;
 }
 
@@ -976,8 +997,8 @@ div.webix_item_tab.webix_selected{
 	}
 
 }
-.webix_tab_more_icon:hover{
-	color: darken(@fontColor,10%);
+.webix_tab_more_icon:focus{
+	color: @buttonColor;
 }
 .webix_el_tabbar .webixtype_icon, .webix_el_tabbar .webixtype_iconTop,
 .webix_el_tabbar .webixtype_image, .webix_el_tabbar .webixtype_bottom{
@@ -989,8 +1010,8 @@ div.webix_item_tab.webix_selected{
 	}
 }
 .webix_el_tabbar .webixtype_icon, .webix_el_tabbar .webixtype_iconTop,
-.webix_el_tabbar .webixtype_image{
-	.webix_tab_more_icon:hover{
+.webix_el_tabbar .webixtype_image, .webix_el_tabbar .webixtype_bottom{
+	.webix_tab_more_icon:hover, .webix_tab_more_icon:focus{
 		.darkHoverRule(@tabbarBgColor);
 	}
 }
@@ -1185,11 +1206,12 @@ a:focus .webix_custom_checkbox, a:active .webix_custom_checkbox{
 		height: 7px;
 		background-color: @buttonColor;
 	}
+	.webix_radio_option.webix_disabled .webix_custom_radio:before{
+		background-color: @disabledFontColor;
+	}
 	.webix_radio_0 .webix_custom_radio:before{
 		visibility:hidden;
 	}
-
-
 	.webix_custom_radio{
 		display: block;
 		height: @radioSize;

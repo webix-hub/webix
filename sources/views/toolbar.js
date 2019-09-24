@@ -1,6 +1,6 @@
 import {protoUI} from "../ui/core";
 
-import {each} from "../ui/helpers";
+import {_each} from "../ui/helpers";
 import {extend} from "../webix/helpers";
 import {debug_size_box} from "../webix/debug";
 
@@ -32,7 +32,7 @@ const api = {
 	_recollect_elements:function(){
 		var form = this;
 		form.elements = {};
-		each(this, function(view){
+		_each(this, function(view){
 			if (view._settings.name && view.getValue && view.setValue){
 				form.elements[view._settings.name] = view;
 				if (view.mapEvent)

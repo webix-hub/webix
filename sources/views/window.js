@@ -1,4 +1,4 @@
-import {pos as getPos, offset, remove} from "../webix/html";
+import {pos as getPos, offset} from "../webix/html";
 import {protoUI, ui, $$} from "../ui/core";
 import animate from "../webix/animate";
 import {$active} from "../webix/skin";
@@ -9,7 +9,7 @@ import UIManager from "../core/uimanager";
 import Destruction from "../core/destruction";
 
 import {zIndex} from "../ui/helpers";
-import {bind, toNode, delay, clone, uid, toArray, extend} from "../webix/helpers";
+import {bind, toNode, delay, clone, uid, _to_array, extend} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 import {assert} from "../webix/debug";
 import {callEvent} from "../webix/customevents";
@@ -22,7 +22,7 @@ import ResizeArea from "../core/resizearea";
 import baseview from "./baseview";
 import base from "./view";
 
-state._popups = toArray();
+state._popups = _to_array();
 
 const api = {
 	name:"window",
@@ -348,18 +348,7 @@ const api = {
 		}
 	},
 	destructor: function() {
-		this._modal_set(false);
-		remove(this._viewobj);
-		
-		if (this._settings.autofocus){
-			if (!state._final_destruction)
-				UIManager.setFocus(this._prev_focus);
-			this._prev_focus = null;
-		}
-		
-		this._hide_sub_popups();
-		if (this._hide_point)
-			this._hide_point();
+		this.hide();
 		Destruction.destructor.apply(this, []);
 	},
 	_hide_callback:function(){

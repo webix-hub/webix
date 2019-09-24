@@ -1,5 +1,4 @@
 export {ajax} from "./ajax";
-export {jsonp} from "./jsonp";
 export {default as DataDriver} from "./drivers/index";
 export {dp, DataProcessor} from "./dataprocessor";
 

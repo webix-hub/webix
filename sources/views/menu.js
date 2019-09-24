@@ -14,11 +14,6 @@ const api = {
 	name:"menu",
 	_listClassName:"webix_menu",
 	$init:function(config){
-		this.data._scheme_init = bind(function(obj){
-			if (obj.disabled)
-				this.data.addMark(obj.id, "webix_disabled", true, 1, true);
-		}, this);
-
 		if (config.autowidth){
 			this._autowidth_submenu = true;
 			delete config.autowidth;
@@ -34,35 +29,32 @@ const api = {
 				this._hide_sub_menu();
 		});
 		this.attachEvent("onItemClick", function(id, e, trg){
-			var item = this.getItem(id);
+			const item = this.getItem(id);
 			if (item){
 				if (item.$template) return;
 
-				var parent = this.getTopMenu();
+				const parent = this.getTopMenu();
 
-				//ignore disabled items
-				if (!this.data.getMark(id, "webix_disabled")){
-					if (!parent.callEvent("onMenuItemClick", [id, e, trg])){
-						e.showpopup = true;
-						return;
+				if (!parent.callEvent("onMenuItemClick", [id, e, trg])){
+					e.showpopup = true;
+					return;
+				}
+
+				if (this != parent)
+					parent._call_onclick(id,e,trg);
+
+				//click on group - do not close submenus
+				if (!this.type._submenu(item) && !parent._show_child_on_click){
+					parent._hide_sub_menu(true);
+					if (parent._hide_on_item_click)
+						parent.hide();
+				} else {
+					if (env.touch || (this === parent && parent._settings.openAction == "click")){
+						this._mouse_move_activation(id, trg);
 					}
 
-					if (this != parent)
-						parent._call_onclick(id,e,trg);
-
-					//click on group - do not close submenus
-					if (!item.submenu && !parent._show_child_on_click){
-						parent._hide_sub_menu(true);
-						if (parent._hide_on_item_click)
-							parent.hide();
-					} else {
-						if ((this === parent || env.touch ) && parent._settings.openAction == "click"){
-							this._mouse_move_activation(id, trg);
-						}
-
-						//do not close popups when clicking on menu folder
-						e.showpopup = true;
-					}
+					//do not close popups when clicking on menu folder
+					e.showpopup = true;
 				}
 			}
 		});
@@ -138,7 +130,8 @@ const api = {
 		css:"menu",
 		width:"auto",
 		aria:function(obj, common, marks){
-			return "role=\"menuitem\""+(marks && marks.webix_selected?" aria-selected=\"true\" tabindex=\"0\"":"tabindex=\"-1\"")+(common._submenu(obj)?"aria-haspopup=\"true\"":"")+(marks && marks.webix_disabled?" aria-disabled=\"true\"":"");
+			return "role=\"menuitem\""+(marks && marks.webix_selected?" aria-selected=\"true\" tabindex=\"0\"":"tabindex=\"-1\"")+(common._submenu(obj)?"aria-haspopup=\"true\"":"")+
+				(obj.disabled?" aria-disabled=\"true\"  webix_disabled=\"true\"":"");
 		},
 		templateStart:function(obj, common, mark){
 			if (obj.$template === "Separator" || obj.$template === "Spacer"){
@@ -187,9 +180,9 @@ const api = {
 		this._mouse_move_activation(id, target);
 	},
 	_menu_was_activated:function(){
+		if (env.touch) return false;
 		var top = this.getTopMenu();
 		if (top._settings.openAction == "click"){
-			if (env.touch) return false;
 			var sub = top._open_sub_menu;
 			if (sub && $$(sub).isVisible())
 				return true;
@@ -212,20 +205,25 @@ const api = {
 		if (this.type._submenu(data)&&!this.config.hidden){
 
 			var sub  = this._get_submenu(data);
-			if(this.data.getMark(id,"webix_disabled"))
-				return;
-			sub.show(target,{ pos:this._settings.subMenuPos });
+			if (!this.isItemEnabled(id)) return;
 
+			sub.show(target,{ pos:this._settings.subMenuPos });
 			sub._parent_menu = this._settings.id;
 
 			this._open_sub_menu = data.submenu;
 		}
 	},
 	disableItem:function(id){
-		this.getMenu(id).addCss(id, "webix_disabled");
+		const menu = this.getMenu(id);
+		if (menu) menu._set_item_disabled(id, true);
 	},
 	enableItem:function(id){
-		this.getMenu(id).removeCss(id, "webix_disabled");
+		const menu = this.getMenu(id);
+		if (menu) menu._set_item_disabled(id, false);
+	},
+	isItemEnabled:function(id){
+		const menu = this.getMenu(id);
+		if (menu) return list.api.isItemEnabled.apply(menu, arguments);
 	},
 	_set_item_hidden:function(id, state){
 		var menu = this.data;
@@ -279,18 +277,17 @@ const api = {
 		menu._parent_menu = this;
 		return menu._settings.id;
 	},
-	_skip_item:function(id, prev, mode){
-		var item = this.getItem(id);
-		if(item.$template == "Separator" || item.$template == "Spacer" || this.data.getMark(id, "webix_disabled")){
-			var index = this.getIndexById(id)+(mode == "up"?-1:1);
-			id = (index>=0)?this.getIdByIndex(index):null;
-			return id? this._skip_item(id, prev, mode) : prev;
+	_skip_item:function(id, prev, dir){
+		const item = this.getItem(id);
+		if (item.$template == "Separator" || item.$template == "Spacer" || !this.isItemEnabled(id)){
+			id = this.getNextId(id, dir) || null;
+			return (id && id != prev)? this._skip_item(id, prev, dir) : prev;
 		}
-		else
-			return id;
+		return id;
 	},
 	$skin:function(){
 		list.api.$skin.call(this);
+
 		this.type.height = $active.menuHeight;
 	},
 	defaults:{

@@ -42,12 +42,12 @@ export function resize(){
 	state._force_resize = false;
 }
 
-export function each(parent, logic, master, include){
+export function _each(parent, logic, master, include){
 	if (parent){
 		var children = include ? [parent] : parent.getChildViews();
 		for (var i = 0; i < children.length; i++){
 			if (logic.call((master), children[i]) !== false)
-				each(children[i], logic, master);
+				_each(children[i], logic, master);
 		}
 	}
 }

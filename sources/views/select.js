@@ -8,32 +8,31 @@ import DataCollection from "../core/datacollection";
 const api = {
 	name:"select",
 	defaults:{
-		template:function(obj,common) {
-			var options = common._check_options(obj.options);
-			var id = "x"+uid();
-			var html = common._baseInputHTML("select")+"id='"+id+"' style='width:"+common._get_input_width(obj)+"px;'>";
+		template:function(obj,common){
+			const id = "x"+uid();
+			let html = common._baseInputHTML("select")+"id='"+id+"' style='width:"+common._get_input_width(obj)+"px;'>";
 
-			var optview = $$(options);
-			if(optview && optview.data && optview.data.each){
+			const optview = $$(obj.options);
+			if (optview && optview.data && optview.data.each){
 				optview.data.each(function(option){
 					html+="<option"+((option.id == obj.value)?" selected='true'":"")+" value='"+option.id+"'>"+option.value+"</option>";
 				});
-			}else
-				for(var i=0; i<options.length; i++) {
+			} else {
+				const options = common._check_options(obj.options);
+				for (let i=0; i<options.length; i++)
 					html+="<option"+((options[i].id == obj.value)?" selected='true'":"")+" value='"+options[i].id+"'>"+options[i].value+"</option>";
-				}
+			}
 			html += "</select>";
 			return common.$renderInput(obj, html, id);
 		}
 	},
 	options_setter:function(value){
-		if(value){
-			if(typeof value =="string"){
-				var collection = new DataCollection({url:value});
+		if (value){
+			if (typeof value =="string"){
+				const collection = new DataCollection({url:value});
 				collection.data.attachEvent("onStoreLoad", bind(this.refresh, this));
 				return collection;
-			}
-			else
+			} else
 				return value;
 		}
 	},

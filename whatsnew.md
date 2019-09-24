@@ -1,4 +1,16 @@
-Version 6.4.0 (June 2019)
+Version 7.0.0 (September 2019)
+==============================
+
+### Major features
+
+- [Visual designer tool](https://designer.webix.com)
+- Timeline widget
+- Mention suggest widget
+- Ability to hide/disable options and items across widgets
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_7_0.html)
+
+Version 6.4 (June 2019)
 ==================
 
 ### Major features

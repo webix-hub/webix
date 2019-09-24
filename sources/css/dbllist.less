@@ -1,47 +1,58 @@
-.webix_dbllist .webix_list{
-	background: #ededed;
+@dblistBg: #ededed;
+@dblistButtonBg: @buttonColor;
+@dblistButtonIconColor: @buttonFontColor;
+
+.webix_dbllist{
+	.bottom_label{
+		text-align: center;
+		font-size: 10px;
+	}
+	.webix_list, .bottom_label{
+		background: @dblistBg;
+	}
+	.webix_list_item{
+		background: @backColor;
+		margin: 3px 4px 0px 4px;
+		box-sizing: border-box;
+		border:1px solid @borderColor;
+		&.webix_selected{
+			border-bottom-color: @borderColor;
+			background-color: @selectColor;
+			color: @dblistSelColor;
+		}
+	}
+	.dbllist_button{
+		width: 45%;
+		height:30px;
+		margin-top: 4px;
+		padding: 0;
+		border-radius:@skin_input_radius;
+		border:1px solid @borderColor;
+		cursor:pointer;
+		font-size: @fontSize;
+		font-family: @fontFamily;
+		background-color: @dblistButtonBg;
+		.webix_icon{
+			color: @dblistButtonIconColor;
+			font-size: 20px;
+			width: 26px;
+		}
+		&:active{
+			.activeShadow;
+		}
+		&:first-child{
+			margin-top: @inputHeight - 2px;
+			margin-right: 4px;
+		}
+		&:last-child{
+			margin-left: 4px;
+		}
+		&:hover, &:focus, &:active{
+			.darkHoverRule(@dblistButtonBg);
+		}
+	}
 }
-.webix_dbllist .webix_list_item{
-	background: white;
-	margin: 3px 4px 0px 4px;
-	box-sizing: border-box;
-}
-.webix_dbllist .webix_list_item.webix_selected {
-    color: #FFFFFF;
-    background: #27ae60;
-}
-.webix_dbllist button{
-	width: 45%;
-	height:30px;
-	margin-top: 4px;
-	padding: 0;
-	background: lighten(@buttonColor, 43%);
-	border-radius:@skin_input_radius;
- 	border:1px solid @borderColor;
-	cursor:pointer;
-	font-size: @fontSize;
-	font-family: @fontFamily;
-}
-.webix_dbllist button:active{
-	box-shadow: inset 1px 1px 0px silver;
-}
-.webix_dbllist button .webix_icon{
-	color: #888;
-	font-size: 20px;
-}
-.webix_dbllist button:first-child{
-	margin-top: @inputHeight - 2px;
-	margin-right: 4px;
-}
-.webix_dbllist button:last-child{
-	margin-left: 4px;
-}
-.webix_dbllist .bottom_label{
-	font-size: 10px;
-	text-transform: uppercase;
-	background: #ededed;
-	padding-left: 13px;
-}
+
 .webix_invalid .webix_list{
 	background: #f8e2e2;
 }

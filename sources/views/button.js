@@ -1,7 +1,7 @@
 import {triggerEvent, preventEvent, getTextSize, locate} from "../webix/html";
 import {protoUI} from "../ui/core";
 import {$active} from "../webix/skin";
-import {isUndefined} from "../webix/helpers";
+import {isUndefined, isArray} from "../webix/helpers";
 import {assert} from "../webix/debug";
 import template from "../webix/template";
 
@@ -20,21 +20,18 @@ const api = {
 	touchable:true,
 	$skin:function(){
 		this.defaults.height = $active.buttonHeight||$active.inputHeight;
-		//used in "text"
-		this._labelTopHeight = $active.labelTopHeight||15;
-		this._borderWidth = $active.borderWidth;
 	},
 	defaults:{
 		template:function(obj, common){
 			var text = common.$renderInput(obj, common);
-			if (obj.badge) text = text.replace("</button>", "<span class='webix_badge'>"+obj.badge+"</span></button>");
+			if (obj.badge||obj.badge===0) text = text.replace("</button>", "<span class='webix_badge'>"+obj.badge+"</span></button>");
 			return "<div class='webix_el_box' style='width:"+obj.awidth+"px; height:"+obj.aheight+"px'>"+ text + "</div>";
 		},
 		label:"",
 		borderless:true
 	},
 	$renderInput:function(obj){
-		return "<button type='button' "+(obj.popup?"aria-haspopup='true'":"")+" class='webix_button'>"+template.escape(obj.label||obj.value)+"</button>";
+		return "<button type='button' "+(obj.popup?"aria-haspopup='true'":"")+" class='webix_button'>"+(obj.label||this._pattern(obj.value))+"</button>";
 	},
 	$init:function(config){
 		this._viewobj.className += " webix_control webix_el_"+(this.$cssName||this.name);
@@ -57,10 +54,7 @@ const api = {
 		});
 	},
 	_set_default_css: function(config){
-		if(config.type && this._deprecated_css_types[config.type]){
-			this._viewobj.className += " "+this._deprecated_css_types[config.type];
-		}
-		else if (!config.css || !this._get_class(config.css) || (this.defaults.css && !this._get_class(this.defaults.css))){
+		if (!config.css || !this._get_class(config.css) || (this.defaults.css && !this._get_class(this.defaults.css))){
 			this._viewobj.className += " webix_secondary";
 		}
 	},
@@ -74,17 +68,6 @@ const api = {
 		}
 		return false;
 	},
-	// will be deprecated in 7.0
-	_deprecated_css_types:{
-		form:"webix_primary",
-		danger:"webix_danger"
-	},
-	_deprecated_types:{
-		imageButton:"image",
-		imageButtonTop:"imageTop",
-		iconButton:"icon",
-		iconButtonTop:"iconTop"
-	},
 	_addElementHotKey: function(key, func, view){
 		var keyCode = UIManager.addHotKey(key, func, view);
 		this.attachEvent("onDestruct", function(){
@@ -92,16 +75,12 @@ const api = {
 		});
 	},
 	type_setter:function(value){
-		if(this._deprecated_types[value])
-			value = this._deprecated_types[value];
 		if (this._types[value])
 			this.$renderInput = template(this._types[value]);
 		return value;
 	},
 	_set_inner_size:false,
 	_types:{
-		htmlbutton: "<button type='button' class='webix_button'>#label#</button>",
-
 		image:"<button type='button' class='webix_button webix_img_btn' style='line-height:#cheight#px;'><img class='webix_image' style='max-width:#cheight#px; max-height:#cheight#px;' src = '#image#'>#label#</button>",
 		imageTop:"<button type='button' class='webix_button webix_img_btn_top'><div class='webix_image' style='width:100%;height:100%;background-image:url(#image#);'></div><div class='webix_img_btn_text'>#label#</div></button>",
 
@@ -170,10 +149,14 @@ const api = {
 	},
 	setValue:function(value){
 		value = this.$prepareValue(value);
-		var oldvalue = this._settings.value;
-		
-		if (this.$compareValue(oldvalue, value)) return false;
-		
+		const oldvalue = this._settings.value;
+
+		if (this.$compareValue(oldvalue, value)){
+			if (this._rendered_input && value != this.$getValue())
+				this.$setValue(value);
+			return false;
+		}
+
 		this._settings.value = value;
 		if (this._rendered_input)
 			this.$setValue(value);
@@ -191,10 +174,10 @@ const api = {
 	},
 	//visual part of setValue
 	$setValue:function(value){
-		//		this._settings.label = value;
-		var node = this.getInputNode();
-		if(node){
-			if(node.tagName=="BUTTON") node.innerHTML = value;
+		const node = this.getInputNode();
+		if (node && !this._types[this._settings.type]){
+			value = this._settings.label || value;
+			if (node.tagName=="BUTTON") node.innerHTML = value;
 			else node.value = value;
 		}
 	},
@@ -243,9 +226,9 @@ const api = {
 		config = config || this._settings;
 		if (config.autowidth){
 			let width = getTextSize((config.value||config.label || ""), "webixbutton").width +
-				(config.badge ? 16 : 0) +
-				((config.type === "iconButton" || config.type === "icon") ? 24 : 0) +
-				((config.type === "imageButton" || config.type === "image") ? config.height-$active.inputPadding : 0);
+				(config.badge||config.badge===0 ? getTextSize(config.badge, "webix_badge").width * 2 - 32 : 0) +
+				(config.type === "icon" ? 24 : 0) +
+				(config.type === "image" ? config.height-$active.inputPadding : 0);
 
 			width = Math.max(config.minWidth || 0, width);
 			config.width = Math.min(config.maxWidth || Infinity, width);
@@ -322,16 +305,19 @@ const api = {
 
 	on_click:{
 		_handle_tab_click: function(ev){
-			var id = locate(ev, /*@attr*/"button_id");
-			if (id && this.callEvent("onBeforeTabClick", [id, ev])){
+			const id = locate(ev, /*@attr*/"button_id");
+			const opt = this.getOption(id);
+
+			if (opt && !opt.disabled && this.callEvent("onBeforeTabClick", [id, ev])){
 				this.setValue(id);
+				this.focus();
 				this.callEvent("onAfterTabClick", [id, ev]);
 			}
 		},
 		webix_all_segments:function(ev, button){
 			this.on_click._handle_tab_click.call(this, ev, button);
 		},
-		webix_all_tabs:function(ev, button) {
+		webix_all_tabs:function(ev, button){
 			this.on_click._handle_tab_click.call(this, ev, button);
 		},
 		webix_inp_counter_next:function(){
@@ -354,28 +340,36 @@ const api = {
 				this.toggle();
 		},
 		webix_inp_radio_border: function(e) {
-			var value = locate(e, /*@attr*/"radio_id");
-			this.setValue(value);
-			this.focus();
+			const id = locate(e, /*@attr*/"radio_id");
+			const opt = this.getOption(id);
+
+			if (opt && !opt.disabled){
+				this.setValue(id);
+				this.focus();
+			}
 		},
-		webix_inp_radio_label: function(e, obj, node) {
-			node = node.parentNode.getElementsByTagName("input")[0];
-			return this.on_click.webix_inp_radio_border.call(this, node, obj, node);
+		webix_tab_more_icon: function(ev,obj,node){
+			const popup = this.getPopup();
+			if (!popup.isVisible()){
+				popup.resize();
+				popup.show(node, null, true);
+			} else
+				popup.hide();
 		},
-		webix_tab_more_icon: function(ev,obj, node){
-			this.getPopup().resize();
-			this.getPopup().show(node,null,true);
-		},
-		webix_tab_close:function(ev){
-			var id = locate(ev, /*@attr*/"button_id");
-			if (id && this.callEvent("onBeforeTabClose", [id, ev]))
+		webix_tab_close:function(e){
+			const id = locate(e, /*@attr*/"button_id");
+			const opt = this.getOption(id);
+
+			if (opt && !opt.disabled && this.callEvent("onBeforeTabClose", [id, e]))
 				this.removeOption(id);
 		}
 	},
 
 	//method do not used by button, but  used by other child-views
 	_check_options:function(opts){
-		assert(opts, this.name+": options not defined");
+		assert(!!opts, this.name+": options not defined");
+		assert(isArray(opts), this.name+": options must be an array");
+
 		for(var i=0;i<opts.length;i++){
 			// asserts need to be removed in final version			
 			assert(!opts[i].text, "Please replace .text with .value in control config");

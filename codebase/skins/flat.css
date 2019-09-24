@@ -872,6 +872,18 @@ button,
 /* Style for disabled items */
 .webix_list_item.webix_disabled {
   color: #8b949e;
+  background-color: #fff;
+  cursor: not-allowed;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.webix_list_item.webix_disabled:focus {
+  background-color: #fff;
+}
+.webix_list_item.webix_disabled .webix_badge {
+  background-color: #eab993;
 }
 .webix_list_item.webix_disabled .webix_submenu_icon {
   visibility: hidden;
@@ -1148,7 +1160,7 @@ button,
   position: absolute;
   z-index: 2;
   overflow: visible;
-  background: white;
+  background: #fff;
 }
 .webix_dt_editor input,
 .webix_dt_editor select {
@@ -1165,7 +1177,7 @@ button,
   color: #666666;
 }
 .webix_dt_editor input[type="checkbox"] {
-  margin: 6px 8px 4px 14px;
+  margin: 11px 11px 0px;
   height: auto;
   width: auto;
 }
@@ -1304,8 +1316,7 @@ button,
 }
 .webix_table_checkbox,
 .webix_hcell input[type="checkbox"] {
-  margin-top: 0px;
-  margin-bottom: 2px;
+  margin: 0px 1px 2px;
   vertical-align: middle;
 }
 .webix_ss_filter select,
@@ -1397,6 +1408,7 @@ button,
   background-color: #c9eaf5;
 }
 .webix_block_selection {
+  z-index: 2;
   background: rgba(0, 0, 0, 0.1);
   border: 2px solid #ebebeb;
 }
@@ -1883,43 +1895,41 @@ button,
   background-color: #fff;
 }
 .webix_cal_month {
-  height: 22px;
-  line-height: 20px;
+  height: 24px;
+  line-height: 24px;
   text-align: center;
   position: relative;
   font-size: 14px;
   font-weight: bold;
-  padding-top: 17px;
-  padding-bottom: 5px;
+  padding: 0 0 6px;
   box-sizing: content-box;
 }
 .webix_cal_prev_button,
 .webix_cal_next_button {
   cursor: pointer;
   position: absolute;
-  top: 17px;
-  width: 30px;
-  height: 28px;
+  top: 0;
+  width: 24px;
+  height: 24px;
   background-repeat: no-repeat;
-  background-position: 11.5px 4px;
+  background-position: 8px 6px;
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
 }
 .webix_cal_prev_button {
-  left: 17px;
+  left: 0;
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAALCAYAAACzkJeoAAAASUlEQVR42p2QMQoAQQgD79EZ0Mqn5xCu2cPdYgUbJ0rMMxXgLeiuKq8gsJAz8weQ0QiwJEfECnr4wdlEnwJ68+yyhReC+c85oRecj0Um+pmo9wAAAABJRU5ErkJggg==");
   background-repeat: no-repeat;
 }
 .webix_cal_next_button {
-  right: 17px;
+  right: 0;
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAALCAYAAACzkJeoAAAARElEQVR42qXPsQoAIAhF0T76PdDJT7cUmtQhcmk4N8QVQ9JXN2bmgWOgqp+BiCRG2AYAMoi3/LxYdyagAnhA6G93TrABZaJFJjrFY8IAAAAASUVORK5CYII=");
   background-repeat: no-repeat;
 }
 .webix_view > .webix_cal_header {
-  margin: 0px 17px 10px 17px;
-  height: auto;
+  height: 24px;
 }
 .webix_view > .webix_cal_header div {
   float: left;
@@ -1928,13 +1938,6 @@ button,
   font-size: 11px;
   color: #666666;
   border-bottom: #DDDDDD 1px solid;
-  margin-bottom: 7px;
-}
-.webix_cal_body {
-  margin: 0px 17px 0px 17px;
-}
-.webix_cal_body .webix_cal_row {
-  clear: both;
 }
 .webix_cal_body .webix_cal_row > div {
   float: left;
@@ -1949,7 +1952,6 @@ button,
 }
 .webix_cal_day,
 .webix_cal_week_num {
-  /*line-height: 29px;*/
   cursor: pointer;
   font-size: 12px;
   color: #666666;
@@ -2018,23 +2020,27 @@ button,
   text-align: center;
   font-size: 12px;
   color: #444;
-  margin: 4px 17px;
-  padding-top: 2px;
+  height: 24px;
+  padding: 6px 0 0;
   cursor: pointer;
 }
 .webix_cal_icons {
   float: right;
-  padding: 4px 4px;
+  height: 20px;
+  line-height: 20px;
+  padding: 4px 4px 0;
 }
 .webix_cal_time {
-  padding: 2px 4px;
+  height: 20px;
+  line-height: 20px;
+  padding: 4px 4px 0;
 }
 .webix_cal_time_icons {
   float: left;
 }
 .webix_cal_icons .webix_cal_icon {
   text-align: center;
-  padding: 2px 4px;
+  padding: 0 4px;
 }
 .webix_cal_icon:hover,
 .webix_cal_time:hover,
@@ -2056,15 +2062,15 @@ button,
   color: inherit;
 }
 .webix_time_header {
-  padding: 17px 17px 1px 17px;
+  padding: 0 0 6px;
 }
 .webix_time_header .webix_cal_hours,
 .webix_time_header .webix_cal_minutes {
   display: inline-block;
   font-size: 14px;
   text-align: center;
-  height: 26px;
-  line-height: 22px;
+  height: 24px;
+  line-height: 24px;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
@@ -2093,12 +2099,13 @@ button,
 .webix_time_footer {
   text-align: center;
   font-size: 12px;
-  padding: 7px 17px 0 17px;
+  height: 24px;
+  padding: 6px 0 0;
   cursor: pointer;
 }
 .webix_cal_done {
-  margin-top: 3px;
-  padding: 2px 7px;
+  height: 24px;
+  padding: 2px 8px;
   font-size: 12px;
   border-radius: 6px;
   border: 1px solid #DDDDDD;
@@ -3176,13 +3183,13 @@ div.webix_modal_cover {
   color: #666666;
   text-transform: none;
   font-size: 15px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
   float: left;
   padding-top: 1px;
   padding-left: 0;
   padding-right: 7.5px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
   margin-bottom: 0px;
   padding-top: 10px;
   float: none;
@@ -3239,6 +3246,9 @@ div.webix_modal_cover {
   color: #666666;
   text-transform: none;
   font-size: 15px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 /*.webix_toolbar .webix_inp_label{
 	padding-top:(@inputHeight - 11 )/2;
@@ -3248,9 +3258,6 @@ div.webix_modal_cover {
   padding-top: 1px;
   padding-left: 0;
   padding-right: 7.5px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
 }
 .webix_inp_top_label {
   float: none;
@@ -3265,7 +3272,7 @@ div.webix_modal_cover {
   padding-left: 7.5px;
 }
 .webix_el_checkbox .webix_label_right {
-  display: inline-block;
+  display: block;
   padding-top: 2px;
 }
 .webix_el_label {
@@ -3476,6 +3483,31 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
 .webix_segment_N.webix_selected:focus {
   background: #24a259;
 }
+.webix_segment_0.webix_disabled,
+.webix_segment_1.webix_disabled,
+.webix_segment_N.webix_disabled {
+  color: #aaa;
+  background-color: #eee;
+  border-color: transparent;
+  cursor: not-allowed;
+}
+.webix_segment_0.webix_disabled:hover,
+.webix_segment_1.webix_disabled:hover,
+.webix_segment_N.webix_disabled:hover,
+.webix_segment_0.webix_disabled:focus,
+.webix_segment_1.webix_disabled:focus,
+.webix_segment_N.webix_disabled:focus,
+.webix_segment_0.webix_disabled:active,
+.webix_segment_1.webix_disabled:active,
+.webix_segment_N.webix_disabled:active,
+.webix_segment_0.webix_disabled.webix_selected,
+.webix_segment_1.webix_disabled.webix_selected,
+.webix_segment_N.webix_disabled.webix_selected,
+.webix_segment_0.webix_disabled.webix_selected:hover,
+.webix_segment_1.webix_disabled.webix_selected:hover,
+.webix_segment_N.webix_disabled.webix_selected:hover {
+  background-color: #eee;
+}
 .webix_inp_static {
   border: 1px solid #DDDDDD;
   background: white;
@@ -3583,6 +3615,19 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+.webix_radio_option.webix_disabled .webix_label_right,
+.webix_radio_option.webix_disabled .webix_inp_radio_border {
+  color: #aaa;
+  cursor: not-allowed;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.webix_el_radio .webix_radio_option.webix_disabled .webix_custom_radio {
+  color: #aaa;
+  cursor: not-allowed;
 }
 .webix_radio_option {
   display: table;
@@ -3865,6 +3910,26 @@ legend.webix_required:after,
   padding: 4px;
   margin-top: -4px;
 }
+.webix_icon.webix_tab_close:focus {
+  color: #ce5545;
+}
+.webix_all_tabs .webix_item_tab.webix_disabled {
+  color: #aaa;
+  background-color: #eee;
+  border-color: transparent;
+  cursor: not-allowed;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.webix_all_tabs .webix_item_tab.webix_disabled:hover,
+.webix_all_tabs .webix_item_tab.webix_disabled.webix_selected,
+.webix_all_tabs .webix_item_tab.webix_disabled.webix_selected:hover {
+  color: #aaa;
+  background-color: #eee;
+  border-color: transparent;
+}
 .webix_menu .webix_list_item:hover,
 .webix_menu-x .webix_list_item:hover,
 .webix_menu .webix_list_item:active,
@@ -3948,6 +4013,10 @@ legend.webix_required:after,
   border-bottom-left-radius: 0;
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
+}
+.webix_menu-x .webix_list_item.webix_disabled {
+  color: #aaa;
+  background-color: #eee;
 }
 /* Submenu */
 .webix_menu {
@@ -4450,7 +4519,7 @@ legend.webix_forminput_label_top {
   float: left;
 }
 .webix_el_switch .webix_label_right {
-  display: inline-block;
+  display: block;
   padding-top: 3px;
   margin-top: 4px;
 }
@@ -4648,6 +4717,47 @@ legend.webix_forminput_label_top {
   padding: 5px;
   border-radius: 0px;
   box-sizing: border-box;
+}
+.webix_timeline .webix_scroll_cont {
+  padding-top: 28px;
+}
+.webix_timeline_item {
+  height: 46px;
+  padding: 0 10px;
+}
+.webix_timeline_value {
+  font-weight: bold;
+  line-height: 18px;
+}
+.webix_timeline_details {
+  color: #A4B4BF;
+  padding-top: 2px;
+}
+.webix_timeline_date {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 18px;
+}
+.webix_timeline .webix_timeline_node {
+  stroke-width: 2px;
+  fill: #fff;
+}
+.webix_timeline_item.webix_timeline_left .webix_timeline_date {
+  text-align: right;
+  margin-right: 14px;
+}
+.webix_timeline_item.webix_timeline_left .webix_timeline_details,
+.webix_timeline_item.webix_timeline_left .webix_timeline_value {
+  margin-left: 14px;
+}
+.webix_timeline_item.webix_timeline_right .webix_timeline_date {
+  margin-left: 14px;
+}
+.webix_timeline_item.webix_timeline_right .webix_timeline_details,
+.webix_timeline_item.webix_timeline_right .webix_timeline_value {
+  margin-right: 14px;
+  text-align: right;
 }
 .webix_treemap {
   background-color: #f5f5f5;
@@ -5005,49 +5115,56 @@ span.webix_sidebar_dir_icon {
   color: #404040;
   background-color: #fff;
 }
-.webix_dbllist .webix_list {
+.webix_dbllist .bottom_label {
+  text-align: center;
+  font-size: 10px;
+}
+.webix_dbllist .webix_list,
+.webix_dbllist .bottom_label {
   background: #ededed;
 }
 .webix_dbllist .webix_list_item {
-  background: white;
+  background: #fff;
   margin: 3px 4px 0px 4px;
   box-sizing: border-box;
+  border: 1px solid #DDDDDD;
 }
 .webix_dbllist .webix_list_item.webix_selected {
+  border-bottom-color: #DDDDDD;
+  background-color: #27ae60;
   color: #FFFFFF;
-  background: #27ae60;
 }
-.webix_dbllist button {
+.webix_dbllist .dbllist_button {
   width: 45%;
   height: 30px;
   margin-top: 4px;
   padding: 0;
-  background: #eef7fc;
   border-radius: 6px;
   border: 1px solid #DDDDDD;
   cursor: pointer;
   font-size: 15px;
   font-family: 'PT Sans', Tahoma;
+  background-color: #eef7fc;
 }
-.webix_dbllist button:active {
-  box-shadow: inset 1px 1px 0px silver;
-}
-.webix_dbllist button .webix_icon {
+.webix_dbllist .dbllist_button .webix_icon {
   color: #888;
   font-size: 20px;
+  width: 26px;
 }
-.webix_dbllist button:first-child {
+.webix_dbllist .dbllist_button:active {
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+.webix_dbllist .dbllist_button:first-child {
   margin-top: 36px;
   margin-right: 4px;
 }
-.webix_dbllist button:last-child {
+.webix_dbllist .dbllist_button:last-child {
   margin-left: 4px;
 }
-.webix_dbllist .bottom_label {
-  font-size: 10px;
-  text-transform: uppercase;
-  background: #ededed;
-  padding-left: 13px;
+.webix_dbllist .dbllist_button:hover,
+.webix_dbllist .dbllist_button:focus,
+.webix_dbllist .dbllist_button:active {
+  background-color: #ddeef9;
 }
 .webix_invalid .webix_list {
   background: #f8e2e2;
@@ -5278,6 +5395,10 @@ body.webix_print {
   position: absolute;
   right: 0;
   top: 0;
+}
+.webix_badge.webix_measure_size {
+  right: auto;
+  box-sizing: border-box;
 }
 .webix_list_item .webix_badge {
   position: static;
@@ -5720,6 +5841,13 @@ body.webix_print {
 .webix_view .webix_tree_close:before {
   content: "\F025";
 }
+.webix_dbllist .bottom_label {
+  text-transform: uppercase;
+}
+.webix_dbllist .webix_list_item,
+.webix_dbllist .webix_list_item.webix_selected {
+  border: none;
+}
 .webix_menu-x .webix_submenu_icon,
 .webix_view.webix_menu .webix_submenu_icon {
   width: 6px;
@@ -5738,6 +5866,9 @@ body.webix_print {
 }
 .webix_menu.webix_view .webix_list_item.webix_selected {
   background: #27ae60;
+}
+.webix_menu.webix_view .webix_list_item.webix_disabled {
+  background-color: #fff;
 }
 .webix_property .webix_property_line.webix_focused > div,
 .webix_property .webix_property_line:focus > div {
@@ -5913,12 +6044,12 @@ div.webix_inp_static,
 .webix_view.webix_control.webix_el_tabbar .webix_after_all_tabs {
   border: none;
 }
-div.webix_item_tab {
+.webix_item_tab {
   border-color: #A4B4BF;
   padding-top: 3px;
   font-size: 18px;
 }
-div.webix_item_tab.webix_selected {
+.webix_item_tab.webix_selected {
   padding-top: 2px;
 }
 .webixtype_bottom .webix_item_tab,
@@ -6057,8 +6188,8 @@ div.webix_item_tab.webix_selected {
 .webix_el_tabbar .webixtype_image .webix_item_tab .webix_img_btn {
   color: #fff;
 }
-.webix_tab_more_icon:hover {
-  color: #4d4d4d;
+.webix_tab_more_icon:focus {
+  color: #3498db;
 }
 .webix_el_tabbar .webixtype_icon .webix_tab_more_icon,
 .webix_el_tabbar .webixtype_iconTop .webix_tab_more_icon,
@@ -6074,7 +6205,12 @@ div.webix_item_tab.webix_selected {
 }
 .webix_el_tabbar .webixtype_icon .webix_tab_more_icon:hover,
 .webix_el_tabbar .webixtype_iconTop .webix_tab_more_icon:hover,
-.webix_el_tabbar .webixtype_image .webix_tab_more_icon:hover {
+.webix_el_tabbar .webixtype_image .webix_tab_more_icon:hover,
+.webix_el_tabbar .webixtype_bottom .webix_tab_more_icon:hover,
+.webix_el_tabbar .webixtype_icon .webix_tab_more_icon:focus,
+.webix_el_tabbar .webixtype_iconTop .webix_tab_more_icon:focus,
+.webix_el_tabbar .webixtype_image .webix_tab_more_icon:focus,
+.webix_el_tabbar .webixtype_bottom .webix_tab_more_icon:focus {
   background-color: #268fd5;
 }
 .webix_tab_filler:first-child {
@@ -6200,6 +6336,9 @@ a:active .webix_custom_checkbox {
   box-sizing: border-box;
   height: 7px;
   background-color: #3498db;
+}
+.webix_el_radio .webix_radio_option.webix_disabled .webix_custom_radio:before {
+  background-color: #aaa;
 }
 .webix_el_radio .webix_radio_0 .webix_custom_radio:before {
   visibility: hidden;

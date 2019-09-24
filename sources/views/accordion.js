@@ -1,5 +1,5 @@
 import {protoUI} from "../ui/core";
-import {each} from "../ui/helpers";
+import {_each} from "../ui/helpers";
 import {isUndefined} from "../webix/helpers";
 import {$active} from "../webix/skin";
 import base from "./layout";
@@ -61,7 +61,7 @@ const api = {
 		}
 		if (view.callEvent){
 			view.callEvent("onViewShow",[]);
-			each(view, this._signal_hidden_cells);
+			_each(view, this._signal_hidden_cells);
 		}
 	},
 	_canCollapse:function(view){
@@ -73,9 +73,10 @@ const api = {
 		return false;
 	},
 	$skin:function(){
-		var defaults = this.defaults;
+		base.api.$skin.call(this);
+
 		if($active.accordionType)
-			defaults.type = $active.accordionType;
+			this.defaults.type = $active.accordionType;
 	}
 };
 

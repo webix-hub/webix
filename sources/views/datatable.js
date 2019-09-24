@@ -83,7 +83,7 @@ const api = {
 		this.defaults.rowHeight = $active.rowHeight;
 		this.defaults.minRowHeight = $active.rowHeight-6;
 		this.defaults.headerRowHeight = $active.barHeight - $active.borderWidth*2;
-		this.defaults.minColumnWidth = $active.dataPadding*2;
+		this.defaults.minColumnWidth = $active.dataPadding*2 + $active.borderWidth;
 	},
 	on_click:{
 		webix_richfilter:function(){
@@ -209,9 +209,20 @@ const api = {
 	refresh:function(){
 		this.render();
 	},
+	_delayRender:function(){
+		clearTimeout(this._renderDelay);
+		this._renderDelay = delay(()=>{
+			this._renderDelay = 0;
+			if(!isUndefined(this._delayedLeftScroll)){
+				this._setLeftScroll(this._delayedLeftScroll);
+				delete this._delayedLeftScroll;
+			}
+			this.render();
+		});
+	},
 	render:function(id, data, mode){
 		//pure data saving call
-		if (mode == "save") return;
+		if (mode == "save" || this._renderDelay) return;
 		//during dnd we must not repaint anything in mobile webkit
 		if (mode == "move"){
 			var context = DragControl.getContext();
@@ -991,13 +1002,11 @@ const api = {
 		if (isNaN(width) || col < 0) return;
 		var column = this._columns[col];
 
-		if (column.minWidth && width < column.minWidth)
-			width = column.minWidth;
-		else if (width<this._settings.minColumnWidth)
-			width = this._settings.minColumnWidth;		
+		width = Math.max(width, column.minWidth||this._settings.minColumnWidth||0);
+		width = Math.min(width, column.maxWidth||this._settings.maxColumnWidth||100000);
 
 		var old = column.width;
-		if (old !=width){
+		if (old != width){
 			if (col>=this._settings.leftSplit && col<this._rightSplit)
 				this._dtable_width += width-old;
 			
@@ -1088,8 +1097,9 @@ const api = {
 	},
 	setRowHeight:function(rowId, height){
 		if (isNaN(height)) return;
-		if (height<this._settings.minRowHeight)
-			height = this._settings.minRowHeight;
+
+		height = Math.max(height, this._settings.minRowHeight||0);
+		height = Math.min(height, this._settings.maxRowHeight||100000);
 
 		var item = this.getItem(rowId);
 		var old_height = item.$height||this._settings.rowHeight;
@@ -1130,7 +1140,10 @@ const api = {
 	},
 	_onscroll_x:function(value){
 		var scrollChange = (this._scrollLeft !== value);
-		this._setLeftScroll(value);
+		if(this._renderDelay)
+			this._delayedLeftScroll = value;
+		else
+			this._setLeftScroll(value);
 		if (this._settings.prerender===false)
 			this._check_rendered_cols(this._minimize_dom_changes?false:true);
 
@@ -1265,7 +1278,7 @@ const api = {
 		}
 	},
 	_check_rendered_cols:function(x_scroll, force){
-		if (!this._columns.length) return;
+		if (!this._columns.length || this._renderDelay) return;
 
 		if (force)
 			this._clearColumnCache();

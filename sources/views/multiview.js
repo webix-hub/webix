@@ -1,7 +1,7 @@
 import {remove} from "../webix/html";
 import {protoUI, $$} from "../ui/core";
 import {clone, delay, extend, isUndefined} from "../webix/helpers";
-import {each} from "../ui/helpers";
+import {_each} from "../ui/helpers";
 import {debug_size_box_start, debug_size_box_end} from "../webix/debug";
 import {assert} from "../webix/debug";
 
@@ -215,7 +215,7 @@ const api = {
 
 		if (next.callEvent){
 			next.callEvent("onViewShow",[]);
-			each(next, this._signal_hidden_cells);
+			_each(next, this._signal_hidden_cells);
 		}
 
 		this.callEvent("onViewChange",[prev._settings.id, next._settings.id]);

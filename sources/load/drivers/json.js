@@ -53,8 +53,7 @@ const json = {
 			size:(data.total_count||0),
 			from:data.pos,
 			parent:(data.parent||0),
-			config:(data.config),
-			key:(data.webix_security)
+			config:(data.config)
 		};
 	},
 	child:"data",

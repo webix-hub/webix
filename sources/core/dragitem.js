@@ -2,7 +2,7 @@ import {pos, offset} from "../webix/html";
 import {use} from "../services";
 import env from "../webix/env";
 import Touch from "../core/touch";
-import {extend, delay, PowerArray, isArray} from "../webix/helpers";
+import {extend, delay, _power_array, isArray} from "../webix/helpers";
 import {assert} from "../webix/debug";
 import DragControl from "../core/dragcontrol";
 import AutoScroll from "../core/autoscroll";
@@ -167,7 +167,7 @@ const DragItem ={
 				//if dragged item is one of selected - drag all selected
 				var selection = this.getSelectedId(true, true);	
 
-				if (selection && selection.length > 1 && PowerArray.find.call(selection,id)!=-1){
+				if (selection && selection.length > 1 && _power_array.find.call(selection,id)!=-1){
 					var hash = {}; 
 					list = [];
 					for (let i=0;i<selection.length; i++)

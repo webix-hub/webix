@@ -259,8 +259,7 @@ const api = {
 		}
 	},
 	$skin:function(){
-		var defaults = this.defaults;
-		defaults.headerAltHeight = defaults.headerHeight = $active.barHeight - $active.borderWidth*2;
+		this.defaults.headerAltHeight = this.defaults.headerHeight = $active.barHeight - $active.borderWidth*2;
 	},
 	defaults:{
 		header:false,

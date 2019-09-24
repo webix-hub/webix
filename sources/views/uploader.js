@@ -1,8 +1,7 @@
 import {createCss, preventEvent, addCss, removeCss} from "../webix/html";
 import {protoUI, $$} from "../ui/core";
-import {isUndefined, extend, delay, uid, toNode, bind} from "../webix/helpers";
+import {extend, delay, uid, toNode, bind} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
-import {assert} from "../webix/debug";
 import {$name} from "../webix/skin";
 
 import base from "../views/view";
@@ -63,21 +62,16 @@ const api = {
 	fileDialog:function(){},
 	stopUpload:function(){},
 	$skin:function(){
+		button.api.$skin.call(this);
+
 		if($name == "material" || $name == "mini")
 			this.defaults.css = "webix_primary";
 	},
 
 	$init:function(){
-		var driver = UploadDriver.html5;
 		this.files = new DataCollection();
 		this._destroy_with_me = [this.files];
-
-		// browser doesn't support XMLHttpRequest2
-		if (isUndefined(XMLHttpRequest) || isUndefined((new XMLHttpRequest()).upload))
-			driver = UploadDriver.flash;
-
-		assert(driver,"incorrect driver");
-		extend(this, driver, true);
+		extend(this, UploadDriver, true);
 	},
 	$setSize:function(x,y){
 		if (base.api.$setSize.call(this,x,y)){
@@ -197,7 +191,7 @@ const api = {
 
 		_event(node,"drop", bind(function(e){
 			removeCss(node, fullcss);
-			this._drop(e);
+			this.$drop(e);
 			return preventEvent(e);
 		}, this));
 	},

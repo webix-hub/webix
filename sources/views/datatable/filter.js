@@ -68,8 +68,8 @@ const Mixin = {
 
 		return function(itemValue, inputValue, obj){
 			if(!itemValue)
-				return true;
-			var ids = itemValue.split(separator);
+				return false;
+			var ids = itemValue.toString().split(separator);
 			for (var i = 0; i < ids.length; i++) {
 				if (compare(ids[i], inputValue, obj))
 					return true;

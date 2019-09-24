@@ -12,6 +12,11 @@ const api = {
 		this._settings.value = {};
 		// other types are not implemented
 		delete config.type;
+		// only start/end values can be selected
+		delete config.multiselect;
+	},
+	defaults:{
+		separator:" - "
 	},
 	_init_popup:function(){
 		var obj = this._settings;
@@ -44,7 +49,7 @@ const api = {
 	$setValue:function(value){
 		value = value || {};
 
-		this._settings.text = (value.start?this._get_visible_text(value.start):"")+(value.end?(" - "+ this._get_visible_text(value.end)):"");
+		this._settings.text = (value.start?this._get_visible_text(value.start):"")+(value.end?(this._settings.separator + this._get_visible_text(value.end)):"");
 		this._set_visible_text();
 	},
 	$render:function(obj){
@@ -52,11 +57,18 @@ const api = {
 		this.$setValue(obj.value);
 	},
 	getValue:function(){
-
 		var value = this._settings.value;
 
-		if(this._settings.stringResult){
-			var formatStr =i18n.parseFormatStr;
+		if (!this._rendered_input)
+			value = this.$prepareValue(value) || null;
+		else if (this._settings.editable){
+			var formatDate = this._formatDate||i18n.dateFormatDate;
+			let iValue = (this.getInputNode().value||"").split(this._settings.separator);
+			value = this._formatValue(formatDate, {start:iValue[0], end:iValue[1]});
+		}
+
+		if (this._settings.stringResult){
+			var formatStr = i18n.parseFormatStr;
 			return this._formatValue(formatStr, value);
 		}
 		

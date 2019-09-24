@@ -1,5 +1,5 @@
 import {pos as getPos} from "../webix/html";
-import {toNode, toArray, delay} from "../webix/helpers";
+import {toNode, _to_array, delay} from "../webix/helpers";
 import {event, eventRemove} from "../webix/htmlevents";
 import {attachEvent, detachEvent} from "../webix/customevents";
 import {assert} from "../webix/debug";
@@ -7,7 +7,7 @@ import {ui} from "../ui/core";
 
 
 const TooltipControl ={
-	_tooltip_masters: toArray(["dummy"]),
+	_tooltip_masters: _to_array(["dummy"]),
 	_tooltip_exist: 0,
 	delay:400,
 	addTooltip:function(target,config){
@@ -83,13 +83,16 @@ const TooltipControl ={
 			node = target;
 		else node = target.$view;
 
-		if (node.webix_tooltip){
+		const tip = node.webix_tooltip;
+		if (tip){
 			if (this._last == node){
 				this._hide_tooltip();
 				this._last = null;
 			}
 			delete node.webix_tooltip;
 			this._tooltip_exist--;
+
+			this._tooltip_masters[tip] = null;
 		}
 
 		if (!this._tooltip_exist && this._tooltip){
@@ -102,7 +105,7 @@ const TooltipControl ={
 			// then destroy the tooltip
 			this._tooltip.destructor();
 			this._tooltip = this._last = null;
-			this._tooltip_masters = toArray(["dummy"]);
+			this._tooltip_masters = _to_array(["dummy"]);
 		}
 	},
 

@@ -1,10 +1,11 @@
-import segmented from "../views/segmented";
 import {protoUI, ui, $$} from "../ui/core";
+import UIManager from "../core/uimanager";
 import {$active} from "../webix/skin";
-import {bind, extend} from "../webix/helpers";
+import {extend} from "../webix/helpers";
 import i18n from "../webix/i18n";
 import template from "../webix/template";
 
+import segmented from "../views/segmented";
 
 const api = {
 	name:"tabbar",
@@ -30,7 +31,7 @@ const api = {
 
 		var config = this._settings,
 			i, len,
-			tabs = this._tabs||config.options,
+			tabs = this._filterOptions(config.options),
 			totalWidth = this._input_width - config.tabOffset*2,
 			limitWidth = config.optionWidth||config.tabMinWidth;
 
@@ -53,40 +54,54 @@ const api = {
 		return {width: (len?totalWidth/len:config.tabMinWidth)};
 	},
 	_init_popup: function(){
-		var obj = this._settings;
+		const obj = this._settings;
 		if (!obj.tabbarPopup){
-			var popupConfig = {
+			const popupConfig = {
 				view: "popup",
+				autofocus:false,
 				width: (obj.popupWidth||200),
 				body:{
 					view: "list",
 					borderless: true,
-					select: true,
+					select: true, navigation:true,
 					css: "webix_tab_list",
-					autoheight: true, yCount:obj.yCount,
+					autoheight: true, yCount: obj.yCount,
 					type:{
 						template: obj.popupTemplate
 					}
 				}
 			};
-			var view = ui(popupConfig);
-			view.getBody().attachEvent("onBeforeSelect",bind(function(id){
-				if (id && this.callEvent("onBeforeTabClick", [id])){
-					this.setValue(id);
-					$$(this._settings.tabbarPopup).hide();
-					this.callEvent("onAfterTabClick", [id]);
-					return true;
-				}
-			},this));
+			const view = ui(popupConfig);
+			const list = view.getBody();
 
-			view.getBody().attachEvent("onAfterSelect", bind(function(){
-				this.refresh();
-			},this));
+			view.attachEvent("onShow", () => {
+				list.unselect();
+				UIManager.setFocus(list);
+
+				const node = list.getItemNode(list.getFirstId());
+				if (node)
+					node.focus();
+			});
+			list.attachEvent("onItemClick", (id) => this._popupInnerClick(id));
+			list.attachEvent("onEnter", () => this._popupInnerClick());
 
 			obj.tabbarPopup = view._settings.id;
 			this._destroy_with_me.push(view);
 		}
 		this._init_popup = function(){};
+	},
+	_popupInnerClick(id){
+		const popup = $$(this._settings.tabbarPopup);
+		id = id || popup.getBody().getSelectedId();
+
+		if (id && this.callEvent("onBeforeTabClick", [id])){
+			this.setValue(id);
+			popup.hide();
+			this.callEvent("onAfterTabClick", [id]);
+			this.refresh();
+			this.focus();
+		}
+		return false;
 	},
 	getPopup: function(){
 		this._init_popup();
@@ -100,16 +115,16 @@ const api = {
 		yCount: 7,
 		moreTemplate: "<span class=\"webix_icon wxi-dots\"></span>",
 		template:function(obj,common) {
-			var contentWidth, html, i, leafWidth, resultHTML, style, sum, tabs, verticalOffset, width;
+			common._check_options(obj.options);
 
-			common._tabs = tabs = common._filterOptions(obj.options);
+			let tabs = common._filterOptions(obj.options);
+			let contentWidth, html, leafWidth, resultHTML, style, sum, verticalOffset, width;
 
 			if (!tabs.length){
 				html = "<div class='webix_tab_filler' style='width:"+common._input_width+"px; border-right:0px;'></div>";
 			} else {
-				common._check_options(tabs);
-				if (!obj.value && tabs.length)
-					obj.value = tabs[0].id;
+				if (!obj.value)
+					obj.value = common._getFirstActive(true);
 
 				html = "";
 				if (obj.tabOffset)
@@ -119,37 +134,35 @@ const api = {
 
 				var sizes = common._getTabbarSizes();
 
-				if(sizes.max && sizes.max < tabs.length){
+				if (sizes.max && sizes.max < tabs.length){
 					//we need popup
-					var popup = common.getPopup();
+					const popup = common.getPopup();
 					popup.hide();
 
-					var list = (popup.getBody()||null);
-					if(list){
-						if(sizes.max){
-							var found = false;
-							for( i = 0; i < tabs.length && !found; i++)
+					const body = (popup.getBody()||null);
+					if(body){
+						if (sizes.max){
+							for (let i=0, found=false; i < tabs.length && !found; i++)
 								if(tabs[i].id== obj.value){
 									found = true;
 									if((i+1) > sizes.max){
-										var selectedTab =  tabs.splice(i, 1);
-										var displayTabs = tabs.splice(0, sizes.max-1).concat(selectedTab);
+										let selectedTab =  tabs.splice(i, 1);
+										let displayTabs = tabs.splice(0, sizes.max-1).concat(selectedTab);
 										tabs = displayTabs.concat(tabs);
 									}
 								}
-							list.clearAll();
-							list.parse(tabs.slice(sizes.max));
+							body.clearAll();
+							body.parse(tabs.slice(sizes.max));
 						}
-						else{
-							list.clearAll();
+						else {
+							body.clearAll();
 						}
 					}
 				} else if (common._settings.tabbarPopup)
 					$$(common._settings.tabbarPopup).hide();
 
 				sum = obj.tabOffset;
-				var lastTab = false;
-				for(i = 0; (i<tabs.length) && !lastTab; i++) {
+				for (let i=0, lastTab=false; (i<tabs.length) && !lastTab; i++) {
 
 					// tab width
 					if(sizes && sizes.max){
@@ -170,7 +183,7 @@ const api = {
 						html += "<div class='webix_tab_filler' style='width:"+obj.tabMargin+"px;'></div>";
 
 					// tab innerHTML
-					html += common._getTabHTML(tabs[i],width);
+					html += common._getTabHTML(tabs[i], width);
 
 
 					if(lastTab){
@@ -208,14 +221,18 @@ const api = {
 	_getInputNode:function(){
 		return this.$view.querySelectorAll(".webix_item_tab");
 	},
-	_getTabHTML: function(tab,width){
+	_getTabHTML: function(tab, width){
 		var	html,
 			className = "",
 			tooltip = "",
+			isDisabled = !!tab.disabled,
 			config = this.config;
 
-		if(tab.id== config.value)
-			className=" webix_selected";
+		if (tab.id == config.value)
+			className += " webix_selected";
+
+		if (isDisabled)
+			className += " webix_disabled";
 
 		if (tab.css)
 			className+=" "+tab.css;
@@ -224,10 +241,9 @@ const api = {
 			tooltip = " webix_t_id='"+tab.id+"'";
 
 		width = (tab.width||width);
-
-
-		html ="<div class=\"webix_item_tab"+className+"\" "+/*@attr*/"button_id=\""+tab.id+"\" role=\"tab\" aria-selected=\""+(tab.id== config.value?"true":"false")+"\" tabindex=\""+
-			(tab.id== config.value?"0":"-1")+"\" style=\"width:"+width+"px;\""+tooltip+">";
+		html = "<div class=\"webix_item_tab"+className+"\" "+/*@attr*/"button_id=\""+tab.id+"\" role=\"tab\" "+
+			"aria-selected=\""+(tab.id== config.value?"true":"false")+"\" tabindex=\""+(!isDisabled && tab.id==config.value?"0":"-1")+
+			"\" style=\"width:"+width+"px;\""+(isDisabled?" webix_disabled=\"true\"":"")+tooltip+">";
 
 		// a tab title
 		if(this._tabTemplate){
@@ -241,7 +257,7 @@ const api = {
 			html+=icon + tab.value;
 		}
 
-		if (tab.close || config.close)
+		if (!isDisabled && (tab.close || config.close))
 			html+="<span role='button' tabindex='0' aria-label='"+i18n.aria.closeTab+"' class='webix_tab_close webix_icon wxi-close'></span>";
 
 		html+="</div>";

@@ -200,6 +200,8 @@ const DataLoader =proto({
 		value = proxy.$parse(value);
 
 		this.data.attachEvent("onBeforeFilter", bind(function(text, filtervalue){
+			var result;
+
 			//complex filtering, can't be routed to dataFeed
 			if (typeof text == "function") return true;
 
@@ -209,30 +211,40 @@ const DataLoader =proto({
 				if (filtervalue && typeof filtervalue == "object")
 					filtervalue = filtervalue.id;
 
-				this.clearAll();
 				var url = this._settings.dataFeed;
 
 				//url data feed
 				if(typeof url =="string"){
 					var urldata = "filter["+text+"]="+encodeURIComponent(filtervalue);
-					this.load(url+(url.indexOf("?")<0?"?":"&")+urldata, this._settings.datatype);
+					result = this._fetch(
+						url+(url.indexOf("?")<0?"?":"&")+urldata,
+						this._settings.datatype
+					);
 				}
 				//js data feed
 				else{
 					var filter = {};
 					filter[text] = filtervalue;
 					if (typeof url == "function"){
-						url.call(this, filtervalue, filter);
-					}
-					else if (url.$proxy) {
-						if (url.load){
-							url.load(this, { filter: filter }).then(
-								data => this._onLoad(data),
-								x => this._onLoadError(x)
-							);
-						}
+						result = url.call(this, filtervalue, filter);
+					} else if (url.$proxy && url.load) {
+						result = url.load(this, { filter });
 					}
 				}
+
+				if (result){
+					if (!result.then)
+						result = promise.resolve(result);
+
+					result.then(
+						data => {
+							this.clearAll();
+							this._onLoad(data);
+						},
+						x => this._onLoadError(x)
+					);
+				}
+
 				return false;
 			}
 		},this));

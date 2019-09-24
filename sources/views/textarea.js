@@ -1,5 +1,4 @@
 import {protoUI} from "../ui/core";
-import {$active} from "../webix/skin";
 import {uid} from "../webix/helpers";
 
 import text from "./text";
@@ -17,12 +16,12 @@ const api = {
 
 			return common.$renderInput(obj, html, id);
 		},
-		height:0,
 		minHeight:60
 	},
 	$skin:function(){
-		this.defaults.inputPadding = $active.inputPadding;
-		this._inputSpacing = $active.inputSpacing;
+		text.api.$skin.call(this);
+
+		this.defaults.height = 0;
 	},
 	_skipSubmit: true,
 	_getLabelHeight:function(top){

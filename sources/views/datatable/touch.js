@@ -109,7 +109,7 @@ const Mixin = {
 				//switch back to 2d
 				var temp = Touch.config.translate;
 				Touch.config.translate = "translate";
-				this._sync_scroll((this._x_scroll ? 0 : result.e), 0, "0ms");
+				this._sync_scroll((this._x_scroll ? 0 : result.e), 0, 0);
 				Touch.config.translate = temp;
 
 				this._scrollLeft = -result.e;

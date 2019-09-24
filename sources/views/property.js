@@ -60,11 +60,11 @@ const api = {
 	on_dblclick:{
 	},
 	registerType:function(name, data){
-		if (data.template)
+		if (!isUndefined(data.template))
 			this.on_render[name] = data.template;
-		if (data.editor)
+		if (!isUndefined(data.editor))
 			this.on_edit[name] = data.editor;
-		if (data.click)
+		if (!isUndefined(data.click))
 			for (var key in data.click)
 				this.on_click[key] = data.click[key];
 	},

@@ -1,4 +1,4 @@
-import {bind, extend, toArray, copy, clone, isArray, uid, PowerArray} from "../webix/helpers";
+import {bind, extend, _to_array, copy, clone, isArray, uid, _power_array} from "../webix/helpers";
 import {assert} from "../webix/debug";
 import DataStore from "../core/datastore";
 import DataDriver from "../load/drivers/index";
@@ -30,7 +30,7 @@ const TreeStore = {
 		//remove previous filtering , if any
 		if (this._filter_branch && !preserve){
 			this.branch = this._filter_branch;
-			this.order = toArray(copy(this.branch[0]));
+			this.order = _to_array(copy(this.branch[0]));
 			for (var key in this.branch)
 				if (key != "0")	//exclude 0 - virtual root
 					this.getItem(key).$count = this.branch[key].length;
@@ -114,7 +114,7 @@ const TreeStore = {
 			delete branches[old];
 		}
 		if (branches[parent]){
-			var index = PowerArray.find.call(branches[parent], old);
+			var index = _power_array.find.call(branches[parent], old);
 			if (index >= 0)
 				branches[parent][index] = newid;
 		}
@@ -137,14 +137,14 @@ const TreeStore = {
 	},
 	getPrevSiblingId:function(id){
 		var order = this.branch[this.getItem(id).$parent];
-		var pos = PowerArray.find.call(order, id)-1;
+		var pos = _power_array.find.call(order, id)-1;
 		if (pos>=0)
 			return order[pos];
 		return null;
 	},
 	getNextSiblingId:function(id){
 		var order = this.branch[this.getItem(id).$parent];
-		var pos = PowerArray.find.call(order, id)+1;
+		var pos = _power_array.find.call(order, id)+1;
 		if (pos<order.length)
 			return order[pos];
 		return null;
@@ -163,7 +163,7 @@ const TreeStore = {
 	},
 	getBranchIndex:function(child){
 		var t = this.branch[this.pull[child].$parent];
-		return PowerArray.find.call(t, child);
+		return _power_array.find.call(t, child);
 	},
 	_set_child_scheme:function(parse_name){
 
@@ -264,7 +264,7 @@ const TreeStore = {
 			obj.$count = branch.length;
 	}, 
 	_sync_to_order:function(master){
-		this.order = toArray();
+		this.order = _to_array();
 
 		// send current order to prevent simultaneous use in synс mode
 		this._sync_each_child(this.order, 0, master);
@@ -292,7 +292,7 @@ const TreeStore = {
 			DataStore.prototype.provideApi.call(this, target, eventable);
 	},
 	getTopRange:function(){
-		return toArray([].concat(this.branch[0])).map(function(id){
+		return _to_array([].concat(this.branch[0])).map(function(id){
 			return this.getItem(id);
 		}, this);
 	},
@@ -384,7 +384,7 @@ const TreeStore = {
 			if (!parent.$count) parent.$count = 1;
 		}
 
-		this.branch[pid||0] = this.order = toArray(this.branch[pid||0]);
+		this.branch[pid||0] = this.order = _to_array(this.branch[pid||0]);
 
 		obj.$count = obj.webix_kids ? -1 : 0; 
 		obj.$level= (parent?parent.$level+1:1); 
@@ -404,7 +404,7 @@ const TreeStore = {
 				if (!index && this.branch[pid||0].length)
 					original_index = 0;
 
-				origin = toArray(origin);
+				origin = _to_array(origin);
 				obj.id = obj.id || uid();
 				origin.insertAt(obj.id,original_index);
 			}
@@ -438,7 +438,7 @@ const TreeStore = {
 		if (branch.length == 1 && branch[0] == id && parentId){
 			delete pull[parentId];
 		} else
-			toArray(branch).remove(id);
+			_to_array(branch).remove(id);
 	},
 	remove:function(id){
 		//id can be an array of IDs - result of getSelect, for example

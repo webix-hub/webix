@@ -27,7 +27,6 @@ const api = {
 		monthHeader: true,
 		weekNumber: false,
 		skipEmptyWeeks: false,
-
 		calendarHeader: "%F %Y",
 		//calendarTime: "%H:%i",
 		events:DateHelper.isHoliday,
@@ -35,7 +34,7 @@ const api = {
 		timeIcon:"wxi-clock",
 		icons: false,
 		timepickerHeight: 30,
-		headerHeight: 70,
+		headerHeight: 30,
 		dayTemplate: function(d){
 			return d.getDate();
 		},
@@ -107,9 +106,6 @@ const api = {
 		//navigation and aria
 		this._ariaFocus();
 		this.attachEvent("onKeyPress", this._onKeyPress);
-		this.attachEvent("onAfterZoom", function(zoom){
-			if(zoom >= 0) this.$view.querySelector(".webix_cal_month_name").blur();
-		});
 	},
 	minuteStep_setter(value){
 		return Math.max( Math.min(value, 60), this.defaults.minuteStep );
@@ -132,9 +128,11 @@ const api = {
 		}
 	},
 	$getSize:function(dx, dy){
-		if (this._settings.cellHeight){
-			var state = this._getDateBoundaries(this._settings.date);
-			this._settings.height = this._settings.cellHeight * state._rows + ($active.calendarHeight||70);
+		const s = this._settings;
+		if (s.cellHeight && !s.type){
+			const state = this._getDateBoundaries(s.date);
+			s.height = s.cellHeight * state._rows + s.headerHeight + (s.weekHeader?$active.calendarWeekHeaderHeight:0) +
+				(s.timepicker||this._icons?s.timepickerHeight:0) + (this._content_padding+$active.borderWidth)*2;
 		}
 		return base.api.$getSize.call(this, dx,dy);
 	},
@@ -187,7 +185,7 @@ const api = {
 			if( $active.calendar.timepickerHeight)
 				this.defaults.timepickerHeight = $active.calendar.timepickerHeight;
 		}
-
+		this._content_padding = $active.layoutPadding.form;
 	},
 	_getColumnConfigSizes: function(date){ 
 		var bounds = this._getDateBoundaries(date);
@@ -197,9 +195,10 @@ const api = {
 		var _columnsWidth = [];
 		var min = Infinity;
 
-		var containerWidth = this._content_width - 36;
+		var containerWidth = this._content_width - (this._content_padding+$active.borderWidth)*2;
 
-		var containerHeight = this._content_height - this._settings.headerHeight - 10 - (this._settings.timepicker||this._icons?this._settings.timepickerHeight:0);
+		var containerHeight = this._content_height - (s.monthHeader?s.headerHeight:0) - (s.weekHeader?$active.calendarWeekHeaderHeight:0) -
+			(s.timepicker||this._icons?s.timepickerHeight:0) - (this._content_padding+$active.borderWidth)*2;
 
 		var columnsNumber = (s.weekNumber)?8:7;
 		for(var i=0; i<columnsNumber; i++) {
@@ -270,23 +269,24 @@ const api = {
 
 		var bounds = this._getDateBoundaries(date, true);
 		var sizes = this._getColumnConfigSizes(date);
+		var cpad = this._content_padding + "px";
 		var width = sizes[0];
 		var height = sizes[1];
 
 		var html = "";
 		if (s.monthHeader){
-			html += "<div class='webix_cal_month'><span aria-live='assertive' aria-atomic='true' class='webix_cal_month_name"+((!s.monthSelect || !s.navigation)?" webix_readonly'":"' role='button' tabindex='0'")+">"+s.calendarHeader(date)+"</span>";
+			html += "<div class='webix_cal_month' style='margin:0 "+cpad+"'><span aria-live='assertive' aria-atomic='true' class='webix_cal_month_name"+((!s.monthSelect || !s.navigation)?" webix_readonly'":"' role='button' tabindex='0'")+">"+s.calendarHeader(date)+"</span>";
 			if (s.navigation)
 				html += "<div role='button' tabindex='0' aria-label='"+i18n.aria.navMonth[0]+"' class='webix_cal_prev_button'></div><div role='button' tabindex='0' aria-label='"+i18n.aria.navMonth[1]+"' class='webix_cal_next_button'></div>";
 			html += "</div>";
 		}
 
 		if(s.weekHeader)
-			html += "<div class='webix_cal_header' aria-hidden='true'>"+this._week_template(width)+"</div>";
-		html += "<div class='webix_cal_body'>"+this._body_template(width, height, bounds, sizes[2])+"</div>";
+			html += "<div class='webix_cal_header' style='margin:0 "+cpad+"' aria-hidden='true'>"+this._week_template(width)+"</div>";
+		html += "<div class='webix_cal_body' style='margin:0 "+cpad+"'>"+this._body_template(width, height, bounds, sizes[2])+"</div>";
 
 		if (this._settings.timepicker || this._icons){
-			html += "<div class='webix_cal_footer'>";
+			html += "<div class='webix_cal_footer' style='margin:0 "+cpad+"'>";
 			if(this._settings.timepicker)
 				html += this._timepicker_template(date);
 
@@ -296,6 +296,7 @@ const api = {
 		}
 
 		this._contentobj.innerHTML = html;
+		this._contentobj.firstChild.style.marginTop = cpad;
 
 		if(this._settings.type == "time"){
 			var time = this._settings.date;
@@ -361,7 +362,7 @@ const api = {
 
 		if(s.weekNumber) {
 			correction = 1;
-			week_template += "<div class='webix_cal_week_header' style='width: "+widths[0]+"px;' >"+s.calendarWeekHeader+"</div>";
+			week_template += "<div class='webix_cal_week_header' style='width: "+widths[0]+"px;' >"+(s.calendarWeekHeader||"")+"</div>";
 		}
 		
 		var k = (DateHelper.startOnMonday)?1:0;
@@ -596,7 +597,7 @@ const api = {
 					max = calendar._settings.maxDate,
 					year = calendar._settings.date.getFullYear();
 
-				if(min){
+				if (min){
 					var minYear = min.getFullYear();
 					blocked = year<minYear || (year==minYear&&min.getMonth()>i);
 				}
@@ -609,14 +610,16 @@ const api = {
 				return blocked;
 			},
 			_correctDate: function(date,calendar){
-				if(date < calendar._settings.minDate){
+				date = DateHelper.monthStart(date);
+
+				if (date < calendar._settings.minDate){
 					date = DateHelper.copy(calendar._settings.minDate);
 				}
-				else if(date > calendar._settings.maxDate){
+				else if (date > calendar._settings.maxDate){
 					date = DateHelper.copy(calendar._settings.maxDate);
 				}
 
-				return DateHelper.monthStart(date);
+				return date;
 			},
 			_getTitle:function(date){ return date.getFullYear(); },
 			_getContent:function(i){ return i18n.calendar.monthShort[i]; },
@@ -635,8 +638,11 @@ const api = {
 				else if(mode === "up" || mode === "down")
 					newdate = DateHelper.add(date, (mode==="down"?4:-4), "month");
 
-				if(!calendar._checkDate(newdate))
+				newdate = calendar._correctDate(newdate);
+
+				if(!calendar._checkDate(newdate)){
 					newdate = calendar._findActive(date, mode);
+				}
 				
 				if(newdate){
 					calendar._update_zoom_level(newdate);
@@ -657,13 +663,14 @@ const api = {
 				return false;
 			},
 			_correctDate: function(date,calendar){
-				if(date < calendar._settings.minDate){
+				date = DateHelper.yearStart(date);
+				if (date < calendar._settings.minDate){
 					date = DateHelper.copy(calendar._settings.minDate);
 				}
-				else if(date > calendar._settings.maxDate){
+				else if (date > calendar._settings.maxDate){
 					date = DateHelper.copy(calendar._settings.maxDate);
 				}
-				return DateHelper.yearStart(date);
+				return date;
 			},
 			_getTitle:function(date, calendar){
 				var start = date.getFullYear();
@@ -685,6 +692,8 @@ const api = {
 					newdate = DateHelper.add(date, (mode==="right"?1:-1), "year");
 				else if(mode === "up" || mode === "down")
 					newdate = DateHelper.add(date, (mode==="down"?4:-4), "year");
+
+				newdate = calendar._correctDate(newdate);
 
 				if(!calendar._checkDate(newdate))
 					newdate = calendar._findActive(date, mode);
@@ -722,9 +731,10 @@ const api = {
 	_update_zoom_level:function(date){
 		var config, css, height, i, index,  sections, selected, type, width, zlogic, temp, sqSize;
 		var html = "";
+		var cpad = this._content_padding + "px";
 
 		config = this._settings;
-		index = config.weekHeader?2: 1;
+		index = 2 - (config.weekHeader?0:1) - (config.monthHeader?0:1);
 		zlogic = this._zoom_logic[this._zoom_level];
 		sections  = this._contentobj.childNodes;
 
@@ -738,14 +748,12 @@ const api = {
 
 		//store width and height of draw area
 		if (!this._zoom_size){
-			/*this._reserve_box_height = sections[index].offsetHeight +(index==2?sections[1].offsetHeight:0);*/
 
-			this._reserve_box_height = this._contentobj.offsetHeight - config.headerHeight ;
+			this._reserve_box_height = this._contentobj.offsetHeight - (config.monthHeader||this._zoom_in?config.headerHeight:0) -
+				(this._content_padding+$active.borderWidth)*2;
 			if(type != "year" && type != "month")
 				this._reserve_box_height -= config.timepickerHeight;
-			else if(this._icons){
-				this._reserve_box_height -= 10;
-			}
+
 			this._reserve_box_width = sections[index].offsetWidth;
 			this._zoom_size = 1;
 		}
@@ -762,8 +770,8 @@ const api = {
 			width = parseInt((this._reserve_box_width-3)/timeColNum,10);
 			sqSize = Math.min(width,height);
 
-			html += "<div class='webix_time_header'>"+this._timeHeaderTemplate(width,enLocale)+"</div>";
-			html += "<div  class='webix_cal_body' style='height:"+this._reserve_box_height+"px'>";
+			html += "<div class='webix_time_header' style='margin:0 "+cpad+"'>"+this._timeHeaderTemplate(width,enLocale)+"</div>";
+			html += "<div  class='webix_cal_body' style='height:"+this._reserve_box_height+"px; margin:0 "+cpad+";'>";
 
 			// check and change blocked selected time
 			this._correctBlockedTime();
@@ -819,25 +827,30 @@ const api = {
 			html += "</div>";
 
 			html += "</div>";
-			html += "<div  class='webix_time_footer'>"+this._timeButtonsTemplate()+"</div>";
+			html += "<div class='webix_time_footer' style='margin:0 "+cpad+"'>"+this._timeButtonsTemplate()+"</div>";
 			this._contentobj.innerHTML = html;
+			this._contentobj.firstChild.style.marginTop = cpad;
 		} else {
 			//years and months
 			
 			//reset header
-			var header = sections[0].childNodes;
-			var labels = i18n.aria["nav"+(this._zoom_level==1?"Year":"Decade")];
-			header[0].innerHTML = zlogic._getTitle(config.date, this);
-			if (config.navigation){
-				header[1].setAttribute("aria-label", labels[0]);
-				header[2].setAttribute("aria-label", labels[1]);
-			}
+			if (config.monthHeader){
+				var header = sections[0].childNodes;
+				var labels = i18n.aria["nav"+(this._zoom_level==1?"Year":"Decade")];
+				header[0].innerHTML = zlogic._getTitle(config.date, this);
+				header[0].blur();
+				if (config.navigation){
+					header[1].setAttribute("aria-label", labels[0]);
+					header[2].setAttribute("aria-label", labels[1]);
+				}
+			} else	//needed for "year" to set start value
+				zlogic._getTitle(config.date, this);
 
 			height = Math.floor(this._reserve_box_height/3);
 			width = Math.floor(this._reserve_box_width/4);
 			sqSize = Math.min(height, width);
 
-			if(this._checkDate(config.date))
+			if (this._checkDate(config.date))
 				selected = (this._zoom_level==1?config.date.getMonth():config.date.getFullYear());
 			for (i=0; i<12; i++){
 				css = (selected == (this._zoom_level==1?i:zlogic._getContent(i, this)) ? " webix_selected" : "");
@@ -852,15 +865,18 @@ const api = {
 					"' class='webix_cal_block"+css+"' data-value='"+i+"' style='"+this._getCalSizesString(width,height)+
                     "'><span style='display:inline-block; "+this._getCalSizesString(sqSize,sqSize)+"'>"+zlogic._getContent(i, this)+"</span></div>";
 			}
-			if(index-1){
+			if (config.weekHeader){
 				sections[index-1].style.display = "none";
+				if (index === 1) sections[index].style.marginTop = cpad;
 			}
 			sections[index].innerHTML = html;
-			if(type != "year" && type != "month"){
+			if (type != "year" && type != "month"){
 				if(!sections[index+1])
-					this._contentobj.innerHTML += "<div  class='webix_time_footer'>"+this._timeButtonsTemplate()+"</div>";
+					this._contentobj.innerHTML += "<div class='webix_time_footer' style='margin:0 "+cpad+"'>"+this._timeButtonsTemplate()+"</div>";
 				else
-					sections[index+1].innerHTML=this._timeButtonsTemplate();
+					sections[index+1].innerHTML = this._timeButtonsTemplate();
+			} else if (sections[index+1]){
+				sections[index+1].style.display = "none";
 			}
 			sections[index].style.height = this._reserve_box_height+"px";
 		}

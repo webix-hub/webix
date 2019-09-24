@@ -1,6 +1,6 @@
 import text from "../views/text";
 import {protoUI, $$} from "../ui/core";
-import {extend, toArray} from "../webix/helpers";
+import {extend, _to_array} from "../webix/helpers";
 
 
 const api = {
@@ -112,7 +112,7 @@ const api = {
 		}
 	},
 	$init:function(){
-		this._subs = toArray([]);
+		this._subs = _to_array([]);
 		this.attachEvent("onKeyPress", this._onKeyPress);
 	},
 	$render:function(obj){

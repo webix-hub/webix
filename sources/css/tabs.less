@@ -105,6 +105,25 @@
 	border-bottom: none;
 }
 .webix_icon.webix_tab_close{
- 	font-size:12px; float:right; padding:4px; margin-top:-4px;
+ 	font-size:12px;
+ 	float:right;
+ 	padding:4px;
+ 	margin-top:-4px;
+ 	&:focus{
+ 		color: @dangerColor;
+ 	}
 }
 
+.webix_all_tabs .webix_item_tab.webix_disabled{
+	color: @disabledFontColor;
+	background-color: @disabledColor;
+	border-color: transparent;
+	cursor: not-allowed;
+	#box > .noselect;
+
+	&:hover, &.webix_selected, &.webix_selected:hover{
+		color: @disabledFontColor;
+		background-color: @disabledColor;
+		border-color: transparent;
+	}
+}

@@ -2,6 +2,7 @@ import {protoUI, ui, $$} from "../ui/core";
 import {$active} from "../webix/skin";
 import {isUndefined, isArray, extend, uid} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
+import {setSelectionRange} from "../webix/html";
 import {assert} from "../webix/debug";
 import template from "../webix/template";
 
@@ -35,9 +36,12 @@ const api = {
 		}
 	},
 	$skin:function(){
+		button.api.$skin.call(this);
+
 		this.defaults.height = $active.inputHeight;
 		this.defaults.inputPadding = $active.inputPadding;
 		this._inputSpacing = $active.inputSpacing;
+		this._labelTopHeight = $active.labelTopHeight;
 	},
 	$init:function(config){
 		if (config.labelPosition == "top")
@@ -184,7 +188,7 @@ const api = {
 		var id = "x"+uid();
 		var width = common._get_input_width(obj);
 		var inputAlign = obj.inputAlign || "left";
-		var height = this._settings.aheight - 2*$active.inputPadding -2*this._borderWidth;
+		var height = this._settings.aheight - 2*$active.inputPadding - 2*$active.borderWidth;
 		var text = (obj.text||obj.value||this._get_div_placeholder(obj));
 		var html = "<div class='webix_inp_static' role='combobox' aria-label='"+template.escape(obj.label)+"' tabindex='0'"+(obj.readonly?" aria-readonly='true'":"")+(obj.invalid?"aria-invalid='true'":"")+" onclick='' style='line-height:"+height+"px;width: " + width + "px; text-align: " + inputAlign + ";' >"+ text +"</div>";
 		return common.$renderInput(obj, html, id);
@@ -276,26 +280,40 @@ const api = {
 	$getValue:function(){
 		return this._pattern(this.getInputNode().value, false);
 	},
+	setValueHere:function(v, data, details){
+		if (details && details.symbol){
+			const s = details.symbol;
+			let value = this.getValue();
+			let last = value.substring(details.pos);
+
+			value = value.substring(0, details.pos);
+			value = value.substring(0, value.lastIndexOf(s)+s.length) + v;
+
+			this.setValue(value + last);
+			setSelectionRange(this.getInputNode(), value.length);
+		} else
+			this.setValue(v);
+	},
 	suggest_setter:function(value){
 		if (value){
 			assert(value !== true, "suggest options can't be set as true, data need to be provided instead");
 
 			if (typeof value == "string"){
-				var attempt = $$(value);
+				const attempt = $$(value);
 				if (attempt) 
 					return $$(value)._settings.id;
 
-				value = { body: { url:value , dataFeed :value } };
+				value = { body: { url:value , dataFeed:value }};
 			} else if(value.getItem)
-				value = { body: {data:value}};
+				value = { body: { data:value }};
 			else if (isArray(value))
-				value = { body: { data: this._check_options(value) } };
+				value = { body: { data: this._check_options(value) }};
 			else if (!value.body)
-				value.body = {};
+				value.body = { };
 
 			extend(value, { view:"suggest" });
 
-			var view = ui(value);
+			const view = ui(value);
 			this._destroy_with_me.push(view);
 			return view._settings.id;
 		}

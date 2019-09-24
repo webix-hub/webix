@@ -99,6 +99,7 @@ import "./views/multisuggest";
 import "./views/checksuggest";
 import "./views/datasuggest";
 import "./views/gridsuggest";
+import "./views/mentionsuggest";
 
 import "./views/daterange";
 import "./views/daterangesuggest";
@@ -128,7 +129,7 @@ import "./views/treemap";
 import "./views/dataview";
 import "./views/pager";
 import "./views/comments";
-
+import "./views/timeline";
 
 import "./views/menu";
 import "./views/submenu";

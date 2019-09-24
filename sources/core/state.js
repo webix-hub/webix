@@ -18,14 +18,12 @@ const state = {
 	_events:[],
 
 	destructors:[],
-	securityKey:"",
 
 	_noselect_element:null,
 
 	_modality:0,
 
-	_wait_animate:null,
-	noanimate:false
+	_wait_animate:null
 };
 
 export default state;

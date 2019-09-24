@@ -31,6 +31,8 @@ const api = {
 		}
 	},
 	$skin:function(){
+		checkbox.api.$skin.call(this);
+
 		this._switchHeight = $active.switchHeight;
 		this._switchWidth = $active.switchWidth;
 	},

@@ -72,6 +72,8 @@ const api = {
 		return this.$view.getElementsByTagName(this._settings.customCheckbox?"button":"input")[0];
 	},
 	$skin:function(){
+		text.api.$skin.call(this);
+
 		this.defaults.customCheckbox = !!$active.customCheckbox;
 	}
 };

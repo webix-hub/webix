@@ -49,8 +49,7 @@ const xml={
 			size:(data.documentElement.getAttribute("total_count")||0),
 			from:data.documentElement.getAttribute("pos"),
 			parent:(data.documentElement.getAttribute("parent")||0),
-			config:config,
-			key:(data.documentElement.getAttribute("webix_security")||null)
+			config:config
 		};
 	},
 	//xpath helper

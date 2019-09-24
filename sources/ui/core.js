@@ -157,16 +157,6 @@ function _deleteIds(uis){
 	}
 }
 
-function hasMethod(view, method){
-	var obj = ui[view];
-	if (!obj) return false;
-
-	if (obj.$protoWait)
-		obj = obj.call(-1);
-
-	return !!ui[view].prototype[method];
-}
-
 
 function _view(config){
 
@@ -397,4 +387,4 @@ if (DEBUG){
 	}
 }
 
-export { ui, proto, protoUI, hasMethod, $$ };
+export { ui, proto, protoUI, $$ };

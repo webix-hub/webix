@@ -1,6 +1,6 @@
 import state from "./state";
 
-import {toArray} from "../webix/helpers";
+import {_to_array} from "../webix/helpers";
 import {event, _events_final_destructor} from "../webix/htmlevents";
 import {callEvent} from "../webix/customevents";
 
@@ -103,7 +103,7 @@ event(window,"unload",function(){
 			obj.destructor();
 	}
 	state.destructors = [];
-	state._popups = toArray();
+	state._popups = _to_array();
 
 	_events_final_destructor();
 });

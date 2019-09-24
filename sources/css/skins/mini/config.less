@@ -41,6 +41,7 @@
 @listItemHeight: 28px;
 @unitHeaderHeight:28px;
 @propertyItemHeight:24px;
+@timelineItemHeight:36px;
 @menuMargin: 0px;
 @menuHeight: 28px;
 @dataPadding: 12px;
@@ -226,12 +227,22 @@
 	.webix_segment_0:active, .webix_segment_1:active, .webix_segment_N:active{
 		.barButtonActive;
 	}
-	.webix_inp_static, input[type=text], input[type=combo]{
+	.webix_inp_static, input[type=text], input[type=combo], textarea, select{
 		border-color: transparent;
 		background-color:@barButtonBgColor;
 		color:@barkBarInputColor;
 	}
-	.webix_inp_static:focus, input[type=text]:focus, input[type=combo]:focus{
+	.webix_inp_static input[type=text]{
+		background-color:transparent;
+	}
+	select option{
+		background-color: @secondaryBg;
+		color: @backColor;
+	}
+	.webix_multicombo_value, .webix_multicombo_tag{
+		color: @secondaryBg;
+	}
+	.webix_inp_static:focus, input[type=text]:focus, input[type=combo]:focus, textarea:focus, select:focus{
 		border-color: @backColor;
 		box-shadow: none;
 	}
@@ -295,6 +306,7 @@
 	.inputDisabled(){
 		color: @disabledFontColor;
 		background: @disabledColor;
+		border-color: transparent;
 	}
 	.buttonDisabled(){
 		color: @disabledFontColor;
@@ -328,12 +340,30 @@
 		input, select, textarea, .webix_inp_static{
 			.inputDisabled();
 		}
+		.webix_inp_static input{
+			background-color: transparent;
+		}
 		.webix_inp_counter_prev, .webix_inp_counter_next, .webix_segment_0, .webix_segment_1, .webix_segment_N, .webix_item_tab{
 			.buttonDisabled;
 		}
 	}
 	.webix_disabled_top_label{
 		color: @disabledFontColor;
+	}
+
+	// invalid controls
+	.webix_invalid .webix_el_box input,
+	.webix_invalid .webix_el_box .webix_inp_static, .webix_invalid .webix_el_box select,
+	.webix_invalid .webix_el_box textarea, input.webix_invalid, select.webix_invalid, textarea.webix_invalid{
+		color: tint(@dangerColor, 80%);
+		background-color: fade(@dangerColor, 30%);
+		border-color: tint(@dangerColor, 30%);
+	}
+	.webix_invalid .webix_multicombo_value, .webix_invalid .webix_multicombo_tag{
+		color: @dangerColor;
+	}
+	.webix_invalid .webix_el_box .webix_inp_static input{
+		background-color:transparent;
 	}
 }
 
@@ -713,6 +743,7 @@
 		#border > .radius(@skin_input_radius);
 	}
 }
+@dtCheckboxMarginTop: (@rowHeight - 14)/2;
 
 .dataItemStyle{
 	border-color: @dataBorderColor ;
@@ -879,7 +910,10 @@
 		border-right: none;
 		#border > .corners(0,@borderRadius,@borderRadius,0);
 	}
-
+	.webix_list_item.webix_disabled{
+		color: @disabledFontColor;
+		background-color: @disabledColor;
+	}
 }
 .webix_view.webix_popup.webix_menu{
 	border: none;
@@ -895,6 +929,9 @@
 	}
 	.webix_list_item.webix_selected{
 		background: @selectColor;
+	}
+	.webix_list_item.webix_disabled{
+		background-color: @backColor;
 	}
 	.webix_icon{
 		color: @inactiveFontColor;
@@ -1143,6 +1180,9 @@ div.webix_inp_static,.webix_el_textarea textarea {
 			padding: 0;
 			margin-top: 1px;
 			color: @inactiveFontColor;
+			&:focus{
+		 		color: @dangerColor;
+		 	}
 		}
 	}
 	.webix_item_tab.webix_selected{
@@ -1156,6 +1196,9 @@ div.webix_inp_static,.webix_el_textarea textarea {
 			box-shadow: inset 0 -2px darken(@baseColor, 8%);
 		}
 	}
+	.webix_item_tab.webix_selected.webix_disabled{
+		box-shadow: inset 0 -2px @disabledFontColor;
+	}
 	.webix_tab_filler{
 		border: none;
 	}
@@ -1163,7 +1206,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		.webix_icon{
 			color: @baseColor;
 		}
-		&:hover{
+		&:hover, &:focus{
 			background-color: @selectColor;
 		}
 	}
@@ -1185,6 +1228,12 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		box-shadow: inset 0 2px @baseColor;
 		background: @selectTabBgColor ;
 		color: @selectTabFontColor ;
+		&:focus{
+			box-shadow: inset 0 2px darken(@baseColor, 8%);
+		}
+	}
+	.webix_item_tab.webix_selected.webix_disabled{
+		box-shadow: inset 0 2px @disabledFontColor;
 	}
 }
 .webix_el_tabbar .webixtype_icon{
@@ -1269,7 +1318,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		.webix_icon{
 			color: @selectTabFontColor;
 		}
-		&:hover{
+		&:hover, &:focus{
 			background-color: @selectColor;
 		}
 	}
@@ -1558,22 +1607,14 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		color: @baseColor;
 	}
 }
-.webix_cal_month_name{
+.webix_cal_month_name, .webix_time_header .webix_cal_hours, .webix_time_header .webix_cal_minutes{
 	.fontStyle(@fontSize, 500, @altFontColor);
 }
 .webix_cal_month_name.webix_readonly:hover, .webix_cal_month_name.webix_readonly:focus{
 	color: @altFontColor;
 }
-.webix_cal_icons, .webix_cal_time{
-	padding: 4px;
-	line-height: 20px;
-	.webix_cal_icon{
-		padding: 0 4px;
-	}
-}
 .webix_cal_prev_button, .webix_cal_next_button{
 	background-image: none;
-	height: 24px;
 	width: 24px;
 	font-size: 24px;
 	font-family: @iconFamily;
@@ -1594,10 +1635,14 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	border-bottom: none;
 }
 
-.webix_view  > .webix_cal_header div{
-	font-size: @smallFontSize;
-	margin-bottom: 0;
-	border-bottom-width: 0px;
+.webix_view  > .webix_cal_header{
+	height: 18px;
+	div{
+		height: 17px;
+		line-height: 18px;
+		font-size: @smallFontSize;
+		border-bottom-color: transparent;
+	}
 }
 .webix_cal_body{
 	.webix_cal_week_num{
@@ -1949,6 +1994,9 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	&.webix_disabled{
 		color: @inactiveFontColor;
 	}
+	&.webix_selected.webix_disabled{
+		box-shadow: inset 2px 0 @inactiveFontColor;
+	}
 	.webix_icon{
 		font-size: 20px;
 	}
@@ -2079,41 +2127,12 @@ div.webix_inp_static,.webix_el_textarea textarea {
 }
 
 // dbllist
+@dblistSelColor: @fontColor;
+@dblistButtonBg: @buttonColor;
+
 .webix_dbllist{
-	.webix_list, .bottom_label{
-		background-color: @baseBg;
-	}
 	.bottom_label{
 		.fontStyle(@fontSize, 400, @inactiveFontColor);
-		text-align: center;
-		padding: 0px 4px;
-		text-transform: none;
-	}
-	.webix_list_item.webix_selected{
-		background-color: @accentBg;
-		border-bottom-color: @borderColor;
-		color: @fontColor;
-	}
-	.webix_list_item{
-		border:1px solid @borderColor;
-	}
-	.dbllist_button{
-		background-color: @buttonColor;
-		.webix_icon{
-			width: 26px;
-			color: @baseColor;
-		}
-		&:hover{
-			.darkHoverRule(@buttonColor);
-		}
-		&:focus{
-			.darkFocusRule(@buttonColor);
-		}
-		&:active{
-			.darkActiveRule(@buttonColor);
-			box-shadow: none;
-			.activeShadow;
-		}
 	}
 }
 
@@ -2281,6 +2300,10 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	padding-top: 2px;
 }
 
+//timeline
+.webix_timeline_point{
+	r:4;
+}
 //for skin autodetection
 .webix_skin_mark{
 	height: 250px;

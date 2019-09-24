@@ -32,9 +32,10 @@ const Mixin = {
 		return null;
 	},
 	moveSelection:function(mode, details, focus){
+		this._delayRender();
 		if(this._settings.disabled) return;
 		details = details || {};
-		
+
 		//get existing selection as array
 		var t = this.getSelectedId(true);
 		var index = t.length-1;

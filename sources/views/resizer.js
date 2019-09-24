@@ -63,7 +63,7 @@ const api = {
 		var cells = this._getResizerCells();
 		//some sibling can block resize
 		if(cells && !this._settings.disabled){
-			e = e||event;
+			e = e||window.event;
 			this._rs_started = true;
 			this._rs_process = getPos(e);
 			this._rsLimit = [];
@@ -83,7 +83,7 @@ const api = {
 	_rsStart:function(e, cell){
 
 		var dir, cellOffset, pos,posParent,start;
-		e = e||event;
+		e = e||window.event;
 		dir = this._resizer_dir;
 
 		/*layout position:relative to place absolutely positioned elements in it*/
@@ -118,7 +118,7 @@ const api = {
 		return this.getParentView()._vertical_orientation?"y":"x";
 	},
 	_rsResizeHandler:function(){
-		var cells,config,cDiff,diff,dir,i,limits,limitSizes,sizes,totalSize;
+		let cells,cDiff,diff,dir,i,limits,limitSizes,sizes,totalSize;
 		if(this._rs_progress){
 			cells = this._getResizerCells();
 			dir = this._rs_progress[0];
@@ -128,17 +128,23 @@ const api = {
 			sizes = this._rsGetDiffCellSizes(cells,dir,diff);
 			/*sum of cells dimensions*/
 			totalSize = cells[0]["$"+this._resizer_dim]+cells[1]["$"+this._resizer_dim];
-			/*max and min limits if they're set*/
-			limits = (dir=="y"?["minHeight","maxHeight"]:["minWidth","maxWidth"]);
 			for(i=0;i<2;i++){
-				config = cells[i]._settings;
 				cDiff = (i?-diff:diff);/*if cDiff is positive, the size of i cell is increased*/
-				/*if size is bigger than max limit or size is smaller than min limit*/
-				var min = config[limits[0]];
-				var max = config[limits[1]];
 
-				if(cDiff>0&&max&&max<=sizes[i] || cDiff<0&&(min||3)>=sizes[i]){
-					this._rsLimit[i] = (cDiff>0?max:(min||3));
+				/*max and min limits*/
+				limits = cells[i].$getSize(0,0);
+				/*if size is bigger than max limit or size is smaller than min limit*/
+				let min = (dir=="y")?limits[2]:limits[0];
+				let max = (dir=="y")?limits[3]:limits[1];
+
+				//if size is fixed, treat it as responsive (default behavior)
+				if (min === max){
+					min = cells[i]._settings[ (dir=="y")?"minHeight":"minWidth" ]||3;
+					max = cells[i]._settings[ (dir=="y")?"maxHeight":"maxWidth" ]||100000;
+				}
+
+				if(cDiff>0&&max&&max<=sizes[i] || cDiff<0&&min&&min>=sizes[i]){
+					this._rsLimit[i] = (cDiff>0?max:min);
 					/*new sizes, taking into account max and min limits*/
 					limitSizes = this._rsGetLimitCellSizes(cells,dir);
 					/*stick position*/

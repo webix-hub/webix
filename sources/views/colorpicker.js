@@ -34,15 +34,19 @@ const api = {
 			return this._settings.value;
 	},
 	$prepareValue:function(value){
-		if(value && value.charAt && value.charAt(0) != "#")
+		value = value ? value.toString(16) : "";
+		if (value && value.charAt(0) != "#" && /^[0-9a-fA-F]+$/.test(value))
 			value = "#" + value;
-		return value || "";
+		return value;
 	},
 	_getColorNode: function(){
 		return this.$view.getElementsByTagName("DIV")[this._settings.editable?1:2];
 	},
 	_get_visible_text:function(value){
 		return value;
+	},
+	$compareValue:function(oldvalue, value){
+		return oldvalue == value;
 	},
 	$setValue:function(value){
 		this._getColorNode().style.backgroundColor = value;

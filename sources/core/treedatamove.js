@@ -1,4 +1,4 @@
-import {isArray, copy as makeCopy, uid, PowerArray} from "../webix/helpers";
+import {isArray, copy as makeCopy, uid, _power_array} from "../webix/helpers";
 import {assert} from "../webix/debug";
 import DataMove from "../core/datamove";
 import DragControl from "../core/dragcontrol";
@@ -23,8 +23,9 @@ const TreeDataMove ={
 	_next_move_index:function(nid, next, source){
 		if (next && nid){
 			var new_index = this.getBranchIndex(nid);
-			var sameParent = this.getParentId(nid) == this.getParentId(next);
-			return new_index+(source == this && sameParent && source.getBranchIndex(next)<new_index?0:1);
+			// check parent only when moving locally (source == this)
+			return new_index + ((source == this && this.getParentId(nid) == this.getParentId(next)
+				&& source.getBranchIndex(next) < new_index) ? 0 : 1);
 		}
 	},
 	_check_branch_child:function(parent, child){
@@ -42,7 +43,7 @@ const TreeDataMove ={
 			var id = ids[i];
 			while(this.getParentId(id)){
 				id = this.getParentId(id);
-				if(PowerArray.find.call(ids, id) != -1){
+				if(_power_array.find.call(ids, id) != -1){
 					ids.splice(i,1);
 					i--;
 					continue;
@@ -99,13 +100,13 @@ const TreeDataMove ={
 				tbranch = this.data.branch[target_parent] = [];
 			var sbranch = this.data.branch[source.$parent];
 
-			var sindex = PowerArray.find.call(sbranch, sid);
+			var sindex = _power_array.find.call(sbranch, sid);
 			if (tindex < 0) tindex = tbranch.length;
 			//in the same branch
 			if (sbranch === tbranch && tindex === sindex) return; //same position
 
-			PowerArray.removeAt.call(sbranch, sindex);
-			PowerArray.insertAt.call(tbranch, sid, Math.min(tbranch.length, tindex));
+			_power_array.removeAt.call(sbranch, sindex);
+			_power_array.insertAt.call(tbranch, sid, Math.min(tbranch.length, tindex));
 
 			if (!sbranch.length)
 				delete this.data.branch[source.$parent];

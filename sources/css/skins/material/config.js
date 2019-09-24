@@ -13,6 +13,7 @@ const skin = {
 	menuHeight: 36,
 	labelTopHeight: 22,
 	propertyItemHeight: 28,
+	timelineItemHeight:70,
 	unitHeaderHeight:36,
 
 	inputSpacing: 4,
@@ -47,13 +48,13 @@ const skin = {
 
 	dataPadding: 12,
 
-	calendar:{ timepickerHeight:24 },
-	calendarHeight: 70,
+	calendarWeekHeaderHeight: 18,
 	padding:0,
 	accordionType: "accordion",
 
 	optionHeight: 32,
-	organogramLineColor: "#CCD7E6"
+	organogramLineColor: "#CCD7E6",
+	timelineColor:"#1CA1C1"
 };
 
 export default skin;

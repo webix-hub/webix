@@ -2,7 +2,7 @@ import {preventEvent, addCss, removeCss, pos as getPos, remove} from "../webix/h
 import env from "../webix/env";
 import Touch from "../core/touch";
 import {zIndex} from "../ui/helpers";
-import {toArray, toNode} from "../webix/helpers";
+import {_to_array, toNode} from "../webix/helpers";
 import {_event, event, eventRemove} from "../webix/htmlevents";
 import {attachEvent, callEvent} from "../webix/customevents";
 
@@ -25,7 +25,7 @@ import {attachEvent, callEvent} from "../webix/customevents";
 
 const DragControl ={
 	//has of known dnd masters
-	_drag_masters : toArray(["dummy"]),
+	_drag_masters : _to_array(["dummy"]),
 	/*
 		register drop area
 		@param node 			html node or ID
@@ -46,8 +46,15 @@ const DragControl ={
 		if (index<0){
 			index = this._drag_masters.length;
 			this._drag_masters.push(ctrl);
+			if (ctrl.attachEvent)
+				ctrl.attachEvent("onDestruct", () => DragControl.unlink(ctrl));
 		}
 		return index;
+	},
+	unlink(ctrl){
+		var index = this._drag_masters.find(ctrl);
+		if (index > -1)
+			this._drag_masters[index] = null;
 	},
 	_createTouchDrag: function(e){
 		var dragCtrl = DragControl;
@@ -281,8 +288,9 @@ const DragControl ={
 
 		if (DragControl._dropHTML)
 			remove(DragControl._dropHTML);
+
 		DragControl._landing=DragControl._active=DragControl._last=DragControl._html=DragControl._dropHTML=null;
-		//DragControl._x_offset = DragControl._y_offset = null;
+		DragControl._drag_context = null;
 	},
 	_getActiveDragMaster: function(){
 		return DragControl._drag_masters[DragControl._active.webix_drag];

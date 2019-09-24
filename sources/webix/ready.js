@@ -53,7 +53,7 @@ else event(window, "load", handler);
 
 ready(function(){
 	event(document.body,"click", function(e){
-		callEvent("onClick",[e||event]);
+		callEvent("onClick",[e||window.event]);
 	});
 });
 
