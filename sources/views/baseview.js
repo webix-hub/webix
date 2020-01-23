@@ -7,7 +7,7 @@ import {toNode, extend} from "../webix/helpers";
 import env from "../webix/env";
 
 import {$$,ui,protoUI} from "../ui/core";
-import {_uid} from "../ui/helpers";
+import {_uid, _each} from "../ui/helpers";
 
 import state from "../core/state";
 import UIManager from "../core/uimanager";
@@ -267,6 +267,13 @@ const api = {
 					this._settings.hidden = false;
 
 					this.adjust();
+
+					if (this.callEvent){
+						this.callEvent("onViewShow", []);
+
+						if (this._signal_hidden_cells)
+							_each(this, this._signal_hidden_cells);
+					}
 					this._render_hidden_views();
 				}
 			} else {

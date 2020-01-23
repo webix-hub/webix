@@ -29,7 +29,6 @@ const api = {
 		this._auto_resize = bind(this._auto_resize, this);
 		this.data.attachEvent("onStoreUpdated", this._auto_resize);
 		this.data.attachEvent("onSyncApply", this._auto_resize);
-		this.attachEvent("onAfterRender", this._correct_width_scroll);
 
 		this._viewobj.setAttribute("role", "listbox");
 	},
@@ -76,8 +75,15 @@ const api = {
 		return Math.floor(this._content_height / this._one_height());
 	},
 	_auto_resize:function(){
-		if (this._settings.autoheight || this._settings.autowidth)
-			this.resize();
+		const c = this._settings;
+		if (c.autoheight || c.autowidth)
+			return this.resize();
+
+		if (c.layout == "y"){
+			if (c.yCount) this._auto_height_calc(c.yCount);
+		} else {
+			if (c.xCount) this._auto_width_calc(c.xCount);
+		}
 	},
 	_auto_height_calc:function(count){
 		var value = this.data.$pagesize||this.count();
@@ -103,10 +109,6 @@ const api = {
 			count = value;
 
 		return (this.type.width * count); 
-	},
-	_correct_width_scroll:function(){
-		if (this._settings.layout == "x")
-			this._dataobj.style.width = (this.type.width != "auto") ? (this.type.width * this.count() + "px") : "auto";
 	},
 	$getSize:function(dx,dy){
 		if (this._settings.layout == "y"){

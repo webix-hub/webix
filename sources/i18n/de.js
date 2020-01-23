@@ -94,6 +94,16 @@ const de = {
 		remove: "Löschen",
 		placeholder: "Geben Sie hier ein..",
 		moreComments:"Mehr Kommentare"
+	},
+	filter:{
+		less: "weniger",
+		lessOrEqual: "weniger oder gleich",
+		greater: "mehr",
+		greaterOrEqual: "größer oder gleich",
+		contains: "enthält",
+		notContains: "nicht enthält",
+		equal: "gleich",
+		notEqual: "ungleich"
 	}
 };
 

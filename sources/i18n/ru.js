@@ -89,6 +89,16 @@ const ru = {
 		remove: "Удалить",
 		placeholder: "Введите текст..",
 		moreComments:"Больше комментариев"
+	},
+	filter:{
+		less: "меньше",
+		lessOrEqual: "меньше или равно",
+		greater: "больше",
+		greaterOrEqual: "больше или равно",
+		contains: "содержит",
+		notContains: "не содержит",
+		equal: "равно",
+		notEqual: "не равно"
 	}
 };
 

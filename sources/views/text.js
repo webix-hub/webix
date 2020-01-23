@@ -51,10 +51,11 @@ const api = {
 		//suggest reference for destructor
 		this._destroy_with_me = [];
 
+		if (this._onBlur)
+			this.attachEvent("onBlur", function(){
+				if (this._rendered_input) this._onBlur();
+			});
 		this.attachEvent("onAfterRender", this._init_onchange);
-		this.attachEvent("onBlur", function(){
-			if(this._onBlur) this._onBlur();
-		});
 	},
 	$renderIcon:function(){
 		var config = this._settings;
@@ -179,7 +180,7 @@ const api = {
 		}
 	},
 	_get_input_width: function(config){
-		var width = (this._input_width||0)-(config.label?this._settings.labelWidth:0) - this._inputSpacing - (config.iconWidth || 0);
+		var width = (this._input_width||0)-(config.label?config.labelWidth:0) - this._inputSpacing - (config.iconWidth || 0);
 
 		//prevent js error in IE
 		return (width < 0)?0:width;
@@ -194,7 +195,7 @@ const api = {
 		return common.$renderInput(obj, html, id);
 	},
 	_baseInputHTML:function(tag){
-		var html = "<"+tag+(this._settings.placeholder?" placeholder='"+this._settings.placeholder+"' ":" ");
+		var html = "<"+tag+(this._settings.placeholder?" placeholder='"+template.escape(this._settings.placeholder)+"' ":" ");
 		if (this._settings.readonly)
 			html += "readonly='true' aria-readonly=''";
 		if(this._settings.required)
@@ -212,11 +213,15 @@ const api = {
 		let label = "";
 
 		if (config.label){
-			let labelAlign = (config.labelAlign||"left");
 			let top = this._settings.labelPosition == "top";
-			let labelTop =  top?"display:block;":("width: " + this._settings.labelWidth + "px;");
-			let labelHeight = this._getLabelHeight(top);
-			label = "<label style='"+labelTop+"text-align: " + labelAlign + ";line-height:"+labelHeight+"px;' onclick='' for='"+id+"' class='webix_inp_"+(top?"top_":"")+"label "+(config.required?"webix_required":"")+"'>" + (config.label||"") + "</label>";
+			let style = `text-align:${config.labelAlign||"left"}; line-height:${this._getLabelHeight(top)}px; `;
+
+			if (top)
+				style += "display:block;";
+			else
+				style += config.labelWidth ? `width:${config.labelWidth}px;` : "display:none;";
+
+			label = "<label style='"+style+"' onclick='' for='"+id+"' class='webix_inp_"+(top?"top_":"")+"label "+(config.required?"webix_required":"")+"'>" + (config.label||"") + "</label>";
 		}
 		return label;
 	},
@@ -271,9 +276,13 @@ const api = {
 		label:"",
 		labelWidth:80
 	},
+	labelWidth_setter:function(value){
+		return value ? Math.max(value, $active.dataPadding) : 0;
+	},
 	type_setter:function(value){ return value; },
 	_set_inner_size:false,
 	_set_default_css:function(){},
+	_pattern:function(value){ return value; },
 	$setValue:function(value){
 		this.getInputNode().value = this._pattern(value);
 	},

@@ -1,6 +1,7 @@
 import {protoUI} from "../ui/core";
 import layout from "../views/layout";
 import list from "../views/list";
+import text from "../views/text";
 
 import {ui, $$} from "../ui/core";
 import {extend, delay, _to_array, copy} from "../webix/helpers";
@@ -26,18 +27,19 @@ const api = {
 	name:"comments",
 	defaults:{
 		sendAction:"click",
-		mode:"comments"
+		mode:"comments",
+		highlight:true
 	},
 	$init: function(config){
 		this.$view.className +=" webix_comments";
 		this._destroy_with_me = [];
-		
+
 		config.rows = [this._configList(config)];
 		if(!config.moreButton)
 			config.moreButton = template(i18n.comments.moreComments);
-		
+
 		if(!config.readonly){
-			config.rows.push(this._configForm());
+			config.rows.push(this._configForm(config));
 			this._initMenu();
 		}
 
@@ -49,10 +51,10 @@ const api = {
 	},
 	_afterInit: function(){
 		// store UI blocks
-		this._list = this.queryView({view:"list"});
-		this._form = this.queryView({view:"form"});
-		this._sendButton = this.queryView({view:"button"});
-		this._input = this.queryView({view:"textarea"});
+		this._list = this.queryView("list");
+		this._form = this.queryView("form");
+		this._sendButton = this.queryView("button");
+		this._input = this.queryView({localId: "textarea"});
 
 		if(this.config.mentions)
 			this._initMentions(this.config.mentions);
@@ -76,7 +78,7 @@ const api = {
 					this._changeTextarea(true);
 					delay(() => { this._input.focus(); });
 				}
-				else if(view !==this._sendButton && view !==this._listMenu && (!this._userList || view !== this._userList.getList()) && 
+				else if(view !==this._sendButton && view !==this._listMenu && (!this._userList || view !== this._userList.getList()) &&
 					(!e || (e.target.className||"").toString().indexOf("webix_comments_menu") ===-1)
 				){
 					this._changeTextarea();
@@ -98,7 +100,7 @@ const api = {
 	_fillList: function(data, driver){
 		var list = this._list || this.queryView({view:"list"});
 		list.data.driver = driver;
-		
+
 		var more = data.more;
 		data = driver.getRecords(data);
 
@@ -108,7 +110,7 @@ const api = {
 			if(data.length){
 				//add spaces after 'more' button to accommodate new data
 				var order = list.data.order, pos = 1;
-				
+
 				if(this._settings.mode == "chat")
 					list.data.order = _to_array([order[0]].concat(new Array(data.length), order.slice(1)));
 				else{
@@ -142,7 +144,7 @@ const api = {
 					data.push(more);
 			}
 			list.parse(data);
-			
+
 			if(this._settings.mode == "chat"){ //wait until rendered
 				list.waitData.then(() => list.showItem(list.getLastId()));
 			}
@@ -167,7 +169,7 @@ const api = {
 	edit: function(id){
 		if(!this.config.readonly && this.callEvent("onBeforeEditStart", [id])){
 			this._changeTextarea(true);
-			
+
 			var values = this._list.getItem(id);
 			this._form.setValues(values);
 			this._form.focus();
@@ -181,7 +183,7 @@ const api = {
 	},
 	_saveComment: function(clear){
 		var values = this._form.getValues();
-		
+
 		if(values.text){
 			if(values.id)
 				this.updateItem(values.id, values);
@@ -205,19 +207,24 @@ const api = {
 		this.remove(id);
 	},
 	_changeTextarea: function(increase){
-		//this behaviour is only for desktop, otherwise we will never see the button on mobile
-		if(env.touch) return;
+		// this behaviour is only for desktop, otherwise we will never see the button on mobile
+		// prevent unnecessary operations
+		if (env.touch || (!increase == !this._text_expanded))
+			return;
 		
-		var text = this._input;
+		var text = this._input;	
 		if(increase){
 			this._sendButton.getParentView().show();
 			text.define({height:84});
+			this._text_expanded = true;
 		}
 		else{
-			if(UIManager.hasFocus(this._sendButton))
+			if(UIManager.hasFocus(this._sendButton)){
 				UIManager.setFocus(this._list);
+			}
 			this._sendButton.getParentView().hide();
 			text.define({height:this._inputHeight});
+			this._text_expanded = false;
 		}
 		text.resize();
 	},
@@ -261,45 +268,60 @@ const api = {
 							else
 								this._removeComment(ctx.id);
 						}
-					}	
+					}
 				}
 			}
 		});
 
 		this._destroy_with_me.push(this._listMenu);
 	},
-	_configForm: function(){
-		var locale = i18n.comments;
+	_configForm: function(config){
+		const locale = i18n.comments;
+		const textarea = {
+			view: "textarea",
+			localId:"textarea",
+			css:"webix_comments_textarea",
+			height:this._inputHeight,
+			name: "text",
+			placeholder: locale["placeholder"],
+			keyPressTimeout:100,
+			on:{
+				onTimedKeyPress:() => {
+					this._toggleButton();
+				},
+				onChange:(newv) => {
+					this._toggleButton(newv);
+				},
+				onKeyPress:(code, ev) => {
+					if(code == 13){
+						var action = this._settings.sendAction, shift = ev.shiftKey;
+						if( (action == "enter" && !shift) || (action !== "enter" && shift) ){
+							preventEvent(ev);
+							this._saveComment(true);
+						}
+					}
+				}
+			}
+		};
+
+		if(config.highlight!==false){
+			extend(
+				textarea,
+				{
+					view: "texthighlight",
+					type: "textarea",
+					highlight: text => this._highlightMention(template.escape(text), true)
+				},
+				true
+			);
+		}
+
 		return {
 			view:"form",
 			minHeight: 50,
 			paddingX:10,
 			elements:[
-				{
-					view:"textarea",
-					css:"webix_comments_textarea",
-					height:this._inputHeight,
-					name: "text",
-					placeholder: locale["placeholder"],
-					keyPressTimeout:100,
-					on:{
-						onTimedKeyPress:() => {
-							this._toggleButton();
-						},
-						onChange:(newv) => {
-							this._toggleButton(newv);
-						},
-						onKeyPress:(code, ev) => {
-							if(code == 13){
-								var action = this._settings.sendAction, shift = ev.shiftKey;
-								if( (action == "enter" && !shift) || (action !== "enter" && shift) ){
-									preventEvent(ev);
-									this._saveComment(true);
-								}
-							}
-						}
-					}
-				},
+				textarea,
 				{
 					hidden: !env.touch,
 					cols:[
@@ -316,6 +338,23 @@ const api = {
 				}
 			]
 		};
+	},
+	_highlightMention(text, textarea){
+		if(text.indexOf("@") === -1)
+			return text;
+
+		let field;
+		if (this._settings.highlight === "users")
+			field = this._userList ? (this._userList._settings.textValue || "value") : "value";
+
+		const getMention = textarea ? this._markedText : this._markedHTML;
+		return text.replace(getMention, (text,name1,_c,name2) => this._wrapName(text, (name2 || name1), field, textarea));
+	},
+	_wrapName(text, name, field, textarea){
+		if (field && !this._users.find(user => user[field] == name, true))
+			return text;
+
+		return `<span class="webix_comments_mention">${textarea?text:("@"+name)}</span>`;
 	},
 	_configList: function(config){
 		var css = "webix_comments_";
@@ -352,19 +391,10 @@ const api = {
 				return text;
 			},
 			templateMentioned: (obj) => {
-				if (!this._mentioned[obj.id]) return obj.text;
-
-				const field = this._userList ? (this._userList._settings.textValue || "value") : "value";
-				const order = this._mentioned[obj.id];
-
-				for (let i=0; i<order.length; i++){
-					let mention = this._users.getItem(order[i])[field];
-					obj.text = obj.text.replace(new RegExp("@"+mention, "g"), "<span class='webix_comments_mention'>@"+mention+"</span>");
-				}
-				return obj.text;
+				return this._highlightMention(obj.text);
 			},
 			templateText: (obj, common) => {
-				if(this._settings.mentions && this._mentioned){
+				if(this._settings.mentions && this._settings.highlight){
 					obj = copy(obj);
 					obj.text = common.templateMentioned(obj, common);
 				}
@@ -372,7 +402,7 @@ const api = {
 			},
 			templateAvatar: (obj, common) => {
 				var avatar = "<div class='"+css+"avatar'>";
-			
+
 				var users = this.getUsers();
 				var user = (users && users.exists(obj.user_id)) ? users.getItem(obj.user_id) : {};
 				if(user.status)
@@ -471,30 +501,25 @@ const api = {
 			else
 				this._users.parse(value||[]);
 		}
-		this._users.data.attachEvent("onStoreUpdated", (id, obj, mode) => {
-			if(this._settings.mentions && mode && mode !== "paint"){
-				this._list.data.each((obj) => {
-					this._findMentioned(obj, true);
-				});
-			}
-			this._list.refresh();
-		});
 	},
 	_initMentions:function(value){
-		this._mentioned = {};
-		if(!this.config.readonly){
+		const readonly = this.config.readonly;
+		if(!readonly)
 			this._initUserList(value);
+
+		if(this.config.highlight){
+			if(!readonly)
+				this._markedText = new RegExp("@((&quot;(.*?)&quot;)|([^\\s]{1,}))","g");
+			this._markedHTML = new RegExp("@((\"(.*?)\")|([^\\s]{1,}))","g");
 		}
 
 		promise.all([this._list.waitData, this._users.waitData]).then(() => {
-			this._list.data.each((obj) => this._findMentioned(obj));
 			this._list.refresh();
 		});
 
 		this._list.data.attachEvent("onStoreUpdated", (id, obj, mode) => {
 			if (id && ( mode === "add" || mode === "update")){
-				this._findMentioned(obj, true);
-				this._list.refresh(id);
+				this._findMentioned(obj);
 			}
 		});
 	},
@@ -509,52 +534,31 @@ const api = {
 		extend(config, { view:"mentionsuggest" }, true);
 
 		const suggest = this._input.define("suggest", config);
+		this._input.setValueHere = function(value, data, details){
+			if(value.indexOf(" ") != -1)
+				value = `"${value}"`;
+			return text.api.setValueHere.apply(this, [value, data, details]);
+		};
 		this._userList = $$(suggest);
 	},
-	_findMentioned:function(obj, announce){
-		const id = obj.id;
-		const indexes = {};
-		const field = this._userList ? (this._userList._settings.textValue || "value") : "value";
+	_findMentioned:function(obj){
+		if(obj.text.indexOf("@") != -1){
+			const field = this._userList ? (this._userList._settings.textValue || "value") : "value";
 
-		this._users.data.each((user) => {
-			const value = "@" + user[field];
-			let text = obj.text;
-			let index = text.indexOf(value);
-			let cut_off = 0;
+			const mentioned = {};
+			// text.replace used instead of matchAll, which not supported by older browsers
+			obj.text.replace(this._markedHTML, (text, name1, _b, name2) => {
+				const name = name2 || name1;
+				const user = this._users.find(user => user[field] == name, true);
+				if(user && !mentioned[name]){
+					this.callEvent("onUserMentioned", [user.id, obj.id]);
+					mentioned[name] = true;
+				}
 
-			while (index !== -1){
-				let real_index = cut_off + index;
-				if (indexes[real_index]){
-					let last_value = this._users.getItem(indexes[real_index])[field];
-					if (value.length > last_value.length + 1)
-						indexes[real_index] = user.id;
-				} else indexes[real_index] = user.id;
-
-				cut_off += index + value.length;
-				text = text.substring(index + value.length);
-				index = text.indexOf(value);
-			}
-		});
-
-		const last = this._mentioned[id];
-		const mention = [];
-
-		for (let i in indexes)
-			if (mention.indexOf(indexes[i]) === -1){
-				mention.push(indexes[i]);
-
-				if (announce && (!last || last.indexOf(indexes[i]) === -1))
-					this.callEvent("onUserMentioned", [indexes[i], id]);
-			}
-
-		if (mention.length){
-			this._mentioned[id] = mention;
-			mention.sort((a, b) => {
-				a = this._users.getItem(a)[field];
-				b = this._users.getItem(b)[field];
-				return (a.length === b.length) ? 0: (a.length > b.length) ? -1: 1;
+				// return original text to minimize extra work
+				return text;
 			});
-		} else delete this._mentioned[id];
+		}
 	}
 };
 

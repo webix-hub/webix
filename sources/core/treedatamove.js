@@ -102,8 +102,8 @@ const TreeDataMove ={
 
 			var sindex = _power_array.find.call(sbranch, sid);
 			if (tindex < 0) tindex = tbranch.length;
-			//in the same branch
-			if (sbranch === tbranch && tindex === sindex) return; //same position
+			//in the same branch and same position
+			if (sbranch === tbranch && tindex === sindex) return new_id; //return ID
 
 			_power_array.removeAt.call(sbranch, sindex);
 			_power_array.insertAt.call(tbranch, sid, Math.min(tbranch.length, tindex));

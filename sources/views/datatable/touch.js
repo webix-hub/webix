@@ -39,6 +39,8 @@ const Mixin = {
 		_scrollTo_touch:function(x,y){
 			Touch._set_matrix(this._body.childNodes[1].firstChild, -x, -y,"0ms");
 			this._sync_scroll(-x, -y,"0ms");
+
+			this.callEvent("onAfterScroll", [{ e: -x, f: -y}]);
 		},
 		_getScrollState_touch:function(){
 			var temp = Touch._get_matrix(this._body.childNodes[1].firstChild);
@@ -53,8 +55,22 @@ const Mixin = {
 			this.attachEvent("onTouchEnd", function(){
 				Touch._scroll_master = null;
 			});
+			this.attachEvent("onAfterScroll", function(result){
+				//onAfterScroll may be triggered by some non-touch related logic
+				if (!result) return;
+
+				this._scrollLeft = -result.e;
+				this._scrollTop = -result.f;
+
+				if (this._x_scroll)
+					this._x_scroll._settings.scrollPos = this._scrollLeft;
+
+				if (this._y_scroll)
+					this._y_scroll._settings.scrollPos = this._scrollTop;
+			});
 		},
 		_sync_scroll:function(x,y,t){
+			Touch._set_matrix(this._body.childNodes[1].firstChild, x, y, t);
 			if (this._settings.leftSplit)
 				Touch._set_matrix(this._body.childNodes[0].firstChild,0,y,t);
 			if (this._settings.rightSplit)
@@ -78,6 +94,9 @@ const Mixin = {
 			gravity:0,
 			elastic:false
 		},
+		$hasYScroll(){
+			return this._dtable_height - this._dtable_offset_height > 2;
+		},
 		$init:function(){
 			//if the result column's width < container's width,
 			this.attachEvent("onAfterColumnHide", function(){
@@ -91,6 +110,12 @@ const Mixin = {
 				t._scroll_stat.hidden = this._x_scroll._settings.scrollVisible || this._y_scroll._settings.scrollVisible;
 				t._scroll_stat.dy = this._dtable_height;
 				t._scroll_master = this;
+			});
+			this.attachEvent("onAfterRender", function(){
+				if (this._x_scroll && this._settings.scrollX)
+					this._x_scroll._fixSize();
+				if (this._y_scroll && this._settings.scrollY)
+					this._y_scroll._fixSize();
 			});
 			this.attachEvent("onAfterScroll", function(result){
 				//onAfterScroll may be triggered by some non-touch related logic

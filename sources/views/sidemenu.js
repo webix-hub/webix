@@ -58,7 +58,7 @@ const api = {
 			return false;
 
 		this._settings.hidden = false;
-		this._viewobj.style.zIndex = (this._settings.zIndex||zIndex());
+		this._viewobj.style.zIndex = zIndex(this._settings.zIndex);
 		if (this._settings.modal || this._modal){
 			this._modal_set(true);
 			this._modal = null; // hidden_setter handling

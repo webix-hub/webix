@@ -89,7 +89,7 @@ const AtomDataLoader={
 
 		const gen = this._data_generation;
 		if(result && result.then){
-			result.then((data) => {
+			return result.then((data) => {
 				// component destroyed, or clearAll was issued
 				if (this.$destructed || (gen && this._data_generation !== gen))
 					// by returning rejection we are preventing the further executing chain
@@ -129,7 +129,7 @@ const AtomDataLoader={
 		return promise.resolve();
 	},
 	_syncData: function(data){
-		if(this.data)
+		if(this.data && this.data.attachEvent)
 			this.data.attachEvent("onSyncApply",bind(function(){
 				if(this._call_onready)
 					this._call_onready();

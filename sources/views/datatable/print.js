@@ -138,7 +138,7 @@ const Mixin = {
 								span: (span ? {colspan:span[2], spanStart:this.getColumnIndex(span[1]), rowspan:span[3]}:null)
 							});
 
-							if (cellValue) {
+							if (cellValue || cellValue===0) {
 								rightRestriction = Math.max(colIndex+1, rightRestriction);
 								bottomRestriction = Math.max(rowIndex+1, bottomRestriction);
 							}

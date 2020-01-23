@@ -797,8 +797,13 @@
 .webix_focused .webix_inp_static{
 	.focusStyle;
 }
-.webix_multilist .wxi-checkbox-marked{
-	color: @buttonColor;
+.webix_multilist{
+	.wxi-checkbox-marked{
+		color: @buttonColor;
+	}
+	.wxi-checkbox-marked, .wxi-checkbox-blank{
+		height:20px;
+	}
 }
 
 .buttonBorderStyle(@color:@buttonColor){
@@ -820,9 +825,7 @@
 div.webix_inp_static,.webix_el_textarea textarea {
 	.inputStyle;
 }
-.webix_el_textarea .webix_el_box textarea {
-	padding-top: 2px;
-}
+
 .webix_el_select select{
 	font-family: @fontFamily;
 	border-color: @borderColor;
@@ -1195,10 +1198,8 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	float: left;
 	position: relative;
 	top: 50%;
-	width:auto;
-	margin-top: -7px;
+	margin-top: -6px;
 	padding:0;
-//margin-top: (@inputHeight - 4- 13 - 2)/2;
 	height:15px;
 	width:15px;
 	border:1px solid @inputBorderColor;

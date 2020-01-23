@@ -25,9 +25,11 @@ const TablePaste = {
 	},
 	templateCopy_setter: template,
 	_sel_to_clip: function() {
-		var data = this._get_sel_text();
-		clipbuffer.set(data);
-		UIManager.setFocus(this);
+		if (!this.getEditor || !this.getEditor()){
+			var data = this._get_sel_text();
+			clipbuffer.set(data);
+			UIManager.setFocus(this);
+		}
 	},
 
 	_get_sel_text: function() {

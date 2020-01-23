@@ -21,11 +21,10 @@ const fullscreen = {
 		}
 
 		this._view = view;
+		this._pos = this._setPosition();
 
 		const viewConfig = view.config;
 		if(view.setPosition){
-			this._pos = {left: view.config.left, top: view.config.top};
-			view.setPosition(0,0);
 			viewConfig.fullscreen = true;
 			view.resize();
 		}
@@ -34,6 +33,7 @@ const fullscreen = {
 				view:"window",
 				head: this._getHeadConfig(config),
 				fullscreen:true,
+				borderless:true,
 				//better resize logic
 				body:{rows:[]}
 			});
@@ -47,18 +47,17 @@ const fullscreen = {
 			if(view.getParentView && view.getParentView()){
 				this._parent = view.getParentView();
 
-				if(this._parent.index)
-					this._pos = {
-						index: this._parent.index(view),
-						active: (this._parent.getActiveId ? this._parent.getActiveId() == viewConfig.id : false)
-					};
+				if(this._parent.index){
+					this._pos.index = this._parent.index(view);
+					this._pos.active = this._parent.getActiveId ? this._parent.getActiveId() == viewConfig.id : false;
+				}
 			}
 			else{
 				this._parent = view.$view.parentNode;
-				this._pos = create("div");
+				this._pos.node = create("div");
 
 				//save old position
-				this._parent.replaceChild(this._pos, view.$view);
+				this._parent.replaceChild(this._pos.node, view.$view);
 			}
 
 			this._fullscreen.getBody().addView(view.$html ? {view:"template", content:view.$view, css:"webix_fullscreen_html"} : view);
@@ -70,9 +69,9 @@ const fullscreen = {
 	exit:function(){
 		if(this._view){
 			const viewConfig = this._view.config;
+			this._setPosition(true);
 			if(this._view.setPosition){
 				viewConfig.fullscreen = false;
-				this._view.setPosition(this._pos.left, this._pos.top);
 				this._view.resize();
 			}
 			else{
@@ -80,10 +79,10 @@ const fullscreen = {
 					this._view._parent_cell = null;
 					if(this._view._set_inner)
 						this._view._set_inner(this._view.config);
-					this._parent.replaceChild(this._view.$view, this._pos);
+					this._parent.replaceChild(this._view.$view, this._pos.node);
 				}
 				else{
-					if(!isUndefined(this._pos)){
+					if(!isUndefined(this._pos.index)){
 						this._parent.addView(this._view, this._pos.index);
 						if(this._pos.active)
 							this._view.show(false, false);
@@ -111,6 +110,36 @@ const fullscreen = {
 		delete this._view;
 		delete this._sizes;
 		delete this._pos;
+		delete this._fullscreen;
+	},
+	_setPosition(restore){
+		const view = this._view;
+		const oldStyles = {};
+
+		if(view.setPosition){
+			if(restore)
+				view.setPosition(this._pos.left, this._pos.top);
+			else{
+				oldStyles.left = view.config.left;
+				oldStyles.top = view.config.top;
+				view.setPosition(0,0);
+			}
+		}
+		else{
+			const rules = ["position", "top", "bottom", "left", "right"];
+			const style = view.$view.style;
+
+			rules.forEach(rule => {
+				if(restore)
+					style[rule] = this._pos[rule];
+				else{
+					oldStyles[rule] = style[rule];
+					style[rule] = rule == "position" ? "relative" : 0;
+				}
+			});
+		}
+
+		return oldStyles;
 	},
 	_setSizes:function(view, sizes){
 		if(!view.$html){

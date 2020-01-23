@@ -28,7 +28,7 @@ const TextPattern = {
 		var format = this.defaults.format || config.format;
 		config.value = isUndefined(config.value) ? "" :config.value;
 
-		if(pattern || (format && !this.format_setter)){
+		if (pattern || (format && !this.format_setter)){
 			this.attachEvent("onKeyPress", function(code, e){
 				if(e.ctrlKey || e.altKey || this._settings.readonly || this._custom_format)
 					return;
@@ -48,6 +48,7 @@ const TextPattern = {
 
 			this.attachEvent("onAfterRender", this._after_render);
 			this.getText = function(){ return this.getInputNode().value; };
+			this.$prepareValue = function(value){ return this._pattern(value, false); };
 			this._pattern = function(value, mode){
 				if (mode === false)
 					return this._getRawValue(value);
@@ -67,14 +68,19 @@ const TextPattern = {
 				}
 			}
 		}
-		
+
+		// initialize pattern before value_setter
+		if (pattern){
+			this._settings.pattern = this.pattern_setter(pattern);
+			delete config.pattern;
+		}
 	},
 	pattern_setter:function(value){
 		var pattern = patterns[value] || value;
-		
-		if(typeof pattern =="string") pattern = { mask: pattern };
-		pattern.allow =  pattern.allow || /[A-Za-z0-9]/g;
-		
+
+		if (typeof pattern == "string") pattern = { mask: pattern };
+		pattern.allow = pattern.allow || /[A-Za-z0-9]/g;
+
 		this._patternScheme(pattern);
 		return pattern;
 	},

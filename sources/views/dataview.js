@@ -140,39 +140,43 @@ const api = {
 		return mode;
 	},
 	$getSize:function(dx, dy){
-		if ((this._settings.xCount >0) && this.type.width != "auto" && !this._autowidth)
+		if (this._settings.xCount && this.type.width != "auto" && !this._autowidth)
 			this._settings.width = this.type.width*this._settings.xCount + (this._scroll_y?env.scrollSize:0);
-		if (this._settings.yCount && this.type.height != "auto")
+		if (this._settings.yCount && this.type.height != "auto" && !this._autoheight)
 			this._settings.height = this.type.height*this._settings.yCount;
 
 		var width = this._settings.width || this._content_width;
 		if (this._settings.autoheight && width){
+			this._recalk_counts();
 			this._calck_autoheight(width);
-			this.scroll_setter(false);	
+			this.scroll_setter(false);
 		}
-		return base.api.$getSize.call(this, dx, dy);		
+		return base.api.$getSize.call(this, dx, dy);
 	},
 	_recalk_counts:function(){
-		var render = false;
-		if (this._settings.yCount && this.type.height == "auto"){
+		if (this._settings.yCount && (this._autoheight || this.type.height == "auto")){
 			this.type.height = Math.floor((this._content_height-this._tilesPadding)/this._settings.yCount);
-			render = true;
+			this._autoheight = this._settings.yCount;
 		}
-		if (this._settings.xCount && (this.type.width == "auto"||this._autowidth)){
-			this._autowidth = true; //flag marks that width was set to "auto" initially
+		if (this._settings.xCount && (this._autowidth || this.type.width == "auto")){
 			this.type.width = Math.floor((this._content_width-this._tilesPadding*2)/this._settings.xCount);
-			render = true;
-		} else 
-			this._autowidth = false;
+			this._autowidth = this._settings.xCount;
+		}
 
-		return render;
+		return this._autoheight||this._autowidth;
 	},
 	$setSize:function(x,y){
+		const c = this._settings;
+
 		if (base.api.$setSize.call(this, x, y)){
-			if (this._settings.autoheight && this._calck_autoheight() != this._content_height)
+			if (c.autoheight && this._calck_autoheight() != this._content_height)
 				return delay(this.resize, this);
 
 			if (this._recalk_counts() || this._render_visible_rows)
+				this.render();
+
+		} else if ((c.yCount && c.yCount != this._autoheight) || (c.xCount && c.xCount != this._autowidth)){
+			if (this._recalk_counts())
 				this.render();
 		}
 	}

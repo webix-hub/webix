@@ -42,7 +42,6 @@ const KeysNavigation = {
 				preventEvent(e);
 				return view.moveSelection(mode, {shift:e.shiftKey, ctrl:e.ctrlKey});
 			}
-			return true;
 		};
 	},
 	moveSelection:function(mode, details, focus){

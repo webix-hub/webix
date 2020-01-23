@@ -132,7 +132,7 @@ ajax.prototype={
 		if (!this._sync)
 			setTimeout(function(){
 				x.send(params||null);
-			}, 1);
+			}, 0);
 		else
 			x.send(params||null);
 		

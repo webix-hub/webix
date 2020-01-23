@@ -14,6 +14,16 @@ const api = {
 	$init:function(){
 		this._viewobj.className	+= " webix_view_align";
 	},
+	_remove:function(){
+		this.body_setter({ });
+	},
+	_replace:function(new_view){
+		this._body_cell.destructor();
+		this._body_cell = new_view;
+
+		this._viewobj.appendChild(this._body_cell._viewobj);
+		this.resize();
+	},
 	getChildViews:function(){
 		return [this._body_cell];
 	},

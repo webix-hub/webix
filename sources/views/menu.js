@@ -36,7 +36,7 @@ const api = {
 				const parent = this.getTopMenu();
 
 				if (!parent.callEvent("onMenuItemClick", [id, e, trg])){
-					e.showpopup = true;
+					e.showpopup = parent._settings.id;
 					return;
 				}
 
@@ -54,7 +54,7 @@ const api = {
 					}
 
 					//do not close popups when clicking on menu folder
-					e.showpopup = true;
+					e.showpopup = parent._settings.id;
 				}
 			}
 		});

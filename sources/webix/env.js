@@ -9,10 +9,11 @@ env.https = document.location.protocol === "https:";
 
 var agent = navigator.userAgent;
 env.isMac = agent.indexOf("Mac")!=-1;
-
 if (agent.indexOf("Mobile")!=-1 || agent.indexOf("Windows Phone")!=-1)
 	env.mobile = true;
 if (env.mobile || agent.indexOf("iPad")!=-1 || agent.indexOf("Android")!=-1)
+	env.touch = true;
+if (!env.touch && (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1))
 	env.touch = true;
 if (agent.indexOf("Opera")!=-1)
 	env.isOpera=true;

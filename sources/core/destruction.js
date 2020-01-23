@@ -11,7 +11,8 @@ import UIManager from "../core/uimanager";
 const Destruction = {
 	$init:function(){
 		//wrap in object to simplify removing self-reference
-		var t  = this._destructor_handler = { obj: this};
+		//submenu can trigger this handler two times, preserve a single destructor reference
+		var t  = this._destructor_handler = this._destructor_handler || { obj: this};
 
 		//register self in global list of destructors
 		state.destructors.push(t);

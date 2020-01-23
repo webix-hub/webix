@@ -1,14 +1,19 @@
 import {offset, pos as getPos} from "../webix/html";
-import {toNode} from "../webix/helpers";
+import {toNode, extend} from "../webix/helpers";
 import DragControl from "../core/dragcontrol";
 
 const Movable = {
-	move_setter: function (value) {
+	move_setter:function(value){
 		if (value){
+			extend(this, Move, true);
 			DragControl.addDrag(this._headobj?this._headobj:this.$view, this);
+			delete this.move_setter;	//prevent double initialization
 		}
 		return value;
-	},
+	}
+};
+
+const Move = {
 	$dragCreate:function(object, e){
 		if(this.config.move){
 			var elOffset = offset(object);

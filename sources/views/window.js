@@ -9,10 +9,10 @@ import UIManager from "../core/uimanager";
 import Destruction from "../core/destruction";
 
 import {zIndex} from "../ui/helpers";
-import {bind, toNode, delay, clone, uid, _to_array, extend} from "../webix/helpers";
+import {toNode, delay, clone, uid, extend} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 import {assert} from "../webix/debug";
-import {callEvent} from "../webix/customevents";
+import {callEvent, attachEvent} from "../webix/customevents";
 
 import EventSystem from "../core/eventsystem";
 import Movable from "../core/movable";
@@ -21,8 +21,6 @@ import ResizeArea from "../core/resizearea";
 
 import baseview from "./baseview";
 import base from "./view";
-
-state._popups = _to_array();
 
 const api = {
 	name:"window",
@@ -37,21 +35,18 @@ const api = {
 
 		this._viewobj.setAttribute("role", "dialog");
 		this._viewobj.setAttribute("tabindex", "0");
-		
+
 		this._head_cell = this._body_cell = null;
 		config._inner = {top:false, left:false, right:false, bottom:false }; //set border flags
 		if (!config.id) config.id = uid();
 
-		_event(this._contentobj, "click", bind(this._ignore_clicks, this));
-
-		// IE8 does not allow to define event capturing
-		if(this._contentobj.addEventListener)
-			_event(this._contentobj, "click", function(){
-				// brings a window to the front of other windows
-				if(!this._settings.zIndex && this._settings.toFront){
-					this._viewobj.style.zIndex = zIndex();
-				}
-			}, {bind:this, capture: true});
+		_event(this._contentobj, "click", this._ignore_clicks, {bind:this});
+		_event(this._contentobj, "click", function(){
+			// brings a window to the front of other windows
+			if(!this._settings.zIndex && this._settings.toFront){
+				this._viewobj.style.zIndex = zIndex();
+			}
+		}, {bind:this, capture:true});
 
 		// hidden_setter handling
 		if(config.modal)
@@ -72,8 +67,6 @@ const api = {
 			index = popups.length - 1;
 
 		e.click_view = index;
-		if (env.isIE8)
-			e.srcElement.click_view = index;
 	},
 	getChildViews:function(){
 		if (this._head_cell)
@@ -127,7 +120,7 @@ const api = {
 			return false;
 
 		this._settings.hidden = false;
-		this._viewobj.style.zIndex = (this._settings.zIndex||zIndex());
+		this._viewobj.style.zIndex = zIndex(this._settings.zIndex);
 		if (this._settings.modal || this._modal){
 			this._modal_set(true);
 			this._modal = null; // hidden_setter handling
@@ -245,6 +238,7 @@ const api = {
 			var deltay = (mode.y || 0);
 
 			var fixed = this._checkFixedPosition();
+			this.$view.style.position = fixed ? "fixed" : "absolute";
 			if (fixed){
 				fin_y = fin_y - scrollTop;
 				point_y = point_y - scrollTop;
@@ -279,14 +273,18 @@ const api = {
 	}, 
 	_hide:function(e){
 		//do not hide modal windows
-		if (this._settings.hidden || this._settings.modal || this._hide_timer || (e && e.showpopup)) return;
+		if (this._settings.hidden || this._settings.modal || this._hide_timer) return;
+		//do not hide submenu when clicking on menu folder
+		if (e && e.showpopup && (e.showpopup == this._settings.id || (this.getTopMenu && this.getTopMenu()._settings.id == e.showpopup))) return;
+		//do not hide popup, when starting dnd with a long touch
+		if (e && env.touch && e.longtouch_drag) return;
 		//do not hide popup, when we have modal layer above the popup
-		if (state._modality && this._settings.zIndex <= state._modality) return;
+		if (state._modality && this._viewobj.style.zIndex <= state._modality) return;
 
 		//ignore inside clicks and clicks in child-popups
 
 		if (e){
-			var index = env.isIE8 ? e.srcElement.click_view : e.click_view;
+			var index = e.click_view;
 			if (!index && index !== 0) index = -1;
 
 			var myindex = state._popups.find(this);
@@ -312,7 +310,7 @@ const api = {
 
 		if (this._settings.modal)
 			this._modal_set(false);
-			
+
 		this._hiding_process();
 
 		if (this._settings.autofocus){
@@ -324,7 +322,7 @@ const api = {
 			}
 		}
 
-		//clean state
+		// clear state
 		const index = state._popups.find(this);
 		if (index > -1)
 			state._popups.removeAt(index);
@@ -552,6 +550,20 @@ const api = {
 		minHeight:200
 	}
 };
+
+//global longtouch handler
+attachEvent("onLongTouch", function(ev){
+	if (!ev || !ev.target) return;
+
+	let view = $$(ev.target);
+	if (view){
+		view = view.queryView(a => !a.getParentView(), "parent")||view;
+
+		const popups = state._popups;
+		const index = popups.find(view);
+		if (index !== -1) ev.click_view = index;
+	}
+});
 
 const view = protoUI(api, base.view, Movable, Modality, EventSystem, ResizeArea);
 export default {api, view};

@@ -186,7 +186,7 @@
 	background: @secondaryBg;
 	border-color: @secondaryBg;
 
-	.webix_el_button, .webix_el_label .webix_el_box, .webix_inp_label{
+	.webix_el_button, .webix_el_label .webix_el_box, .webix_inp_label, .webix_inp_top_label{
 		color: @darkBarFontColor;
 	}
 	.webix_secondary, .webix_transparent{
@@ -227,10 +227,13 @@
 	.webix_segment_0:active, .webix_segment_1:active, .webix_segment_N:active{
 		.barButtonActive;
 	}
-	.webix_inp_static, input[type=text], input[type=combo], textarea, select{
+	.webix_inp_static, input[type=text], input[type=combo], textarea, select, .webix_text_highlight{
 		border-color: transparent;
 		background-color:@barButtonBgColor;
 		color:@barkBarInputColor;
+	}
+	.webix_el_texthighlight input, .webix_el_texthighlight textarea{
+		caret-color: @barkBarInputColor;
 	}
 	.webix_inp_static input[type=text]{
 		background-color:transparent;
@@ -311,7 +314,7 @@
 	}
 	.webix_view.webix_control{
 		.webix_disabled_box{
-			button{
+			.webix_button{
 				.buttonDisabled;
 			}
 			.webix_img_btn_text{
@@ -324,6 +327,12 @@
 			color: @disabledFontColor;
 		}
 	}
+	.webix_disabled_view.webix_menu-x {
+		.webix_list_item.menu{
+			background-color: @disabledColor;
+			color:@disabledFontColor;
+		}
+	}
 	.webix_toolbar .webix_disabled_view.webix_control{
 		.webix_icon, .webix_disabled_box .webix_img_btn_text, .webix_icon_btn{
 			color: @disabledFontColor;
@@ -333,13 +342,13 @@
 		label, .webix_input_icon, button{
 			color: @disabledFontColor;
 		}
-		input, select, textarea, .webix_inp_static{
+		input, select, textarea, .webix_inp_static, .webix_inp_counter_prev, .webix_inp_counter_next{
 			.inputDisabled();
 		}
 		.webix_inp_static input{
 			background-color: transparent;
 		}
-		.webix_inp_counter_prev, .webix_inp_counter_next, .webix_segment_0, .webix_segment_1, .webix_segment_N, .webix_item_tab{
+		.webix_segment_0, .webix_segment_1, .webix_segment_N, .webix_item_tab{
 			.buttonDisabled;
 		}
 	}
@@ -1057,7 +1066,6 @@
 .webix_multilist .wxi-checkbox-marked{
 	font-size: 24px;
 	width: 24px;
-	vertical-align: sub;
 	margin-right: 4px;
 }
 .webix_multilist .wxi-checkbox-marked{
@@ -1519,6 +1527,9 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	opacity: 0.6;
 	filter:progid:DXImageTransform.Microsoft.Alpha(opacity=60);
 }
+.webix_disabled_view .webix_disabled_top_label{
+	color: @disabledFontColor;
+}
 
 @checkColor: @baseColor;
 @checkSize:24px;
@@ -1540,7 +1551,8 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	position: relative;
 	font-size: @checkSize;
 	height: 100%;
-	padding:0;
+	padding: 0;
+	margin-top: 1px;
 	border:none;
 	background-color: transparent;
 	color: @inactiveFontColor;
@@ -2084,14 +2096,14 @@ div.webix_inp_static,.webix_el_textarea textarea {
 .webix_inp_label, .webix_inp_top_label, legend.webix_forminput_label, .webix_el_label .webix_el_box{
 	.fontStyle(@fontSize, 500, @altFontColor);
 }
-.webix_inp_label{
+.webix_inp_label, .webix_forminput_label{
 	padding-right: 8px;
 }
 .webix_label_right{
 	padding-left: 4px;
 }
 .webix_el_checkbox .webix_label_right{
-	padding-top: 0;
+	display: block;
 }
 
 @placeholderColor: @inactiveFontColor;

@@ -556,12 +556,12 @@ DataStore.prototype={
 		this.callEvent("onClearAll",[soft]);
 		this.refresh();
 	},
-	//converts id to index
+	//converts index to id
 	getIdByIndex:function(index){
 		assert(index >= 0,"DataStore::getIdByIndex Incorrect index");
 		return this.order[index];
 	},
-	//converts index to id
+	//converts id to index
 	getIndexById:function(id){
 		if (!this.pull[id])
 			return -1;
@@ -853,22 +853,31 @@ DataStore.prototype={
 				return false;
 			},
 			"date":function(a,b){
-				a=a-0; b=b-0;
+				a = a-0; b = b-0;
+				if (isNaN(b)) return 1;
+				if (isNaN(a)) return -1;
+
 				return a>b?1:(a<b?-1:0);
 			},
 			"int":function(a,b){
-				a = a*1; b=b*1;
+				a = a*1; b = b*1;
+				if (isNaN(b)) return 1;
+				if (isNaN(a)) return -1;
+
 				return a>b?1:(a<b?-1:0);
 			},
 			"string_strict":function(a,b){
-				a = a.toString(); b=b.toString();
+				if (!b) return 1;
+				if (!a) return -1;
+
+				a = a.toString(); b = b.toString();
 				return a>b?1:(a<b?-1:0);
 			},
 			"string":function(a,b){
 				if (!b) return 1;
 				if (!a) return -1;
-				
-				a = a.toString().toLowerCase(); b=b.toString().toLowerCase();
+
+				a = a.toString().toLowerCase(); b = b.toString().toLowerCase();
 				return a>b?1:(a<b?-1:0);
 			},
 			"raw":function(a,b){

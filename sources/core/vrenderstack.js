@@ -11,26 +11,9 @@ const VRenderStack = {
 	$init:function(){
 		this._htmlmap = {};
 
-		if (Touch.$active){
-			this.attachEvent("onBeforeScroll", function(){ 
-				this._in_touch_scroll = true;
-			});
-			this.attachEvent("onAfterScroll", function(){
-				this.render(null, null, "paint");
-				this._in_touch_scroll = false;
-			});
-			this.attachEvent("onTouchMove", function(){
-				if (this._in_touch_scroll){
-					this.blockEvent();
-					this.render(null, null, "paint");
-					this.unblockEvent();
-				}
-			});
-		} else {
-			_event(this._viewobj, "scroll", bind(function(){
-				this.render(null, null, "paint");
-			}, this));
-		}
+		_event(this._viewobj, "scroll", bind(function(){
+			this.render(null, null, "paint");
+		}, this));
 	},
 	_sync_scroll:function(x,y,t){
 

@@ -1,5 +1,4 @@
 import {protoUI} from "../ui/core";
-import {isUndefined} from "../webix/helpers";
 
 import datepicker from "./datepicker";
 
@@ -21,11 +20,6 @@ const api = {
 				type:"colorboard", height:200
 			});
 		this._init_once = function(){};
-	},
-	$render:function(obj){
-		if (isUndefined(obj.value)) return;
-		obj.value = this.$prepareValue(obj.value);
-		this.$setValue(obj.value);
 	},
 	getValue:function(){
 		if (this._rendered_input && this._settings.editable)

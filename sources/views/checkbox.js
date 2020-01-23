@@ -44,7 +44,7 @@ const api = {
 		var input = this.getInputNode();
 		if(input) input.blur();
 	},
-	_pattern :function(value){ return value; },
+	$prepareValue: function(value){ return value; },
 	_init_onchange: function(){},
 	$setValue:function(value){
 		var isChecked = (value == this._settings.checkValue);

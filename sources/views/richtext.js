@@ -2,6 +2,7 @@ import layout from "../views/layout";
 import IdSpace from "../core/idspace";
 import UIManager from "../core/uimanager";
 import {protoUI} from "../ui/core";
+import {$active} from "../webix/skin";
 import i18n from "../webix/i18n";
 import {_event} from "../webix/htmlevents";
 
@@ -16,6 +17,12 @@ const api = {
 	$init: function() {
 		this._viewobj.className += " webix_richtext";
 		this.$ready.unshift(this._setLayout);
+	},
+	$skin:function(){
+		layout.api.$skin.call(this);
+
+		this.defaults.paddingX = $active.inputSpacing/2;
+		this.defaults.paddingY = $active.inputPadding;
 	},
 	getInputNode:function(){
 		return this.$view.querySelector(".webix_richtext_editor"); 
@@ -66,15 +73,17 @@ const api = {
 			}
 		};
 
+		var controls = [
+			this._button("underline"),
+			this._button("bold"),
+			this._button("italic"),
+			{ }
+		];
+
 		var editorToolbar = {
 			view: "toolbar",
 			id:"toolbar",
-			elements: [
-				this._button("underline"),
-				this._button("bold"),
-				this._button("italic"),
-				{}
-			]
+			elements: controls
 		};
 
 		var rows = [
@@ -82,14 +91,15 @@ const api = {
 			editField
 		];
 
-		if (this.config.labelPosition === "top" || !this.config.labelWidth){
-			editorToolbar.elements.concat([
+		if (this.config.labelPosition === "top"){
+			editorToolbar.elements = controls.concat([
 				{ view:"label", label: this.config.label, align:"right"},
 				{ width:4 }
 			]);
 			this.rows_setter(rows);
-		} else {
-			this.config.borderless = true;
+		} 
+		else if (this.config.labelWidth){
+			this.config.margin = 0;
 			this.cols_setter([{ 
 				template: (this.config.label || " "),
 				css: "webix_richtext_inp_label"+(this.config.required?" webix_required":""),
@@ -99,6 +109,10 @@ const api = {
 				rows:rows
 			}]);
 		}
+		else this.rows_setter(rows);
+	},
+	labelWidth_setter:function(value){
+		return value ? Math.max(value, $active.dataPadding) : 0;
 	},
 	_getselection: function() {
 		var top = this;

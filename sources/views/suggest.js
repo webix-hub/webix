@@ -86,37 +86,43 @@ const api = {
 	_get_details:function(){
 		return null;
 	},
-	_preselectMasterOption: function(data){
+	_set_input_value:function(text){
+		this._last_input_target.value = text;
+	},
+	_preselectMasterOption:function(data){
+		const text = data.id ? this.getItemText(data.id) : (data.text||data.value);
 		let node;
 
-		if (data && this._settings.master){
+		if (this._settings.master){
 			const master = $$(this._settings.master);
-			let text = data.id ? this.getItemText(data.id) : (data.text||data.value);
-
 			node = master.getInputNode();
-			if (node && master.$setValueHere)
-				master.$setValueHere(text, data, this._get_details());
-			else if (node){
-				if(master.options_setter)
-					text = this.getItemText(data.id);
-				else if(data.value)
-					text = master._get_visible_text ? master._get_visible_text(data.value) : data.value.toString();
 
-				if (isUndefined(node.value))
-					node.innerHTML = text;
+			if (node){
+				// restore last text to allow 'master' view to save new value on blur
+				const prev_text = master._settings.text;
+
+				if (master.options_setter)
+					master.$setValue(data.$empty?"":data.id);
+				else if (master.$setValueHere)
+					master.$setValueHere(text, data, this._get_details());
 				else
-					node.value = text.replace(/<[^>]*>/g,"");
+					master.$setValue(text);
+
+				master._settings.text = prev_text;
 			}
 		}
+		else if (this._last_input_target)
+			this._set_input_value(text);
+
 		node = node || this._last_input_target;
-		if(node)
+		if (node)
 			node.focus();
 	},
 	setMasterValue:function(data, refresh){
-		var text = data.id ? this.getItemText(data.id) : (data.text||data.value);
+		const text = data.id ? this.getItemText(data.id) : (data.text||data.value);
 
 		if (this._settings.master){
-			var master = $$(this._settings.master);
+			const master = $$(this._settings.master);
 			if (refresh && data.id)
 				master.refresh();
 			else if (master.options_setter)
@@ -126,10 +132,8 @@ const api = {
 			else
 				master.setValue(text);
 		}
-		else if (this._last_input_target && this._set_input_value)
-			this._set_input_value(text);
 		else if (this._last_input_target)
-			this._last_input_target.value = text;
+			this._set_input_value(text);
 
 		if (!refresh){
 			this.hide();
@@ -261,6 +265,10 @@ const api = {
 		this._non_ui_mode = true;
 	},
 	_suggestions: function(e){
+		//should be before tab and arrows handlers: IME can call keydown twice
+		if (this._last_delay)
+			this._last_delay = clearTimeout(this._last_delay);
+
 		e = (e||event);
 		var list = this.getList();
 		var trg = e.target||e.srcElement;
@@ -292,10 +300,8 @@ const api = {
 			return false;
 		}
 
-		if (isUndefined(trg.value) && !trg.isContentEditable) return;
-
-		if (this._last_delay)
-			this._last_delay = clearTimeout(this._last_delay);
+		const contentEditable = trg.getAttribute("contentEditable") == "true";
+		if (isUndefined(trg.value) && !contentEditable) return;
 
 		this._last_delay = delay(function(){
 			//focus moved to the different control, suggest is not necessary
@@ -304,7 +310,7 @@ const api = {
 
 			this._resolve_popup = true;
 			//spreadsheet use contentEditable div for cell highlighting
-			var val = trg.isContentEditable ? trg.innerText : trg.value;
+			var val = contentEditable ? trg.innerText : trg.value;
 
 			if (this._before_filtering)
 				this._before_filtering();
@@ -319,12 +325,12 @@ const api = {
 			}
 		}, this, [], this._settings.keyPressTimeout);
 	},
-	_suggest_after_filter: function() {
+	_suggest_after_filter:function(){
 		if (!this._resolve_popup) return true;
 		this._resolve_popup = false;
 
 		var list = this.getList();
-		
+
 		// filtering is complete
 		// if there are as min 1 variant it must be shown, hidden otherwise
 		if (list.count() >0){
@@ -340,7 +346,9 @@ const api = {
 	},
 
 	show:function(node){
-		if (!this.isVisible() || this._last_input_target != node){
+		const input = (node && (node.tagName == "INPUT" || node.tagName == "TEXTAREA")) ? node : null;
+
+		if (!this.isVisible() || (input && input != this._last_input_target)){
 			var list = this.getList();
 			if (list.filter && !this._dont_unfilter){
 				list.filter("");
@@ -349,7 +357,7 @@ const api = {
 			if (this.$customWidth){
 				this.$customWidth(node);
 			}
-			else if (node.tagName && this._settings.fitMaster){
+			else if (node && node.tagName && this._settings.fitMaster){
 				this._settings.width = node.offsetWidth -2 ; //2 - borders
 			}
 
@@ -359,8 +367,8 @@ const api = {
 			this.adjust();
 
 			// needed to return focus
-			if (node.tagName == "INPUT" || node.tagName == "TEXTAREA")
-				this._last_input_target = node;
+			if (input)
+				this._last_input_target = input;
 		}
 		popup.api.show.apply(this, arguments);
 	},
@@ -393,20 +401,21 @@ const api = {
 		if (this._settings.master)
 			master = $$(this._settings.master);
 
-		if (master && master._settings.editable && master._applyChanges)
+		if (master && master._editable && master._settings.editable)
 			master._applyChanges();
 		else if (visible){
-			if (list.count && list.count()){
+			if (list.count){
 				value = list.getSelectedId(false, true);
-				if (list.count()==1 && list.getFirstId()!=value)
+				if (list.count() == 1 && list.getFirstId() != value)
 					value = list.getFirstId();
-				if (value)
-					value = list.getItem(value);
+
+				if (value) value = list.getItem(value);
+			} else {
+				if (list.getSelectedDate) value = list.getSelectedDate();
+				else if (list.getValue) value = list.getValue();
+
+				if (value) value = { value: value };
 			}
-			else if (list.getSelectedDate && list.getSelectedDate())
-				value = { value:list.getSelectedDate() };
-			else if (list.getValue && list.getValue())
-				value = { value:list.getValue() };
 			
 			if (value)
 				this.setMasterValue(value);
@@ -456,14 +465,16 @@ const api = {
 				list.moveSelection(dir, false, false);
 			}
 
-			if(list.count)
-				data = list.getSelectedItem();
-			else if(list.getSelectedDate)
-				data = { value:list.getVisibleDate()};
-			else if(list.getValue)
-				data = { value:list.getValue() };
+			if (list.count)
+				data = list.getSelectedItem(false);
+			else {
+				if (list.getSelectedDate) data = list.getSelectedDate();
+				else if (list.getValue) data = list.getValue();
 
-			if (this.isVisible())
+				if (data) data = { value: data };
+			}
+
+			if (data && this.isVisible())
 				this._preselectMasterOption(data);
 			return true;
 		}

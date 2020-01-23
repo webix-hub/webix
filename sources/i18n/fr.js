@@ -89,6 +89,16 @@ const fr = {
 		remove: "Effacer",
 		placeholder: "Écrivez ici..",
 		moreComments:"Plus de commentaires"
+	},
+	filter:{
+		less: "moins",
+		lessOrEqual: "inférieur ou égal",
+		greater: "plus grand",
+		greaterOrEqual: "supérieur ou égal",
+		contains: "contient",
+		notContains: "ne contient",
+		equal: "égal",
+		notEqual: "pas égal"
 	}
 };
 

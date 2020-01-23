@@ -65,7 +65,7 @@ const SelectionModel ={
 			} else
 				this._selected.remove(id);
 		}
-		else if (!id && !this.data.count() && !this.data._filter_order){	//remove selection for clearAll
+		else if (!id && !this.data.count() && !this.data._filter_order && !this.data._filter_branch){	//remove selection for clearAll
 			this._selected = _to_array();
 		}
 	},

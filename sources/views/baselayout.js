@@ -125,7 +125,7 @@ const api = {
 		this.resizeChildren(true);
 
 		var form = this.elements ? this : this.getFormView();
-		if (form) form._recollect_elements();
+		if (form && !this._fill_data) form._recollect_elements();
 
 		callEvent("onReconstruct",[this]);
 	},

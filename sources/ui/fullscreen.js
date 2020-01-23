@@ -1,4 +1,4 @@
-import {addMeta} from "../webix/html";
+import {addMeta, addStyle} from "../webix/html";
 import env from "../webix/env";
 import state from "../core/state";
 
@@ -24,6 +24,8 @@ export default function fullScreen(){
 
 	addMeta("apple-mobile-web-app-capable","yes");
 	addMeta("viewport","initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no");
+	if (!env.isMac)
+		addStyle("body.webix_full_screen{ overflow-y: auto; }");
 
 	var fix = function(){
 		var x = window.innerWidth;

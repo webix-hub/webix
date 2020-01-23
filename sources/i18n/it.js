@@ -94,6 +94,16 @@ const it = {
 		remove: "Elimina",
 		placeholder: "Digitare qui..",
 		moreComments:"Altri commenti"
+	},
+	filter:{
+		less: "meno",
+		lessOrEqual: "minore o uguale",
+		greater: "maggiore",
+		greaterOrEqual: "maggiore o uguale",
+		contains: "contiene",
+		notContains: "non contiene",
+		equal: "uguale",
+		notEqual: "non uguale"
 	}
 };
 

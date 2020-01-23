@@ -94,6 +94,16 @@ const be = {
 		remove: "Выдаліць",
 		placeholder: "Пішыце тут..",
 		moreComments:"Больш каментарыяў"
+	},
+	filter:{
+		less: "менш",
+		lessOrEqual: "менш або роўна",
+		greater: "больш",
+		greaterOrEqual: "больш або роўна",
+		contains: "змяшчае",
+		notContains: "не змяшчае",
+		equal: "роўныя",
+		notEqual: "не роўныя"
 	}
 };
 

@@ -112,9 +112,6 @@ const api = {
 			this._set_inner_size();
 		}
 	},
-	value_setter:function(value){
-		return this.$prepareValue(value);
-	},
 	$setValue:function(){
 		this.refresh();
 	},

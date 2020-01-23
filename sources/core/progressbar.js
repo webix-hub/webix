@@ -45,7 +45,7 @@ const ProgressBar = {
 			insertBefore(this._progress, this._viewobj.firstChild, this._viewobj);
 			this._viewobj.setAttribute("aria-busy", "true");
 
-			if(!Touch.$active){
+			if(!Touch.$active || this._touch_scroll == "native"){
 				if(this.getScrollState){
 					var scroll = this.getScrollState();
 					if(this._viewobj.scrollWidth != this.$width){

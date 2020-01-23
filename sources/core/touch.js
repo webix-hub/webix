@@ -2,7 +2,6 @@ import env from "../webix/env";
 import ready from "../webix/ready";
 
 import {event, eventRemove} from "../webix/htmlevents";
-import {delay} from "../webix/helpers";
 import {callEvent} from "../webix/customevents";
 import {preventEvent, removeCss, create, remove, addCss, addStyle} from "../webix/html";
 
@@ -17,8 +16,7 @@ const Touch = {
 		deltaStep:30,
 		speed:"0ms",
 		finish:1500,
-		ellastic:true,
-		fastClick:true
+		ellastic:true
 	},
 	limit:function(value){
 		Touch._limited = value !== false;	
@@ -40,20 +38,6 @@ const Touch = {
 			if(Touch._disabled || Touch._limited) return;
 			return preventEvent(e);
 		});
-		event(document.body,"touchstart",function(e){
-			if (Touch._disabled || Touch._limited || (!Touch.config.fastClick) ) return;
-			//fast click mode for iOS
-			//To have working form elements Android must not block event - so there are no fast clicks for Android
-			//Selects still don't work with fast clicks
-			if (env.isSafari) {
-				var tag = e.srcElement.tagName.toLowerCase();
-				if (tag == "input" || tag == "textarea" || tag == "select" || tag=="label")
-					return true;
-
-				Touch._fire_fast_event = true;
-				return preventEvent(e);
-			}
-		}, {passive:false});
 
 		Touch._clear_artefacts();
 		Touch._scroll = [null, null];
@@ -61,7 +45,7 @@ const Touch = {
 	},
 	_clear_artefacts:function(){
 		Touch._start_context = Touch._current_context = Touch._prev_context = Touch._scroll_context = null;
-		Touch._scroll_mode = Touch._scroll_node = Touch._scroll_stat = this._long_touched = null;
+		Touch._scroll_mode = Touch._scroll_node = Touch._scroll_stat = Touch._long_touched = null;
 		//remove(Touch._scroll);
 		//Touch._scroll = [null, null];
 		Touch._delta = 	{ _x_moment:0, _y_moment:0, _time:0 };
@@ -81,29 +65,14 @@ const Touch = {
 	_touchend:function(e){
 		if (Touch._start_context) {
 			if (!Touch._scroll_mode) {
-				if (!this._long_touched) {
+				if (!Touch._long_touched) {
 					if (Touch._axis_y && !Touch._axis_x) {
 						Touch._translate_event("onSwipeX");
 					} else if (Touch._axis_x && !Touch._axis_y) {
 						Touch._translate_event("onSwipeY");
-					} else {
-						if (env.isSafari && Touch._fire_fast_event) { //need to test for mobile ff and blackbery
-							Touch._fire_fast_event = false;
-							var target = Touch._start_context.target;
-
-							//dark iOS magic, without delay it can skip repainting
-							delay(function () {
-								var click_event = document.createEvent("MouseEvents");
-								click_event.initEvent("click", true, true);
-								target.dispatchEvent(click_event);
-							});
-
-						}
 					}
 				}
 			} else {
-
-
 				var temp = Touch._get_matrix(Touch._scroll_node);
 				var x = temp.e;
 				var y = temp.f;
@@ -177,10 +146,16 @@ const Touch = {
 					}
 				}
 				Touch._init_scroller(delta); //apply scrolling
+			} else if (env.isMac) {
+				const view = $$(Touch._start_context);
+				if (view && view.$hasYScroll && view.$hasYScroll()){
+					return preventEvent(e);
+				}
 			}
 		}
 
-		return preventEvent(e);
+		if (Touch._scroll_mode)
+			return preventEvent(e);
 	},
 	_set_scroll_pos:function(){
 		if (!Touch._scroll_node) return;
@@ -288,9 +263,15 @@ const Touch = {
 			Touch._scroll[0] = Touch._create_scroll("x", Touch._scroll_stat.dx, Touch._scroll_stat.px, "width");
 		if (Touch._scroll_mode.indexOf("y") != -1)
 			Touch._scroll[1] = Touch._create_scroll("y", Touch._scroll_stat.dy, Touch._scroll_stat.py, "height");
-			
+
 		Touch._init_scroll_node(Touch._scroll_node);
-		window.setTimeout(Touch._set_scroll_pos,1);
+		window.setTimeout(function(){
+			Touch._set_scroll_pos();
+			if (!Touch._scroll_stat.hidden){
+				if (Touch._scroll[0]) Touch._scroll[0].style.visibility = "visible";
+				if (Touch._scroll[1]) Touch._scroll[1].style.visibility = "visible";
+			}
+		}, 0);
 	},
 	_create_scroll:function(mode, dy, py, dim){
 		if (dy - py <2){
@@ -307,17 +288,17 @@ const Touch = {
 			"class":"webix_scroll_"+mode
 		},"");
 
+		scroll.style.visibility = "hidden";
 		scroll.style[dim] = Math.max((py*py/dy-7),10) +"px";
-		if (Touch._scroll_stat.left) 
+		if (Touch._scroll_stat.left){
 			if (mode === "x")
 				scroll.style.left = Touch._scroll_stat.left+"px";
 			else
 				scroll.style.right = (-Touch._scroll_stat.left)+"px";
-		if (Touch._scroll_stat.hidden)
-			scroll.style.visibility = "hidden";
+		}
 
 		Touch._scroll_node.parentNode.appendChild(scroll);
-		
+
 		return scroll;
 	},
 	_axis_check:function(value, mode, old){
@@ -340,7 +321,7 @@ const Touch = {
 				result = Touch._get_matrix(Touch._scroll_node);
 			else if(view.getScrollState){
 				state = view.getScrollState();
-				result = {e:state.x, f:state.y};
+				result = {e:-state.x, f:-state.y};
 			}
 			callEvent("onAfterScroll", [result]);
 			if (view.callEvent)
@@ -365,7 +346,9 @@ const Touch = {
 	_touchstart :function(e){
 		var target = e.target || window.event.srcElement;
 
-		if (Touch._disabled || (target.tagName&&target.tagName.toLowerCase() == "textarea" && target.offsetHeight<target.scrollHeight)) return;
+		if (Touch._disabled || (target.tagName&&target.tagName.toLowerCase() == "textarea" && target.offsetHeight<target.scrollHeight))
+			return preventEvent(e);
+
 		Touch._long_touched = null;
 		Touch._scroll_context = Touch._start_context = mouse.context(e);
 
@@ -376,24 +359,21 @@ const Touch = {
 			Touch._scroll_context = null;
 		}
 
-
-
 		Touch._translate_event("onTouchStart");
 
 		if (Touch._stop_old_scroll(e))
 			Touch._long_touch_timer = window.setTimeout(Touch._long_touch, Touch.config.longTouchDelay);
-		
+
 		if (element && element.touchable && (!target.className || target.className.indexOf("webix_view")!==0)){
 			Touch._css_button_remove = element.getNode(e);
 			addCss(Touch._css_button_remove,"webix_touch");
-		}	
-			
+		}
 	},
 	_long_touch:function(){
 		if(Touch._start_context){
+			Touch._long_touched = true;
 			Touch._translate_event("onLongTouch");
 			callEvent("onClick", [Touch._start_context]);
-			Touch._long_touched = true;
 			//Touch._clear_artefacts();
 		}
 	},
@@ -510,6 +490,9 @@ function touchInit(){
 		//not full screen mode
 		if (document.body.className.indexOf("webix_full_screen") == -1)
 			Touch.limit(true);
+
+		if (env.isSafari)
+			addStyle(".webix_view{ -webkit-overflow-scrolling: touch; }");
 
 		if (window.MSCSSMatrix)
 			addStyle(".webix_view{ -ms-touch-action: none; }");

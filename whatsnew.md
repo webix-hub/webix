@@ -1,3 +1,61 @@
+Version 7.1.3 (January 2020)
+==============================
+
+### Fixes
+
+- setting value into a not yet rendered Richselect control
+- number formatting regression in Text input
+- checkboxes in Filter view
+- replacing Scrollview dynamically
+- regression with item indices in Datatable with frozen rows
+- Multicombo placeholder disappears when deleting values
+- Datepicker blur regression in IE11
+- DragControl ES6 regression
+
+Version 7.1.2 (January 2020)
+==============================
+
+### Fixes
+
+- exit fullscreen mode on Esc key
+- gage with enabled smoothFlow in MultiView
+- tab/arrow navigation with Korean keyboard
+- drag-n-drop of Submenu items
+- print Datatable columns with zero values
+- tab navigation blocks editing in Spreadsheet
+- processing browser autofill actions with UIManager
+- Chart legend positioning in fullscreen mode
+- Popup closes on drag actions of the inside widgets
+
+
+Version 7.1.1 (December 2019)
+==============================
+
+### Fixes
+
+- wrong block-select when frozen rows are used
+- incorrect selection/editing when frozen rows are used
+- minColumnWidth doesn't used during datatable init
+- panels added by drag-n-drop can be initialized incorrectly
+- destroying views while drag active can cause errors
+- behavior of hightlight view when custom line-height used for text
+- regression in areaselection behaviors after Webix 7.0
+- regression in drag-n-drop in submenus after Webix 7.1
+- regression in template auto-height after Webix 7.1
+
+
+Version 7.1.0 (December 2019)
+==============================
+
+### Major features
+
+- Filter widget
+- TextHighlight widget
+- Improved behaviors on touch devices
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_7_1.html)
+
+
 Version 7.0.0 (September 2019)
 ==============================
 
@@ -9,6 +67,7 @@ Version 7.0.0 (September 2019)
 - Ability to hide/disable options and items across widgets
 
 [Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_7_0.html)
+
 
 Version 6.4 (June 2019)
 ==================

@@ -11,7 +11,7 @@ import base from "./view";
 import "./resizearea";
 
 import {bind} from "../webix/helpers";
-import {_event, event} from "../webix/htmlevents";
+import {_event, event, eventRemove} from "../webix/htmlevents";
 import {assert} from "../webix/debug";
 import {callEvent} from "../webix/customevents";
 
@@ -27,8 +27,6 @@ const api = {
 		var space = this.getParentView()._margin;
 		
 		_event(this._viewobj, env.mouse.down, this._rsDown, {bind:this});
-		event(document.body, env.mouse.up, this._rsUp, {bind:this});
-
 		var dir = this._getResizeDir();
 
 		this._rs_started = false;
@@ -74,6 +72,10 @@ const api = {
 			this._viewobj.setAttribute("aria-dropeffect", "move");
 			
 			this._rsStart(e, cells[0]);
+			const handler = event(document.body, env.mouse.up, e => {
+				eventRemove(handler);
+				return this._rsUp(e);
+			});
 		}
 	},
 	_rsUp:function(){

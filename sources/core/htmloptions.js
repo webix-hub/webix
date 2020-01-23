@@ -106,8 +106,8 @@ const HTMLOptions = {
 
 		if (this.optionIndex(id) === -1){
 			_power_array.insertAt.call(this._settings.options, obj, index);
-
 			this.refresh();
+
 			this.callEvent("onOptionAdd", [id, obj]);
 		}
 
@@ -116,17 +116,19 @@ const HTMLOptions = {
 	},
 	removeOption: function(id){
 		const index = this.optionIndex(id);
-		const options = this._settings.options;
 
-		if (index !== -1)
+		if (index !== -1){
+			const options = this._settings.options;
+
 			_power_array.removeAt.call(options, index);
+			this.refresh();
 
-		// if we remove a selected option
-		if(this._settings.value == id)
-			this._setNextVisible(options, index);
+			// if we remove a selected option
+			if (this._settings.value == id)
+				this._setNextVisible(options, index);
 
-		this.refresh();
-		this.callEvent("onOptionRemove", [id, this._settings.value]);
+			this.callEvent("onOptionRemove", [id, this._settings.value]);
+		}
 	},
 	_setNextVisible: function(options, index){
 		const size = options.length;

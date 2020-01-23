@@ -2,6 +2,7 @@ import env  from "../webix/env";
 import state from "../core/state";
 
 import {event} from "../webix/htmlevents";
+import {isUndefined} from "../webix/helpers";
 import {callEvent} from "../webix/customevents";
 
 import {use} from "../services";
@@ -52,7 +53,11 @@ export function _each(parent, logic, master, include){
 	}
 }
 
-export function zIndex(){
+export function zIndex(index){
+	if (!isUndefined(index)){
+		env.zIndexBase = Math.max(env.zIndexBase, index+1);
+		return index;
+	}
 	return env.zIndexBase++;
 }
 

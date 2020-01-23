@@ -53,8 +53,9 @@ const api = {
 			return !this.config.collapsed;
 		});
 		this.attachEvent("onItemClick", function(id, ev, node){
-			if(this.getPopup() && !this.getPopup().config.hidden)
-				ev.showpopup = true;
+			const popup = this.getPopup();
+			if(popup && !popup.config.hidden)
+				ev.showpopup = popup.config.id;
 			if(env.touch)
 				this._showPopup(id, node);
 		});
@@ -69,72 +70,69 @@ const api = {
 			this._markMenu(this, id, !$active.sidebarMarkAll);
 			this.getPopup()._onMasterSelect(id);
 		});
+		this.attachEvent("onAfterUnSelect", function(){
+			this.clearCss("webix_sidebar_selected");
+		});
 		this.attachEvent("onMouseMove", function(id, ev, node){
 			this._showPopup(id, node);
+		});
+		this.attachEvent("onMouseOut", function(){
+			if (this.config.collapsed)
+				this.getPopup().masterId = null;
 		});
 
 		if(this.config.collapsed)
 			this.collapse();
 	},
 	_showPopup: function(id, node){
-		if(this.config.collapsed){
+		if (this.config.collapsed){
 			var popup = this.getPopup();
+			if (popup){
+				this._updateTitle(id, popup);
+				this._updateList(id, popup);
 
-			if(popup){
-				this._updateTitle(id);
-				this._updateList(id);
+				popup.masterId = id;
 				popup.show(node, {
 					x: (this.config.position == "left"?this.config.collapsedWidth:-popup.config.width), 
-					y:-1
+					y: -1
 				});
 			}
 		}
 	},
-	_updateTitle: function(id){
-		var popup = this.getPopup();
-		var title = popup.getBody().getChildViews()[0];
-		if (!title || title.masterId == id) return;
+	_updateTitle: function(id, popup){
+		const title = popup.getBody().getChildViews()[0];
+		if (!title || popup.masterId == id) return;
 
-		var selectedId = this.getSelectedId();
-		title.masterId = id;
 		title.parse(this.getItem(id));
-		if(selectedId && this.getParentId(selectedId) == id){
-			addCss(title.$view, "webix_sidebar_selected", true);
-		}
-		else{
-			removeCss(title.$view, "webix_sidebar_selected");
-		}
 
-		if(selectedId == id){
+		const selectedId = this.getSelectedId();
+		if (selectedId == id){
 			addCss(title.$view, "webix_selected", true);
-		}
-		else{
+		} else {
 			removeCss(title.$view, "webix_selected");
 		}
 	},
-	_updateList: function(id){
-		var popup = this.getPopup();
-		var list = popup.getBody().getChildViews()[1];
-		if (!list || list.masterId == id) return;
+	_updateList: function(id, popup){
+		const list = popup.getBody().getChildViews()[1];
+		if (!list || popup.masterId == id) return;
 
-		if (this.exists(list.masterId) && this.getItem(list.masterId).menu)
-			this.updateItem(list.masterId, {menu:list.data.serialize()});
+		if (this.exists(popup.masterId) && this.getItem(popup.masterId).menu)
+			this.updateItem(popup.masterId, {menu:list.data.serialize()});
 
 		list.clearCss("webix_sidebar_selected");
-		list.masterId = id;
-		var selectedId = this.getSelectedId();
-		var data = copy(this.getItem(id).menu || []);
-		
-		list.unselect();
-		if(data.length){
+		list.unselectAll();
+
+		const data = copy(this.getItem(id).menu || []);
+		if (data.length){
 			list.show();
 			list.data.importData(data);
-			if(list.exists(selectedId))
+
+			const selectedId = this.getSelectedId();
+			if (list.exists(selectedId))
 				list.select(selectedId);
-			else if(selectedId)
+			else if (selectedId)
 				this._markMenu(list, selectedId);
-		}
-		else {
+		} else {
 			list.hide();
 			list.data.clearAll();
 		}
@@ -171,7 +169,7 @@ const api = {
 							template: "#value#", height: this.config.titleHeight+2,
 							onClick:{
 								webix_template: function(){
-									var id = this.masterId;
+									var id = this.getValues().id;
 									if(!master.getItem(id).$count)
 										master.select(id);
 								}
@@ -242,10 +240,7 @@ const api = {
 			extend(popupConfig, config.popup||{}, true);
 			popup = ui(popupConfig);
 			popup._onMasterSelect = function(id){
-				if( master && master.getParentId(id) == this.masterId){
-					addCss(this.$view, "webix_sidebar_selected", true);
-				}
-				if(master.config.collapsed && master.getItem(id).$level ==1){
+				if(master.config.collapsed && master.getItem(id).$level == 1){
 					let title = popup.getBody().getChildViews()[0];
 					if (title)
 						addCss(title.$view, "webix_selected", true);

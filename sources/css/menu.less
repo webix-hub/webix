@@ -30,15 +30,24 @@
 	}
 	.webix_submenu_icon{
 		top: @menuHeight/2 - @listPaddingY - 2;
-	}
-}
+    }
 
-.webix_menu-x{
     .webix_list_item{
         display:inline-block;
         line-height:@menuItemHeight - @listPaddingY*2 - @menuMargin*2;
     }
     .xMenuItems;
+
+
+    &.webix_disabled_view{
+        .webix_disabled{
+            background-color:transparent;
+        }
+        .webix_list_item.menu{
+            color: @disabledFontColor;
+            background: darken(@disabledColor,2%);
+        }
+    }
 }
 
 /* Submenu */

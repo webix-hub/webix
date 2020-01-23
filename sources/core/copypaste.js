@@ -8,11 +8,13 @@ const CopyPaste = {
 	clipboard_setter: function(value) {
 		if (value === true || value === 1) value = "modify";
 		this.attachEvent("onAfterSelect", function(id) {
-			var item = this.getItem(id);
-			var text = this.type.templateCopy(item);
-			clipbuffer.set(text, this);
-			clipbuffer.focus();
-			UIManager.setFocus(this);
+			if (!this.getEditor || !this.getEditor()){
+				var item = this.getItem(id);
+				var text = this.type.templateCopy(item);
+				clipbuffer.set(text, this);
+				clipbuffer.focus();
+				UIManager.setFocus(this);
+			}
 		});
 		this.attachEvent("onPaste", function(text) {
 			if (!isUndefined(this._paste[this._settings.clipboard]))

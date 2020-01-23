@@ -29,6 +29,10 @@ const api = {
 	$setValue:function(value){
 		this._dataobj.firstChild.innerHTML = value;
 	},
+	$render:function(config){
+		if (config.align === "right")
+			this._dataobj.firstChild.style.textAlign = "right";
+	},
 	_set_inner_size:false,
 	_set_default_css:function(){},
 	_calc_size:function(config){

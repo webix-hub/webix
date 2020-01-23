@@ -3,7 +3,7 @@ import {copy, extend, bind} from "../webix/helpers";
 import {_each} from "../ui/helpers";
 import animate from "../webix/animate";
 import {assert} from "../webix/debug";
-import {attachEvent} from "../webix/customevents";
+import {attachEvent, detachEvent} from "../webix/customevents";
 
 import state from "../core/state";
 import Touch from "../core/touch";
@@ -84,10 +84,11 @@ const api = {
 		this._layout._show = bind(api._show,this);
 		this._layout.adjustScroll = bind(api.adjustScroll,this);
 
-		attachEvent("onReconstruct", bind(function(view){
+		const e1 = attachEvent("onReconstruct",  view => {
 			if(view == this._layout)
 				this._setScroll();
-		},this));
+		});
+		this.attachEvent("onDestruct", function(){ detachEvent(e1); });
 
 		this._contentobj = this._viewobj.firstChild;
 	},

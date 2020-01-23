@@ -68,7 +68,7 @@ export const toPDF = function(id, options){
 		else{
 			const defer = promise.defer();
 			/* global pdfjs */
-			pdfjs.load(env.cdn + "/extras/"+options.fontName+".ttf", function(err, buf){
+			pdfjs.load(options.fontURL||env.cdn + "/extras/"+options.fontName+".ttf", function(err, buf){
 				if(err) throw err;
 				options._export_font = font[options.fontName] = new pdfjs.TTFFont(buf);
 				defer.resolve(

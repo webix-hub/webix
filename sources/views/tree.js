@@ -36,11 +36,8 @@ const api = {
 		//map API of DataStore on self
 		extend(this.data, TreeStore, true);
 		extend(this.on_click, TreeClick);
-		this.attachEvent("onAfterRender", this._refresh_scroll);
-		this.attachEvent("onPartialRender", this._refresh_scroll);
 		this.data.provideApi(this,true);
 		this._viewobj.setAttribute("role", "tree");
-
 	},
 	//attribute , which will be used for ID storing
 	_id:/*@attr*/"webix_tm_id",

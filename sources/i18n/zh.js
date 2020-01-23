@@ -94,6 +94,16 @@ const zh = {
 		remove: "去掉",
 		placeholder: "在此输入..",
 		moreComments:"更多评论"
+	},
+	filter:{
+		less: "减",
+		lessOrEqual: "少于或等于",
+		greater: "更大",
+		greaterOrEqual: "大于或等于",
+		contains: "包含",
+		notContains: "不包含",
+		equal: "等于",
+		notEqual: "不平等"
 	}
 };
 

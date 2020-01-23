@@ -18,7 +18,7 @@ const DragOrder ={
 		if (this._inner_drag_only && this.getBranchIndex)
 			this._drag_order_stored_left = this._drag_order_complex?((this.getItem(context.start).$level+1) * 20 + 8):0;
 
-		if (isArray(context.source) && !context.fragile){
+		if (isArray(context.source)){
 			DragControl._setDragOffset(e);
 			this._add_css(context.source, "webix_invisible");
 		}
@@ -114,7 +114,7 @@ const DragOrder ={
 	$dragDestroy: function(){
 		let context = DragControl._drag_context;
 
-		if (isArray(context.source) && !context.fragile)
+		if (isArray(context.source))
 			this._remove_css(context.source, "webix_invisible");
 
 		remove(DragControl._html);

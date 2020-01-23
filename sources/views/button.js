@@ -28,10 +28,11 @@ const api = {
 			return "<div class='webix_el_box' style='width:"+obj.awidth+"px; height:"+obj.aheight+"px'>"+ text + "</div>";
 		},
 		label:"",
+		value:"",
 		borderless:true
 	},
 	$renderInput:function(obj){
-		return "<button type='button' "+(obj.popup?"aria-haspopup='true'":"")+" class='webix_button'>"+(obj.label||this._pattern(obj.value))+"</button>";
+		return "<button type='button' "+(obj.popup?"aria-haspopup='true'":"")+" class='webix_button'>"+(obj.label||obj.value)+"</button>";
 	},
 	$init:function(config){
 		this._viewobj.className += " webix_control webix_el_"+(this.$cssName||this.name);
@@ -168,9 +169,9 @@ const api = {
 		if (typeof oldvalue === "number") oldvalue = oldvalue.toString();
 		return oldvalue == value;
 	},
-	$prepareValue:function(value){ return this._pattern(value, false); },
-	_pattern :function(value){
-		return value === 0 ? "0" : (value || "").toString();
+	$prepareValue:function(value){ return value === 0 ? "0" : (value || "").toString(); },
+	value_setter:function(value){
+		return this.$prepareValue(value);
 	},
 	//visual part of setValue
 	$setValue:function(value){
@@ -267,7 +268,6 @@ const api = {
 				switch(this._settings.align){
 					case "right":
 						handle.style.cssFloat = "right";
-						handle.style.textAlign = "right";
 						break;
 					case "center":
 						handle.style.display = "inline-block";
@@ -362,6 +362,7 @@ const api = {
 
 			if (opt && !opt.disabled && this.callEvent("onBeforeTabClose", [id, e]))
 				this.removeOption(id);
+			return false;
 		}
 	},
 

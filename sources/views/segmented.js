@@ -65,24 +65,25 @@ const api = {
 	focus: function(){ return this._focus(); },
 	blur: function(){ this._blur(); },
 	$setValue:function(value){
+		//refresh tabbar if the option is in the popup list
+		const popup = this.config.tabbarPopup;
+		if (popup && $$(popup) && $$(popup).getBody().exists(value))
+			return this.refresh();
+
 		const inputs = this._getInputNode();
-		let id;
+		let id, option;
 
 		for (let i=0; i<inputs.length; i++){
 			id = inputs[i].getAttribute(/*@attr*/"button_id");
-			const option = this.getOption(id);
+			option = this.getOption(id);
 
 			inputs[i].setAttribute("aria-selected", (value==id?"true":"false"));
-			inputs[i].setAttribute("tabindex", (!option.disabled && value==id?"0":"-1"));
+			inputs[i].setAttribute("tabindex", (option && !option.disabled && value==id?"0":"-1"));
 			if (value == id)
 				addCss(inputs[i], "webix_selected");
 			else
 				removeCss(inputs[i], "webix_selected");
 		}
-		//refresh tabbar if the option is in the popup list
-		const popup = this.config.tabbarPopup;
-		if(popup && $$(popup) && $$(popup).getBody().exists(value))
-			this.refresh();
 	},
 	$getValue:function(){
 		return this._settings.value||"";

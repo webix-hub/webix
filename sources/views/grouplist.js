@@ -1,14 +1,14 @@
 import base from "../views/view";
 import list from "../views/list";
 import Group from "../core/group";
-import Touch from "../core/touch";
 import TreeStore from "../core/treestore";
 import RenderStack from "../core/renderstack";
 
 import type from "../webix/type";
 
 import {protoUI} from "../ui/core";
-import {extend, bind, copy, delay, _to_array, clone} from "../webix/helpers";
+import {extend, bind, copy, _to_array, clone} from "../webix/helpers";
+import promise from "../thirdparty/promiz";
 import animate from "../webix/animate";
 import template from "../webix/template";
 
@@ -39,7 +39,7 @@ const api = {
 	},	
 	on_click:{
 		webix_list_item:function(e,id){
-			if (this._in_animation) {
+			if (this._animation_promise) {
 				return false;
 			}
 
@@ -82,7 +82,7 @@ const api = {
 	getOpenState:function(){
 		return {parents:this._nested_chain,branch:this._nested_cursor};
 	},
-	render:function(){
+	render:function(id,data,type){
 		var i, lastChain;
 
 		//start filtering processing=>
@@ -106,9 +106,9 @@ const api = {
 		}
 		//<= end filtering processing
 
-		if (this._in_animation) {
-			return delay(this.render, this, arguments, 100);
-		}        
+		if (this._animation_promise)
+			return this._animation_promise.then(() => this.render.apply(this, arguments));
+
 		for (i=0; i < this._nested_cursor.length; i++)
 			this.data.getItem(this._nested_cursor[i]).$template = "";
 
@@ -116,9 +116,12 @@ const api = {
 			this._nested_cursor = this.data.branch[0];
 
 		this.data.order = _to_array([].concat(this._nested_chain).concat(this._nested_cursor));
-			
+
 		if (this.callEvent("onBeforeRender",[this.data])){
-			if(this._no_animation || !this._dataobj.innerHTML || !(animate.isSupported() && this._settings.animate) || (this._prev_nested_chain_length == this._nested_chain.length)) { // if dataobj is empty or animation is not supported
+			if (this._no_animation || !this._dataobj.innerHTML || !(animate.isSupported() && this._settings.animate) || (this._prev_nested_chain_length == this._nested_chain.length)) { // if dataobj is empty or animation is not supported
+				// don't repaint invisible data
+				if (id && type !== "delete" && this.data.getIndexById(id) === -1) return;
+
 				RenderStack.render.apply(this, arguments);
 			}
 			else {
@@ -136,20 +139,11 @@ const api = {
 
 					/*scroll position restore*/
 					var animArr = [clone(aniset),clone(aniset)];
-					if(this._is_level_down){
+					var getScrollState;
+					if (this._is_level_down)
 						this._back_scroll_states.push(this.getScrollState());
-						if(Touch&&Touch.$active){
-							animArr[0].y = 0;
-							animArr[1].y = - this.getScrollState().y;
-						}
-					}
-					else{
-						var getScrollState = this._back_scroll_states.pop();
-						if(Touch&&Touch.$active){
-							animArr[0].y = -getScrollState.y;
-							animArr[1].y = - this.getScrollState().y;
-						}
-					}
+					else
+						getScrollState = this._back_scroll_states.pop();
 
 					var line = animate.formLine(
 						next_div,
@@ -157,36 +151,26 @@ const api = {
 						aniset
 					);
 
-					/*keeping scroll position*/
-					if(Touch&&Touch.$active)
-						Touch._set_matrix(next_div, 0,this._is_level_down?0:animArr[0].y, "0ms");
-
 					aniset.master = this;
 					aniset.callback = function(){
 						this._dataobj = next_div;
 
 						/*scroll position restore*/
-						if(!this._is_level_down){
-							if(Touch&&Touch.$active){
-								delay(function(){
-									Touch._set_matrix(next_div, 0,animArr[0].y, "0ms");
-								},this);
-							} else if (getScrollState) 
+						if (!this._is_level_down){
+							if (getScrollState) 
 								this.scrollTo(0,getScrollState.y);
-						}
-						else if(!(Touch&&Touch.$active)){
+						} else
 							this.scrollTo(0,0);
-						}
 
 						animate.breakLine(line);
 						aniset.master = aniset.callback = null;
-						this._htmlmap = null; //clear map, it will be filled at first getItemNode
-						this._in_animation = false;
+						this._htmlmap = this._animation_promise = null; //clear map, it will be filled at first getItemNode
+						aniset.wait_animation.resolve();
 						this.callEvent("onAfterRender",[]);
 					};
-					
-					this._in_animation = true;
+
 					animate(line, animArr);
+					this._animation_promise = aniset.wait_animation = promise.defer();
 				}
 			}
 			this._prev_nested_chain_length = this._nested_chain.length;

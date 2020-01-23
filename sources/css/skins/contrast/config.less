@@ -587,6 +587,11 @@
 		background-color: @disabledColor;
 	}
 }
+.webix_menu-x.webix_disabled_view{
+	.webix_list_item{
+		border-right: 1px solid transparent;
+	}
+}
 .webix_menu.webix_view{
 	.webix_list_item:hover, .webix_list_item:active{
 		.darkHoverRule(@backColor);
@@ -679,6 +684,10 @@
 .webix_invalid .webix_inp_bottom_label {
 	color: #fea5a8;
 }
+.webix_el_texthighlight .webix_text_highlight{
+	background-color: @inputButtonColor;
+	color: @foreColor;
+}
 .webix_el_combo, .webix_el_search, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
 	   span.webix_input_icon{
 		   background-color: @inputButtonColor;
@@ -745,8 +754,13 @@
 	.focusStyle;
 }
 
-.webix_multilist .wxi-checkbox-marked{
-	color: @fontColor;
+.webix_multilist{
+	.wxi-checkbox-marked{
+		color: @buttonColor;
+	}
+	.wxi-checkbox-marked, .wxi-checkbox-blank{
+		height:20px;
+	}
 }
 
 .buttonBorderStyle(@color:@buttonColor){
@@ -1154,8 +1168,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	float: left;
 	position: relative;
 	top: 50%;
-	width:auto;
-	margin-top: -7px;;
+	margin-top: -6px;
 	padding:0;
 	height:17px;
 	width:17px;

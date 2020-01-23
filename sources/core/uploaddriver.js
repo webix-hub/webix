@@ -40,7 +40,7 @@ const UploadDriver = {
 		this._upload_area = this._contentobj.firstChild.appendChild(f);
 
 		_event(this._viewobj, "drop", bind(function(e) {
-			this._drop(e);
+			this.$drop(e);
 			preventEvent(e);
 		}, this));
 		_event(f, "change", bind(function() {
@@ -87,6 +87,9 @@ const UploadDriver = {
 	$drop: function(e) {
 		var files = e.dataTransfer.files;
 		var items = e.dataTransfer.items;
+
+		// non-file drop
+		if (!files.length) return;
 
 		if (this.callEvent("onBeforeFileDrop", [files, e])) {
 			items = items || files; //IE10+

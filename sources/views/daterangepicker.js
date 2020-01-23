@@ -1,6 +1,6 @@
 import datepicker from "../views/datepicker";
-import {protoUI, $$} from "../ui/core";
-import {copy} from "../webix/helpers";
+import daterange from "../views/daterange";
+import {protoUI} from "../ui/core";
 import i18n from "../webix/i18n";
 
 
@@ -8,14 +8,14 @@ const api = {
 	$cssName:"datepicker",
 	name:"daterangepicker",
 	$init:function(config){
-		//set non-empty initial value
-		this._settings.value = {};
 		// other types are not implemented
 		delete config.type;
 		// only start/end values can be selected
 		delete config.multiselect;
+		delete this._settings.multiselect;
 	},
 	defaults:{
+		value:{ },
 		separator:" - "
 	},
 	_init_popup:function(){
@@ -31,13 +31,14 @@ const api = {
 		}
 		this._init_once = function(){};
 	},
-	$prepareValue:function(value){
-		value = value || {};
-		value.start = datepicker.api.$prepareValue.call(this, value.start?value.start:null);
-		value.end = datepicker.api.$prepareValue.call(this, value.end?value.end:null);
-
-		var daterange = $$(this._settings.popup).getRange();
-		return copy(daterange._correct_value(value));
+	$prepareValue:function(){
+		return daterange.api.$prepareValue.apply(this, arguments);
+	},
+	_string_to_date:function(date){
+		if(typeof date == "string"){
+			date = i18n.parseFormatDate(date);
+		}
+		return isNaN(date*1) ? null : date;
 	},
 	$compareValue:function(oldvalue, value){
 		var compare = datepicker.api.$compareValue;
@@ -51,10 +52,6 @@ const api = {
 
 		this._settings.text = (value.start?this._get_visible_text(value.start):"")+(value.end?(this._settings.separator + this._get_visible_text(value.end)):"");
 		this._set_visible_text();
-	},
-	$render:function(obj){
-		obj.value = this.$prepareValue(obj.value);
-		this.$setValue(obj.value);
 	},
 	getValue:function(){
 		var value = this._settings.value;

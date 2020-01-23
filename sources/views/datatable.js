@@ -39,7 +39,6 @@ import {debug_size_box} from "../webix/debug";
 import {assert} from "../webix/debug";
 import {callEvent} from "../webix/customevents";
 
-import DragControl from "../core/dragcontrol";
 import TooltipControl from "../core/tooltipcontrol";
 import DataCollection from "../core/datacollection";
 import Number from "../core/number";
@@ -223,11 +222,6 @@ const api = {
 	render:function(id, data, mode){
 		//pure data saving call
 		if (mode == "save" || this._renderDelay) return;
-		//during dnd we must not repaint anything in mobile webkit
-		if (mode == "move"){
-			var context = DragControl.getContext();
-			if (context && context.fragile) return;
-		}
 
 		if (!this._columns.length){
 			var cols = this._settings.columns;
@@ -327,7 +321,7 @@ const api = {
 				if (format)
 					col.cssFormat = toFunctor(format, this.$scope);
 
-				col.width = col.width||this._settings.columnWidth;
+				col.width = this._correctColumnWidth(col.width||this._settings.columnWidth, col);
 				if (typeof col.format == "string") 
 					col.format = i18n[col.format]||window[col.format];
 				if (col.numberFormat){
@@ -496,9 +490,10 @@ const api = {
 			for (let j = 0; j < data.length; j++){
 				if (typeof data[j] != "object")
 					data[j] = { text:data[j] };
-				
+
 				if (data[j] && data[j].height) heights[j] = data[j].height;
 				if (data[j] && data[j].autoheight) heights[j] = this._getHeaderHeight(data[j], this._columns[i], i);
+				if (data[j] && data[j].css && typeof data[j].css === "object") data[j].css = createCss(data[j].css);
 			}
 			rows = Math.max(rows, data.length);
 			this._columns[i][collection] = data;
@@ -626,18 +621,14 @@ const api = {
 				if (cell_height != this._settings.headerRowHeight)
 					sheight =" style='line-height:"+cell_height+"px; height:"+cell_height+"px;'";
 
-				var css ="webix_hcell";
-				var header_css = header.css;
-				if (header_css){
-					if (typeof header_css == "object")
-						header.css = header_css = createCss(header_css);
-					css+=" "+header_css;
-				}
+				var css = "webix_hcell";
+				if (header.css)
+					css += " " + header.css;
 				if (this._columns[i].$selected)
 					css += " webix_sel_hcell";
-				
+
 				html+="><div role='columnheader' class='"+css+"'"+sheight+">";
-				
+
 				var text = (header.text===""?"&nbsp;":header.text);
 				if (header.rotate)
 					text = "<div class='webix_rotate' style='width:"+(cell_height-10)+"px; transform-origin:center "+(cell_height-15)/2+"px;-webkit-transform-origin:center "+(cell_height-15)/2+"px;'>"+text+"</div>";
@@ -661,7 +652,7 @@ const api = {
 		//parameter will be set to -1, to mark that scroll need not to be adjusted
 		var scroll = this.getScrollState();
 
-		if (row_ind != -1){
+		if (row_ind >= this._settings.topSplit || (this._settings.prerender && row_ind != -1)){
 			let state = this._get_y_range();
 			if (row_ind < state[0]+1 || row_ind >= state[1]-1 ){
 				//not visible currently
@@ -670,7 +661,7 @@ const api = {
 				const itemHeight = this._getHeightByIndex(row_ind);
 				if (row_ind < state[0]+1){
 					//scroll top - show row at top of screen
-					summ = Math.max(0, summ) - this._top_split_height;
+					summ = Math.max(0, summ) - (this._top_split_height||0);
 				} else if(summ + itemHeight > dataHeight) {
 					//scroll bottom - show row at bottom of screen
 					summ += itemHeight - dataHeight;
@@ -739,6 +730,7 @@ const api = {
 		if (y !== null)
 			this._y_scroll.scrollTo(y);
 	},
+	_touch_scroll:"touch",
 	getScrollState:function(){
 		if (this._getScrollState_touch)
 			return this._getScrollState_touch();
@@ -763,7 +755,9 @@ const api = {
 	_scroll_with_header:function(){
 		var active = this.getScrollState().x;
 		var header = this._header.childNodes[1].scrollLeft;
-		if (header != active)
+
+		// on mobile devices scrollLeft can be a non-round value
+		if (Math.ceil(header) != Math.ceil(active))
 			this.scrollTo(header, null);
 	},
 	_refresh_tracking_header_content:function(){
@@ -833,7 +827,7 @@ const api = {
 		this._scrollSizeX =  hasX ? env.scrollSize : 0;
 		var hasY = !(this._settings.autoheight || this._settings.scrollY === false);
 		this._scrollSizeY = hasY ? env.scrollSize : 0;
-		if(env.touch)
+		if (env.touch)
 			hasX = hasY = false;
 		if (this._x_scroll){
 			this._x_scroll._settings.scrollSize = this._scrollSizeX;
@@ -932,7 +926,7 @@ const api = {
 	},
 	_id_to_string:function(){ return this.row; },
 	locate:function(node, idOnly){
-		if (this._settings.subview && this != $$(node)) return null;
+		if (this != $$(node)) return null;
 
 		node = node.target||node.srcElement||node;
 		while (node && node.getAttribute){
@@ -1002,8 +996,7 @@ const api = {
 		if (isNaN(width) || col < 0) return;
 		var column = this._columns[col];
 
-		width = Math.max(width, column.minWidth||this._settings.minColumnWidth||0);
-		width = Math.min(width, column.maxWidth||this._settings.maxColumnWidth||100000);
+		width = this._correctColumnWidth(width, column);
 
 		var old = column.width;
 		if (old != width){
@@ -1024,6 +1017,12 @@ const api = {
 		}
 		return false;
 	},
+	_correctColumnWidth:function(width, config){
+		width = Math.max(width, config.minWidth||this._settings.minColumnWidth||0);
+		width = Math.min(width, config.maxWidth||this._settings.maxColumnWidth||100000);
+
+		return width;
+	},
 	_getRowHeight:function(row){
 		return (row.$height || this._settings.rowHeight)+(row.$subopen?row.$subHeight:0);
 	},
@@ -1034,7 +1033,7 @@ const api = {
 	},
 	_getHeightByIndexSumm:function(index1, index2){
 		if (this._settings.fixedRowHeight)
-			return (index2-index1)*this._settings.rowHeight;
+			return Math.max(index2-index1, 0) * this._settings.rowHeight;
 		else {
 			var summ = 0;
 			for (; index1<index2; index1++)
@@ -1043,21 +1042,21 @@ const api = {
 		}
 	},
 	_cellPosition:function(row, column){
-		var top;
 		if (arguments.length == 1){
 			column = row.column; row = row.row;
 		}
-		var item = this.getItem(row);
-		var config = this.getColumnConfig(column);
-		var left = 0;
-		var parent = 0;
 
-		for (var index=0; index < this._columns.length; index++){
+		const item = this.getItem(row);
+		const config = this.getColumnConfig(column);
+		let left = 0;
+		let parent = 0;
+
+		for (let index=0; index<this._columns.length; index++){
 			if (index == this._settings.leftSplit || index == this._rightSplit)
 				left = 0;
-			var leftcolumn = this._columns[index];
+			const leftcolumn = this._columns[index];
 			if (leftcolumn.id == column){
-				var split_column = index<this._settings.leftSplit ? 0 :( index >= this._rightSplit ? 2 : 1);
+				const split_column = index<this._settings.leftSplit ? 0 :( index >= this._rightSplit ? 2 : 1);
 				parent = this._body.childNodes[split_column].firstChild;
 				break;
 			}
@@ -1065,11 +1064,15 @@ const api = {
 			left += leftcolumn.width;
 		}
 
+		const index = this.getIndexById(row);
+		let top;
 
-		if(this.getIndexById(row) < this._settings.topSplit)
-			top = this._getHeightByIndexSumm(0,  this.getIndexById(row));
-		else
-			top = this._getHeightByIndexSumm((this._render_scroll_top||0)-this._settings.topSplit,  this.getIndexById(row)) + (this._render_scroll_shift||0);
+		if (index < this._settings.topSplit)
+			top = this._getHeightByIndexSumm(0, index);
+		else {
+			const first = this._render_scroll_top||0;
+			top = this._getHeightByIndexSumm(first, index) + (this._render_scroll_shift||0) + (index >= first ? (this._top_split_height||0) : 0);
+		}
 
 		return {
 			parent: parent,
@@ -1195,18 +1198,10 @@ const api = {
 			}
 		}
 
+		var xind = start + this._settings.topSplit;
 		//in case of autoheight - request full rendering
-		if (this._settings.autoheight)
-			return [start, end, 0];
-
-		
-		
-
-		if (full) return [start, end, 0];
-		var xind = start;
-		var topSplit = this._settings.topSplit || 0;
-		if (topSplit)
-			xind += topSplit;
+		if (full || this._settings.autoheight)
+			return [xind, end, 0];
 
 		var rowHeight = this._settings.fixedRowHeight?this._settings.rowHeight:0;
 		if (rowHeight){
@@ -1247,7 +1242,7 @@ const api = {
 		var rowindex = this.getIndexById(id);
 
 		var state = this._get_y_range();
-		var freeze = this.config.topSplit;
+		var freeze = this._settings.topSplit;
 		var freezeCss = "";
 
 		if (rowindex >= freeze){
@@ -1796,7 +1791,7 @@ const api = {
 	_restore_scroll_state:function(){
 		if (this._x_scroll && !env.touch){
 			var state = this.getScrollState();
-			this._x_scroll._last_scroll_pos = this._y_scroll._last_scroll_pos = -1;
+			this._x_scroll.config.scrollPos = this._y_scroll.config.scrollPos = 0;
 			this.scrollTo(state.x, state.y);
 		}
 	},
@@ -1929,10 +1924,10 @@ const api = {
 				var column = trg.parentNode.getAttribute(/*@attr*/"column") || trg.getAttribute(/*@attr*/"column");
 				if (column){ //we need to ignore TD - which is header|footer
 					var  isBody = trg.parentNode.tagName == "DIV";
-					
+
 					//column already hidden or removed
 					if(!this._columns[column]) return;
-					
+
 					found = true;
 					if (isBody){
 						var index = trg.parentNode.getAttribute(/*@attr*/"row") || trg.getAttribute(/*@attr*/"row");
@@ -1940,7 +1935,7 @@ const api = {
 							//click event occurs on column holder, we can't detect cell
 							if (trg.getAttribute(/*@attr*/"column")) return;
 							index = getIndex(trg);
-							if (index >= this._settings.topSplit && !this._settings.prerender)
+							if (index >= this._settings.topSplit && !this._settings.prerender && !this._settings.autoheight)
 								index += this._columns[column]._yr0 - this._settings.topSplit;
 						}
 
@@ -1948,11 +1943,11 @@ const api = {
 						id.toString = this._id_to_string;
 					} else 
 						this._item_clicked = id = { column:this._columns[column].id };
-						
+
 					//some custom css handlers was found
 					res = this._mouseEventCall(css_call, e, id, trg);
 					if (res===false) return;
-					
+
 					//call inner handler
 					if (isBody ){
 						if(this.callEvent("on"+name,[id,e,trg])&&pair){
@@ -1967,7 +1962,7 @@ const api = {
 					css_call = [];
 				} 
 			}
-			
+
 			trg=trg.parentNode;
 		}
 		this._mouseEventCall(css_call, e, id, this.$view);

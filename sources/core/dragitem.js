@@ -68,7 +68,8 @@ const DragItem ={
 		if (this._auto_scroll_delay)
 			this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
 
-		if (this._settings.dragscroll !== false)
+		const fragile = (this.addRowCss && env.touch && !this._settings.prerender);
+		if (this._settings.dragscroll !== false  && !fragile)
 			this._auto_scroll_delay = delay(function(pos,id){
 				this._drag_pause(id);
 				this._auto_scroll(pos,id);
@@ -95,7 +96,7 @@ const DragItem ={
 		return target && typeof target === "object" ? target.toString() : target;
 	},
 	//called when drag moved out from possible target
-	$dragOut:function(s,t,n,e){ 
+	$dragOut:function(s,t,n,e){
 		var id = (this._viewobj.contains(n) ? this.locate(e): null) || null;
 		var context = DragControl._drag_context;
 
@@ -181,12 +182,11 @@ const DragItem ={
 			}
 			//save initial dnd params
 			var context = DragControl._drag_context= { source:list, start:id };
-			context.fragile = (this.addRowCss && env.touch && ( env.isWebKit || env.isFF ));
 			context.from = this;
-			
+
 			if (this.callEvent("onBeforeDrag",[context,e])){
-				if (Touch)
-					Touch._start_context = null;
+				if (env.touch && this._touch_scroll == "touch")
+					delay(function(){ Touch._start_context = null; });
 
 				//set drag representation
 				return context.html||this.$dragHTML(this.getItem(id), e, context);
@@ -214,13 +214,13 @@ const DragItem ={
 
 		//touch webkit will stop touchmove event if source node removed
 		if (this._marked && this._marked != target){
-			if (!context.fragile) this._remove_css([this._marked], "webix_drag_over", true);
+			this._remove_css([this._marked], "webix_drag_over", true);
 			this._marked = null;
 		}
 
 		if (!this._marked && target){
 			this._marked = target;
-			if (!context.fragile) this._add_css([target], "webix_drag_over", true);
+			this._add_css([target], "webix_drag_over", true);
 			return target;
 		}
 		

@@ -5,8 +5,7 @@ import {$active} from "../webix/skin";
 import window from "../views/window";
 import base from "../views/view";
 
-import {zIndex} from "../ui/helpers";
-import {attachEvent} from "../webix/customevents";
+import {attachEvent, detachEvent} from "../webix/customevents";
 
 
 const api = {
@@ -14,7 +13,8 @@ const api = {
 	$init:function(){
 		this._settings.head = false;
 		this.$view.className += " webix_popup";
-		attachEvent("onClick", (e)=>this._hide(e));
+		const clickHandler = attachEvent("onClick", (e)=>this._hide(e));
+		this.attachEvent("onDestruct", function(){ detachEvent(clickHandler); });
 		this.attachEvent("onHide", this._hide_point);
 	},
 	$skin:function(){
@@ -50,7 +50,7 @@ const api = {
 	_set_point:function(mode, left, top, fixed){
 		this._hide_point();
 		document.body.appendChild(this._point_element = create("DIV",{ "class":"webix_point_"+mode },""));
-		this._point_element.style.zIndex = zIndex();
+		this._point_element.style.zIndex = this._viewobj.style.zIndex;
 		this._point_element.style.position = fixed ? "fixed":"absolute";
 
 		this._point_element.style.top = top+"px";

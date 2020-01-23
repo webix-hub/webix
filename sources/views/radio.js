@@ -86,24 +86,24 @@ const api = {
 	$setValue:function(value){
 		const inp = this._dataobj.getElementsByTagName("input");
 		const active = this._getFirstActive();
-		let id, focusable;
+		let id, option, focusable, parentNode, button;
 
 		for (let i=0; i < inp.length; i++){
 			id = inp[i].parentNode.getAttribute(/*@attr*/"radio_id");
-			const option = this.getOption(id);
+			option = this.getOption(id);
 
 			inp[i].checked = (id == value);
-			focusable = inp[i].checked || (!value && option.id === active);
-			inp[i].setAttribute("tabindex",(!option.disabled && focusable)?"0":"-1");
+			focusable = option && !option.disabled && (inp[i].checked || (!value && option.id == active));
+			inp[i].setAttribute("tabindex", focusable?"0":"-1");
 
-			const parentNode = inp[i]?inp[i].parentNode:null;
+			parentNode = inp[i]?inp[i].parentNode:null;
 			if (parentNode){
 				parentNode.className = parentNode.className.replace(/(webix_radio_)\d/,"$1"+(inp[i].checked?1:0));
 				if (this._settings.customRadio){
-					const button = parentNode.getElementsByTagName("BUTTON");
+					button = parentNode.getElementsByTagName("BUTTON");
 					if (button[0]){
 						button[0].setAttribute("aria-checked", inp[i].checked?"true":"false");
-						button[0].setAttribute("tabindex", (!option.disabled && focusable)?"0":"-1");
+						button[0].setAttribute("tabindex", focusable?"0":"-1");
 					}
 				}
 			}

@@ -18,14 +18,12 @@ import {assert} from "../webix/debug";
 const VirtualRenderStack ={
 	$init:function(){
 		assert(this.render,"VirtualRenderStack :: Object must use RenderStack first");
-		
+
 		this._htmlmap={}; //init map of rendered elements
-        
+
 		//we need to repaint area each time when view resized or scrolling state is changed
 		_event(this._viewobj,"scroll",bind(this._render_visible_rows,this));
-		if(env.touch){
-			this.attachEvent("onAfterScroll", bind(this._render_visible_rows,this));
-		}
+
 		//here we store IDs of elemenst which doesn't loadede yet, but need to be rendered
 		this._unrendered_area=[];
 	},

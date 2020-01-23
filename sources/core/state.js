@@ -1,3 +1,5 @@
+import {_to_array} from "../webix/helpers";
+
 const state = {
 	codebase:"./",
 	cdn:"//cdn.webix.com",
@@ -22,6 +24,7 @@ const state = {
 	_noselect_element:null,
 
 	_modality:0,
+	_popups:_to_array(),
 
 	_wait_animate:null
 };

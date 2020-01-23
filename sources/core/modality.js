@@ -15,12 +15,11 @@ const Modality = {
 				/*	with below code we will have the same zIndex for modal layer as for the previous 
 					abs positioned element, but because of attaching order modal layer will be on top anyway
 				*/
-				var index = this._settings.zIndex||zIndex();
+				const index = zIndex(this._settings.zIndex);
 
 				//set topmost modal layer
 				this._previous_modality = state._modality;
 				state._modality = index;
-
 
 				this._modal_cover.style.zIndex = index-1;
 				this._viewobj.style.zIndex = index;
@@ -32,15 +31,13 @@ const Modality = {
 		else {
 			if (this._modal_cover){
 				remove(this._modal_cover);
-				document.body.style.overflow = "";
+				this._modal_cover = null;
 
 				//restore topmost modal layer
-				//set delay, as current window closing may have not finished click event
-				//need to wait while it is not fully processed
-				var topmost = this._previous_modality;
-				setTimeout(function(){ state._modality = topmost; }, 1);
+				state._modality = this._previous_modality;
 
-				this._modal_cover = null;
+				if (!state._modality)
+					document.body.style.overflow = "";
 			}
 		}
 		return value;

@@ -51,9 +51,6 @@ const api = {
 		value = parseFloat(value);
 		return isNaN(value)?0:value;
 	},
-	value_setter:function(value){
-		return this.$prepareValue(value);
-	},
 	getInputNode:function(){
 		return this._dataobj.getElementsByTagName("input")[0];
 	},

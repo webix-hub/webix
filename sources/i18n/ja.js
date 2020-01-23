@@ -94,6 +94,16 @@ const ja = {
 		remove: "削除",
 		placeholder: "ここに入力..",
 		moreComments:"その他のコメント"
+	},
+	filter:{
+		less: "レス",
+		lessOrEqual: "以下",
+		greater: "大きいです",
+		greaterOrEqual: "以上",
+		contains: "含まれています",
+		notContains: "含まれていません",
+		equal: "等しいです",
+		notEqual: "等しくありません"
 	}
 };
 

@@ -9,15 +9,9 @@ const api = {
 	getInputNode:function(){
 		return this._dataobj.getElementsByTagName("input")[0];
 	},
-	$render:function(obj){
-		if (isUndefined(obj.value)) return;
-		this.$setValue(obj.value);
-	},
 	_revertValue:function(){
-		if(!this._settings.editable){
-			var value = this.getValue();
-			this.$setValue(isUndefined(value)?"":value);
-		}
+		var value = this.getValue();
+		this.$setValue(isUndefined(value)?"":value);
 	},
 	_applyChanges:function(){
 		var input = this.getInputNode(),
@@ -36,7 +30,7 @@ const api = {
 	},
 	$compareValue:function(value){
 		var result = richselect.api.$compareValue.apply(this, arguments);
-		if(result && value != this.getText())
+		if (result && this._rendered_input && value != this.getText())
 			this._revertValue();
 		return result;
 	},

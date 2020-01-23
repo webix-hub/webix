@@ -798,8 +798,13 @@
 .webix_focused .webix_inp_static{
 	.focusStyle;
 }
-.webix_multilist .wxi-checkbox-marked{
-	color: @buttonColor;
+.webix_multilist{
+	.wxi-checkbox-marked{
+		color: @buttonColor;
+	}
+	.wxi-checkbox-marked, .wxi-checkbox-blank{
+		height:20px;
+	}
 }
 
 .buttonBorderStyle(@color:@buttonColor){
@@ -1173,8 +1178,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	float: left;
 	position: relative;
 	top: 50%;
-	width:auto;
-	margin-top: -7px;;
+	margin-top: -6px;
 	padding:0;
 	height:15px;
 	width:15px;

@@ -93,6 +93,7 @@ import "./views/switch";
 import "./views/tabbar";
 import "./views/richtext";
 import "./views/uploader";
+import "./views/texthighlight";
 
 import "./views/suggest";
 import "./views/multisuggest";
@@ -143,6 +144,7 @@ import "./views/treetable";
 
 import "./core/sparklines";
 
+import "./views/filter";
 
 //----------------
 //  Debug console

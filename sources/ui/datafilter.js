@@ -75,7 +75,7 @@ const datafilter = {
 		},
 		render:function(master, config){
 			if (this.init) this.init(config);
-			config.css = "webix_ss_filter"; 
+			config.css = (config.css||"") + " webix_ss_filter";
 			return "<input "+(config.placeholder?("placeholder=\""+config.placeholder+"\" "):"")+"type='text'>"; 
 		},
 		_on_key_down:function(e){
@@ -131,7 +131,9 @@ const datafilter = {
 		},
 		render:function(master, config){
 			if (this.init) this.init(config);
-			config.css = "webix_ss_filter"; return ""; },
+			config.css = (config.css||"") + " webix_ss_filter";
+			return "";
+		},
 		_on_change:function(){ 
 			$$(this._comp_id).filterByAll();
 		}

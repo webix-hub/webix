@@ -162,10 +162,7 @@ const Radar = {
 				configY.template(value.toString()),
 				"webix_axis_item_y webix_radar"
 			);
-			if(ratios.length<2){
-				this._drawScaleSector(ctx,"arc",x,y,radius-units[units.length-1],-Math.PI/2,3*Math.PI/2,i);
-				return;
-			}
+
 			var startAlpha = -Math.PI/2;/*possibly need  to moved in config*/
 			var alpha0 = startAlpha;
 			var alpha1;

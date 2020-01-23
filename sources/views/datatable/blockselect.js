@@ -2,7 +2,7 @@ import {offset, pos as getPos, preventEvent, remove, removeCss, create, addCss} 
 import env from "../../webix/env";
 import {extend, delay} from "../../webix/helpers";
 import {$$} from "../../ui/core";
-import {_event, event} from "../../webix/htmlevents";
+import {_event, event, eventRemove} from "../../webix/htmlevents";
 import AutoScroll from "../../core/autoscroll";
 
 
@@ -10,13 +10,14 @@ import AutoScroll from "../../core/autoscroll";
 const Mixin = {
 	blockselect_setter:function(value){
 		if (value && this._block_sel_flag){
+			if (env.touch)
+				this.attachEvent("onLongTouch", this._bs_down);
+			else 
+				_event(this._viewobj, env.mouse.down, this._bs_down, {bind:this});
+
 			_event(this._viewobj, env.mouse.move, this._bs_move, {bind:this});
-			_event(this._viewobj, env.mouse.down, this._bs_down, {bind:this});
-			event(document.body, env.mouse.up, this._bs_up, {bind:this});
 			this._block_sel_flag = this._bs_ready = this._bs_progress = false;
-			this.attachEvent("onAfterScroll", function(){
-				this._update_block_selection();
-			});
+			this.attachEvent("onAfterScroll", this._update_block_selection);
 			// auto scroll
 			extend(this, AutoScroll, true);
 			this.attachEvent("onBeforeAutoScroll",function(){
@@ -44,10 +45,18 @@ const Mixin = {
 			if (e.target && e.target.tagName == "INPUT" || this._rs_process) return;
 
 			this._bs_position = offset(this._body);
-			var pos = getPos(e);
+			var pos = env.touch ? e : getPos(e);
 			this._bs_ready = [pos.x - this._bs_position.x, pos.y - this._bs_position.y];
+
 			preventEvent(e);
+			this._bs_up_init();
 		}
+	},
+	_bs_up_init:function(){
+		const handler = event(document.body, env.mouse.up, e => {
+			eventRemove(handler);
+			return this._bs_up(e);
+		});
 	},
 	_bs_up:function(e){
 		if (this._block_panel){
@@ -61,7 +70,7 @@ const Mixin = {
 	},
 	_update_block_selection: function(){
 		if (this._bs_progress)
-			this._bs_select(false, false);
+			delay(this._bs_select, this, [false, false]);
 	},
 	_bs_select:function(mode, theend, e){
 		var start = null;
@@ -139,12 +148,12 @@ const Mixin = {
 					starty = Math.min(startn.top, endn.top);
 					endy = Math.max(startn.top+startn.height, endn.top+endn.height);
 
-					if(this._settings.topSplit)
+					if (this._settings.topSplit)
 						starty += this._getTopSplitOffset(start);
 
 					if (this._auto_scroll_delay)
 						this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
-					if(e)
+					if (e && (!env.touch || this._settings.prerender))
 						this._auto_scroll_delay = delay(this._auto_scroll, this, [getPos(e)], 250);
 				}
   
@@ -170,7 +179,7 @@ const Mixin = {
 		if (this._bs_ready !== false){
 			if(!this._bs_progress) addCss(document.body,"webix_noselect");
 			
-			var pos = getPos(e);
+			var pos = env.touch ? env.mouse.context(e) : getPos(e);
 			var progress = [pos.x - this._bs_position.x, pos.y - this._bs_position.y];
 
 			//prevent unnecessary block selection while dbl-clicking
@@ -182,6 +191,8 @@ const Mixin = {
 
 			this._bs_progress = progress;
 			this._bs_select(this.config.blockselect, false, e);
+
+			if (env.touch) preventEvent(e);
 		}
 	},
 	_locate_cell_xy:function(x,y){
@@ -245,9 +256,8 @@ const Mixin = {
 		if(startIndex >= this._settings.topSplit){
 			var startPos = this._cellPosition(this.getIdByIndex(startIndex), cell.column);
 			var splitPos = this._cellPosition(this.getIdByIndex(this._settings.topSplit-1), cell.column);
-			if(splitPos.top + splitPos.height - startPos.top > 0){
-				y = splitPos.top + splitPos.height - (startPos.top>0 ||!area?startPos.top:0);
-			}
+			if(splitPos.top + splitPos.height > startPos.top)
+				y = splitPos.top + splitPos.height - ((startPos.top > 0 || !area) ? startPos.top : 0);
 		}
 
 		return y;

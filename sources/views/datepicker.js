@@ -10,7 +10,12 @@ import text from "./text";
 
 const api = {
 	name:"datepicker",
-	$init:function(){
+	_editable:true,
+	$init:function(config){
+		// value_setter handling
+		if(config.multiselect)
+			this._settings.multiselect = config.multiselect;
+
 		this.$ready.push(this._init_popup);
 	},
 	defaults:{
@@ -19,8 +24,8 @@ const api = {
 				common._settings.icon = common._settings.timeIcon;
 			}
 			//temporary remove obj.type [[DIRTY]]
-			var t = obj.type; obj.type = "";
-			var res = obj.editable?common.$renderInput(obj):common._render_div_block(obj, common);
+			const t = obj.type; obj.type = "";
+			const res = obj.editable ? common.$renderInput(obj) : common._render_div_block(obj, common);
 			obj.type = t;
 			return res;
 		},
@@ -49,16 +54,18 @@ const api = {
 		return $$(this._settings.popup);
 	},
 	_init_popup:function(){ 
-		var obj = this._settings;
+		const obj = this._settings;
 		if (obj.suggest)
 			obj.popup = obj.suggest;
 		else if (!obj.popup){
-			var timepicker = this._settings.timepicker;
+			const timepicker = this._settings.timepicker;
 			obj.popup = obj.suggest = this.suggest_setter({
-				type:"calendar", point:this._settings.point===false?false:true, padding:0,
+				type: "calendar",
+				point: this._settings.point === false ? false : true,
+				padding: 0,
 				body: {
-					height:240+(timepicker||this._settings.icons?30:0),
-					width:250,
+					height: 240 + (timepicker || this._settings.icons ? 30 : 0),
+					width: 250,
 					multiselect: this._settings.multiselect, 
 					timepicker: timepicker,
 					type: this._settings.type,
@@ -71,44 +78,39 @@ const api = {
 		this._init_once = function(){};
 	},
 	$render:function(obj){
-		if (isUndefined(obj.value)) return;
-		obj.value = this.$prepareValue(obj.value);
 		this.$setValue(obj.value);
 	},
 	$prepareValue:function(value){
 		if (this._settings.multiselect){
 			if (typeof value === "string")
 				value = value.split(this._settings.separator);
-			else if (value instanceof Date){
+			else if (value instanceof Date)
 				value = [value];
-			} else if (!value){
+			else if (!value)
 				value = [];
-			}
 
-			for (var i = 0; i < value.length; i++){
+			for (let i = 0; i < value.length; i++)
 				value[i] = this._prepareSingleValue(value[i]);
-			}
 
 			return value;
-		} else{ 
-			return this._prepareSingleValue(value);
 		}
+		else
+			return this._prepareSingleValue(value);
 	},
 	_prepareSingleValue:function(value){
-		var type = this._settings.type;
-		var timeMode = type == "time";
+		const type = this._settings.type;
+		const timeMode = type == "time";
 
 		//setValue("1980-12-25")
 		if(!isNaN(parseFloat(value)))
 			value = ""+value;
 
 		if (typeof value=="string" && value){
-			var formatDate = null;
-			if((type == "month" || type == "year") && this._formatDate){
+			let formatDate = null;
+			if((type == "month" || type == "year") && this._formatDate)
 				formatDate = this._formatDate;
-			}
 			else
-				formatDate = (timeMode?i18n.parseTimeFormatDate:i18n.parseFormatDate);
+				formatDate = (timeMode ? i18n.parseTimeFormatDate : i18n.parseFormatDate);
 			value = formatDate(value);
 		}
 
@@ -117,7 +119,7 @@ const api = {
 			if(timeMode){
 				//setValue([16,24])
 				if(isArray(value)){
-					var time = new Date();
+					const time = new Date();
 					time.setHours(value[0]);
 					time.setMinutes(value[1]);
 					value = time;
@@ -131,28 +133,32 @@ const api = {
 		return value;
 	},
 	_get_visible_text:function(value){
-		if (this._settings.multiselect){
+		if (this._settings.multiselect)
 			return []
 				.concat(value)
-				.map((function(a){ return this._get_visible_text_single(a); }).bind(this))
+				.map(a => this._get_visible_text_single(a))
 				.join(this.config.separator);
-		} else
+		else
 			return this._get_visible_text_single(value);
 	},
 	_get_visible_text_single:function(value){
-		var timeMode = this._settings.type == "time";
-		var timepicker = this.config.timepicker;
-		var formatStr = this._formatStr||(timeMode?i18n.timeFormatStr:(timepicker?i18n.fullDateFormatStr:i18n.dateFormatStr));
+		let formatStr = this._formatStr;
+		if(!formatStr){
+			if(this._settings.type == "time")
+				formatStr = i18n.timeFormatStr;
+			else if(this.config.timepicker)
+				formatStr = i18n.fullDateFormatStr;
+			else
+				formatStr = i18n.dateFormatStr;
+		}
 		return formatStr(value);
 	},
 	_set_visible_text:function(){
-		var node = this.getInputNode();
-		if(node.value == undefined){
+		const node = this.getInputNode();
+		if(isUndefined(node.value))
 			node.innerHTML = this._settings.text || this._get_div_placeholder();
-		}
-		else{
+		else
 			node.value = this._settings.text || "";
-		}
 	},
 	$compareValue:function(oldvalue, value){
 		if(!oldvalue && !value) return true;
@@ -176,16 +182,16 @@ const api = {
 		return value;
 	},
 	getInputNode: function(){
-		return this._settings.editable?this._dataobj.getElementsByTagName("input")[0]:this._dataobj.getElementsByTagName("DIV")[1];
+		return this._settings.editable ? this._dataobj.getElementsByTagName("input")[0] : this._dataobj.getElementsByTagName("DIV")[1];
 	},
 	getValue:function(){
 		if (this._settings.multiselect){
-			var value = this._settings.value;
+			const value = this._settings.value;
 			if (!value) return [];
 
-			var result = []
+			const result = []
 				.concat(value)
-				.map((function(a){ return this._get_value_single(a); }).bind(this));
+				.map(a => this._get_value_single(a));
 
 			if (this._settings.stringResult)
 				return result.join(this._settings.separator);
@@ -196,24 +202,29 @@ const api = {
 		return this._get_value_single(this._settings.value);
 	},
 	_get_value_single:function(value){
-		var type = this._settings.type;
-		//time mode
-		var timeMode = (type == "time");
-		//date and time mode
-		var timepicker = this.config.timepicker;
+		const type = this._settings.type;
+		const timeMode = type == "time";
 
 		//input was not rendered, we need to parse value from setValue method
 		if (!this._rendered_input)
 			value = this.$prepareValue(value) || null;
 		//rendere and in edit mode
 		else if (this._settings.editable){
-			var formatDate = this._formatDate||(timeMode?i18n.timeFormatDate:(timepicker?i18n.fullDateFormatDate:i18n.dateFormatDate));
+			let formatDate = this._formatDate;
+			if(!formatDate){
+				if(timeMode)
+					formatDate = i18n.timeFormatDate;
+				else if(this.config.timepicker)
+					formatDate = i18n.fullDateFormatDate;
+				else
+					formatDate = i18n.dateFormatDate;
+			}
 			value = formatDate(this.getInputNode().value);
 		}
 
 		//return string from getValue
 		if(this._settings.stringResult){
-			var formatStr =i18n.parseFormatStr;
+			let formatStr = i18n.parseFormatStr;
 			if(timeMode)
 				formatStr = i18n.parseTimeFormatStr;
 			if(this._formatStr && (type == "month" || type == "year")){
@@ -221,15 +232,18 @@ const api = {
 			}
 
 			if(this._settings.multiselect)
-				return [].concat(value).map((function(a){ return a?formatStr(a):""; }));
+				return [].concat(value).map(a => a ? formatStr(a) : "");
 			return (value?formatStr(value):"");
 		}
-		
+
 		return value||null;
 	},
 	getText:function(){
-		var node = this.getInputNode();
-		return (node?(typeof node.value == "undefined" ? (this.getValue()?node.innerHTML:"") : node.value):"");
+		const node = this.getInputNode();
+		let text = "";
+		if(node)
+			text = isUndefined(node.value) ? node.innerHTML : node.value;
+		return text;
 	}
 };
 

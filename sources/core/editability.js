@@ -4,7 +4,7 @@ import {extend, bind, delay, isUndefined} from "../webix/helpers";
 import {ui, $$} from "../ui/core";
 import {_event} from "../webix/htmlevents";
 import {assert} from "../webix/debug";
-import {attachEvent, callEvent} from "../webix/customevents";
+import {attachEvent, callEvent, detachEvent} from "../webix/customevents";
 import Undo from "../core/undo";
 
 
@@ -71,17 +71,19 @@ const EditAbility ={
 	},
 	_init_edit_events_once:function(){
 		//will close editor on any click outside
-		attachEvent("onEditEnd", bind(function(){
+		const e1 = attachEvent("onEditEnd", bind(function(){
 			if (this._in_edit_mode)
 				this.editStop();
 		}, this));
-		attachEvent("onClick", bind(function(e){
+		const e2 = attachEvent("onClick", bind(function(e){
 			//but ignore click which opens editor
 			if (this._in_edit_mode && (new Date())-this._edit_open_time > 200){
 				if (!this._last_editor || this._last_editor.popupType || !e || ( !this._last_editor.node || !this._last_editor.node.contains(e.target || e.srcElement)))
 					this.editStop();
 			}
 		}, this));
+
+		this.attachEvent("onDestruct", function(){ detachEvent(e1); detachEvent(e2); });
 		
 		//property sheet has simple data object, without events
 		if (this.data.attachEvent)

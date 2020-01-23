@@ -226,7 +226,7 @@ const api = {
 		
 		map.render(this._contentobj);
 		
-		this._contentobj.lastChild.style.zIndex = 100;
+		this._contentobj.lastChild.style.zIndex = 80;
 		this._applyBounds(this._contentobj.lastChild,bounds);
 		this.callEvent("onAfterRender",[data]);
 		this._settings = temp;

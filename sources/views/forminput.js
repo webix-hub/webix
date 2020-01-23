@@ -43,17 +43,22 @@ const api = {
 	$init:function(obj){
 		this.$ready.push(function(){
 			let label = this._viewobj.firstChild.childNodes[0];
+			let body = this._viewobj.firstChild.childNodes[1];
 
-			if (!this._settings.label || !this._settings.labelWidth){
+			if (!this._settings.label || (!this._settings.labelWidth && this._settings.labelPosition != "top")){
 				label.style.display = "none";
-				this._settings.paddingX = this._settings.paddingY = 0;
+				body.style.padding = "0 " + this._inputSpacing/2 + "px";
+				this._settings.paddingX = this._inputSpacing;
+				this._settings.paddingY = 0;
 				return;
 			}
 
 			if (this._settings.labelPosition == "top"){
 				label.style.lineHeight = this._labelTopHeight - this._inputPadding + "px";
 				label.className += " "+this.defaults.$cssName+"_label_top";
-			} else label.style.width = this._settings.paddingX+"px";
+				body.style.padding = "0 " + this._inputSpacing/2 + "px";
+			}
+			else label.style.width = this._settings.paddingX - this._inputSpacing/2 + "px";
 
 			label.style.textAlign = this._settings.labelAlign;
 
@@ -62,8 +67,14 @@ const api = {
 
 		if (obj.labelPosition != "top"){
 			var lw = isUndefined(obj.labelWidth) ? this.defaults.labelWidth : obj.labelWidth;
-			obj.paddingX = lw - this._inputPadding*2 + this._inputSpacing* 2;
-		} else obj.paddingY = this._labelTopHeight;
+			obj.paddingX = lw + this._inputSpacing;
+		} else {
+			obj.paddingY = this._labelTopHeight;
+			obj.paddingX = this._inputSpacing;
+		}
+	},
+	labelWidth_setter:function(value){
+		return value ? Math.max(value, $active.dataPadding) : 0;
 	},
 	setBottomText: function(text) {
 		var config = this._settings;
@@ -77,7 +88,7 @@ const api = {
 		}
 		if(message) {
 			this.$view.style.position = "relative";
-			this._invalidMessage = create("div", { "class":"webix_inp_bottom_label", role:config.invalid?"alert":"", "aria-relevant":"all", style:"position:absolute; bottom:0px; padding:2px; background: white; left:"+this._settings.labelWidth+"px; " }, message);
+			this._invalidMessage = create("div", { "class":"webix_inp_bottom_label", role:config.invalid?"alert":"", "aria-relevant":"all", style:"position:absolute; bottom:0px; padding:2px 0; background: white; left:"+(this._inputSpacing/2+(config.label?config.labelWidth:0))+"px; " }, message);
 			this._viewobj.appendChild(this._invalidMessage);
 		}
 	}

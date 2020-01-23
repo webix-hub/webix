@@ -40,7 +40,7 @@ const api = {
 		} else 
 			this._dataobj.className += " webix_template";
 
-		this.attachEvent("onAfterRender", this._correct_width_scroll);
+		this.attachEvent("onAfterRender", this._correct_height);
 	},
 	setValues:function(obj, update){
 		this.data = update?extend(this.data, obj, true):obj;
@@ -100,23 +100,12 @@ const api = {
 		}, this));
 		return value;
 	},
-	_correct_width_scroll:function(){
-		//we need to force auto height calculation after content change
-		//dropping the last_size flag will ensure that inner logic of $setSize will be processed
-		if (this._settings.autoheight){
-			this._last_size = null;
-			this.resize();
-		}
-
-		if (this._settings.scroll && this._settings.scroll.indexOf("x") != -1)
-			this._dataobj.style.width = this._dataobj.scrollWidth + "px";
-	},
 	content_setter:function(config){
 		if (config){
 			this._not_render_me = true;
 			this.render = function(){};
 			this._dataobj.appendChild(toNode(config));
-			delay(this._correct_width_scroll, this);
+			this._correct_height();
 		}
 	},
 	refresh:function(){
@@ -146,6 +135,14 @@ const api = {
 			this._settings.height = this._get_auto_height();
 
 		return base.api.$getSize.call(this,x,y);
+	},
+	_correct_height:function(){
+		//we need to force auto height calculation after content change
+		//dropping the last_size flag will ensure that inner logic of $setSize will be processed
+		if (this._settings.autoheight){
+			this._last_size = null;
+			this.resize();
+		}
 	},
 	_get_auto_height:function(){
 		var size;

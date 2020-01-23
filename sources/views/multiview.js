@@ -1,7 +1,8 @@
 import {remove} from "../webix/html";
 import {protoUI, $$} from "../ui/core";
-import {clone, delay, extend, isUndefined} from "../webix/helpers";
+import {clone, extend, isUndefined} from "../webix/helpers";
 import {_each} from "../ui/helpers";
+import promise from "../thirdparty/promiz";
 import {debug_size_box_start, debug_size_box_end} from "../webix/debug";
 import {assert} from "../webix/debug";
 
@@ -100,7 +101,7 @@ const api = {
 		if (index == this._active_cell){
 			var next = index ? index-1 : 1;
 			if (this._cells[next]){
-				this._in_animation = false;
+				this._animation_promise = null;
 				this._show(this._cells[next], false);
 			}
 		}
@@ -151,8 +152,8 @@ const api = {
 		if (parent && parent.getTabbar)
 			parent.getTabbar().setValue(obj._settings.$id || obj._settings.id);
 
-		if (this._in_animation)
-			return delay(this._show, this,[obj, animation_options],100);
+		if (this._animation_promise)
+			return this._animation_promise.then(() => this._show.apply(this, arguments));
 
 		var _next_cell = -1;
 		for (var i=0; i < this._cells.length; i++)
@@ -186,7 +187,8 @@ const api = {
 			var callback_original = aniset.callback;
 			aniset.callback = function(){
 				animate.breakLine(line,this._settings.keepViews);
-				this._in_animation = false;
+				this._animation_promise = null;
+				aniset.wait_animation.resolve();
 				if (callback_original) callback_original.call(this);
 				callback_original = aniset.master = aniset.callback = null;
 				this.resize();
@@ -197,7 +199,7 @@ const api = {
 			this._render_activation(this.getActiveId());
 
 			animate(line, aniset);
-			this._in_animation = true;
+			this._animation_promise = aniset.wait_animation = promise.defer();
 		}
 		else { // browsers which don't support transform and transition, or animate:false in config
 			if(this._settings.keepViews){

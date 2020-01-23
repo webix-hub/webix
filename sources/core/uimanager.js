@@ -1,10 +1,11 @@
 import ready from "../webix/ready";
 
 import {assert} from "../webix/debug";
-import {event, _event} from "../webix/htmlevents";
-import {bind,delay,uid,_power_array,isUndefined,isArray} from "../webix/helpers";
+import {event} from "../webix/htmlevents";
+import {delay,uid,_power_array,isUndefined,isArray} from "../webix/helpers";
 import {callEvent} from "../webix/customevents";
 import {locate,preventEvent} from "../webix/html";
+import fullscreen from "../webix/fullscreen";
 
 import {$$} from "../ui/core";
 import state from "../core/state";
@@ -19,38 +20,21 @@ const UIManager = {
 	_tab_time:0,
 	_mouse_time:0,
 	_controls: {
-		"enter": 13,
-		"tab": 9,
-		"esc": 27,
-		"escape": 27,
-		"up": 38,
-		"down": 40,
-		"left": 37,
-		"right": 39,
-		"pgdown": 34,
-		"pagedown": 34,
-		"pgup": 33,
-		"pageup": 33,
-		"end": 35,
-		"home": 36,
-		"insert": 45,
-		"delete": 46,
-		"backspace": 8,
-		"space": 32,
-		"meta": 91,
-		"win": 91,
-		"mac": 91,
-		"multiply": 106,
-		"add": 107,
-		"subtract": 109,
-		"decimal": 110,
-		"divide": 111,
-		"scrollock":145,
-		"pausebreak":19,
-		"numlock":144,
-		"5numlocked":12,
-		"shift":16,
-		"capslock":20
+		"esc": "escape",
+		"up": "arrowup",
+		"down": "arrowdown",
+		"left": "arrowleft",
+		"right": "arrowright",
+		"pgdown": "pagedown",
+		"pgup": "pageup",
+		"space": " ",
+		"multiply": "*",
+		"add": "+",
+		"subtract": "-",
+		"decimal": ".",
+		"divide": "/",
+		"pausebreak":"pause",
+		"5numlocked":"clear"
 	},
 	_inputs:{
 		"input": 1,
@@ -60,12 +44,12 @@ const UIManager = {
 	},
 	_enable: function() {
 		// attaching events here
-		event(document.body, "click", bind(this._focus_click, this));
-		event(document, "keydown", bind(this._keypress, this));
-		_event(document.body, "mousedown", bind(function(){ this._mouse_time = new Date();}, this));
-
-		if (document.body.addEventListener)
-			event(document.body, "focus", this._focus_tab, { capture:true, bind: this });
+		event(document, "keydown", this._keypress, { bind:this });
+		event(document.body, "click", this._focus_click, { bind:this });
+		event(document.body, "mousedown", function(){
+			this._mouse_time = new Date();
+		}, { bind:this });
+		event(document.body, "focus", this._focus_tab, { capture:true, bind:this });
 
 		state.destructors.push({obj:this});
 	},
@@ -112,7 +96,7 @@ const UIManager = {
 	hasFocus: function(view) {
 		return (view === this._view) ? true : false;
 	},
-	_focus: function(e, dont_clear) {
+	_focus: function(e){
 		var view = locate(e, /*@attr*/"view_id") || this._focus_was_there;
 
 		//if html was repainted we can miss the view, so checking last processed one
@@ -122,18 +106,17 @@ const UIManager = {
 		//set timer, to fix issue with Android input focusin
 		state._focus_time = new Date();
 
-		if (view == this._view) return;
+		if (view == this._view) return true;
 
-		if (!dont_clear)
-			this._focus_was_there = null;
-		
 		if (view){
-			view = $$(view);
 			if (this.canFocus(view)){
 				this.setFocus(view);
 			}
-		} else if (!dont_clear)
-			this.setFocus(null);
+			//remove focus from an unreachable view
+			else if (view.$view.contains(e.target))
+				e.target.blur();
+		}
+		else this.setFocus(null);
 
 		return true;
 	},
@@ -145,17 +128,16 @@ const UIManager = {
 		}
 		return this._focus(e);
 	},
-	_focus_tab: function(e) {
+	_focus_tab: function(e){
 		if(!this._inputs[e.target.nodeName.toLowerCase()])
 			return false;
-		return this._focus(e, true);
+		return this._focus(e);
 	},
 	_top_modal: function(view){
-		if(!document.querySelector(".webix_modal"))
-			return true;
+		if (!state._modality) return true;
 
-		const win =  view.queryView(a => a.config.modal, "parent");
-		return (win && win.$view.style.zIndex >= state._modality);
+		const top = view.queryView(a => !a.getParentView(), "parent") || view;
+		return (top.$view.style.zIndex||0) >= state._modality;
 	},
 	canFocus:function(view){
 		return view.isVisible() && view.isEnabled() && !view.config.disabled && this._top_modal(view) && !view.queryView({disabled:true}, "parent");
@@ -170,8 +152,6 @@ const UIManager = {
 		if (!this._focus_logic("getPrev", check_view))
 			this._view = null;
 	},
-	_translation_table:{
-	},
 	_is_child_of: function(parent, child) {
 		if (!parent) return false;
 		if (!child) return false;
@@ -185,23 +165,15 @@ const UIManager = {
 		if (this && this.callEvent)
 			this.callEvent("onTimedKeyPress",[]);
 	},
-	_isNumPad: function(code){
-		return code < 112 &&  code>105;
-	},
 	_keypress: function(e) {
-		var code = e.which || e.keyCode;
+		let code = e.which || e.keyCode;
+		// numpad keys
 		if(code>95 && code< 106)
-			code -= 48; //numpad support (numbers)
-		code = this._translation_table[code] || code;
-		
-		var ctrl = e.ctrlKey;
-		var shift = e.shiftKey;
-		var alt = e.altKey;
-		var meta = e.metaKey;
-		var codeid = this._keycode(code, ctrl, shift, alt, meta);
-		var view = this.getFocus();
+			code -= 48;
+
+		const view = this.getFocus();
 		if (view && view.callEvent) {
-			if (view.callEvent("onKeyPress", [code,e]) === false)
+			if (view.callEvent("onKeyPress", [code, e]) === false)
 				preventEvent(e);
 			if (view.hasEvent("onTimedKeyPress")){
 				clearTimeout(view._key_press_timeout);
@@ -209,12 +181,7 @@ const UIManager = {
 			}
 		}
 
-		if(!this._isNumPad(code))
-			codeid = this._keycode(String.fromCharCode(code), ctrl, shift, alt, meta);
-		//flag, that some non-special key was pressed
-		var is_any = !ctrl && !alt && !meta && (code!=9)&&(code!=27)&&(code!=13);
-
-		if (this._check_keycode(codeid, is_any, e) === false) {
+		if (this._check_keycode(e) === false) {
 			preventEvent(e);
 			return false;
 		}
@@ -333,22 +300,16 @@ const UIManager = {
 	},
 	addHotKey: function(keys, handler, view) {
 		assert(handler, "Hot key handler is not defined");
-		var pack = this._parse_keys(keys);
-		assert(pack.letter, "Unknown key code");
-		if (!view) view = null;
-		pack.handler = handler;
-		pack.view = view;
-		
+		const code = this._parse_keys(keys);
 
-		var code = this._keycode(pack.letter, pack.ctrl, pack.shift, pack.alt, pack.meta);
+		if (!view) view = null;
 		if (!this._hotkeys[code]) this._hotkeys[code] = [];
-		this._hotkeys[code].push(pack);
+		this._hotkeys[code].push({ handler, view });
 
 		return keys;
 	},
 	removeHotKey: function(keys, func, view){
-		var pack = this._parse_keys(keys);
-		var code = this._keycode(pack.letter, pack.ctrl, pack.shift, pack.alt, pack.meta);
+		const code = this._parse_keys(keys);
 		if (!func && !view)
 			delete this._hotkeys[code];
 		else {
@@ -365,16 +326,20 @@ const UIManager = {
 
 		}
 	},
-	_keycode: function(code, ctrl, shift, alt, meta) {
-		return code+"_"+["", (ctrl ? "1" : "0"), (shift ? "1" : "0"), (alt ? "1" : "0"), (meta ? "1" : "0")].join("");
+	_keycode: function(key, ctrl, shift, alt, meta) {
+		//key can be undefined (browser autofill)
+		return (key||"").toLowerCase()+"_"+["", (ctrl ? "1" : "0"), (shift ? "1" : "0"), (alt ? "1" : "0"), (meta ? "1" : "0")].join("");
 	},
+	_check_keycode: function(e){
+		const keyCode = e.which || e.keyCode;
+		const is_any = !e.ctrlKey && !e.altKey && !e.metaKey && (keyCode!=9)&&(keyCode!=27)&&(keyCode!=13);
+		const code = this._keycode(e.key, e.ctrlKey, e.shiftKey, e.altKey, e.metaKey);
 
-	_check_keycode: function(code, is_any, e){
 		var focus = this.getFocus();
 		if (this._hotkeys[code])
 			return  this._process_calls(this._hotkeys[code], focus, e);
-		else if (is_any && this._hotkeys["ANY_0000"])
-			return  this._process_calls(this._hotkeys["ANY_0000"], focus, e);
+		else if (is_any && this._hotkeys["any_0000"])
+			return  this._process_calls(this._hotkeys["any_0000"], focus, e);
 
 		return true;
 	},
@@ -393,7 +358,7 @@ const UIManager = {
 	},
 	_parse_keys: function(keys) {
 		var controls = this._controls;
-		var parts = keys.toLowerCase().split(/[+\-_]/);
+		var parts = keys.toLowerCase().split(/[ +\-_]/);
 		var ctrl, shift, alt, meta;
 		ctrl = shift = alt = meta = 0;
 		var letter = "";
@@ -403,25 +368,11 @@ const UIManager = {
 			else if (parts[i] === "alt") alt = 1;
 			else if (parts[i] === "command") meta = 1;
 			else {
-				if (controls[parts[i]]) {
-					var code = controls[parts[i]];
-					if(this._isNumPad(code))
-						letter = code.toString();
-					else
-						letter = String.fromCharCode(code);
-				} else {
-					letter = parts[i];
-				}
+				letter = controls[parts[i]] || parts[i];
 			}
 		}
-		return {
-			letter: letter.toUpperCase(),
-			ctrl: ctrl,
-			shift: shift,
-			alt: alt,
-			meta: meta,
-			debug:keys
-		};
+
+		return this._keycode(letter, ctrl, shift, alt, meta);
 	},
 	getState:function(node, children) {
 		children = (children||false);
@@ -486,8 +437,11 @@ ready(function() {
 				return true;
 			}
 			var top = view.getTopParentView();
-			if (top && top.setPosition)
+			if (top && top.setPosition){
+				if(fullscreen._fullscreen == top)
+					fullscreen.exit();
 				top._hide();
+			}
 		}
 	});
 	UIManager.addHotKey("shift+tab", UIManager._tab_logic);

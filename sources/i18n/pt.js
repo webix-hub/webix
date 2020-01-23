@@ -96,6 +96,16 @@ const pt = {
 		remove: "Excluir",
 		placeholder: "Digite aqui..",
 		moreComments:"Mais comentários"
+	},
+	filter:{
+		less: "menos",
+		lessOrEqual: "menor ou igual",
+		greater: "maior",
+		greaterOrEqual: "maior ou igual",
+		contains: "contém",
+		notContains: "não contém",
+		equal: "igual",
+		notEqual: "não é igual"
 	}
 };
 

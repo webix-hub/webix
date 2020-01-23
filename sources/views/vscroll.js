@@ -82,6 +82,12 @@ const api = {
 	getSize:function(){
 		return Math.round((this._settings.scrollWidth||this._settings.scrollHeight)*this._settings.zoom);
 	},
+	_fixSize(){
+		const pos = this.getScroll();
+		const max = Math.max(this.getSize() - this._last_set_size, 0);
+		if (pos > max)
+			this.scrollTo(max);
+	},
 	scrollTo:function(value){
 		if (value<0)
 			value = 0;

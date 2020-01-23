@@ -1,5 +1,5 @@
 import {bind, extend, isUndefined} from "../../webix/helpers";
-import {event} from "../../webix/htmlevents";
+import {_event} from "../../webix/htmlevents";
 import {assert} from "../../webix/debug";
 import SelectionModel from "../../core/selectionmodel";
 import env from "../../webix/env";
@@ -29,7 +29,7 @@ const Mixin = {
 				}
 			});
 
-			event(this.$view, "mouseout", e => {
+			_event(this.$view, "mouseout", e => {
 				const trg = e.target||e.srcElement;
 
 				// inner html elements blinking in case of hover:true

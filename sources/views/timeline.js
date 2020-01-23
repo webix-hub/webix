@@ -90,43 +90,48 @@ const api = {
 			return format(obj.date);
 		},
 		template:function(obj, common, index) {
+			const padding = $active.dataPadding;
+			const radius = 6, stroke = 2, paddingTop = 2;
+
 			const lineColor = typeof common.lineColor == "string" ? common.lineColor : common.lineColor(obj, common);
-			const color = lineColor || $active.timelineColor;
+			const commonStyle = `stroke-width:${stroke}px; stroke:${lineColor || $active.timelineColor};`;
 			const scrollSize = this._settings.scroll ? env.scrollSize : 0;
-			const width = this.$width - ($active.dataPadding*2)-scrollSize;
-			const height = Math.ceil(this.type.height*1.1);
+			const width = this.$width - (padding*2)-scrollSize;
 			const type = common.type;
 			const last = index+1 == this.count();
-			const offset = 9;
+			const circleCenter = paddingTop + radius + stroke/2;
+			const circleSize = radius*2+stroke;
+			const innerPadding = circleSize/2 + 7;
 
-			let left = 0, right = Math.floor(width*0.35), rwidth = Math.floor(width*0.65);
-			let lwidth = right, center = right;
+			let left = padding, center = Math.floor(width*0.35), rwidth = Math.floor(width*0.65)-innerPadding;
+			let right = center+innerPadding+padding, lwidth = center-innerPadding;
 
 			if(type == "right"){
-				left = width - right;
-				right = 0;
-				center = left;
+				center = width-right+innerPadding+padding;
+				left = center+innerPadding+padding;
+				right = padding;
 			}
 			else if(type == "alternate"){
-				right = center = lwidth = rwidth = Math.floor(width*0.5);
+				center = Math.floor(width*0.5);
+				right = center+innerPadding+padding;
+				lwidth = rwidth = center-innerPadding;
 				if(index%2){
 					left = right;
-					right = 0;
+					right = padding;
 				}
 			}
 
-			return `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="${common.height+offset}px">
-				<foreignObject x="${left}px" y="0" width="${lwidth}px" height="100%">
-					<div class="webix_timeline_date">${common.templateDate(obj,common)}</div>
-				</foreignObject>
-				<circle cx="${center}px" cy="${offset}" r="6" class="webix_timeline_node webix_timeline_point" style="stroke:${color}" />
-				${(!last) ? `<line x1="${center}px" y1="14" x2="${center}px" y2="${height}" class="webix_timeline_node" style="stroke:${color}" />` : ""}
-				<foreignObject x="${right}px" y="0" width="${rwidth}px" height="${common.height-10}px">
-					<div class="webix_timeline_value">${common.templateValue(obj,common)}</div>
-					<div class="webix_timeline_details">${common.templateDetails(obj,common)}</div>
-			</foreignObject>
-			</svg>`;
-		},	
+			//circle inline styles contain fill property as html2canvas ignores it in css
+			return `<div style="left:${left}px; width:${lwidth}px;" class="webix_timeline_date">${common.templateDate(obj,common)}</div>
+					<svg xmlns="http://www.w3.org/2000/svg" width="${center+circleSize}px" height="${common.height+circleSize}px">
+						${(!last) ? `<line x1="${center}px" y1="${circleCenter+radius}" x2="${center}px" y2="${common.height+circleCenter-radius}" class="webix_timeline_node" style="${commonStyle}"/>` : ""}
+						<circle cx="${center}px" cy="${circleCenter}" r="${radius}" class="webix_timeline_node webix_timeline_point" style="${commonStyle} fill:transparent;" />
+					</svg>
+					<div class="webix_timeline_event" style="left:${right}px; width:${rwidth}px; height:${common.height-padding}px;">
+						<div class="webix_timeline_value">${common.templateValue(obj,common)}</div>
+						<div class="webix_timeline_details">${common.templateDetails(obj,common)}</div>
+					</div>`;
+		},
 		templateStart:function(obj, common, index){
 			return `<div ${/*@attr*/"webix_tl_id"}="${obj.id}" class="${common.classname.call(this,obj,common,index)}" style="height:${common.height}px;">`;
 		},

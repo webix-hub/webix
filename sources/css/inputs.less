@@ -56,7 +56,6 @@
 
 .webix_inp_label{
 	float:left;
-	//padding-top: ( @inputHeight - @formFontSize - 4 )/2;
 	padding-top: 1px;
 	padding-left: 0;
 	padding-right:@skin_content_padding * 0.75;
@@ -73,11 +72,10 @@
 }
 .webix_label_right{
 	padding-left:@skin_content_padding * 0.75;
-	//padding-top:(@inputHeight - 16 )/2;
 }
 .webix_el_checkbox .webix_label_right{
-	display: block;
-	padding-top:2px;
+	display: inline-block;
+	padding-top: 1px;
 }
 
 //label
@@ -147,12 +145,12 @@ body:not(:-moz-handler-blocked) .webix_el_select select{
 
 	
 .webix_inp_counter_prev{
-	padding-left: 6px;
+	padding: 0;
 	.buttonBackground;
 	#border > .corners(@skin_input_radius,0,0,@skin_input_radius);
 }
 .webix_inp_counter_next{
-	padding-left: 6px;
+	padding: 0;
 	.buttonBackground;
 	#border > .corners(0,@skin_input_radius,@skin_input_radius,0);
 }
@@ -272,6 +270,11 @@ body:not(:-moz-handler-blocked) .webix_el_select select{
 		padding-left: 5px;
 		width: 21px;
 	}
+}
+
+// Remove clear button in IE/Edge
+.webix_view input[type="text"]::-ms-clear{
+	display: none;
 }
 
 /*Remove button padding in FF*/
@@ -453,6 +456,11 @@ label.webix_required:after, legend.webix_required:after,
 	background: darken(@backColor,5%);
 	color: @fontColor;
 }
+.webix_multilist{
+	.wxi-checkbox-marked, .wxi-checkbox-blank{
+		vertical-align:middle;
+	}
+}
 
 .webix_checksuggest_select_all{
 	border: none;
@@ -472,6 +480,68 @@ label.webix_required:after, legend.webix_required:after,
 		.webix_label_right {
 			cursor: pointer;
 			color: @buttonColor;
+		}
+	}
+}
+
+//texthighlight
+
+.webix_el_texthighlight{
+	position: relative;
+	&.webix_el_text{
+		.webix_text_highlight_value{
+			position:relative;
+			top: 50%;
+			transform: translate(0, -50%);
+			overflow:hidden;
+			white-space:pre;
+		}
+		input, .webix_text_highlight{
+			-ms-overflow-style:-ms-autohiding-scrollbar;
+			padding: 0 @skin_content_padding;
+		}
+		input::-ms-clear{
+			display: none;
+		}
+	}
+	&.webix_el_textarea{
+		textarea{
+			padding: 5px @skin_content_padding;
+		}
+		.webix_text_highlight_value{
+			word-wrap: break-word;
+			margin: 5px @skin_content_padding;
+			white-space: pre-wrap;
+		}
+	}
+
+	.webix_text_highlight, input, textarea{
+		line-height: normal;
+		letter-spacing: normal;
+		#box > .sizing;
+	}
+	.webix_text_highlight{
+		-webkit-text-size-adjust: none;
+		height:100%;
+		position: absolute;
+		border: 1px solid transparent;
+		border-radius:@skin_input_radius;
+		background-color: #fff;
+		overflow: auto;
+		.webix_text_highlight_value{
+			text-align: left;
+		}
+	}
+	&.webix_control  .webix_el_box{
+		input, textarea {
+			display: block;
+			position: relative;
+			z-index: 1;
+			color: transparent;
+			caret-color: @fontColor;
+			background: transparent;
+			overflow: auto;
+			resize: none;
 		}
 	}
 }

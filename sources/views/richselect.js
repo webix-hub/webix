@@ -17,7 +17,8 @@ const api = {
 		icon: "wxi-menu-down"
 	},
 	_onBlur:function(){
-		if (this._settings.text == this.getText() || (isUndefined(this._settings.text) && !this.getText()))
+		const text = this.getText();
+		if (this._settings.text == text || (isUndefined(this._settings.text) && !text))
 			return;
 
 		var suggest = this.getPopup(),
@@ -28,9 +29,9 @@ const api = {
 		//non-empty value that differs from old value and matches filtering rule
 		if (value && value !=oldvalue && !(nodeValue==="" && suggest.getItemText(value)!==""))
 			this.setValue(value);
-		else if(nodeValue==="")
+		else if (nodeValue === "")
 			this.setValue("");
-		else if(this._revertValue)
+		else if (this._revertValue)
 			this._revertValue();
 	},
 	suggest_setter:function(value){
@@ -50,11 +51,12 @@ const api = {
 		assert(suggest, "Input doesn't have a list");
 		return suggest.getList();
 	},
-	_pattern :function(value){ return value; },
 	_reset_value:function(){
-		var value = this._settings.value;
-		//this._dataobj.firstChild - check that input is already rendered, as in IE11 it can be destroy during parent repainting
-		if(!isUndefined(value) && !this.getPopup().isVisible() && !this._settings.text && this._dataobj.firstChild)
+		const value = this._settings.value;
+		const text = this._settings.text;
+
+		//this.getInputNode - check that input is already rendered, as in IE11 it can be destroy during parent repainting
+		if(!isUndefined(value) && !this.getPopup().isVisible() && !text && this.getInputNode())
 			this.$setValue(value);
 	},
 	$skin:function(){
@@ -63,7 +65,6 @@ const api = {
 		this.defaults.inputPadding = $active.inputPadding;
 	},
 	$render:function(obj){
-		if (isUndefined(obj.value)) return;
 		this.$setValue(obj.value);
 	},
 	getInputNode: function(){
@@ -84,21 +85,24 @@ const api = {
 		}
 		return node.value;
 	},
+	$prepareValue:function(value){
+		if (value && value.id)
+			return value;			//don't convert new items
+
+		return text.api.$prepareValue.call(this, value);
+	},
 	$setValue:function(value){
-		if (!this._rendered_input) return;
+		let text = value;
 
-		var text = value;
-		var popup = this.getPopup();
-
+		const popup = this.getPopup();
 		if (popup)
-			text = this.getPopup().getItemText(value);
+			text = popup.getItemText(value);
 
-		if (!text && value && value.id){ //add new value
-			const popup = this.getPopup();
+		if (value && value.id){ //add new value
 			const list = popup.getList();
+			const exists = list.exists(value.id);
 
 			// add new item only when item with such id doesn't exists yet
-			const exists = list.exists(value.id);
 			if (!exists) list.add(value);
 
 			text = popup.getItemText(value.id);
@@ -108,11 +112,10 @@ const api = {
 			if (list._settings.dynamic && !exists)
 				list.remove(value.id);
 
-			this._settings.value = value.id;
+			this._settings.value = this.$prepareValue(value.id);
 		}
 
-		var node = this.getInputNode();
-
+		const node = this.getInputNode();
 		if (isUndefined(node.value))
 			node.innerHTML = text || this._get_div_placeholder();
 		else 
