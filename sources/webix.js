@@ -104,7 +104,7 @@ import "./views/mentionsuggest";
 
 import "./views/daterange";
 import "./views/daterangesuggest";
-import "./views/daterangepicker";
+//import "./views/daterangepicker";
 
 import "./views/excelbar";
 import "./views/excelviewer";
