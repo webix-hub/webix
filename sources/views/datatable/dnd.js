@@ -193,7 +193,7 @@ const Mixin = {
 					var context = DragControl.getContext();
 					var box = offset(this.$view);
 					node.style.display = "none";
-					var html = document.elementFromPoint(pos.x, box.y+1);
+					var html = document.elementFromPoint(pos.x, box.y + (this._settings.headerRowHeight/2));
 
 					var id = (html?this.locate(html):null);
 

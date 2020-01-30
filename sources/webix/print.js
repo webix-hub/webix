@@ -7,7 +7,6 @@ import {assert} from "../webix/debug";
 env.printPPI = 96;
 env.printMargin = 0.75*env.printPPI;
 
-var margin = env.printMargin;
 var papers = { "a4":"A4", "a3":"A3", "letter":"letter"};
 var fits = { page:true, data:true};
 var modes = { portrait:true, landscape:true};
@@ -49,9 +48,9 @@ function _checkOptions(options){
 	options.fit = fits[options.fit] ? options.fit: "page";
 	options.scroll = options.scroll || false;
 	options.size = sizes[options.paper];
-
 	options.margin = (options.margin || options.margin === 0) ? options.margin : {};
-	margin = isNaN(options.margin*1) ? margin : options.margin;
+	
+	const margin = isNaN(options.margin*1) ? env.printMargin : options.margin;
 	options.margin = {
 		top:(options.margin.top || options.margin.top === 0) ? options.margin.top: margin, 
 		bottom:(options.margin.bottom || options.margin.bottom === 0) ? options.margin.bottom: margin, 

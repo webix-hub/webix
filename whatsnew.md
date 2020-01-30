@@ -1,3 +1,12 @@
+Version 7.1.4 (January 2020)
+==============================
+
+### Fixes
+
+- print margin cannot be reset once applied
+- datatable: column dnd fails in FireFox with zoom less than 100
+- comment widget does not render async users
+
 Version 7.1.3 (January 2020)
 ==============================
 

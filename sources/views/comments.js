@@ -501,6 +501,7 @@ const api = {
 			else
 				this._users.parse(value||[]);
 		}
+		this._users.data.attachEvent("onStoreUpdated", () => this._list.refresh());
 	},
 	_initMentions:function(value){
 		const readonly = this.config.readonly;
