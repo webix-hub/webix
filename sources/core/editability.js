@@ -153,15 +153,21 @@ const EditAbility ={
 			//render html input
 			assert(editors[editor], "Invalid editor type: "+editor);
 			var type = extend({}, editors[editor]);
-			
+
 			var node = this._init_editor(id, type, show);
 			if (type.config.liveEdit)
 				this._live_edits_handler = this.attachEvent("onKeyPress", this._handle_live_edits);
 
-			var area = type.getPopup?type.getPopup(node)._viewobj:node;
+			var area = [node];
+			if (type.getEditorArea)
+				area = type.getEditorArea();
+			else if (type.getPopup)
+				area = [type.getPopup()._viewobj];
 
-			if (area)
-				_event(area, "click", this._reset_active_editor);
+			if (area){
+				for (let i=0; i<area.length; i++)
+					_event(area[i], "click", this._reset_active_editor);
+			}
 			if (node)
 				_event(node, "change", this._on_editor_change, { bind:{ view:this, id:id }});
 			if (show !== false)

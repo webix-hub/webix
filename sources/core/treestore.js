@@ -351,8 +351,7 @@ const TreeStore = {
 					functor.call(this, this.getItem(key), false);
 			}
 	},
-	_sort_core:function(sort, order){
-		var sorter = this.sorting.create(sort);
+	_sort_core:function(sorter, order){
 		for (var key in this.branch){
 			var bset =  this.branch[key];
 			var data = [];

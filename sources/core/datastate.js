@@ -1,4 +1,4 @@
-
+import {isArray} from "../webix/helpers";
 
 const DataState = {
 	getState:function(){
@@ -18,11 +18,11 @@ const DataState = {
 
 		settings.order = [].concat(this._hidden_column_order.length ? this._hidden_column_order : settings.ids);
 
-		if(this._last_sorted){
-			settings.sort={
-				id:this._last_sorted,
-				dir:this._last_order
-			};
+		if (this._last_order.length){
+			var sort = this._last_order.map(id => {
+				return { id:id, dir:this._last_sorted[id].dir };
+			});
+			settings.sort = (sort.length == 1) ? sort[0] : sort;
 		}
 
 		//this method will try to access the rendered values
@@ -51,7 +51,10 @@ const DataState = {
 		var columns = this.config.columns;
 		if(!obj) return;
 
-		this._last_sorted = null; 
+		this.markSorting();
+		this._last_order = [];
+		this._last_sorted = {};
+
 		this.blockEvent();
 
 		if (obj.order && obj.order.length){
@@ -78,13 +81,12 @@ const DataState = {
 
 		if (obj.ids){
 			var reorder = false;
-			var cols = this.config.columns;
-			for (let i=0; i<cols.length; i++)
-				if (cols[i].id != obj.ids[i])
+			for (let i=0; i<columns.length; i++)
+				if (columns[i].id != obj.ids[i])
 					reorder = true;
 			if (reorder){
 				for (let i=0; i<obj.ids.length; i++)
-					cols[i] = this.getColumnConfig(obj.ids[i]) || cols[i];
+					columns[i] = this.getColumnConfig(obj.ids[i]) || columns[i];
 				this.refreshColumns();
 			}
 		}
@@ -107,12 +109,18 @@ const DataState = {
 		this._updateColsSizeSettings(silent);
 		this.callEvent("onStructureUpdate", []);
 
-		if(obj.sort){
-			var column = columns[this.getColumnIndex(obj.sort.id)];
-			if (column)
-				this._sort(obj.sort.id, obj.sort.dir, column.sort);	
+		if (obj.sort){
+			let sort = obj.sort, multi = true;
+			if (!isArray(sort)){
+				sort = [sort]; multi = false;
+			}
+			for (let i=0; i<sort.length; i++){
+				const col = this.getColumnConfig(sort[i].id);
+				if (col)
+					this._sort(col.id, sort[i].dir, col.sort, multi);
+			}
 		}
-				
+
 		if (obj.filter){
 			//temporary disable filtering 
 			let temp = this.filterByAll;

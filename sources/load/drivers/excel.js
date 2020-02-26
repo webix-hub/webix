@@ -66,10 +66,13 @@ const excel = extend({
 		return data;
 	},
 	sheetToArray:function(sheet, options){
-		var all = [];
-		var spans = [];
-		var styles = [];
-		var sizes = [];
+		const all = [];
+		const spans = [];
+		const styles = [];
+		const sizes = [];
+		const types = [];
+
+		const cellTypes = { n:"number", d:"date", s:"string", b:"boolean"};
 
 		if(sheet && sheet["!ref"]){
 			var range = XLS.utils.decode_range(sheet["!ref"]), 
@@ -90,12 +93,14 @@ const excel = extend({
 							ncell = cell.f.charAt(0)=="=" ? cell.f : "="+cell.f;
 						else if (cell.t =="d" && isDate(cell.v))
 							ncell  = i18n.dateFormatStr(cell.v);
-						else 
+						else
 							ncell = cell.v;
 						nrow.push(ncell);
 
 						if (cell.s)
 							styles.push([row-yCorrection, col-xCorrection, cell.s]);
+						if (cell.t)
+							types.push([row-yCorrection, col-xCorrection, cellTypes[cell.t]]);
 					}
 				}
 				all.push(nrow);
@@ -121,7 +126,8 @@ const excel = extend({
 					if(heights[i]) sizes.push(["row", i-yCorrection, heights[i].hpx]); //mode ("row", "column"), rowind, value
 			}
 		}
-		return { data:all, spans: spans, styles:styles, sizes:sizes, excel: true };
+
+		return { data:all, spans: spans, styles:styles, sizes:sizes, types:types, excel: true };
 	},
 	_urlToOptions:function(details){
 		var parts = details.split("[");

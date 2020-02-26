@@ -98,7 +98,13 @@ const ru = {
 		contains: "содержит",
 		notContains: "не содержит",
 		equal: "равно",
-		notEqual: "не равно"
+		notEqual: "не равно",
+		beginsWith: "начинается с",
+		notBeginsWith: "не начинается с",
+		endsWith: "заканчиватся",
+		notEndsWith: "не заканчиватся",
+		between: "между",
+		notBetween: "не между"
 	}
 };
 

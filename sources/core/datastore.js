@@ -587,52 +587,68 @@ DataStore.prototype={
 	/*
 		sort data in collection
 			by - settings of sorting
-		
+
 		or
-		
+			by - array of settings
+
+		or
+
 			by - sorting function
 			dir - "asc" or "desc"
-			
+
 		or
-		
+
 			by - property
 			dir - "asc" or "desc"
 			as - type of sortings
-		
+
 		Sorting function will accept 2 parameters and must return 1,0,-1, based on desired order
 	*/
 	sort:function(by, dir, as){
-		var sort = by;	
+		let parameters;
+		let sort = by;
+
+		if (isArray(sort)){
+			sort = sort.map(a => this._sort_init(a));
+			parameters = [sort];
+		} else {
+			sort = this._sort_init(by, dir, as);
+			parameters = [sort.by, sort.dir, sort.as, sort];
+		}
+
+		if (!this.callEvent("onBeforeSort", parameters)) return;
+		const sorter = this.sorting.create(sort);
+
+		this.order = this._sort_core(sorter, this.order);
+		if (this._filter_order && this._filter_order.length != this.order.length)
+			this._filter_order = this._sort_core(sorter, this._filter_order);
+
+		//repaint self
+		this.refresh();
+		
+		this.callEvent("onAfterSort", parameters);
+	},
+	_sort_init:function(by, dir, as){
+		let sort = by;
+
 		if (typeof by == "function")
 			sort = {as:by, dir:dir};
 		else if (typeof by == "string")
 			sort = {by:by, dir:dir, as:as};
 
-		if(typeof sort.by == "string")
+		if (typeof sort.by == "string")
 			sort.by = sort.by.replace(/#/g,"");
 
-		
-		var parameters = [sort.by, sort.dir, sort.as, sort];
-		if (!this.callEvent("onBeforeSort",parameters)) return;	
-		
-		this.order = this._sort_core(sort, this.order);
-		if (this._filter_order && this._filter_order.length != this.order.length)
-			this._filter_order = this._sort_core(sort, this._filter_order);
-		
-		//repaint self
-		this.refresh();
-		
-		this.callEvent("onAfterSort",parameters);
+		return sort;
 	},
-	_sort_core:function(sort, order){
-		var sorter = this.sorting.create(sort);
+	_sort_core:function(sorter, order){
 		if (this.order.length){
 			var pre = order.splice(0, this.$freeze);
 			//get array of IDs
 			var neworder = _to_array();
 			for (var i=order.length-1; i>=0; i--)
 				neworder[i] = this.pull[order[i]];
-			
+
 			neworder.sort(sorter);
 			return _to_array(pre.concat(neworder.map(function(obj){ 
 				assert(obj, "Client sorting can't be used with dynamic loading");
@@ -845,6 +861,8 @@ DataStore.prototype={
 	},
 	sorting:{
 		create:function(config){
+			if (isArray(config))
+				return this._multi(config);
 			return this._dir(config.dir, this._by(config.by, config.as));
 		},
 		as:{
@@ -883,6 +901,17 @@ DataStore.prototype={
 			"raw":function(a,b){
 				return a>b?1:(a<b?-1:0);
 			}
+		},
+		_multi:function(methods){
+			methods = methods.map(c => this._dir(c.dir, this._by(c.by, c.as)));
+
+			return function(a,b){
+				let result, i = 0;
+				do {
+					result = methods[i](a,b);
+				} while(!result && methods[++i]);
+				return result;
+			};
 		},
 		_by:function(prop, method){
 			if (!prop)

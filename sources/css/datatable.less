@@ -101,8 +101,71 @@
 
 .webix_ss_sort_asc, .webix_ss_sort_desc {
 	position: absolute;
-	right:3px;
+	top: 50%;
+	right: 2px;
+
+	width: 20px;
+	height: 24px;
+	line-height: 24px;
+	margin-top: -12px;
+	float: none;
+
+	&.webix_ss_sort_single{
+		width: 20px;
+		text-align: center;
+	}
 	#box >.noselect;
+}
+.webix_ss_sort_num{
+	position: absolute;
+	top: 0;
+	right: 0;
+
+	height: @smallFontSize;
+	line-height: @smallFontSize;
+
+	font-family: @fontFamily;
+	font-size: @smallFontSize - 2px;
+	text-align: right;
+
+	color: @baseColor;
+}
+.webix_ss_sort_single .webix_ss_sort_num{
+	display: none;
+}
+
+.webix_hcell .webix_excel_filter{
+	position: absolute;
+	top: 50%;
+	right: 2px;
+
+	width: 20px;
+	height: 20px;
+	line-height: 20px;
+	margin-top: -10px;
+	vertical-align: middle;
+	text-align: center;
+	cursor: pointer;
+	color:@inactiveFontColor;
+	font-size: 14px;
+	&:hover{
+		color: @baseColor;
+	}
+}
+
+.webix_excel_filter + .webix_ss_sort_asc, .webix_excel_filter + .webix_ss_sort_desc{
+	right: 24px;
+}
+
+.webix_hcell.webix_ss_excel_filter{
+	position: relative;
+}
+.webix_hcell.webix_ss_filter_active .webix_excel_filter{
+	color: @baseColor;
+
+	&:hover{
+		color: darken(@baseColor, 8%);
+	}
 }
 
 .webix_hcell.webix_ss_filter{
@@ -189,7 +252,7 @@
 	border-left:1px solid @borderColor;
 }
 .webix_ss_left .webix_column.webix_last>div{
-	border-right:1px solid @borderColor;	
+	border-right:1px solid @borderColor;
 }
 .webix_last_topcell.webix_cell{
 	border-bottom:1px solid @borderColor;
@@ -248,6 +311,10 @@
 .webix_column >  .webix_drag_over.webix_cell{
 	background-color: darken(@backColor, 10%);
 	color: @fontColor;
+
+	&.webix_row_select, &.webix_cell_select{
+		.selectLine;
+	}
 }
 
 .webix_ss_header td, .webix_ss_header table{
@@ -261,8 +328,8 @@
 .webix_invalid_cell{
 	position:relative;
 }
-.webix_invalid_cell:after { 
-	content: ""; 
+.webix_invalid_cell:after {
+	content: "";
 
 	position:absolute;
 	top:0px; right:0px;
@@ -301,7 +368,7 @@
 }
 
 .webix_cell.webix_dtable_colrow, .webix_cell.webix_dtable_subrow, .webix_dtable_subview{
-	position:absolute;	
+	position:absolute;
 	left:0px;
 	top:0px;
 	background-color: white;

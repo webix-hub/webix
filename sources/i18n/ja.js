@@ -103,7 +103,13 @@ const ja = {
 		contains: "含まれています",
 		notContains: "含まれていません",
 		equal: "等しいです",
-		notEqual: "等しくありません"
+		notEqual: "等しくありません",
+		beginsWith: "で始まります",
+		notBeginsWith: "ないで始まります",
+		endsWith: "で終わります",
+		notEndsWith: "で終わりではありません",
+		between: "間に",
+		notBetween: "いない間"
 	}
 };
 

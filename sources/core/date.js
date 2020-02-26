@@ -136,7 +136,7 @@ const wDate = {
 		if (typeof format == "function") return format;
 
 		var mask=format.match(/%[a-zA-Z]/g);
-		var splt="var temp=date.split(/[^0-9a-zA-Z]+/g);";
+		var splt="var temp=date.split(/[\\s\\./\\-\\:\\,]+/g);";
 		var i,t,s;
 
 		if(!i18n.calendar.monthShort_hash){
@@ -155,7 +155,7 @@ const wDate = {
 			return function(date){
 				if (!date) return "";
 				if (typeof date == "object") return date;
-				var temp=date.split(/[^0-9a-zA-Z]+/g);
+				var temp=date.split(/[\s./\-:,]+/g);
 				var set=[0,0,1,0,0,0,0];
 				for (i=0; i<mask.length; i++){
 					var a = mask[i];

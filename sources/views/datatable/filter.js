@@ -107,13 +107,16 @@ const Mixin = {
 		let values = [];
 
 		this.data.each(function(obj){
-			let test = obj ? obj[id] : "";
-			if (test !== undefined && !checks[test]){
-				checks[test] = true;
-				let lineId = obj[id];
-				//special handling for 0 values
-				//convert to string to create a valid ID
-				if (lineId === 0) lineId = "0";
+			let lineId = obj ? obj[id] : "";
+
+			//special handling for 0 values
+			if (lineId === 0) lineId = "0";
+			//convert to string to create a valid ID
+			if (typeof lineId == "object")
+				lineId = String(lineId);
+
+			if (lineId !== undefined && !checks[lineId]){
+				checks[lineId] = true;
 				values.push({ id:lineId, value:obj[value] });
 			}
 		}, this, true);

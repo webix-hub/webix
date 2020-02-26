@@ -1,7 +1,7 @@
 
 
 import {create} from "../webix/html";
-import {isArray, isUndefined, copy, toNode, bind, extend} from "../webix/helpers";
+import {isArray, isUndefined, copy, toNode, bind, delay, extend} from "../webix/helpers";
 import {ui, $$} from "../ui/core";
 import i18n from "../webix/i18n";
 import {_event} from "../webix/htmlevents";
@@ -278,11 +278,15 @@ editors.date = extend({
 
 editors.combo = extend({
 	_create_suggest:function(config){
-		if(this.config.popup){
+		if (this.config.popup){
 			return this.config.popup.config.id;
 		}
 		else if (config){
-			return create_suggest(config);
+			var suggest = create_suggest(config);
+			$$(suggest).attachEvent("onValueSuggest", function(){
+				delay(function(){ callEvent("onEditEnd", []); });
+			});
+			return suggest;
 		} else
 			return this._shared_suggest(config);
 	},
@@ -300,7 +304,7 @@ editors.combo = extend({
 
 		if (suggest){
 			$$(suggest).linkInput(node.firstChild, true);
-			_event(node.firstChild, "click",bind(this.showPopup, this));
+			_event(node.firstChild, "click", bind(this.showPopup, this));
 		}
 		return node;
 	},
@@ -315,13 +319,13 @@ editors.combo = extend({
 
 		popup.show(input);
 		input.setAttribute("aria-expanded", "true");
-		if(value ){
+		if (value){
 			assert(list.exists(value), "Option with ID "+value+" doesn't exist");
-			if(list.exists(value)){
+			if (list.exists(value)){
 				list.select(value);
 				list.showItem(value);
 			}
-		}else{
+		} else {
 			list.unselect();
 			list.showItem(list.getFirstId());
 		}
@@ -375,6 +379,10 @@ editors.richselect = extend({
 	popupInit:function(popup){
 		popup._show_selection = function(){};
 		popup.linkInput(document.body);
+
+		popup.attachEvent("onValueSuggest", function(){
+			delay(function(){ callEvent("onEditEnd", []); });
+		});
 	},
 	popupType:"richselect"
 }, editors.popup);

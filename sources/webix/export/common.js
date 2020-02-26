@@ -10,6 +10,13 @@ function getDataHelper(key, column, raw){
 	return function(obj){ return obj[key]; };
 }
 
+export function getStyles(r, c, styles){
+	//row index, column index, styles array
+	if(styles[r] && styles[r][c])
+		return styles[r][c];
+	return "";
+}
+
 export function getExportScheme(view, options){
 	var scheme = [];
 	var h_count = 0, f_count = 0;

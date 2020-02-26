@@ -103,7 +103,13 @@ const es = {
 		contains: "contiene",
 		notContains: "not contiene",
 		equal: "igual",
-		notEqual: "no es igual"
+		notEqual: "no es igual",
+		beginsWith: "comienza con",
+		notBeginsWith: "no comienza con",
+		endsWith: "termina con",
+		notEndsWith: "no termina con",
+		between: "entre",
+		notBetween: "no entre"
 	}
 };
 

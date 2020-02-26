@@ -103,7 +103,13 @@ const zh = {
 		contains: "包含",
 		notContains: "不包含",
 		equal: "等于",
-		notEqual: "不平等"
+		notEqual: "不平等",
+		beginsWith: "开始于",
+		notBeginsWith: "不开始",
+		endsWith: "结束",
+		notEndsWith: "不是以",
+		between: "之间",
+		notBetween: "不在之间"
 	}
 };
 

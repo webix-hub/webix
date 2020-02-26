@@ -1,5 +1,5 @@
 import {ajax} from "../load/ajax";
-import {bind, delay, extend, toFunctor} from "../webix/helpers";
+import {bind, delay, extend, toFunctor, isArray} from "../webix/helpers";
 import {proto} from "../ui/core";
 
 import {dp} from "../load/dataprocessor";
@@ -81,8 +81,11 @@ const DataLoader =proto({
 				params.push(d+"="+details[d]);
 			}
 			if (state){
-				if (state.sort)
-					params.push("sort["+state.sort.id+"]="+encodeURIComponent(state.sort.dir));
+				if (state.sort){
+					var sort = isArray(state.sort) ? state.sort : [state.sort];
+					for (var i=0; i<sort.length; i++)
+						params.push("sort["+sort[i].id+"]="+encodeURIComponent(sort[i].dir));
+				}
 				if (state.filter)
 					for (var key in state.filter){
 						var filterValue = state.filter[key];

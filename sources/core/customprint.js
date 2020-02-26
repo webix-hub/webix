@@ -29,15 +29,13 @@ const CustomPrint = {
 			extend(options || {}, {xCount:this.count(), nobreaks:true}, true);
 	},
 	_getPageWidth:function(options){
-		if(options.fit =="page") return Infinity;
-
 		var size = options.size;
 		var width = size[options.mode == "portrait"?"width":"height"];
 		
 		return Math.min(width*env.printPPI-2*env.printMargin);
 	},
 	_getTableArray:function(options, base, start){
-		var maxWidth = this._getPageWidth(options);
+		var maxWidth = options.fit =="page" ? Infinity : this._getPageWidth(options);
 		var xCount = options.xCount || this._getVisibleRange()._dx;
 
 		var tableArray = [];

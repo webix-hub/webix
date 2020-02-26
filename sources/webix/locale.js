@@ -29,6 +29,8 @@ i18n.setLocale = function(locale){
 	if (locale){
 		locale.priceSettings  = copy(locale.priceSettings || locale);
 		extend(i18n, locale);
+		delete i18n.calendar.monthShort_hash;
+		delete i18n.calendar.monthFull_hash;
 	}
 	for( var i=0; i<helpers.length; i++){
 		var key = helpers[i];

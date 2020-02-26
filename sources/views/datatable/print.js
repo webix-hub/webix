@@ -78,12 +78,13 @@ const Mixin = {
 
 		var columns = this.config.columns;
 		var sel = this.getSelectedId(true);
-		var maxWidth = this._getPageWidth(options);
+		var maxWidth = options.fit =="page" ? Infinity : this._getPageWidth(options);
 		
 		var rightRestriction = 0;
 		var bottomRestriction = 0;
 		var tableArray = [];
 		var newTableStart = 0;
+		var widths = [];
 
 		start = start || (0 + options.xCorrection);
 		base = base || [];
@@ -102,6 +103,8 @@ const Mixin = {
 
 				if(columns[c]){
 					width += columns[c].width;
+					if(rowIndex === 0)
+						widths.push(columns[c].width);
 
 					if(width > maxWidth && c>start){ // 'c>start' ensures that a single long column will have to fit the page
 						newTableStart = c; break; }
@@ -170,7 +173,7 @@ const Mixin = {
 					item.length = rightRestriction;
 					return item;
 				});
-			}	
+			}
 			base.push(tableArray);
 		}
 
@@ -182,9 +185,30 @@ const Mixin = {
 				base = this._getTableHeader(base, columns, "footer");
 			if(options.header)
 				base = this._getTableHeader(base, columns, "header");
+
+			if(options.fit == "page") 
+				this._correctWidth(base, widths, rightRestriction, options);
 		}
 
 		return base;
+	},
+	//a single grid tries to fit to page size - set column width to auto
+	_correctWidth:function(base, widths, rightRestriction, options){
+		if(rightRestriction && options.trim)
+			widths.length = rightRestriction;
+
+		let rwidth = 0;
+		for(let i = 0; i < widths.length; i++)
+			rwidth += widths[i];
+		
+		if(rwidth > this._getPageWidth(options)){
+			base[0].forEach((item) => {
+				for(let i = 0; i < item.length; i++){
+					if(item[i] && item[i].style && item[i].style.width)
+						item[i].style.width = "auto";
+				}
+			});
+		}
 	},
 	_getTableHTML:function(tableData, options){
 		

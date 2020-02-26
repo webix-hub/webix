@@ -106,7 +106,13 @@ const en = {
 		contains: "contains",
 		notContains: "not contains",
 		equal: "equal",
-		notEqual: "not equal"
+		notEqual: "not equal",
+		beginsWith: "begins with",
+		notBeginsWith: "not begins with",
+		endsWith: "ends with",
+		notEndsWith: "not ends with",
+		between: "between",
+		notBetween: "not between"
 	}
 };
 

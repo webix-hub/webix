@@ -20,18 +20,28 @@ const api = {
 		const obj = this._settings;
 		const isPressed = (value && value != "0");
 		const text = (isPressed ? obj.onLabel : obj.offLabel) || obj.label;
-		const first = input.firstChild;
-		
-		input.setAttribute("aria-pressed", isPressed?"true":"false");
-		input.innerHTML = text;
+
+		const children = [...input.children];
 
 		//icon or image button
-		if (first && !!this._types[obj.type]){
-			if (first.nodeName === "SPAN" && obj.onIcon && obj.offIcon && obj.onIcon!==obj.offIcon)
-				first.className = first.className.replace((isPressed?obj.offIcon:obj.onIcon), (isPressed?obj.onIcon:obj.offIcon));
-			input.insertBefore(first, input.firstChild);
+		if(this._types[obj.type]){
+			const icon = children[0];
+
+			if(icon.nodeName == "SPAN" && obj.onIcon && obj.offIcon && obj.onIcon != obj.offIcon)
+				icon.className = icon.className.replace((isPressed?obj.offIcon:obj.onIcon), (isPressed?obj.onIcon:obj.offIcon));
+
+			if(obj.type == "imageTop" || obj.type == "iconTop")
+				children[1].innerHTML = text;
+			else{
+				input.innerHTML = text;
+				input.insertBefore(icon, input.firstChild);
+			}
 		}
-		
+		else
+			input.innerHTML = text;
+
+		input.setAttribute("aria-pressed", isPressed?"true":"false");
+
 		const changeCss = isPressed ? addCss : removeCss;
 		changeCss(input.parentNode, "webix_pressed");
 	},
@@ -49,12 +59,12 @@ const api = {
 
 			obj.label = (isPressed ? obj.onLabel : obj.offLabel) || obj.label;
 			obj.icon = (isPressed ? obj.onIcon : obj.offIcon) || obj.icon;
-			
+
 			var html =  "<div class='webix_el_box"+css+"' style='width:"+obj.awidth+"px; height:"+obj.aheight+"px'>"+common.$renderInput(obj, common)+"</div>";
 			html = html.replace(/(button)\s*(?=\w)/, "$1"+(" aria-pressed='"+(isPressed?"true":"false")+"' "));
 			if (obj.badge||obj.badge===0)
 				html = html.replace(/<\/div>$/, "<span class='webix_badge'>"+obj.badge+"</span></div>");
-			
+
 			return html;
 		}
 	},

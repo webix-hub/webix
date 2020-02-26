@@ -1,4 +1,4 @@
-import {errorMessage, getExportScheme, getExportData} from "./common";
+import {errorMessage, getExportScheme, getExportData, getStyles} from "./common";
 
 import i18n from "../../webix/i18n";
 import promise from "../../thirdparty/promiz";
@@ -13,49 +13,66 @@ import {assert} from "../../webix/debug";
 
 let font = {};
 export const toPDF = function(id, options){
-	return require([
-		env.cdn + "/extras/pdfjs.js", env.cdn + "/extras/html2canvas-1.0.min.js"
-	]).then(function(){
-		options = options || {};
-		
-		options.export_mode = "pdf";
-		options._export_font = font;
-		options.fontName = options.fontName || "pt-sans.regular";
-		options.display = options.display || "table";
+	options = options || {};
 
-		id = isArray(id)?id:[id];
-		let views = [];
+	options.export_mode = "pdf";
+	options._export_font = font;
+	options.fontName = options.fontName || "pt-sans.regular";
+	const display = options.display = options.display || "table";
+	options.styles = options.display == "image" ? false: options.styles;
 
-		for (let i = 0; i < id.length; i++) {
-			if(!id[i].id) id[i]  = { id:id[i] }; 
-			
-			let view = $$(id[i].id);
-			let viewOptions  = extend(id[i].options || {}, options);
+	id = isArray(id)?id:[id];
+	let views = [];
 
-			if (view && view.$exportView)
+	for (let i = 0; i < id.length; i++) {
+		if(!id[i].id) id[i]  = { id:id[i] }; 
+
+		let view = $$(id[i].id);
+
+		if(view){
+			const viewOptions = extend(id[i].options || {}, options);
+			if(view.$exportView)
 				view = view.$exportView(viewOptions);
 
-			if(view){
-				if(viewOptions.display !== "table"){
-					views.push({ node:  view.$view, viewOptions:viewOptions });
-					if(options.autowidth)
-						options.width = Math.max( options.width||0, view.$view.$width );
+			//$exportView returns array
+			if(isArray(view)){
+				views = views.concat(view);
+				if(options.autowidth)
+					getAutowidth(viewOptions, options);
+			}
+			else{
+				//display table should be first (in case of styles:true $exportView adds styles to the first view)
+				if(display == "table" || display == "all"){
+					if(view.data && view.data.pull){
+						const scheme = getExportScheme(view, viewOptions);
+						views.push({
+							scheme: scheme, 
+							exportData: getExportData(view, viewOptions, scheme),
+							viewOptions: viewOptions
+						});
+						if(options.autowidth)
+							getAutowidth(view, options, scheme);
+					}
 				}
-
-				if(viewOptions.display !== "image" && view.data && view.data.pull){
-					const scheme = getExportScheme(view, viewOptions);
+				if(display == "image" || display == "all"){
 					views.push({
-						scheme: scheme, 
-						data: getExportData(view, viewOptions, scheme),
+						node: view.$view,
 						viewOptions: viewOptions
 					});
 					if(options.autowidth)
-						getAutowidth(scheme, options);
+						getAutowidth(view, options);
 				}
 			}
-			assert(view, errorMessage);
 		}
+		assert(view, errorMessage);
+	}
 
+	if(options.dataOnly)
+		return views;
+
+	return require([
+		env.cdn + "/extras/pdfjs.js", env.cdn + "/extras/html2canvas-1.0.min.js"
+	]).then(function(){
 		if(views.length == 0)
 			return promise.reject(errorMessage);
 
@@ -110,7 +127,7 @@ function getPdfData(views, options){
 			if(images[i])
 				doc.image(images[i], {align:"center"});
 			else
-				addPDFTable(views[i].scheme, views[i].data, viewOptions, doc);
+				addPDFTable(views[i], doc);
 			
 			if(viewOptions.textAfter)
 				addText(doc, "after", viewOptions.textAfter);
@@ -144,12 +161,21 @@ function getPDFImage(node){
 	});
 }
 
-function getAutowidth(scheme, options){
+function getAutowidth(view, options, scheme){
 	const prop = options.orientation && options.orientation == "landscape" ? "height" : "width";
-	let width = 80; //paddings
-	for(let i = 0; i<scheme.length; i++)
-		width += scheme[i].width;
-	options[prop] = Math.max(options[prop] || 0, width);
+	let width;
+
+	if(scheme){
+		width = 80; //paddings
+		for(let i = 0; i<scheme.length; i++)
+			width += scheme[i].width;
+	}
+	else if(view.$width)
+		width = view.$width;
+	else //'view' can be local settings and we need to compare them with common ones
+		width = view[prop];
+
+	options[prop] = Math.max(options[prop] || 0, width || 0);
 }
 
 function addPDFDoc(options){
@@ -167,7 +193,12 @@ function addPDFDoc(options){
 	});
 }
 
-function addPDFTable(scheme, data, options, doc){
+function addPDFTable(view, doc){
+	const scheme = view.scheme;
+	const data = view.exportData;
+	const options = view.viewOptions;
+	const styles = view.styles;
+
 	options.header = (isUndefined(options.header) || options.header === true) ? {} : options.header;
 	options.footer = (isUndefined(options.footer) || options.footer === true) ? {} : options.footer;
 	options.table = options.table || {};
@@ -199,16 +230,20 @@ function addPDFTable(scheme, data, options, doc){
 
 		for(let i = 0; i<h_count; i++){
 			var header = table.tr(headerOps);
-			for(var s=0; s<scheme.length; s++)
-				header.td(scheme[s].header[i].toString());
+			for(var s=0; s<scheme.length; s++){
+				const options = styles ? getStyles(i, s, styles) : {};
+				header.td(scheme[s].header[i].toString(), options);
+			}
 		}
 	}
 
 	//render table data
 	for(let r=0; r<data.length;r++){
 		let row = table.tr({});
-		for(let c=0; c< data[r].length; c++)
-			row.td(data[r][c]);
+		for(let c=0; c< data[r].length; c++){
+			const options = styles ? getStyles(r+h_count, c, styles) : {};
+			row.td(data[r][c], options);
+		}
 	}
 
 	//render table footer
@@ -220,9 +255,12 @@ function addPDFTable(scheme, data, options, doc){
 		});
 
 		for(let i = 0; i<f_count; i++){
+			const beforeCount = h_count + data.length;
 			let footer = table.tr(footerOps);
-			for(let s=0; s<scheme.length; s++)
-				footer.td(scheme[s].footer[i].toString());
+			for(let s=0; s<scheme.length; s++){
+				const options = styles ? getStyles(i+beforeCount, s, styles) : {};
+				footer.td(scheme[s].footer[i].toString(), options);
+			}
 		}
 	}
 }

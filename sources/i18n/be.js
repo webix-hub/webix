@@ -103,7 +103,13 @@ const be = {
 		contains: "змяшчае",
 		notContains: "не змяшчае",
 		equal: "роўныя",
-		notEqual: "не роўныя"
+		notEqual: "не роўныя",
+		beginsWith: "пачынаецца з",
+		notBeginsWith: "не пачынаецца з",
+		endsWith: "заканчваецца",
+		notEndsWith: "не сканчаецца",
+		between: "паміж",
+		notBetween: "не паміж"
 	}
 };
 

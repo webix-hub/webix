@@ -98,7 +98,13 @@ const fr = {
 		contains: "contient",
 		notContains: "ne contient",
 		equal: "égal",
-		notEqual: "pas égal"
+		notEqual: "pas égal",
+		beginsWith: "commence par",
+		notBeginsWith: "ne commence par",
+		endsWith: "se termine par",
+		notEndsWith: "pas se termine par",
+		between: "entre",
+		notBetween: "pas entre"
 	}
 };
 

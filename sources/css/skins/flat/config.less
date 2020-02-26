@@ -489,12 +489,6 @@
 .webix_ss_sort_asc, .webix_ss_sort_desc {
 	font-size: 14px;
 	font-family: @iconFamily;
-	top:50%;
-	line-height: 1px;
-	bottom: auto;
-	right:3px;
-	float: none;
-	width: 12px;
 }
 .webix_ss_sort_asc:before{
 	content: '\F004';
@@ -573,7 +567,7 @@
 @listPaddingY:  2px;
 @treeItemHeight: 28px;
 @treeIconSize:	25px;
-
+@listIconVAlign: baseline;
 
 .webix_view .webix_tree_open, .webix_view .webix_tree_close{
 	background-image: none;
@@ -954,7 +948,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		padding-top: 2px;
 		padding-bottom: 2px;
 	}
-	.webix_img_btn_top .webix_icon{
+	.webix_img_btn_top .webix_icon, .webix_img_btn_top .webix_image{
 		margin-top: 2px;
 	}
 	.webix_img_btn_text{

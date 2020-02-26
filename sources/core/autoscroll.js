@@ -48,11 +48,9 @@ const AutoScroll = {
 		}
 
 		if (pos.y < (top + sense)){
-			this._auto_scrollTo(scroll.x, scroll.y-sense*2, pos);
-			return true;
+			return this._auto_scrollTo(scroll.x, scroll.y-sense*2, pos, "y");
 		} else if (pos.y > bottom - sense){
-			this._auto_scrollTo(scroll.x, scroll.y+sense*2, pos);
-			return true;
+			return this._auto_scrollTo(scroll.x, scroll.y+sense*2, pos, "y");
 		}
 		return false;
 	},
@@ -62,17 +60,21 @@ const AutoScroll = {
 		const scroll = this.getScrollState();
 
 		if (pos.x < (left + sense)){
-			this._auto_scrollTo(scroll.x-sense*2, scroll.y, pos);
-			return true;
+			return this._auto_scrollTo(scroll.x-sense*2, scroll.y, pos, "x");
 		} else if (pos.x > right - sense){
-			this._auto_scrollTo(scroll.x+sense*2, scroll.y, pos);
-			return true;
+			return this._auto_scrollTo(scroll.x+sense*2, scroll.y, pos, "x");
 		}
 		return false;
 	},
-	_auto_scrollTo:function(x,y,pos){
-		if(this.callEvent("onBeforeAutoScroll",[pos]))
-			this.scrollTo(x,y);
+	_auto_scrollTo:function(x, y, pos, mode){
+		if (this.callEvent("onBeforeAutoScroll", [pos])){
+			this.scrollTo(x, y);
+			this.callEvent("onAfterAutoScroll", []);
+
+			const scroll = this.getScrollState();
+			return scroll[mode] === (mode === "x" ? x : y);
+		}
+		return false;
 	}
 };
 

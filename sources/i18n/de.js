@@ -103,7 +103,13 @@ const de = {
 		contains: "enthält",
 		notContains: "nicht enthält",
 		equal: "gleich",
-		notEqual: "ungleich"
+		notEqual: "ungleich",
+		beginsWith: "beginnt mit",
+		notBeginsWith: "nicht beginnt mit",
+		endsWith: "endet mit",
+		notEndsWith: "nicht endet mit",
+		between: "zwischen",
+		notBetween: "nicht zwischen"
 	}
 };
 

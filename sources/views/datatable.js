@@ -31,7 +31,7 @@ import SubRowMixin from "./datatable/subs";
 import FreezeRowMixin from "./datatable/freeze";
 import SpansMixin from "./datatable/spans";
 
-import {addStyle, createCss, create, remove, getTextSize, _getClassName, index as getIndex} from "../webix/html";
+import {addStyle, addCss, removeCss, createCss, create, remove, getTextSize, _getClassName, index as getIndex} from "../webix/html";
 import {protoUI, $$, ui} from "../ui/core";
 import {$active} from "../webix/skin";
 import {extend, uid, bind, delay, toFunctor, isUndefined, clone} from "../webix/helpers";
@@ -67,6 +67,7 @@ const api = {
 		rightSplit:0,
 		topSplit:0,
 		columnWidth:100,
+		sort:true,
 		prerender:false,
 		autoheight:false,
 		autowidth:false,
@@ -85,12 +86,15 @@ const api = {
 		this.defaults.minColumnWidth = $active.dataPadding*2 + $active.borderWidth;
 	},
 	on_click:{
+		webix_excel_filter:function(){
+			return false;
+		},
 		webix_richfilter:function(){
 			return false;
 		},
 		webix_table_checkbox:function(e, id){
 			id = this.locate(e);
-			
+
 			var item = this.getItem(id.row);
 			var col = this.getColumnConfig(id.column);
 			var trg = e.target|| e.srcElement;
@@ -450,8 +454,10 @@ const api = {
 		this.refreshHeaderContent(false, false);
 		this._size_header_footer_fix();
 
-		if (this._last_sorted)
-			this.markSorting(this._last_sorted, this._last_order);
+		for (let i=0; i<this._last_order.length; i++){
+			let col_id = this._last_order[i];
+			this.markSorting(col_id, this._last_sorted[col_id].dir, !!i);
+		}
 	},
 	_getHeaderHeight:function(header, column, ind){
 		var width = 0;
@@ -582,13 +588,13 @@ const api = {
 				if (header === null) continue;
 
 				if (header.content){
-					header.contentId = header.contentId||uid();
+					header.contentId = header.contentId || uid();
 					header.columnId = this._columns[i].id;
 					header.format = this._columns[i].format;
 
 					assert(datafilter, "Filtering extension was not included");
 					assert(datafilter[header.content], "Unknown content type: "+header.content);
-					
+
 					header.text = datafilter[header.content].render(this, header);
 					this._active_headers[header.contentId] = header;
 					this._has_active_headers = true;
@@ -785,8 +791,9 @@ const api = {
 			var alltd = sec.getElementsByTagName("TD");
 
 			for (var i = 0; i < alltd.length; i++){
-				if (alltd[i].getAttribute(/*@attr*/"active_id")){
-					var obj = this._active_headers[alltd[i].getAttribute(/*@attr*/"active_id")];
+				var activeId = alltd[i].getAttribute(/*@attr*/"active_id");
+				if (activeId){
+					var obj = this._active_headers[activeId];
 					if (byId && byId != obj.columnId) continue;
 
 					
@@ -1808,41 +1815,68 @@ const api = {
 			this.render();
 		}
 	},
-	_on_header_click:function(column){
-		var col = this.getColumnConfig(column);
-		if (!col.sort) return;
+	_on_header_click:function(column, e){
+		const col = this.getColumnConfig(column);
+		if (!this._settings.sort || !col.sort) return;
 
-		var order = "asc";
-		if (col.id == this._last_sorted)
-			order = this._last_order == "asc" ? "desc" : "asc";
-		
-		this._sort(col.id, order, col.sort);
+		let order = "asc";
+		if (this._last_sorted[col.id])
+			order = (this._last_sorted[col.id].dir == "asc") ? "desc" : "asc";
+
+		this._sort(col.id, order, col.sort, (e.ctrlKey||e.metaKey));
 	},
-	markSorting:function(column, order){
-		if (!this._sort_sign)
-			this._sort_sign = create("DIV");
-		
-		var parent = this._sort_sign.parentNode;
-		if(parent){
-			parent.removeAttribute("aria-sort");
-			parent.removeAttribute("tabindex");
-		}
-		remove(this._sort_sign);
+	_sort_signs:{},
+	_sort_signs_order:[],
+	markSorting:function(column, direction, preserve){
+		direction = direction || "asc";
 
-		if (order){
-			var cell = this._get_header_cell(this.getColumnIndex(column));
+		if (!preserve){
+			this._sort_signs_order = [];
+
+			for (let i in this._sort_signs)
+				if (i !== column){
+					const parent = this._sort_signs[i].parentNode;
+					if (parent){
+						parent.removeAttribute("aria-sort");
+						parent.removeAttribute("tabindex");
+					}
+
+					remove(this._sort_signs[i]);
+					delete this._sort_signs[i];
+				} else {
+					this._sort_signs_order.push(i);
+					this._sort_signs[i].firstChild.innerHTML = "1";
+				}
+		}
+
+		if (!column) return;
+
+		if (this._sort_signs[column]){
+			this._sort_signs[column].className = `webix_ss_sort_${direction}`;
+		} else {
+			const sign = create("div", {
+				class: `webix_ss_sort_${direction}`
+			}, `<div class="webix_ss_sort_num">${this._sort_signs_order.length + 1}</div>`);
+
+			const cell = this._get_header_cell(this.getColumnIndex(column));
 			if (cell){
-				this._sort_sign.className = "webix_ss_sort_"+order;
 				cell.style.position = "relative";
-				cell.appendChild(this._sort_sign);
-				cell.setAttribute("aria-sort", order+"ending");
+				cell.appendChild(sign);
+				cell.setAttribute("aria-sort", direction + "ending");
 				cell.setAttribute("tabindex", "0");
 			}
 
-			this._last_sorted = column;
-			this._last_order = order;
-		} else {
-			this._last_sorted = this._last_order = null;
+			this._sort_signs[column] = sign;
+			this._sort_signs_order.push(column);
+		}
+
+		const first = this._sort_signs[ this._sort_signs_order[0] ];
+		switch (this._sort_signs_order.length){
+			case 1:
+				addCss(first, "webix_ss_sort_single");
+				break;
+			case 2:
+				removeCss(first, "webix_ss_sort_single");
 		}
 	},
 	scroll_setter:function(mode){
@@ -1857,34 +1891,59 @@ const api = {
 		var cells = this._header.getElementsByTagName("TD");
 		var maybe = null;
 		for (var i = 0; i<cells.length; i++)
-			if (cells[i].getAttribute(/*@attr*/"column") == column && !cells[i].getAttribute(/*@attr*/"active_id")){
+			if (cells[i].getAttribute(/*@attr*/"column") == column){
+				const activeId = cells[i].getAttribute(/*@attr*/"active_id");
+
+				if (activeId && !datafilter[ this._active_headers[activeId].content ].$icon)
+					return null;
+
 				maybe = cells[i].firstChild;
 				if ((cells[i].colSpan||0) < 2) return maybe;
 			}
 		return maybe;
 	},
-	_sort:function(col_id, direction, type){
+	_last_order:[],
+	_last_sorted:{},
+	_sort:function(col_id, direction, type, preserve){
+		preserve = this._settings.sort === "multi" && preserve;
 		direction = direction || "asc";
-		this.markSorting(col_id, direction);
+
+		if (!preserve){
+			this._last_order = [];
+			this._last_sorted = {};
+		}
+
+		const col = this.getColumnConfig(col_id);
+		const config = (typeof col.sort == "function") ? { as:col.sort, dir:direction } : { by:col.id, dir:direction, as:col.sort };
+		if (!this._last_sorted[col.id])
+			this._last_order.push(col.id);
+		this._last_sorted[col.id] = config;
 
 		if (type == "server"){
-			this.callEvent("onBeforeSort",[col_id, direction, type]);
+			let parameters = [col.id, direction, type];
+			if (this._last_order.length > 1)
+				parameters = [ this._last_order.map(id => this._last_sorted[id]) ];
+
+			this.callEvent("onBeforeSort", parameters);
 			this.loadNext(0, 0, 0, 0, 1).then((data) => {
 				this.clearAll(true);
 				this.parse(data);
-				this.callEvent("onAfterSort",[col_id, direction, type]);
+				this.callEvent("onAfterSort", parameters);
 			});
 		} else {
 			if (type == "text"){
-				this.data.each(function(obj){ obj.$text = this.getText(obj.id, col_id); }, this);
-				type="string"; col_id = "$text";
+				let new_id = "$text_" + col.id;
+				this.data.each(function(obj){ obj[new_id] = this.getText(obj.id, col.id); }, this);
+				config.as = "string"; config.by = new_id;
 			}
 
-			if (typeof type == "function")
-				this.data.sort(type, direction);
+			if (this._last_order.length > 1)
+				this.data.sort( this._last_order.map(id => this._last_sorted[id]) );
 			else
-				this.data.sort(col_id, direction, type || "string");
+				this.data.sort( config );
 		}
+
+		this.markSorting(col.id, config.dir, preserve);
 	},
 	_mouseEventCall: function( css_call, e, id, trg ) {
 		var functor, i, res;
@@ -1957,7 +2016,7 @@ const api = {
 					else if (name == "ItemClick"){
 						var isHeader = (trg.parentNode.parentNode.getAttribute(/*@attr*/"section") == "header");
 						if (isHeader && this.callEvent("onHeaderClick", [id, e, trg]))
-							this._on_header_click(id.column);
+							this._on_header_click(id.column, e);
 					}
 					css_call = [];
 				} 

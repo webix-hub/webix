@@ -105,7 +105,13 @@ const pt = {
 		contains: "contém",
 		notContains: "não contém",
 		equal: "igual",
-		notEqual: "não é igual"
+		notEqual: "não é igual",
+		beginsWith: "começa com",
+		notBeginsWith: "não começa com",
+		endsWith: "termina com",
+		notEndsWith: "não termina com",
+		between: "entre",
+		notBetween: "não entre"
 	}
 };
 

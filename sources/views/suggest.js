@@ -5,7 +5,6 @@ import {preventEvent} from "../webix/html";
 import {protoUI, $$} from "../ui/core";
 import {toFunctor, extend, copy, isUndefined, delay, bind, toNode} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
-import {callEvent} from "../webix/customevents";
 import template from "../webix/template";
 
 
@@ -141,9 +140,6 @@ const api = {
 				this._last_input_target.focus();
 		}
 		this.callEvent("onValueSuggest", [data, text]);
-		delay(function(){
-			callEvent("onEditEnd",[]);
-		});
 	},
 	getMasterValue:function(){
 		if (this._settings.master)

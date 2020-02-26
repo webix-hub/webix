@@ -89,21 +89,19 @@
 	.buttonIconStyle;
 	margin-right: 4px;
 }
-.webix_img_btn_top .webix_icon{
+.webix_img_btn_top .webix_icon, .webix_img_btn_top .webix_image{
 	font-size: 20px;
 	position: absolute;
 	top: 8px;
+	display: inline-block;
 	left: 50%;
-	margin-left: -10px;
+	-webkit-transform: translateX(-50%);
+	transform: translateX(-50%)
 }
 .webix_img_btn .webix_image{
 	display: inline-block;
 	margin-right: 4px;
 	vertical-align: middle;
-}
-.webix_img_btn_top .webix_image{
-	background-repeat: no-repeat;
-	background-position: center 4px;
 }
 
 .webix_img_btn_text{

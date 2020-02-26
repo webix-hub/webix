@@ -414,16 +414,23 @@
 	.webix_resize_handle_y .webix_handle_content{
 	    background-color:@fontColor;
 	}
+	.webix_hcell .webix_excel_filter:hover{
+		color: @linkFontColor;
+	}
+	.webix_hcell.webix_ss_filter_active .webix_excel_filter{
+		color: @linkFontColor;
+
+		&:hover{
+			color: darken(@linkFontColor, 15%);
+		}
+	}
 }
 .webix_ss_sort_asc, .webix_ss_sort_desc {
 	font-size: 14px;
 	font-family: @iconFamily;
-	top:50%;
-	line-height: 1px;
-	bottom: auto;
-	right:3px;
-	float: none;
-	width: 12px;
+}
+.webix_ss_sort_num{
+	color: @fontColor;
 }
 .webix_ss_sort_asc:before{
 	content: '\F004';
@@ -525,7 +532,7 @@
 @listPaddingY:  2px;
 @treeItemHeight: 28px;
 @treeIconSize:	25px;
-
+@listIconVAlign: baseline;
 
 
 .webix_tree_open, .webix_tree_close{
@@ -756,7 +763,7 @@
 
 .webix_multilist{
 	.wxi-checkbox-marked{
-		color: @buttonColor;
+		color: @buttonBorderColor;
 	}
 	.wxi-checkbox-marked, .wxi-checkbox-blank{
 		height:20px;
@@ -930,7 +937,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		padding-top: 2px;
 		padding-bottom: 2px;
 	}
-	.webix_img_btn_top .webix_icon{
+	.webix_img_btn_top .webix_icon, .webix_img_btn_top .webix_image{
 		margin-top: 2px;
 	}
 	.webix_img_btn_text{

@@ -1,4 +1,4 @@
-import {errorMessage, getExportScheme, getExportData} from "./common";
+import {errorMessage, getExportScheme, getExportData, getStyles} from "./common";
 
 import promise from "../../thirdparty/promiz";
 import require from "../../load/require";
@@ -76,32 +76,45 @@ function str2array(s) {
 	return buf;
 }
 
-var types = { number:"n", date:"n", string:"s", boolean:"b"};
-var table = "_table";
+const types = { number:"n", date:"n", string:"s", boolean:"b"};
+const table = "_table";
 function getExcelData(data, scheme, spans, styles, options) {
-	var ws = {};
-	var range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
-	for(var R = 0; R != data.length; ++R) {
-		for(var C = 0; C != data[R].length; ++C) {
+	const ws = {};
+	const range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
+	for(let R = 0; R != data.length; ++R) {
+		for(let C = 0; C != data[R].length; ++C) {
 			if(range.s.r > R) range.s.r = R;
 			if(range.s.c > C) range.s.c = C;
 			if(range.e.r < R) range.e.r = R;
 			if(range.e.c < C) range.e.c = C;
 
-			var cell = {v: data[R][C] };
+			const cell = {v: data[R][C]};
 			if(cell.v === null) continue;
-			var cell_ref = XLSX.utils.encode_cell({c:C,r:R});
+			const cell_ref = XLSX.utils.encode_cell({c:C,r:R});
 
-			let stringValue = cell.v.toString();
-			let isFormula = (stringValue.charAt(0) === "=");
+			const stringValue = cell.v.toString();
+			const isFormula = (stringValue.charAt(0) === "=");
+
+			if(styles){
+				const cellStyle = getStyles(R, C, styles);
+				if(cellStyle.format){
+					cell.z = cellStyle.format;
+					delete cellStyle.format;
+				}
+				if(cellStyle.type){
+					cell.t = types[cellStyle.type];
+					delete cellStyle.type;
+				}
+				cell.s = cellStyle;
+			}
 
 			// set type based on column's config
 			// skip headers and formula based cells
-			var header = (options.docHeader?2:0)+scheme[0].header.length;
+			const header = (options.docHeader?2:0)+scheme[0].header.length;
 			if(R>=header && !isFormula){
-				var column = scheme[C];
-				if(column.type) cell.t = (types[column.type] || "");
-				if(column.format) cell.z = column.format;
+				const column = scheme[C];
+				if(column.type && !cell.t) cell.t = (types[column.type] || "");
+				if(column.format && !cell.z) cell.z = column.format;
 			}
 
 			// set type based on cell's value
@@ -109,6 +122,11 @@ function getExcelData(data, scheme, spans, styles, options) {
 				cell.t = cell.t || "n";
 				cell.z = cell.z || XLSX.SSF[table][14];
 				cell.v = excelDate(cell.v);
+			}
+			else if(isFormula){
+				cell.t = cell.t || "n";
+				cell.f = cell.v;
+				delete cell.v;
 			}
 			else if(!cell.t){
 				if(typeof cell.v === "boolean")
@@ -120,22 +138,8 @@ function getExcelData(data, scheme, spans, styles, options) {
 				else {
 					// convert any other object to a string
 					cell.v = stringValue;
-					if(isFormula){
-						cell.t = "n";
-						cell.f = cell.v;
-						delete cell.v;
-					}
-					else cell.t = "s";
+					cell.t = "s";
 				}
-			}
-
-			if(styles){
-				var cellStyle = getStyles(R, C, styles);
-				if(cellStyle.format){
-					cell.z = cellStyle.format;
-					delete cellStyle.format;
-				}
-				cell.s = cellStyle;
 			}
 
 			ws[cell_ref] = cell;
@@ -155,13 +159,6 @@ function getRowHeights(heights){
 	for(var i in heights)
 		heights[i] = {hpx:heights[i], hpt:heights[i]*0.75};
 	return heights;
-}
-
-function getStyles(r, c, styles){
-	//row index, column index, styles array
-	if(styles[r] && styles[r][c])
-		return styles[r][c];
-	return "";
 }
 
 function getSpans(view, options){
@@ -211,13 +208,14 @@ function getHeaderSpans(view, options, group, spans){
 					e:{ c:i+(header[h].colspan||1)-1, r:h+(header[h].rowspan ||1)-1+delta }
 				});
 			}
-		}  
+		}
 	}
 	return spans;
 }
 
 function excelDate(date) {
-	return Math.round(25569 + date / (24 * 60 * 60 * 1000));
+	const returnDateTime = 25569 + ((date.getTime() - (date.getTimezoneOffset() * 60 * 1000)) / (1000 * 60 * 60 * 24));
+	return returnDateTime.toString().substr(0,20);
 }
 
 function getColumnsWidths(scheme){

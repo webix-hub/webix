@@ -1,5 +1,5 @@
 import color from "../../webix/color";
-import {toExcel} from "../../webix/export";
+import {toExcel, toPDF} from "../../webix/export";
 import {create, remove} from "../../webix/html";
 import {extend, isUndefined} from "../../webix/helpers";
 
@@ -9,13 +9,15 @@ const Mixin = {
 		if(this.isBranchOpen) //treetable
 			extend(options, { filterHTML: true });
 
-		if(options.export_mode !=="excel" || options.dataOnly || !options.styles)
+		const mode = options.export_mode;
+
+		if((mode != "pdf" && mode != "excel") || options.dataOnly || !options.styles)
 			return this;
 		else{ //excel export with styles
 			options.dataOnly = true;
 			options.heights = isUndefined(options.heights)?"all":options.heights;
 
-			var data = toExcel(this, options);
+			const data = mode == "pdf" ? toPDF(this, options) : toExcel(this, options);
 			data[0].styles = this._getExportStyles(options);
 
 			delete options.dataOnly;
@@ -23,21 +25,22 @@ const Mixin = {
 		}
 	},
 	_getExportStyles:function(options){
+		const type = options.export_mode;
+
 		var columns = this.config.columns, styles = [];
 		this._style_hash = this._style_hash || {};
-		
+
 		if(options.docHeader)
 			styles = [{ 0:this._getExportDocStyle(options.docHeader.css)},{ 0:{}}];
 		if(options.header!==false)
-			styles = this._getExportHStyles(options, "header", styles);
-		
+			styles = this._getExportHStyles(options, "header", styles, type);
+
 		this.data.each(function(obj){
 			var row = {};
 			for(var i = 0; i<columns.length; i++){
 				var cellCss = this.getCss(obj.id, columns[i].id);
 				var columnCss = columns[i].node.className;
 				var spanCss = "";
-				var evenCss = this.getIndexById(obj.id)%2?"even":"odd";//for skins like metro, web, air
 				var span = null;
 				var node = null;
 
@@ -61,19 +64,19 @@ const Mixin = {
 					}
 					cnode.appendChild(node);
 				}
-				row[i] = this._getExportCellStyle(node, [cellCss, columnCss, spanCss, evenCss].join(":"));
+				row[i] = this._getExportCellStyle(node, [cellCss, columnCss, spanCss].join(":"), type);
 			}
 			styles[styles.length] = row;
 		}, this);
 
 		if(options.footer!==false && this.config.footer)
-			styles = this._getExportHStyles(options, "footer", styles);
+			styles = this._getExportHStyles(options, "footer", styles, type);
 		if(options.docFooter)
 			styles = styles.concat([{ 0:{}},{ 0:this._getExportDocStyle(options.docFooter.css)}]);
-		
+
 		return styles;
 	},
-	_getExportHStyles:function(options, group, styles){
+	_getExportHStyles:function(options, group, styles, type){
 		var columns = this.config.columns, hs = [];//spans
 
 		for(var h = 0; h<columns[0][group].length; h++){
@@ -86,7 +89,7 @@ const Mixin = {
 					var node = (group == "header"?this.getHeaderNode(cid, h):this.getFooterNode(cid, h));
 					if(node){
 						var name = [node.parentNode.className, (header.css||""), "webix_hcell", group];
-						hrow[i] = this._getExportCellStyle(node, name.join(":"));
+						hrow[i] = this._getExportCellStyle(node, name.join(":"), type);
 
 						if(header.colspan || header.rowspan)
 							hs.push([h, i, {colspan:header.colspan-1 || 0, rowspan:header.rowspan-1||0}, hrow[i]]);
@@ -101,52 +104,36 @@ const Mixin = {
 				}
 			}
 			styles[styles.length] = hrow;
-		} 
+		}
 		return styles;
 	},
-	_getExportCellStyle:function(node, name){
+	_getBorderColor(styles, defaultColor, type){
+		return styles[`border-${type}-width`] == "0px" ? null : color.rgbToHex(styles[`border-${type}-color`]) || defaultColor;
+	},
+	_getExportCellStyle:function(node, name, type){
 		if(this._style_hash[name]) 
 			return  this._style_hash[name];
 		else{
-			var base = this._getRules(node);
-			var rules = { font:{},alignment:{},border:{}};
+			let parentStyle;
+			if(node.parentNode && node.parentNode.nodeName =="TD") //borders for header are set for parent td
+				parentStyle = this._getRules(node.parentNode);
 
-			//font
-			rules.font.name = base["font-family"].replace(/,.*$/, ""); // cut off fallback font;
-			rules.font.sz = base["font-size"].replace("px", "")*0.75; //px to pt conversion
-			rules.font.color = {rgb:color.rgbToHex(base["color"])};
+			const cellStyle = this._getRules(node);
 
-			if(base["font-weight"] !== "normal" && base["font-weight"] != 400) rules.font.bold = true;
-			if(base["text-decoration-line"] === "underline") rules.font.underline = true;
-			if(base["font-style"] === "italic") rules.font.italic = true;
-			if(base["text-decoration-line"] === "line-through") rules.font.strike = true;
-			
-			//alignment
-			rules.alignment.horizontal = base["text-align"];
-			rules.alignment.vertical = base["height"] == base["line-height"]?"center":"top";
-			if(base["white-space"] == "normal") rules.alignment.wrapText = true;
-			//rotated header
-			if(node.firstChild && node.firstChild.className && node.firstChild.className.indexOf("webix_rotate")!==-1)
-				rules.alignment.textRotation = 90;
+			const bg = color.rgbToHex(cellStyle["background-color"])||"FFFFFF";
+			const common = {
+				backgroundColor: bg,
+				fontSize: cellStyle["font-size"].replace("px", "")*0.75, //px to pt conversion
+				color: color.rgbToHex(cellStyle["color"]),
+				textAlign: cellStyle["text-align"],
+				borderRightColor: this._getBorderColor(parentStyle||cellStyle, bg, "right"),
+				borderLeftColor: this._getBorderColor(parentStyle||cellStyle, bg, "left"),
+				borderBottomColor: this._getBorderColor(parentStyle||cellStyle, bg, "bottom"),
+				borderTopColor: this._getBorderColor(parentStyle||cellStyle, bg, "top")
+			};
 
-			//background
-			var bg = color.rgbToHex(base["background-color"])||"FFFFFF";
-			rules.fill = {fgColor:{rgb:bg}};
-			if(base["background-image"].indexOf("gradient")!==-1) //air skins use gradient for header
-				rules.fill = {fgColor: {rgb:color.rgbToHex(base["background-image"].substring(base["background-image"].lastIndexOf("(")))}};
-			
-			//borders
-			if(node.parentNode && node.parentNode.nodeName =="TD") //borders for header are set for parent td, so we change base rules here
-				base = this._getRules(node.parentNode);
-			if(base["border-right-width"]!=="0px")
-				rules.border.right = { style:"thin", color:{rgb:color.rgbToHex(base["border-right-color"])||bg}};
-			if(base["border-bottom-width"]!=="0px")
-				rules.border.bottom = { style:"thin", color:{rgb:color.rgbToHex(base["border-bottom-color"])||bg}};
-			if(base["border-left-width"]!=="0px")
-				rules.border.left = { style:"thin", color:{rgb:color.rgbToHex(base["border-left-color"])||bg}};
-			if(base["border-top-width"]!=="0px")
-				rules.border.top = { style:"thin", color:{rgb:color.rgbToHex(base["border-top-color"])||bg}};
-			
+			const rules = type == "pdf" ? common : this._getExcelCellRules(cellStyle, node, common);
+
 			this._style_hash[name] = rules;
 			return rules;
 		}
@@ -155,13 +142,49 @@ const Mixin = {
 		css = extend(css||{}, {visibility:"hidden", "white-space":"nowrap", "text-align":"left"});
 		var cssStr = "";
 		for(var i in css) cssStr += (i+":"+css[i]+";");
-		
+
 		var node = create("div", {style:cssStr});
 		this._body.appendChild(node);
 		var style = this._getExportCellStyle(node, cssStr);
 		remove(node);
 
 		return style;
+	},
+	_getExcelCellRules(cellStyle, node, common){
+		const rules = { font:{},alignment:{},border:{}};
+
+		//font
+		rules.font.name = cellStyle["font-family"].replace(/,.*$/, ""); // cut off fallback font;
+		rules.font.sz = common.fontSize;
+		rules.font.color = {rgb: common.color};
+
+		if(cellStyle["font-weight"] !== "normal" && cellStyle["font-weight"] != 400) rules.font.bold = true;
+		if(cellStyle["text-decoration-line"] === "underline") rules.font.underline = true;
+		if(cellStyle["font-style"] === "italic") rules.font.italic = true;
+		if(cellStyle["text-decoration-line"] === "line-through") rules.font.strike = true;
+
+		//alignment
+		rules.alignment.horizontal = common.textAlign;
+		rules.alignment.vertical = cellStyle["height"] == cellStyle["line-height"]?"center":"top";
+		if(cellStyle["white-space"] == "normal") rules.alignment.wrapText = true;
+		//rotated header
+		if(node.firstChild && node.firstChild.className && node.firstChild.className.indexOf("webix_rotate")!==-1)
+			rules.alignment.textRotation = 90;
+
+		//background
+		rules.fill = {fgColor:{rgb:common.backgroundColor}};
+
+		//borders
+		if(common.borderRightColor)
+			rules.border.right = { style:"thin", color:{rgb:common.borderRightColor}};
+		if(common.borderBottomColor)
+			rules.border.bottom = { style:"thin", color:{rgb:common.borderBottomColor}};
+		if(common.borderLeftColor)
+			rules.border.left = { style:"thin", color:{rgb:common.borderLeftColor}};
+		if(common.borderTopColor)
+			rules.border.top = { style:"thin", color:{rgb:common.borderTopColor}};
+
+		return rules;
 	},
 	_getRules:function(node){
 		var style = {};

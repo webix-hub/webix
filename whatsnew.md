@@ -1,57 +1,13 @@
-Version 7.1.4 (January 2020)
+Version 7.2 (February 2020)
 ==============================
 
-### Fixes
+### Major features
 
-- print margin cannot be reset once applied
-- datatable: column dnd fails in FireFox with zoom less than 100
-- comment widget does not render async users
-
-Version 7.1.3 (January 2020)
-==============================
-
-### Fixes
-
-- setting value into a not yet rendered Richselect control
-- number formatting regression in Text input
-- checkboxes in Filter view
-- replacing Scrollview dynamically
-- regression with item indices in Datatable with frozen rows
-- Multicombo placeholder disappears when deleting values
-- Datepicker blur regression in IE11
-- DragControl ES6 regression
-
-Version 7.1.2 (January 2020)
-==============================
-
-### Fixes
-
-- exit fullscreen mode on Esc key
-- gage with enabled smoothFlow in MultiView
-- tab/arrow navigation with Korean keyboard
-- drag-n-drop of Submenu items
-- print Datatable columns with zero values
-- tab navigation blocks editing in Spreadsheet
-- processing browser autofill actions with UIManager
-- Chart legend positioning in fullscreen mode
-- Popup closes on drag actions of the inside widgets
-
-
-Version 7.1.1 (December 2019)
-==============================
-
-### Fixes
-
-- wrong block-select when frozen rows are used
-- incorrect selection/editing when frozen rows are used
-- minColumnWidth doesn't used during datatable init
-- panels added by drag-n-drop can be initialized incorrectly
-- destroying views while drag active can cause errors
-- behavior of hightlight view when custom line-height used for text
-- regression in areaselection behaviors after Webix 7.0
-- regression in drag-n-drop in submenus after Webix 7.1
-- regression in template auto-height after Webix 7.1
-
+- New File Manager widget
+- Multi-column sorting for Datatable
+- ExcelFilter for Datatable
+- Customization API for Filter widget
+- Export to PDF with styles
 
 Version 7.1.0 (December 2019)
 ==============================

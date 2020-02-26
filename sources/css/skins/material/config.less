@@ -698,6 +698,10 @@
 	.webix_column >  .webix_drag_over.webix_cell{
 		background-color: @accentBg;
 	}
+
+	.webix_excel_filter{
+		font-size:20px;
+	}
 }
 .webix_block_selection{
 	border: none;
@@ -713,14 +717,9 @@
 	}
 }
 .webix_ss_sort_asc, .webix_ss_sort_desc {
+	width: 24px;
 	font-size: 20px;
 	font-family: @iconFamily;
-	top:50%;
-	line-height: 1px;
-	bottom: auto;
-	right: 2px;
-	float: none;
-	width: 20px;
 }
 .webix_ss_sort_asc:before{
 	content: '\F004';
@@ -821,6 +820,7 @@
 @listPaddingY:  2px;
 @treeItemHeight: 24px;
 @treeIconSize:	25px;
+@listIconVAlign: middle;
 
 // datatree
 .webix_tree{
@@ -1282,7 +1282,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		padding-top: 2px;
 		padding-bottom: 2px;
 	}
-	.webix_img_btn_top .webix_icon{
+	.webix_img_btn_top .webix_icon, .webix_img_btn_top .webix_image{
 		top:0;
 	}
 	.webix_img_btn_text{
@@ -2040,9 +2040,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	}
 }
 
-.webix_icon{
-	text-align: center;
-}
 .webix_icon_btn, .webix_input_icon{
 	font-size: 20px;
 	width: 20px;
