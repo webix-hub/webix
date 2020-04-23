@@ -44,5 +44,6 @@ export {default as editors} from "./editors";
 export {default as animate} from "./animate";
 export {default as print} from "./print";
 export {default as rules} from "./rules";
+export {default as filters} from "./filters";
 export {default as patterns} from "./patterns";
 export {default as fullscreen} from "./fullscreen";

@@ -116,9 +116,9 @@ const api = {
 
 		for (let i=0; i < collection.length; i++)
 			collection[i]._inner = this._settings.borderless?{top:1, left:1, right:1, bottom:1}:(this._settings._inner||{});
-			
+
 		baselayout.api._parse_cells.call(this, collection);
-		
+
 		for (let i=1; i < this._cells.length; i++){
 			if(this._settings.keepViews)
 				this._cells[i]._viewobj.style.display = "none";
@@ -126,7 +126,6 @@ const api = {
 				remove(this._cells[i]._viewobj);
 		}
 
-			
 		for (let i=0; i<collection.length; i++){
 			var cell = this._cells[i];
 			if (cell._cells && !cell._render_borders) continue;
@@ -147,10 +146,13 @@ const api = {
 		return 	 next < active ? (vx?"bottom":"right"):(vx?"top":"left");
 	},
 	_show:function(obj, animation_options){
-
-		var parent = this.getParentView();
-		if (parent && parent.getTabbar)
-			parent.getTabbar().setValue(obj._settings.$id || obj._settings.id);
+		const parent = this.getParentView();
+		if (parent && parent.getTabbar){
+			const tabBar = parent.getTabbar();
+			tabBar.blockEvent();
+			tabBar.setValue(obj._settings.$id || obj._settings.id);
+			tabBar.unblockEvent();
+		}
 
 		if (this._animation_promise)
 			return this._animation_promise.then(() => this._show.apply(this, arguments));

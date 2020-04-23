@@ -21,7 +21,7 @@ const api = {
 		const isPressed = (value && value != "0");
 		const text = (isPressed ? obj.onLabel : obj.offLabel) || obj.label;
 
-		const children = [...input.children];
+		const children = input.children;
 
 		//icon or image button
 		if(this._types[obj.type]){

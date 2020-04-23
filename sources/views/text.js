@@ -48,9 +48,6 @@ const api = {
 			if (isUndefined(config.height) && this.defaults.height)  // textarea
 				config.height = this.defaults.height + (config.label?this._labelTopHeight:0);
 
-		//suggest reference for destructor
-		this._destroy_with_me = [];
-
 		if (this._onBlur)
 			this.attachEvent("onBlur", function(){
 				if (this._rendered_input) this._onBlur();

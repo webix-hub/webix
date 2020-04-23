@@ -357,12 +357,12 @@ attachEvent("onClick", function(e){
 			if (code && code.call) code.call(element, element._settings.id, e);
 		}
 
-
-
-		var popup = element._settings.popup;
-		if (element._settings.popup && !element._settings.readonly){
-			if (typeof popup == "object" && !popup.name)
+		let popup = element._settings.popup;
+		if (popup && !element._settings.readonly){
+			if (typeof popup == "object" && !popup.name){
 				popup = element._settings.popup = ui(popup)._settings.id;
+				element._destroy_with_me.push($$(popup));
+			}
 
 			popup = $$(popup);
 			assert(popup, "Unknown popup");

@@ -56,7 +56,7 @@ export const toPDF = function(id, options){
 				}
 				if(display == "image" || display == "all"){
 					views.push({
-						node: view.$view,
+						node: view.$view.cloneNode(true), //use cloneNode for views like excelViewer
 						viewOptions: viewOptions
 					});
 					if(options.autowidth)
@@ -150,18 +150,33 @@ function addText(doc, type, text){
 }
 
 function getPDFImage(node){
-	return window.html2canvas(node, {background:"#fff", logging:false, useCORS:true}).then(function(canvas){
-		const image = canvas.toDataURL("image/jpeg");
-		const binary_string =  window.atob(image.split("base64,")[1]);
-		const length = binary_string.length;
-		const bytes = new Uint8Array(length);
-		for (let i = 0; i < length; i++)
-			bytes[i] = binary_string.charCodeAt(i);
-		return new pdfjs.Image(bytes.buffer);
-	});
+	//node is a cloneNode of the real view, so it shouldn't be visible
+	document.body.appendChild(node);
+	node.style.position = "absolute";
+	node.style.left = "-9999px";
+
+	return window.html2canvas(
+		node,
+		{
+			background:"#fff",
+			logging:false,
+			useCORS:true
+		})
+		.then(function(canvas){
+			const image = canvas.toDataURL("image/jpeg");
+			const binary_string =  window.atob(image.split("base64,")[1]);
+			const length = binary_string.length;
+			const bytes = new Uint8Array(length);
+			for (let i = 0; i < length; i++)
+				bytes[i] = binary_string.charCodeAt(i);
+			return new pdfjs.Image(bytes.buffer);
+		})
+		.finally(function(){
+			document.body.removeChild(node);
+		});
 }
 
-function getAutowidth(view, options, scheme){
+export function getAutowidth(view, options, scheme){
 	const prop = options.orientation && options.orientation == "landscape" ? "height" : "width";
 	let width;
 

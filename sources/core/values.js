@@ -61,11 +61,7 @@ const Values = {
 		this.callEvent("onValues",[]);
 	},
 	isDirty:function(){
-		if (this._is_form_dirty) return true;
-		if (this.getDirtyValues(1) === 1)
-			return true;
-
-		return false;
+		return !!this._is_form_dirty || this.getDirtyValues(true) === true;
 	},
 	setDirty:function(flag){
 		this._is_form_dirty = flag;
@@ -73,15 +69,18 @@ const Values = {
 			this._values = this._inner_getValues();
 	},
 	getDirtyValues:function(){
-		var result = {};
+		const result = {};
 		if (this._values){
-			for (var name in this.elements){
-				var value = this.elements[name].getValue();
-				if (this._values[name] != value){
+			for (let name in this.elements){
+				const view = this.elements[name];
+				const value = view.getValue();
+				const defaultValue = this._values[name];
+
+				const isDirty = view.$compareValue ? !view.$compareValue(defaultValue, value) : defaultValue != value;
+				if (isDirty){
 					result[name] = value;
-					//FIXME - used by isDirty
 					if (arguments[0])
-						return 1;
+						return true;
 				}
 			}
 		}

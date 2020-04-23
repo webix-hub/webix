@@ -31,10 +31,10 @@ const de = {
 
 	dataExport:{
 		page:"Seite",
-		of:"aus"
+		of:"von"
 	},
 	PDFviewer:{
-		of:"aus",
+		of:"von",
 		automaticZoom:"Automatisch Zoom",
 		actualSize:"Aktuelles Ausmaß",
 		pageFit:"Seite Ausmaß",

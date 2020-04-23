@@ -5,7 +5,7 @@ import require from "../../load/require";
 import env from "../../webix/env";
 
 import {download} from "../../webix/html";
-import {isArray} from "../../webix/helpers";
+import {extend, isArray} from "../../webix/helpers";
 import {$$} from "../../ui/core";
 import {assert} from "../../webix/debug";
 
@@ -17,20 +17,26 @@ export const toExcel = function(id, options){
 	var views = [];
 
 	for(var i = 0; i<id.length; i++){
-		var view = $$(id[i]);
+		if(!id[i].id) id[i]  = { id:id[i] }; 
+		var view = $$(id[i].id);
+		const viewOptions = extend(id[i].options || {}, options);
 		if (view && view.$exportView)
-			view = view.$exportView(options);
-		if(view) views = views.concat(view);
+			view = view.$exportView(viewOptions);
+
 		assert(view, errorMessage);
 
-		//spreadsheet and excelviewer require plain data output first
-		if(options.dataOnly){
-			var scheme = getExportScheme(view, options);
-			views[i] = {
+		//$exportView returns array
+		if(isArray(view))
+			views = views.concat(view);
+		else if(view.data && view.data.pull){
+			//spreadsheet and excelviewer require plain data output first
+			var scheme = getExportScheme(view, viewOptions);
+			views.push({
 				scheme : scheme,
-				exportData:getExportData(view, options, scheme),
-				spans:(options.spans ? getSpans(view, options) : [])
-			};
+				exportData:getExportData(view, viewOptions, scheme),
+				spans:(viewOptions.spans ? getSpans(view, viewOptions) : []),
+				viewOptions: viewOptions
+			});
 		}
 	}
 	if(options.dataOnly) return views;
@@ -41,16 +47,21 @@ export const toExcel = function(id, options){
 		if(!views.length) return defer.reject(errorMessage);
 
 		var wb = { SheetNames:[], Sheets:{}, Workbook:{ WBProps :{}, Names:[] }};
-		var name = isArray(options.sheets) ? options.sheets : [options.name || "Data"];
-	
+
 		for(var i = 0; i<views.length; i++){
-			var scheme = views[i].scheme || getExportScheme(views[i], options);
-			var result = views[i].exportData || getExportData(views[i], options, scheme);
-			var spans  = views[i].spans ? views[i].spans: (options.spans ? getSpans(views[i], options) : []);
-			var ranges =  views[i].ranges || [];
-			var styles = views[i].styles || [];
-			var data   = getExcelData(result, scheme, spans, styles, options);
-			var sname  = (name[i] || "Data"+i).replace(/[*?:[\]\\/]/g,"").replace(/&/g, "&amp;").substring(0, 31);
+			const viewOptions = views[i].viewOptions;
+			const scheme = views[i].scheme;
+			const result = views[i].exportData;
+			const spans  = views[i].spans;
+			const ranges =  views[i].ranges || [];
+			const styles = views[i].styles || [];
+			const data   = getExcelData(result, scheme, spans, styles, viewOptions);
+			let sname  = (viewOptions.name || "Data"+(i+1)).replace(/[*?:[\]\\/]/g,"").replace(/&/g, "&amp;").substring(0, 31);
+
+			//avoid name duplication
+			let k = i;
+			while(wb.SheetNames.indexOf(sname) != -1)
+				sname = "Data"+(++k);
 
 			wb.SheetNames.push(sname);
 			wb.Sheets[sname] = data;
@@ -58,10 +69,10 @@ export const toExcel = function(id, options){
 		}
 
 		/* global XLSX */
-		var xls = XLSX.write(wb, {bookType:"xlsx", bookSST:false, type: "binary"});
-		var filename =  (options.filename || name.join(","))+".xlsx";
-	
-		var blob = new Blob([str2array(xls)], { type: "application/xlsx" });
+		const xls = XLSX.write(wb, {bookType:"xlsx", bookSST:false, type: "binary"});
+		const filename =  (options.filename || "Data")+".xlsx";
+
+		const blob = new Blob([str2array(xls)], { type: "application/xlsx" });
 		if(options.download !== false)
 			download(blob, filename);
 		defer.resolve(blob);
@@ -125,7 +136,7 @@ function getExcelData(data, scheme, spans, styles, options) {
 			}
 			else if(isFormula){
 				cell.t = cell.t || "n";
-				cell.f = cell.v;
+				cell.f = cell.v.substring(1);
 				delete cell.v;
 			}
 			else if(!cell.t){

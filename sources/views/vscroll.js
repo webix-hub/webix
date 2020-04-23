@@ -6,6 +6,7 @@ import env from "../webix/env";
 import Touch from "../core/touch";
 import {toNode, isUndefined} from "../webix/helpers";
 import {_event, event} from "../webix/htmlevents";
+import {$active} from "../webix/skin";
 
 
 const api = {
@@ -13,7 +14,6 @@ const api = {
 	$apiOnly:true,
 	defaults:{
 		scroll:"x",
-		scrollStep:40,
 		scrollPos:0,
 		scrollSize:18,
 		scrollVisible:1,
@@ -27,6 +27,9 @@ const api = {
 		_event(node,"scroll", this._onscroll,{bind:this});
 
 		this._last_set_size = 0;
+	},
+	$skin:function(){
+		this.defaults.scrollStep = $active.rowHeight;
 	},
 	reset:function(){
 		this.config.scrollPos = 0;

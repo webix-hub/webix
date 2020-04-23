@@ -37,6 +37,7 @@ const api = {
 	$init:function(config){
 		this._viewobj.className += " webix_control webix_el_"+(this.$cssName||this.name);
 
+		this._destroy_with_me = [];
 		this._set_default_css(config);
 
 		this.data = this._settings;
@@ -155,7 +156,7 @@ const api = {
 		if (this.$compareValue(oldvalue, value)){
 			if (this._rendered_input && value != this.$getValue())
 				this.$setValue(value);
-			return false;
+			return;
 		}
 
 		this._settings.value = value;

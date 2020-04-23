@@ -80,8 +80,10 @@ const Mixin = {
 		return extend(this.data._filterMode, mode, true);
 	},
 	getFilter:function(columnId){
-		var filter = this._filter_elements[columnId];
+		const filter = this._filter_elements[columnId];
 
+		if (filter && filter[2]._get_filter)
+			return filter[2]._get_filter(filter[0]);
 		if (filter && filter[2].getInputNode)
 			return filter[2].getInputNode(filter[0]);
 		return null;

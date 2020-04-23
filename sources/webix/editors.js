@@ -16,6 +16,16 @@ function init_suggest(editor, input){
 		var boxobj = $$(box);
 		if (boxobj && input)
 			boxobj.linkInput(input);
+		return boxobj;
+	}
+}
+
+function attach_editend(suggest){
+	if (suggest && suggest.setMasterValue && !suggest._editor_initialized){
+		suggest._editor_initialized = true;
+		suggest.attachEvent("onValueSuggest", function(){
+			delay(function(){ callEvent("onEditEnd", []); });
+		});
 	}
 }
 
@@ -56,10 +66,11 @@ const editors = {
 			return this.getInputNode(this.node).value;
 		},
 		setValue:function(value){
-			var input = this.getInputNode(this.node);
+			const input = this.getInputNode(this.node);
 			input.value = value;
 
-			init_suggest(this, input);
+			const suggest = init_suggest(this, input);
+			attach_editend(suggest);
 		},
 		getInputNode:function(){
 			return this.node.firstChild;
@@ -199,6 +210,7 @@ const editors = {
 						this.linkInput(document.body);
 					pobj._linked = true;
 				}
+				attach_editend(pobj);
 
 				return pobj;
 			}
@@ -278,17 +290,19 @@ editors.date = extend({
 
 editors.combo = extend({
 	_create_suggest:function(config){
+		let suggest, id;
 		if (this.config.popup){
-			return this.config.popup.config.id;
+			suggest = this.config.popup;
+			id = suggest.config.id;
 		}
 		else if (config){
-			var suggest = create_suggest(config);
-			$$(suggest).attachEvent("onValueSuggest", function(){
-				delay(function(){ callEvent("onEditEnd", []); });
-			});
-			return suggest;
+			id = create_suggest(config);
+			suggest = $$(id);
 		} else
-			return this._shared_suggest(config);
+			id = this._shared_suggest(config);
+
+		attach_editend(suggest);
+		return id;
 	},
 	_shared_suggest:function(){
 		var e = editors.combo;
@@ -380,9 +394,7 @@ editors.richselect = extend({
 		popup._show_selection = function(){};
 		popup.linkInput(document.body);
 
-		popup.attachEvent("onValueSuggest", function(){
-			delay(function(){ callEvent("onEditEnd", []); });
-		});
+		attach_editend(popup);
 	},
 	popupType:"richselect"
 }, editors.popup);

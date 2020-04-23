@@ -29,13 +29,12 @@ const AtomRender={
 	sync:function(source){
 		this._backbone_sync = false;
 		if (source.name != "DataStore"){
-			if (source.data && source.name == "DataStore"){
+			if (source.data && source.data.name == "DataStore"){
 				source = source.data;
 			} else {
 				this._backbone_sync = true;
 			}
 		}
-			
 
 		if (this._backbone_sync)
 			source.bind("change", bind(function(data){

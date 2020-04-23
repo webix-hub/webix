@@ -142,7 +142,8 @@ const TextPattern = {
 		}
 		else{
 			chr = String.fromCharCode(code);
-			if(!e.shiftKey) chr = chr.toLowerCase();
+			const isCapsLock = e.getModifierState("CapsLock");
+			if (!e.shiftKey && !isCapsLock || e.shiftKey && isCapsLock) chr = chr.toLowerCase();
 		}
 
 		value = value.substr(0, pos.start) + chr +value.substr(pos.end);

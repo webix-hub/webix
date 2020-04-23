@@ -10,6 +10,16 @@ function getDataHelper(key, column, raw){
 	return function(obj){ return obj[key]; };
 }
 
+function getHeaderText(view, header){
+	let text = header.text;
+	if (header.contentId){
+		const content = view.getHeaderContent(header.contentId);
+		if (content && !content.type.$icon)
+			text = content.getValue(true);
+	}
+	return (text||"").toString().replace( /<[^>]*>/gi, "");
+}
+
 export function getStyles(r, c, styles){
 	//row index, column index, styles array
 	if(styles[r] && styles[r][c])
@@ -118,26 +128,19 @@ export function getExportScheme(view, options){
 		if(typeof record.header === "string") record.header = [{text:record.header}];
 		else record.header = [].concat(record.header);
 
-		for(let i = 0; i<record.header.length; i++){
-			const hcell = record.header[i] || {};
-			const text =  hcell.contentId ?
-				view.getHeaderContent(hcell.contentId).getValue(true) :
-				hcell.text;
-
-			record.header[i] = (text||"").toString().replace( /<[^>]*>/gi, "");
-		}
+		for(let i = 0; i<record.header.length; i++)
+			record.header[i] = record.header[i] ? getHeaderText(view, record.header[i]) : "";
 
 		h_count = Math.max(h_count, record.header.length);
 
-		if(view._settings.footer){
+		if(view.config.footer){
 			let footer = column.footer || "";
 			if(typeof footer == "string") footer = [{text:footer}];
 			else footer = [].concat(footer);
 
-			for(let i = 0; i<footer.length; i++){
-				if(footer[i]) footer[i] = footer[i].contentId?view.getHeaderContent(footer[i].contentId).getValue():footer[i].text;
-				else footer[i] = "";
-			}
+			for(let i = 0; i<footer.length; i++)
+				footer[i] = footer[i] ? getHeaderText(view, footer[i]) : "";
+
 			record.footer = footer;
 			f_count = Math.max(f_count, record.footer.length);
 		}
@@ -154,7 +157,7 @@ export function getExportScheme(view, options){
 		for(let d=0; d<diff; d++)
 			scheme[i].header.push("");
 
-		if(view._settings.footer){
+		if(view.config.footer){
 			diff = f_count-scheme[i].footer.length;
 			for(let d=0; d<diff; d++)
 				scheme[i].footer.push("");
@@ -213,7 +216,7 @@ export function getExportData(view, options, scheme){
 			for (let i = 0; i < scheme.length; i++){
 				let column = scheme[i], cell = null;
 				//spreadsheet can output math
-				if(options.math && item["$"+column.id] && item["$"+column.id].charAt(0) =="=" && !item["$"+column.id].match(/^=(image|link|sparkline)\(/i))
+				if(options.math && item["$"+column.id] && item["$"+column.id].charAt(0) =="=" && !item["$"+column.id].match(/^=(image|sparkline)\(/i))
 					cell = item["$"+column.id];
 				if(this._spans_pull){
 					let span = this.getSpan(item.id, column.id);

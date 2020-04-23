@@ -309,6 +309,7 @@ const api = {
 	},
 	//xml has different configuration structure, fixing
 	_config_table_from_file:function(config){
+		this._create_scheme_init();
 		if (config.columns && this._dtable_fully_ready)
 			this.refreshColumns(null, true);
 	},
@@ -649,7 +650,7 @@ const api = {
 	},
 	showItemByIndex:function(row_ind, column_ind){
 		var pager = this._settings.pager;
-		if (pager){
+		if (pager && row_ind >= this._settings.topSplit){
 			var target = Math.floor(row_ind/pager.size);
 			if (target != pager.page)
 				$$(pager.id).select(target);
@@ -1994,8 +1995,12 @@ const api = {
 							//click event occurs on column holder, we can't detect cell
 							if (trg.getAttribute(/*@attr*/"column")) return;
 							index = getIndex(trg);
-							if (index >= this._settings.topSplit && !this._settings.prerender && !this._settings.autoheight)
-								index += this._columns[column]._yr0 - this._settings.topSplit;
+
+							if (index >= this._settings.topSplit){
+								const pager = this._settings.pager;
+								if (pager || (!this._settings.prerender && !this._settings.autoheight))
+									index += this._columns[column]._yr0 - this._settings.topSplit;
+							}
 						}
 
 						this._item_clicked = id = { row:this.data.order[index], column:this._columns[column].id};

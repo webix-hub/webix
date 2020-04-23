@@ -267,7 +267,7 @@ const Touch = {
 		Touch._init_scroll_node(Touch._scroll_node);
 		window.setTimeout(function(){
 			Touch._set_scroll_pos();
-			if (!Touch._scroll_stat.hidden){
+			if (Touch._scroll_stat && !Touch._scroll_stat.hidden){
 				if (Touch._scroll[0]) Touch._scroll[0].style.visibility = "visible";
 				if (Touch._scroll[1]) Touch._scroll[1].style.visibility = "visible";
 			}

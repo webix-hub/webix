@@ -1,3 +1,14 @@
+Version 7.3 (April 2020)
+==============================
+
+- New Document Manager widget
+- New Query widget
+- Ability to embed Charts in Spreadsheet
+- global filtering rules
+- ability to cancel hide-on-escape behaviour for windows
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_7_3.html)
+
 Version 7.2 (February 2020)
 ==============================
 
@@ -8,6 +19,8 @@ Version 7.2 (February 2020)
 - ExcelFilter for Datatable
 - Customization API for Filter widget
 - Export to PDF with styles
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_7_2.html)
 
 Version 7.1.0 (December 2019)
 ==============================

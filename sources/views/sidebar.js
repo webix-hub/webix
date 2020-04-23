@@ -1,7 +1,7 @@
 import {addCss, removeCss} from "../webix/html";
 import {protoUI, ui, $$} from "../ui/core";
 import {$active} from "../webix/skin";
-import {copy, extend} from "../webix/helpers";
+import {copy, extend, isArray} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 
 import type from "../webix/type";
@@ -26,7 +26,7 @@ const api = {
 	$skin: function(){
 		this.defaults.titleHeight = $active.sidebarTitleHeight;
 	},
-	$init: function(){
+	$init: function(config){
 		this.$view.className += " webix_sidebar";
 		this.$ready.push(this._initSidebar);
 		this.$ready.push(this._initContextMenu);
@@ -37,6 +37,7 @@ const api = {
 			else if (obj.item) //xml child records, can be {} or []
 				obj.menu = copy(obj.item.length?obj.item:[obj.item]);
 		};
+		config.multiselect = false;
 	},
 	on_context:{},
 	on_mouse_move:{},
@@ -297,6 +298,14 @@ const api = {
 		}
 		return value;
 	},
+	select:function(id){
+		//ignore multiple selection
+		if(id){
+			if (isArray(id)) id = id.pop();
+			tree.api.select.call(this, id);
+		}
+	},
+	selectAll:function(){},
 	collapse: function(){
 		this.define("collapsed", true);
 	},

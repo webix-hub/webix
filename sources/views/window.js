@@ -273,7 +273,7 @@ const api = {
 	}, 
 	_hide:function(e){
 		//do not hide modal windows
-		if (this._settings.hidden || this._settings.modal || this._hide_timer) return;
+		if (this._settings.hidden || this._settings.modal || !this._settings.escHide || this._hide_timer) return;
 		//do not hide submenu when clicking on menu folder
 		if (e && e.showpopup && (e.showpopup == this._settings.id || (this.getTopMenu && this.getTopMenu()._settings.id == e.showpopup))) return;
 		//do not hide popup, when starting dnd with a long touch
@@ -547,7 +547,8 @@ const api = {
 		hidden: true,
 		autofocus:true,
 		minWidth:300,
-		minHeight:200
+		minHeight:200,
+		escHide:true
 	}
 };
 

@@ -25,6 +25,10 @@ const PagingAbility = {
 		}
 
 		function check_pager_sizes(repeat){
+			// reset topSplit - since now the pager is responsible for rendering
+			if (this.config.topSplit)
+				this.config.topSplit = 0;
+
 			if (pager.config.autosize && this.getVisibleCount){
 				var count = this.getVisibleCount();
 				if (isNaN(count)){

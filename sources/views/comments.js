@@ -95,14 +95,20 @@ const api = {
 		}
 	},
 	$onLoad: function(data, driver){
-		this._fillList(data, driver);
+		return this._fillList(data, driver);
 	},
 	_fillList: function(data, driver){
 		var list = this._list || this.queryView({view:"list"});
 		list.data.driver = driver;
 
-		var more = data.more;
-		data = driver.getRecords(data);
+		var more = false;
+		//check if datastore
+		if (typeof data.serialize == "function")
+			data = data.serialize();
+		else {
+			more = data.more;
+			data = driver.getRecords(data);
+		}
 
 		//parse more comments
 		if(this._moreCall){
@@ -149,6 +155,7 @@ const api = {
 				list.waitData.then(() => list.showItem(list.getLastId()));
 			}
 		}
+		return true;
 	},
 	$skin:function(){
 		layout.api.$skin.call(this);

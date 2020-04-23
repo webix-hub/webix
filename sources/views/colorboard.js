@@ -24,12 +24,15 @@ const api = {
 	},
 	$init:function(){
 		_event(this._viewobj, "click", bind(function(e){
-			var value = locate(e, /*@attr*/"webix_val");
+			let value = locate(e, /*@attr*/"webix_val");
 			// locate can return null in case of drag
-			if(value){
-				this.setValue(value);
-				this.callEvent("onItemClick", [this._settings.value, e]);
-				this.callEvent("onSelect", [this._settings.value]);
+			if (value){
+				const oldvalue = this._settings.value;
+				value = this.setValue(value);
+
+				this.callEvent("onItemClick", [value, e]);
+				if (value != oldvalue)
+					this.callEvent("onSelect", [value]);
 			}
 		}, this));
 
@@ -123,6 +126,7 @@ const api = {
 			}
 
 			div = this._getSelectBox();
+			div.setAttribute("webix_val", value);
 			style =  [
 				"left:" + left + "px",
 				"top:" + top+"px",

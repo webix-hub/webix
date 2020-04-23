@@ -28,12 +28,6 @@ const api = {
 		else
 			this.$setValue(value);
 	},
-	$compareValue:function(value){
-		var result = richselect.api.$compareValue.apply(this, arguments);
-		if (result && this._rendered_input && value != this.getText())
-			this._revertValue();
-		return result;
-	},
 	defaults:{
 		template:function(config, common){
 			return common.$renderInput(config).replace(/(<input)\s*(?=\w)/, "$1"+" role='combobox'");

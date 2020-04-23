@@ -2,6 +2,7 @@ import {addCss, removeCss} from "../webix/html";
 import {protoUI, $$} from "../ui/core";
 import {once, uid} from "../webix/helpers";
 import template from "../webix/template";
+import {$name} from "../webix/skin";
 
 import HTMLOptions from "../core/htmloptions";
 
@@ -41,7 +42,9 @@ const api = {
 
 			const options = common._filterOptions(obj.options);
 			const width = common._get_input_width(obj);
-			const optionWidth = obj.optionWidth || Math.floor(width/options.length);
+			const borders = $name == "contrast" ? 0 : options.length - 1;
+			const optionWidth = obj.optionWidth || Math.floor((width-borders)/options.length);
+			
 			let html = "<div style='width:"+width+"px' class='webix_all_segments' role='tablist' aria-label='"+template.escape(obj.label)+"'>";
 			let tooltip, isDisabled;
 
