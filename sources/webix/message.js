@@ -1,18 +1,37 @@
 import state from "../core/state";
 import i18n from "../webix/i18n";
 import rules from "../webix/rules";
+import template from "../webix/template";
 
 import {toNode, isUndefined} from "../webix/helpers";
 import { event } from "../webix/htmlevents";
 import {define} from "../services";
 import Promise from "../thirdparty/promiz";
 import {_uid} from "../ui/helpers";
-import {create} from "../webix/html";
+import {create, addCss, removeCss, preventEvent} from "../webix/html";
 
 function callback(config, result){
+	// prompt
+	if (config.type.indexOf("prompt") != -1){
+		if (result === false){
+			config._promise.reject();
+		} else {
+			const inputBox = config._box.querySelector(".webix_popup_input");
+			const input = inputBox.querySelector("input");
+			if (config.input.required && !input.value){
+				config.input.invalid = true;
+				addCss(inputBox, "webix_popup_invalid");
+				return;
+			} else {
+				result = input.value || "";
+				config._promise.resolve(result);
+			}
+		}	
+	}
+
 	(config.type.indexOf("confirm") != -1 && result === false) ? config._promise.reject() : config._promise.resolve(result);
 
-	var usercall = config.callback;
+	const usercall = config.callback;
 	if (usercall)
 		usercall(result, config.details);
 
@@ -22,16 +41,17 @@ function modal_key(e){
 	var count = modalbox.order.length;
 	if (count > 0 && message.keyboard){
 		e = e||window.event;
-		var code = e.which||e.keyCode;
-		var lastModalbox = modalbox.pull[modalbox.order[count-1]];
+		const code = e.which||e.keyCode;
+		const lastModalbox = modalbox.pull[modalbox.order[count-1]];
+		const hasInput = lastModalbox.type.indexOf("prompt") != -1;
 
-		if (code == 13 || code == 32)
+		if (code == 13 || (code == 32 && !hasInput))
 			callback(lastModalbox, true);
 		if (code == 27)
 			callback(lastModalbox, false);
 
-		if (e.preventDefault)
-			e.preventDefault();
+		if (!hasInput)
+			preventEvent(e);
 		return !(e.cancelBubble = true);
 	}
 }
@@ -79,6 +99,10 @@ function button(text, result, className){
 	return "<div role='button' tabindex='0' aria-label='"+text+"' class='webix_popup_button"+(className?(" "+className):"")+"' result='"+result+"' ><div>"+text+"</div></div>";
 }
 
+function input(config){
+	return "<div tabindex='0' class='webix_popup_input webix_el_text"+(config.required?" webix_required":"")+"'><input value='"+template.escape(config.value || "")+"' placeholder='"+template.escape(config.placeholder || "")+"'></input></div>";
+}
+
 function info(text){
 	if (!t.area){
 		t.area = document.createElement("DIV");
@@ -119,7 +143,7 @@ function info(text){
 
 	return text.id;
 }
-function _boxStructure(config, ok, cancel){
+function _boxStructure(config, ok, cancel, hasInput){
 	var box = document.createElement("DIV");
 	var css = config.css ? " "+config.css : "";
 	box.className = "webix_modal_box webix_"+config.type+css;
@@ -134,8 +158,11 @@ function _boxStructure(config, ok, cancel){
 	if (config.height)
 		box.style.height = config.height+(rules.isNumber(config.height)?"px":"");
 	if (config.title)
-		inner+="<div class=\"webix_popup_title\">"+config.title+"</div>";
-	inner+="<div class=\"webix_popup_text\"><span>"+(config.content?"":config.text)+"</span></div><div  class=\"webix_popup_controls\">";
+		inner += "<div class=\"webix_popup_title\">"+config.title+"</div>";
+	inner += "<div class=\"webix_popup_text"+(hasInput?" webix_popup_label":"")+"\"><span>"+(config.content?"":(config.text || ""))+"</span></div>";
+	inner += "<div  class=\"webix_popup_controls\">";
+	if (hasInput)
+		inner += input(config.input);
 	if (cancel)
 		inner += button(config.cancel || i18n.message.cancel, false);
 	if (ok)
@@ -156,12 +183,23 @@ function _boxStructure(config, ok, cancel){
 		box.childNodes[config.title?1:0].appendChild(node);
 	}
 
+	if (config.type.indexOf("prompt") != -1){
+		const inputBox = box.querySelector(".webix_popup_input");
+		const input = inputBox.querySelector("input");
+		input.oninput = function(){
+			if (config.input.invalid){
+				removeCss(inputBox, "webix_popup_invalid");
+				config.input.invalid = false;
+			}
+		};
+	}
+
 	box.onclick = function(e){
 		e = e ||window.event;
-		var source = e.target || e.srcElement;
+		var source = e.target;
 		if (!source.className) source = source.parentNode;
 		if (source.className.indexOf("webix_popup_button")!=-1){
-			var result = source.getAttribute("result");
+			let result = source.getAttribute("result");
 			result = (result == "true")||(result == "false"?false:result);
 			callback(config, result);
 		}
@@ -174,8 +212,8 @@ function _boxStructure(config, ok, cancel){
 modalbox.pull = {};
 modalbox.order = [];
 
-function _createBox(config, ok, cancel){
-	var box = config.tagName ? config : _boxStructure(config, ok, cancel);
+function _createBox(config, ok, cancel, hasInput){
+	var box = config.tagName ? config : _boxStructure(config, ok, cancel, hasInput);
 
 	var containerWidth = config.container ? config.container.offsetWidth : (window.innerWidth||document.documentElement.offsetWidth);
 	var containerHeight = config.container ? config.container.offsetHeight : (window.innerHeight||document.documentElement.offsetHeight);
@@ -220,6 +258,9 @@ function confirmPopup(config){
 function boxPopup(config){
 	return _createBox(config);
 }
+function promptPopup(config){
+	return _createBox(config, true, true, true);
+}
 function box_params(text, type, callback){
 	if (typeof text != "object"){
 		if (typeof type == "function"){
@@ -254,6 +295,13 @@ export function modalbox(){
 	return boxPopup(text);
 }
 
+export function prompt(){
+	var text = box_params.apply(this, arguments);
+	text.type = text.type || "prompt";
+	text.input = text.input || {};
+	return promptPopup(text);
+}
+
 modalbox.hide = function(id){
 	if(id && modalbox.pull[id]){
 		var node = modalbox.pull[id]._box;
@@ -284,6 +332,8 @@ export function message(text, type, expire, id){ //eslint-disable-line
 			return confirmPopup(text);
 		case "modalbox":
 			return boxPopup(text);
+		case "prompt":
+			return promptPopup(text);
 		default:
 			return info(text);
 	}

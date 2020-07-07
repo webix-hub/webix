@@ -3,9 +3,12 @@ import {isUndefined} from "../webix/helpers";
 import template from "../webix/template";
 
 import clipbuffer from "../webix/clipbuffer";
+import env from "../webix/env";
 
 const CopyPaste = {
 	clipboard_setter: function(value) {
+		if (env.touch) return value;
+
 		if (value === true || value === 1) value = "modify";
 		this.attachEvent("onAfterSelect", function(id) {
 			if (!this.getEditor || !this.getEditor()){

@@ -170,6 +170,7 @@ const GroupStore = {
 		const missed = [];
 
 		let order = this.branch[parent];
+		let groups = {};
 		for (let i=0; i<order.length; i++){
 			const data = this.getItem(order[i]);
 			let current = config.by(data);
@@ -181,18 +182,17 @@ const GroupStore = {
 					continue;
 				} else current = config.missing;
 
-			let current_id = level+"$"+current;
-			let ancestor = this.branch[current_id];
-
+			let ancestor = groups[current];
 			if (!ancestor){
-				let newitem = this.pull[current_id] = { id:current_id, value:current, $group:true, $row:config.row};
+				let id = uid();
+				let newitem = this.pull[id] = { id, value:current, $group:true, $row:config.row};
 				if (this._scheme_init)
 					this._scheme_init(newitem);
 
 				labels.push(newitem);
-				ancestor = this.branch[current_id] = [];
+				ancestor = groups[current] = this.branch[id] = [];
 				ancestor._formath = [];
-				topbranch.push(current_id);
+				topbranch.push(id);
 			}
 			ancestor.push(data.id);
 			ancestor._formath.push(data);

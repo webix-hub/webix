@@ -211,7 +211,7 @@ const api = {
 				}
 			}, this));
 			list.data.attachEvent("onAfterFilter", bind(this._suggest_after_filter, this));
-			list.data.attachEvent("onStoreLoad", bind(this._suggest_after_filter, this));
+			
 			if (isUndefined(this._settings.fitMaster))
 				this._settings.fitMaster = true;
 		} else if (type == "calendar"){
@@ -267,7 +267,7 @@ const api = {
 
 		e = (e||event);
 		var list = this.getList();
-		var trg = e.target||e.srcElement;
+		var trg = e.target;
 		if((trg == document.body && !this.isVisible()) || trg.className =="webix_clipbuffer")
 			return;
 

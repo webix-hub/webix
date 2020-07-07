@@ -54,7 +54,9 @@ const skin = {
 
 	optionHeight: 24,
 	organogramLineColor: "#CCD7E6",
-	timelineColor:"#1CA1C1"
+	timelineColor:"#1CA1C1",
+
+	backColor:"#ffffff"
 };
 
 export default skin;

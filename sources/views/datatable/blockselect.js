@@ -28,7 +28,7 @@ const Mixin = {
 	},
 	_block_sel_flag:true,
 	_childOf:function(e, tag){
-		var src = e.target||e.srcElement;
+		var src = e.target;
 		while (src){
 			if (src.getAttribute && src.getAttribute(/*@attr*/"webixignore")) return false;
 			if (src == tag)
@@ -39,7 +39,7 @@ const Mixin = {
 	},
 	_bs_down:function(e){
 		// do not listen to mousedown of subview on master
-		if (this._settings.subview && this != $$(e.target||e.srcElement)) return;
+		if (this._settings.subview && this != $$(e.target)) return;
 		if (this._childOf(e, this._body)){
 			//disable block selection when we have an active editor
 			if (e.target && e.target.tagName == "INPUT" || this._rs_process) return;

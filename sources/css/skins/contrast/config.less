@@ -461,11 +461,10 @@
 	border:2px solid @borderColor;
 }
 
-.webix_dataview_item.tiles .webix_dataview_inner_item{
+.webix_dataview_item.tiles{
 	border-color:@borderColor;
 }
-
-.webix_dataview_item.tiles.webix_selected .webix_dataview_inner_item{
+.webix_dataview_item.tiles.webix_selected{
 	border-color:@selectColor;
 }
 
@@ -1407,6 +1406,9 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 	}
 }
 
+.webix_axis_item_y.webix_radar{
+	color: lighten(@fontColor, 20%);
+}
 
 // Progress
 .webix_progress_top .webix_progress_state, .webix_progress_bottom .webix_progress_state{

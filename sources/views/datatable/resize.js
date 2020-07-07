@@ -25,7 +25,7 @@ const Mixin = {
 	_rs_init_flag:true,
 	_rs_down:function(e){
 		// do not listen to mousedown of subview on master
-		if (this._settings.subview && this != $$(e.target||e.srcElement)) return;
+		if (this._settings.subview && this != $$(e.target)) return;
 		//if mouse was near border
 		if (!this._rs_ready) return;
 		this._rs_process = [pos(e),this._rs_ready[2]];
@@ -109,7 +109,7 @@ const Mixin = {
 			return this._rs_start(e);
 
 		e = e||event;
-		var node = e.target||e.srcElement;
+		var node = e.target;
 		var mode = false; //resize ready flag
 
 		if (node.tagName == "TD" || node.tagName == "TABLE") return ;

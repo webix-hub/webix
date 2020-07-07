@@ -125,7 +125,7 @@ const MouseEvents={
 		if (e.processed || !this._viewobj) return;
 		e.processed = true;
 
-		var trg=e.target||e.srcElement;
+		var trg=e.target;
 
 		//IE8 can't modify event object
 		//so we need to stop event bubbling to prevent double processing

@@ -1,9 +1,8 @@
-
+import {$active} from "../../webix/skin";
 
 const Pie = {
 	$render_pie:function(ctx,data,x,y,sIndex,map){
 		this._renderPie(ctx,data,x,y,1,map,sIndex);
-		
 	},
 	/**
 	 *   renders a pie chart
@@ -350,7 +349,7 @@ const Pie = {
 		var innerRadius = ((config.innerRadius&&(config.innerRadius<pieRadius))?config.innerRadius:pieRadius/3);
 		var x0 = (config.x?config.x:coord.x);
 		var y0 = (config.y?config.y:coord.y);
-		ctx.fillStyle = "#ffffff";
+		ctx.fillStyle = $active.backColor;
 		ctx.beginPath();
 		ctx.arc(x0,y0,innerRadius,0,Math.PI*2,true);
 		ctx.fill();

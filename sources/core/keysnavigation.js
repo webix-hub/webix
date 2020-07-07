@@ -28,7 +28,7 @@ const KeysNavigation = {
 	},
 	_navigation_helper:function(mode){
 		return function(view, e){
-			var tag = (e.srcElement || e.target);
+			var tag = e.target;
 
 			//ignore clipboard listener
 			if (!tag.getAttribute(/*@attr*/"webixignore")){

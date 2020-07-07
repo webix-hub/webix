@@ -75,8 +75,7 @@ const api = {
 			this._clickHandler = attachEvent("onClick", (e) => {
 				var view = $$(e);
 				if(view == this._input){
-					this._changeTextarea(true);
-					delay(() => { this._input.focus(); });
+					this.focus();
 				}
 				else if(view !==this._sendButton && view !==this._listMenu && (!this._userList || view !== this._userList.getList()) &&
 					(!e || (e.target.className||"").toString().indexOf("webix_comments_menu") ===-1)
@@ -200,7 +199,7 @@ const api = {
 				values.date = new Date();
 
 				this.add(values);
-				this._list.scrollTo(0, this._list.getLastId());
+				this._list.showItem(values.id);
 			}
 			this._form.clear();
 			if(clear)
@@ -234,6 +233,10 @@ const api = {
 			this._text_expanded = false;
 		}
 		text.resize();
+	},
+	focus: function(){
+		this._changeTextarea(true);
+		delay(() => { this._input.focus(); });
 	},
 	_toggleButton(value){
 		if(!value) value = this._input.getValue();
@@ -459,7 +462,10 @@ const api = {
 			}
 		};
 
-		scheme = extend(scheme, config.scheme || {}, true);
+		// using webix.extend() for extending schemes results in wrong calls of $init()
+		if (config.scheme) Object.keys(config.scheme).forEach(k => {
+			scheme[k] = config.scheme[k];
+		});
 
 		var listConfig = {
 			view:"list",

@@ -1,3 +1,5 @@
+@import "inputs.less";
+
 .webix_message_area{
 	position:fixed;
 	right:5px;
@@ -109,6 +111,36 @@ div.webix_modal_cover {
 	.buttonBackground(@formButtonColor, @formButtonFontColor);
 }
 
+
+.webix_popup_input.webix_el_text{
+	outline: none;	
+	overflow: hidden;
+	padding:@skin_input_y_padding @skin_input_x_padding;
+	input{
+		box-sizing: border-box;
+		width:100%;
+		height:@modalButtonHeight;
+		font-size: @formFontSize;
+		.inputStyle;
+	}
+	&.webix_required::before{
+		position: absolute;
+		right: @skin_input_x_padding + 16;
+		padding-top: 1px;
+		content: "*";
+		color: red;
+	}
+}
+
+
+.webix_popup_input.webix_el_text.webix_popup_invalid{
+	input{
+		background-color: tint(@invalidColor, 80%);
+		border-color:@invalidColor;
+		.invalidStyle;
+	}
+}
+
 .webix_popup_title{
 	color: @fontColor;
 	line-height: 20px;
@@ -127,22 +159,26 @@ div.webix_modal_cover {
 	padding: 24px 16px 0px 16px;
 	font-size: @fontSize;
 	color: @fontColor;
-	min-height: @modalboxLineHeight;
 	line-height: @modalboxLineHeight;
+	&.webix_popup_label{
+		text-align: left;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
 }
 
-
-.webix_alert, .webix_confirm{
+.webix_alert, .webix_confirm, .webix_prompt{
 	.webix_popup_title, .webix_popup_text{
 		box-shadow: inset 0 4px @baseColor;
 	}
 } 
-.webix_alert-warning, .webix_confirm-warning{
+.webix_alert-warning, .webix_confirm-warning, .webix_prompt-warning {
 	.webix_popup_title, .webix_popup_text{
 		box-shadow: inset 0 4px @infoColor;
 	}
 }
-.webix_alert-error, .webix_confirm-error{
+.webix_alert-error, .webix_confirm-error, .webix_prompt-error {
 	.webix_popup_title, .webix_popup_text{
 		box-shadow: inset 0 4px @dangerColor;
 	}

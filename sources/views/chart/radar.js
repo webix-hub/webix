@@ -1,9 +1,6 @@
-
-
 const Radar = {
 	$render_radar:function(ctx,data,x,y,sIndex,map){
 		this._renderRadarChart(ctx,data,x,y,sIndex,map);
-		
 	}, 
 	/**
 	*   renders a pie chart

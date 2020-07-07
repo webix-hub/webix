@@ -49,7 +49,7 @@
 .webix_invisible{
 	display: none !important;
 }
-.webix_drop_area{
+.webix_drop_area, .webix_drop_area_inner{
 	height: @listItemHeight;
 	#box > .sizing;
 	background-color: darken(@selectColor, 1%);
@@ -66,6 +66,9 @@
 }
 .webix_dataview .webix_drop_area{
 	float: left;
+	background-color: transparent;
+}
+.webix_dataview .webix_drop_area_inner{
 	border-right: 1px solid @dataBorderColor;
 	border-bottom: 1px solid @dataBorderColor;
 }

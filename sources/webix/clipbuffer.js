@@ -75,7 +75,7 @@ const clipbuffer = {
 	/*! process ctrl+V pressing
 	 **/
 	_paste: function(e) {
-		var trg = e.target || e.srcElement;
+		var trg = e.target;
 		if (trg === this._area) {
 			var text = this._area.value;
 			var last_active = UIManager.getFocus();

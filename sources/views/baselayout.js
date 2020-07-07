@@ -92,7 +92,18 @@ const api = {
 		if(this._beforeRemoveView)
 			this._beforeRemoveView(index);
 		_power_array.removeAt.call(this._cells, index);
-		this.resizeChildren(true);
+		this._fix_hidden_cells(true);
+	},
+	_fix_hidden_cells(resize){
+		this._hiddencells = 0;
+		for (let i = 0; i < this._cells.length; i++){
+			const cell = this._cells[i];
+			if (cell._settings.hidden || cell.$nospace)
+				this._hiddencells++;
+		}
+
+		if (resize)
+			this.resizeChildren(true);
 	},
 	_replace:function(new_view,target_id){
 		if (isUndefined(target_id)){
@@ -114,7 +125,6 @@ const api = {
 				assert(target_id!=-1, "Attempt to replace the non-existing view");
 				if (!new_view._settings.hidden)
 					this._insertBeforeView(new_view, source);
-
 				source.destructor();	
 				this._cells[target_id] = new_view;
 			}
@@ -122,7 +132,7 @@ const api = {
 			if (!this._vertical_orientation)
 				this._fix_vertical_layout(new_view);
 		}
-		this.resizeChildren(true);
+		this._fix_hidden_cells(true);
 
 		var form = this.elements ? this : this.getFormView();
 		if (form && !this._fill_data) form._recollect_elements();
@@ -165,8 +175,9 @@ const api = {
 						delete form.getCleanValues()[sub.config.name];
 				}, form, true);				
 
+				
 			view.destructor();
-			this.resizeChildren(true);
+			this._fix_hidden_cells(true);
 			
 			if (form)
 				form._recollect_elements();
@@ -329,16 +340,14 @@ const api = {
 			
 			if (this._settings.visibleBatch && this._settings.visibleBatch != this._cells[i]._settings.batch && this._cells[i]._settings.batch){
 				this._cells[i]._settings.hidden = true;
-				this._hiddencells++;
 			}
 			
 			if (!this._cells[i]._settings.hidden){
 				(this._dataobj||this._contentobj).appendChild(this._cells[i]._viewobj);
-				if (this._cells[i].$nospace)
-					this._hiddencells++;
 			}
 		}
 
+		this._fix_hidden_cells();
 		if (this._parse_cells_ext_end)
 			this._parse_cells_ext_end(collection);	
 	},

@@ -137,7 +137,7 @@ const api = {
 			//if event was provided - get node info from it
 			if (typeof node == "object" && !node.tagName){
 				/*below logic is far from ideal*/
-				if (node.target || node.srcElement){
+				if (node.target){
 					elPos = getPos(node);
 					dx = 20;
 					dy = 5;

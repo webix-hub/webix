@@ -344,10 +344,9 @@ const Touch = {
 			return true;
 	},
 	_touchstart :function(e){
-		var target = e.target || window.event.srcElement;
+		var target = e.target;
 
-		if (Touch._disabled || (target.tagName&&target.tagName.toLowerCase() == "textarea" && target.offsetHeight<target.scrollHeight))
-			return preventEvent(e);
+		if (Touch._disabled) return;
 
 		Touch._long_touched = null;
 		Touch._scroll_context = Touch._start_context = mouse.context(e);
@@ -476,7 +475,7 @@ const Touch = {
 	},
 	_get_context_m:function(e){
 		return {
-			target:e.target || e.srcElement,
+			target:e.target,
 			x:e.pageX,
 			y:e.pageY,
 			time:new Date()

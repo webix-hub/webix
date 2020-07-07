@@ -50,7 +50,7 @@ const TreeAPI = {
 
 		var value,
 			item = this.getItem(id),
-			trg = (e? (e.target|| e.srcElement):null);
+			trg = (e?e.target:null);
 
 		//read actual value from HTML tag when possible
 		//as it can be affected by dbl-clicks

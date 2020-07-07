@@ -531,12 +531,10 @@
 	border-right-color: @dataBorderColor;
 }
 .webix_dataview_item.tiles.webix_selected{
-	.webix_dataview_inner_item{
-		background-color:lighten(@selectColor, 50%);
-		color:@fontColor;
-		border-color:@selectColor;
-	}
-	&:focus .webix_dataview_inner_item{
+	background-color:lighten(@selectColor, 50%);
+	color:@fontColor;
+	border-color:@selectColor;
+	&:focus{
 		background-color:lighten(@selectColor, 45%);
 	}
 }

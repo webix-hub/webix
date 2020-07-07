@@ -115,7 +115,7 @@ export function locate(e,id){
 		trg = e;
 	else {
 		e=e||event;
-		trg=e.target||e.srcElement;
+		trg=e.target;
 	}
     
 	while (trg){

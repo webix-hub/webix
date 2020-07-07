@@ -48,7 +48,9 @@ const skin = {
 	accordionType: "accordion",
 
 	optionHeight: 32,
-	timelineColor:"#b300b3"
+	timelineColor:"#b300b3",
+
+	backColor:"#393939"
 };
 
 export default skin;

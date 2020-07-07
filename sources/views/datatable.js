@@ -97,7 +97,7 @@ const api = {
 
 			var item = this.getItem(id.row);
 			var col = this.getColumnConfig(id.column);
-			var trg = e.target|| e.srcElement;
+			var trg = e.target;
 
 			//read actual value from HTML tag when possible
 			//as it can be affected by dbl-clicks
@@ -170,6 +170,8 @@ const api = {
 		this._rows_cache = [];
 		this._active_headers = {};
 		this._filter_elements = {};
+		this._sort_signs = {};
+		this._sort_signs_order = [];
 		this._header_height = this._footer_height = 0;
 
 		//component can create new view
@@ -481,8 +483,11 @@ const api = {
 		return (header.rotate ? size.width : size.height ) + 1;
 	},
 	_normalize_headers:function(collection, heights){
-		var rows = 0;
-		
+		let rows = 0;
+
+		// clear array of previous values
+		heights.length = 0;
+
 		for (let i=0; i<this._columns.length; i++){
 			let data = this._columns[i][collection];
 			if (!data || typeof data != "object" || !data.length){
@@ -498,8 +503,8 @@ const api = {
 				if (typeof data[j] != "object")
 					data[j] = { text:data[j] };
 
-				if (data[j] && data[j].height) heights[j] = data[j].height;
-				if (data[j] && data[j].autoheight) heights[j] = this._getHeaderHeight(data[j], this._columns[i], i);
+				if (data[j] && data[j].height) heights[j] = Math.max(heights[j]||0, data[j].height);
+				if (data[j] && data[j].autoheight) heights[j] = Math.max(heights[j]||0, this._getHeaderHeight(data[j], this._columns[i], i));
 				if (data[j] && data[j].css && typeof data[j].css === "object") data[j].css = createCss(data[j].css);
 			}
 			rows = Math.max(rows, data.length);
@@ -514,7 +519,7 @@ const api = {
 
 		//set null to cells included in col|row spans
 		for (let i=0; i<this._columns.length; i++){
-			var col = this._columns[i][collection];
+			const col = this._columns[i][collection];
 			for (let j=0; j<col.length; j++){
 				if (col[j] && col[j].rowspan)
 					for (let z=1; z<col[j].rowspan; z++)
@@ -527,12 +532,12 @@ const api = {
 
 		//auto-rowspan cells, which has not enough header lines
 		for (let i=0; i<this._columns.length; i++){
-			let data = this._columns[i][collection];
+			const data = this._columns[i][collection];
 			if (data.length < rows){
-				var end = data.length-1;
+				const end = data.length-1;
 				data[end].rowspan = rows - data.length + 1;
 				for (let j=end+1; j<rows; j++)
-					data[j]=null;
+					data[j] = null;
 			}
 		}
 		return rows;
@@ -936,7 +941,7 @@ const api = {
 	locate:function(node, idOnly){
 		if (this != $$(node)) return null;
 
-		node = node.target||node.srcElement||node;
+		node = node.target||node;
 		while (node && node.getAttribute){
 			if (node === this.$view)
 				break;
@@ -993,6 +998,7 @@ const api = {
 		this._set_columns_positions();
 		this._set_split_sizes_x();
 		this._render_header_and_footer();
+		this._set_split_sizes_y();
 
 		if (!silent)
 			this._check_rendered_cols(false, false);
@@ -1049,13 +1055,24 @@ const api = {
 			return summ;
 		}
 	},
-	_cellPosition:function(row, column){
-		if (arguments.length == 1){
-			column = row.column; row = row.row;
+	_cellPosition:function(row, column, edit){
+		if (row.row){
+			column = row.column;
+			row = row.row;
 		}
 
-		const item = this.getItem(row);
-		const config = this.getColumnConfig(column);
+		let width = this.getColumnConfig(column).width;
+		let height = this.getItem(row).$height || this._settings.rowHeight;
+
+		if(this.config.spans && edit){
+			const span = this.getSpan(row, column);
+			if(span){
+				const spanNode = this.getSpanNode({row:span[0], column:span[1]});
+				width = spanNode.offsetWidth;
+				height = spanNode.offsetHeight;
+			}
+		}
+
 		let left = 0;
 		let parent = 0;
 
@@ -1082,19 +1099,13 @@ const api = {
 			top = this._getHeightByIndexSumm(first, index) + (this._render_scroll_shift||0) + (index >= first ? (this._top_split_height||0) : 0);
 		}
 
-		return {
-			parent: parent,
-			top:	top,
-			left:	left,
-			width:	config.width,
-			height:	(item.$height || this._settings.rowHeight)
-		};
+		return { parent, top, left, width, height };
 	},
 	_get_total_height:function(){
 		var pager  = this._settings.pager;
 		var start = 0;
 		var max = this.data.order.length;
-		
+
 		if (pager){
 			start = pager.size * pager.page;
 			max = Math.min(max, start + pager.size);
@@ -1826,8 +1837,6 @@ const api = {
 
 		this._sort(col.id, order, col.sort, (e.ctrlKey||e.metaKey));
 	},
-	_sort_signs:{},
-	_sort_signs_order:[],
 	markSorting:function(column, direction, preserve){
 		direction = direction || "asc";
 
@@ -1959,7 +1968,7 @@ const api = {
 	//because we using non-standard rendering model, custom logic for mouse detection need to be used
 	_mouseEvent:function(e,hash,name,pair){
 		e=e||event;
-		var trg=e.target||e.srcElement;
+		var trg=e.target;
 		if (this._settings.subview && this != $$(trg)) return;
 
 		//define some vars, which will be used below
@@ -2039,7 +2048,7 @@ const api = {
 		let tooltip = TooltipControl._tooltip;
 		let data;
 		if (id.header){
-			let node = e.target||e.srcElement;
+			let node = e.target;
 			let pos;
 			let cind = id.cind - (id.span?id.span-1:0);
 			let rind = -1;
@@ -2067,7 +2076,7 @@ const api = {
 			if (config.tooltip === true || (!config.tooltip && isUndefined(this._settings.tooltip.template))){
 				data = this.getText(id.row, id.column).toString();
 			} else if (config.tooltip){
-				let area = (e.target||e.srcElement).getAttribute("webix_area");
+				let area = e.target.getAttribute("webix_area");
 
 				if (area){
 					tooltip.type.template = function(obj,common){

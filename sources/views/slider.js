@@ -149,7 +149,7 @@ const api = {
 		if(code>32 && code <41){
 			preventEvent(e);
 
-			var trg = e.target || e.srcElement;
+			var trg = e.target;
 			var match =  /webix_slider_handle_(\d)/.exec(trg.className);
 			this._activeIndex = match?parseInt(match[1],10):-1;
 			if(match)
@@ -186,7 +186,7 @@ const api = {
 	_on_mouse_down_start:function(e){
 		if (this._handle_drag_events) return;
 
-		var trg = e.target || e.srcElement;
+		var trg = e.target;
 		if(this._mouse_down_process){
 			this._mouse_down_process(e);
 		}

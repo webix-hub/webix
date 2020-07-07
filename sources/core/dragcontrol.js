@@ -194,7 +194,7 @@ const DragControl ={
 					}
 				});
 			}
-			dragCtrl._checkLand((evobj.target || evobj.srcElement), evobj);
+			dragCtrl._checkLand((evobj.target), evobj);
 		}
 		
 		return preventEvent(e);

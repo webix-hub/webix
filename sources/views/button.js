@@ -216,10 +216,12 @@ const api = {
 		return null;
 	},
 	_get_tooltip_data:function(t,e){
-		let node = e.target || e.srcElement;
+		let node = e.target;
 		let box = this._getBox();
 
-		if (box && box.contains(node))
+		const isTopLabel = this._settings.labelPosition == "top" && this._dataobj.firstChild.contains(node);
+
+		if (isTopLabel || box && box.contains(node))
 			return this._settings;
 		return null;
 	},
@@ -333,7 +335,7 @@ const api = {
 			this.getInputNode().focus();
 		},
 		webix_inp_checkbox_border: function(e) {
-			if (!this._settings.disabled && (e.target||e.srcElement).tagName != "DIV" && !this._settings.readonly)
+			if (!this._settings.disabled && e.target.tagName != "DIV" && !this._settings.readonly)
 				this.toggle();
 		},
 		webix_inp_checkbox_label: function() {

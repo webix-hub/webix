@@ -126,7 +126,7 @@ const api = {
 	},
 	activeArea:function(area, x_mode){
 		this._x_scroll_mode = x_mode;
-		_event(area,(env.isIE8 ? "mousewheel" : "wheel"),this._on_wheel,{bind:this, passive:false});
+		_event(area, "wheel", this._on_wheel,{bind:this, passive:false});
 		this._add_touch_events(area);
 	},
 
@@ -164,11 +164,11 @@ const api = {
 
 	},
 	_on_wheel:function(e){
-		var dir = 0;
-		var step = e.deltaMode === 0 ? 30 : 1;
+		let dir = 0;
+		const step = e.deltaMode === 0 ? 30 : 1;
 
-		if (env.isIE8)
-			dir = e.detail = -e.wheelDelta / 30;
+		if (e.ctrlKey)
+			return false;
 
 		if (e.deltaX && Math.abs(e.deltaX) > Math.abs(e.deltaY)){
 			//x-scroll
@@ -187,7 +187,7 @@ const api = {
 		// Safari requires target preserving
 		// (used in _check_rendered_cols of DataTable)
 		if(env.isSafari)
-			this._scroll_trg = e.target|| e.srcElement;
+			this._scroll_trg = e.target;
 
 		if (dir)
 			if (this.scrollTo(this.getScroll() + dir*this._settings.scrollStep))

@@ -39,7 +39,7 @@ const api = {
 			else if(code === 33) this.next();
 			else if(code === 34) this.prev();
 			else value = value+(code === 37 || code ===40?-1:1);
-			
+
 			if(code>34 && value>=c.min && value<=c.max)
 				this.setValue(value);
 		}
@@ -49,7 +49,14 @@ const api = {
 	},
 	$prepareValue:function(value){
 		value = parseFloat(value);
-		return isNaN(value)?0:value;
+
+		const min = this._settings.min;
+		const max = this._settings.max;
+
+		if(isNaN(value))
+			value = isFinite(min) ? min : 0;
+
+		return Math.min(Math.max(value, min), max);
 	},
 	getInputNode:function(){
 		return this._dataobj.getElementsByTagName("input")[0];
@@ -66,12 +73,9 @@ const api = {
 		this.shift(step);
 	},
 	shift:function(step){
-		var min = this._settings.min;
-		var max = this._settings.max;
-
-		var new_value = this.getValue() + step;
-		if (new_value >= min && new_value <= max)
-			this.setValue(new_value);
+		//round values to fix math precision issue in JS
+		const new_value = Math.round((this.getValue() + step)*100000)/100000;
+		this.setValue(new_value);
 	}
 };
 

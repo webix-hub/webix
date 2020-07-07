@@ -43,7 +43,7 @@ const NavigationButtons = {
 		var h = [];
 		if(this._navPanel)
 			h[0] = event(this._navPanel,"click", bind(function(e){
-				var elem = (e.srcElement || e.target);
+				var elem = e.target;
 				var found = false;
 				while(elem != this._navPanel && !found){
 					var bindId = elem.getAttribute(this._linkAttr);

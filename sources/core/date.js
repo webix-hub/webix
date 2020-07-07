@@ -136,7 +136,7 @@ const wDate = {
 		if (typeof format == "function") return format;
 
 		var mask=format.match(/%[a-zA-Z]/g);
-		var splt="var temp=date.split(/[\\s\\./\\-\\:\\,]+/g);";
+		var splt="var temp=date.split(/[\\s\\./\\-\\:\\,]+/g); if(!temp.join('')){return ''}";
 		var i,t,s;
 
 		if(!i18n.calendar.monthShort_hash){
@@ -156,6 +156,10 @@ const wDate = {
 				if (!date) return "";
 				if (typeof date == "object") return date;
 				var temp=date.split(/[\s./\-:,]+/g);
+
+				if(!temp.join(""))
+					return "";
+
 				var set=[0,0,1,0,0,0,0];
 				for (i=0; i<mask.length; i++){
 					var a = mask[i];
@@ -251,7 +255,7 @@ const wDate = {
 					break;
 			}
 		}
-		var code ="set[0],set[1],set[2],set[3],set[4],set[5], set[6]";
+		var code ="set[0],set[1],set[2],set[3],set[4],set[5],set[6]";
 		if (utc) code =" Date.UTC("+code+")";
 		const temp = new Function("date", "i18n", "if (!date) return ''; if (typeof date == 'object') return date; var set=[0,0,1,0,0,0,0]; "+splt+" return new Date("+code+");");
 		return function(v){ return temp(v, i18n ); };

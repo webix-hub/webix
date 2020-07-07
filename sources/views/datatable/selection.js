@@ -30,7 +30,7 @@ const Mixin = {
 			});
 
 			_event(this.$view, "mouseout", e => {
-				const trg = e.target||e.srcElement;
+				const trg = e.target;
 
 				// inner html elements blinking in case of hover:true
 				// ie and edge call mouseout when clicking inner html element

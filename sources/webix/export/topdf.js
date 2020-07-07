@@ -18,8 +18,6 @@ export const toPDF = function(id, options){
 	options.export_mode = "pdf";
 	options._export_font = font;
 	options.fontName = options.fontName || "pt-sans.regular";
-	const display = options.display = options.display || "table";
-	options.styles = options.display == "image" ? false: options.styles;
 
 	id = isArray(id)?id:[id];
 	let views = [];
@@ -31,6 +29,10 @@ export const toPDF = function(id, options){
 
 		if(view){
 			const viewOptions = extend(id[i].options || {}, options);
+			const display = viewOptions.display || "table";
+			if(viewOptions.display == "image")
+				delete viewOptions.styles;
+
 			if(view.$exportView)
 				view = view.$exportView(viewOptions);
 
@@ -55,10 +57,9 @@ export const toPDF = function(id, options){
 					}
 				}
 				if(display == "image" || display == "all"){
-					views.push({
-						node: view.$view.cloneNode(true), //use cloneNode for views like excelViewer
-						viewOptions: viewOptions
-					});
+					const node = viewOptions._hidden ? cloneNodeWithStyles(view.$view) : view.$view;
+
+					views.push({ node, viewOptions });
 					if(options.autowidth)
 						getAutowidth(view, options);
 				}
@@ -128,7 +129,7 @@ function getPdfData(views, options){
 				doc.image(images[i], {align:"center"});
 			else
 				addPDFTable(views[i], doc);
-			
+
 			if(viewOptions.textAfter)
 				addText(doc, "after", viewOptions.textAfter);
 			if(i != views.length - 1)
@@ -150,10 +151,13 @@ function addText(doc, type, text){
 }
 
 function getPDFImage(node){
-	//node is a cloneNode of the real view, so it shouldn't be visible
-	document.body.appendChild(node);
-	node.style.position = "absolute";
-	node.style.left = "-9999px";
+	const hidden = !document.body.contains(node);
+	if(hidden){
+		//node is a cloneNode of the real view, so it shouldn't be visible
+		document.body.appendChild(node);
+		node.style.position = "absolute";
+		node.style.left = "-9999px";
+	}
 
 	return window.html2canvas(
 		node,
@@ -172,7 +176,8 @@ function getPDFImage(node){
 			return new pdfjs.Image(bytes.buffer);
 		})
 		.finally(function(){
-			document.body.removeChild(node);
+			if(hidden)
+				document.body.removeChild(node);
 		});
 }
 
@@ -328,4 +333,18 @@ function addPDFHeader(doc, options){
 	}
 	else
 		return promise.resolve(doc.render());
+}
+
+function cloneNodeWithStyles(node){
+	const clone = node.cloneNode(false);
+
+	if(node.tagName){
+		const styles = window.getComputedStyle(node);
+		clone.style.cssText = styles.cssText;
+	}
+
+	for (let i = 0; i < node.childNodes.length; i++)
+		clone.appendChild(cloneNodeWithStyles(node.childNodes[i]));
+
+	return clone;
 }

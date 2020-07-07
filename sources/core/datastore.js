@@ -410,7 +410,7 @@ DataStore.prototype={
 			if (this._on_sync)
 				this._on_sync();
 
-			if(!(id && data && mode))//clearall
+			if(!(id && data && mode) && !this.count())//clearall
 				this._marks = {};
 			if(mode =="delete" && this._marks[id])
 				delete this._marks[id];

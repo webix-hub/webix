@@ -49,22 +49,24 @@ const api = {
 		if (config.autoheight)
 			config.scroll = false;
 
-		if(type && type.type =="tiles"){
-			this._viewobj.firstChild.style.padding = "8px";
-			this._tilesPadding = 8;
+		if (type && type.type == "tiles"){
+			this._tilesPadding = type.padding || this.type.padding;
+			this._viewobj.firstChild.style.float = "left";
+			this._viewobj.firstChild.style.padding = (this._tilesPadding/2) + "px";
 		}
 
-		this._contentobj.className+=" webix_dataview";
-
+		this._contentobj.className += " webix_dataview";
 		this._viewobj.setAttribute("role", "listbox");
 	},
 	_after_init_call:function(){
-		var test = create("DIV",0,this.type.template({}));
-		test.style.position="absolute";
+		const test = create("DIV",0,this.type.template({}));
+		test.className = "webix_dataview_item";
+		test.style.position = "absolute";
 		document.body.appendChild(test);
-		this.type.width = test.offsetWidth;
-		this.type.height = test.offsetHeight;
-		
+
+		this.type.width = test.offsetWidth + this._tilesPadding;
+		this.type.height = test.offsetHeight + this._tilesPadding;
+
 		remove(test);
 	},
 	defaults:{
@@ -77,14 +79,14 @@ const api = {
 	_tilesPadding:0,
 	_drag_direction:"x",
 	on_click:{
-		webix_dataview_item:function(e,id){ 
+		webix_dataview_item:function(e,id){
 			if (this._settings.select){
 				if (this._settings.select=="multiselect" || this._settings.multiselect)
 					this.select(id, false, ((this._settings.multiselect == "touch") || e.ctrlKey || e.metaKey), e.shiftKey); 	//multiselection
 				else
 					this.select(id);
 			}
-		}		
+		}
 	},
 	on_dblclick:{
 	},
@@ -97,12 +99,12 @@ const api = {
 		templateLoading:template("Loading..."),
 		width:160,
 		height:50,
+		padding:8,
 		classname:function(obj, common, marks){
 			var css = "webix_dataview_item";
 
 			if (common.css) css += " "+common.css;
-			if (common.type && common.type.toString() == "tiles")
-				css += " tiles ";
+			if (common.type) css += " "+common.type;
 			if (obj.$css){
 				if (typeof obj.$css == "object")
 					obj.$css = createCss(obj.$css);
@@ -112,22 +114,26 @@ const api = {
 			
 			return css;
 		},
-		tilesStart:function(obj, common){
-			if (common.type == "tiles")
-				return "<div class=\"webix_dataview_inner_item\" style=\"box-sizing:border-box; overflow:hidden;\">";
-			return "";
-		},
-		tilesEnd:function(obj, common){
-			if (common.type == "tiles")
-				return "</div>";
-			return "";
-		},
 		aria:function(obj, common, marks){
 			return "role=\"option\""+(marks && marks.webix_selected?" aria-selected=\"true\" tabindex=\"0\"":" tabindex=\"-1\"");
 		},
-		templateStart:template("<div "+/*@attr*/"webix_l_id"+"=\"#id#\" class=\"{common.classname()}\" {common.aria()} style=\"width:{common.width}px; height:{common.height}px; float:left; overflow:hidden;\">{common.tilesStart()}"),
-		templateEnd:template("{common.tilesEnd()}</div>")
-		
+		templateStart:function(obj, common, marks){
+			let {width, height} = common;
+			let padding = 0;
+
+			if (common.type == "tiles"){
+				width -= common.padding;
+				height -= common.padding;
+				padding = common.padding / 2;
+			}
+			return "<div "+/*@attr*/"webix_l_id=\""+obj.id+"\" class=\""+common.classname(obj,common,marks)+"\" "+
+				common.aria(obj,common,marks)+" style=\"margin:"+padding+"px; width:"+width+"px; height:"+height+"px; float:left; overflow:hidden;\">";
+		},
+		templateEnd:template("</div>")
+	},
+	$dropHTML:function(){
+		const p = this._tilesPadding;
+		return `<div class="webix_drop_area_inner" style="width:${this.type.width-p}px; height:${this.type.height-p}px; margin:${p/2}px"></div>`;
 	},
 	_calck_autoheight:function(width){
 		return (this._settings.height = this.type.height * Math.ceil( this.data.count() / Math.floor(width / this.type.width)));
@@ -141,9 +147,9 @@ const api = {
 	},
 	$getSize:function(dx, dy){
 		if (this._settings.xCount && this.type.width != "auto" && !this._autowidth)
-			this._settings.width = this.type.width*this._settings.xCount + (this._scroll_y?env.scrollSize:0);
+			this._settings.width = this.type.width*this._settings.xCount + this._tilesPadding + (this._scroll_y?env.scrollSize:0);
 		if (this._settings.yCount && this.type.height != "auto" && !this._autoheight)
-			this._settings.height = this.type.height*this._settings.yCount;
+			this._settings.height = this.type.height*this._settings.yCount + this._tilesPadding;
 
 		var width = this._settings.width || this._content_width;
 		if (this._settings.autoheight && width){
@@ -159,7 +165,7 @@ const api = {
 			this._autoheight = this._settings.yCount;
 		}
 		if (this._settings.xCount && (this._autowidth || this.type.width == "auto")){
-			this.type.width = Math.floor((this._content_width-this._tilesPadding*2)/this._settings.xCount);
+			this.type.width = Math.floor((this._content_width-this._tilesPadding)/this._settings.xCount);
 			this._autowidth = this._settings.xCount;
 		}
 

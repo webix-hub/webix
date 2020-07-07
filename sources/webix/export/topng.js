@@ -30,7 +30,6 @@ export const toPNG = function(id, options){
 			var callback = function(data){
 				if(options.download !== false)
 					download(data, filename);
-				canvas.remove();
 				defer.resolve(data);
 			};
 			if(canvas.msToBlob)

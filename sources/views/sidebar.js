@@ -258,7 +258,7 @@ const api = {
 		config.popupId = popup.config.id;
 
 		_event(document.body,"mousemove", function(e){
-			var trg = e.target || e.srcElement;
+			var trg = e.target;
 			if(!popup.config.hidden && !popup.$view.contains(trg) && !this.$view.firstChild.contains(trg) && !popup.queryView({view:"menu"})._open_sub_menu){
 				popup.hide();
 			}

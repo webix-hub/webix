@@ -51,8 +51,15 @@ const ContextHelper = {
 		var result = this.show(e, null, true);
 		if (result === false) return result;
 
+		// ignore contexmenu clicks for the popup or its body
+		const view = $$(e);
+		if (view){
+			const top = view.queryView(a => !a.getParentView(), "parent") || view;
+			if (top._ignore_clicks) top._ignore_clicks(e);
+		}
+		
 		//event forced to close other popups|context menus
-		callEvent("onClick", []);		
+		callEvent("onClick", [e]);		
 		return preventEvent(e);
 	},
 	_show_on_mouse_out:true,

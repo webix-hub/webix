@@ -34,6 +34,8 @@ import SplineArea from "./chart/splinearea";
 import DynamicChart from "./chart/dynamic";
 import TooltipControl from "../core/tooltipcontrol";
 
+import {$active} from "../webix/skin";
+
 const api = {
 	name:"chart",
 	$init:function(config){
@@ -461,7 +463,7 @@ const api = {
 			lineColor:"#edeff0",
 			template:"{obj}",
 			lines:true,
-			bg:"#ffffff"
+			bg:$active.backColor
 		});
 		var templates = ["lineColor","template","lines","bg"];
 		this._converToTemplate(templates,config);

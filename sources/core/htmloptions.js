@@ -71,7 +71,7 @@ const HTMLOptions = {
 	},
 	_get_tooltip_data: function(t,e){
 		let id,
-			node = e.target || e.srcElement;
+			node = e.target;
 		while (node && !node.webix_tooltip){
 			id = node.getAttribute("webix_t_id");
 			if (id)

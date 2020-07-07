@@ -47,7 +47,7 @@ const TooltipControl ={
 		return this._tooltip;
 	},
 	_move_tooltip:function(e){
-		let node = e.target || e.srcElement;
+		let node = e.target;
 		let text;
 		while (node instanceof Element && node.tagName != "HTML"){
 			if ( this._tooltip_masters[node.webix_tooltip] ){

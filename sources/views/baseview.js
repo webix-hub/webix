@@ -299,7 +299,7 @@ const api = {
 		}
 	},
 	_onKeyPress:function(code, e){
-		var target = e.srcElement || e.target, role = target.getAttribute("role");
+		var target = e.target, role = target.getAttribute("role");
 
 		if((code === 13 || code === 32) && (role == "button" || role == "tab") && !this._settings.disabled){
 			triggerEvent(target, "MouseEvents", "click");

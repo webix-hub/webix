@@ -243,6 +243,7 @@ const DataLoader =proto({
 						data => {
 							this.clearAll();
 							this._onLoad(data);
+							this.data.callEvent("onAfterFilter", []);
 						},
 						x => this._onLoadError(x)
 					);

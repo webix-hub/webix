@@ -168,7 +168,7 @@ const Mixin = {
 		}
 	},
 	_isDraggable:function(e){
-		var nodeName = (e.target || e.srcElement).nodeName;
+		var nodeName = e.target.nodeName;
 		return nodeName != "INPUT" && nodeName != "TEXTAREA";
 	},
 	dragColumn_setter:function(value){
@@ -303,7 +303,7 @@ const Mixin = {
 					
 					if (context.custom != "column_dnd" || context.from != control) return false;
 
-					var target = (e.target||e.srcElement);
+					var target = e.target;
 					while ((target.className||"").indexOf("webix_hcell") == -1){
 						target = target.parentNode;
 						if (!target) return;

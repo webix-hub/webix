@@ -205,7 +205,7 @@ function $$(id){
 	if (typeof id == "object"){
 		if (id._settings)
 			return id;
-		name = (id.target||id.srcElement)||id;
+		name = id.target||id;
 	}
 	return views[locate({ target:toNode(name)},/*@attr*/"view_id")];
 }
@@ -320,7 +320,7 @@ attachEvent("onClick", function(e){
 		//for inline elements - restore pointer to the master element
 		element.getNode(e);
 		//reaction on custom css elements in buttons
-		var trg=e.target||e.srcElement;
+		var trg=e.target;
 		if (element.config.disabled)
 			return;
 

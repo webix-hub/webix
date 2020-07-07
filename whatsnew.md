@@ -1,5 +1,20 @@
+Version 7.4 (July 2020)
+==============================
+
+### Major features
+
+- New Chat widget
+- Advanced chart wizard for Spreadsheet
+- Managing tags in Document Manager 
+- Text and Excel file versioning in Document Manager
+- Prompt window
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_7_4.html)
+
 Version 7.3 (April 2020)
 ==============================
+
+### Major features
 
 - New Document Manager widget
 - New Query widget
