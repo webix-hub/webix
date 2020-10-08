@@ -105,6 +105,9 @@ const fr = {
 		notEndsWith: "pas se termine par",
 		between: "entre",
 		notBetween: "pas entre"
+	},
+	timeboard:{
+		seconds: "secondes"
 	}
 };
 

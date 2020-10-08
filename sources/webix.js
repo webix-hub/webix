@@ -67,6 +67,7 @@ import "./views/property";
 
 import "./views/calendar";
 import "./views/colorboard";
+import "./views/colorselect";
 
 import "./views/button";
 import "./views/label";
@@ -94,6 +95,7 @@ import "./views/tabbar";
 import "./views/richtext";
 import "./views/uploader";
 import "./views/texthighlight";
+import "./views/timeboard";
 
 import "./views/suggest";
 import "./views/multisuggest";

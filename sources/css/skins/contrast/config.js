@@ -50,7 +50,10 @@ const skin = {
 	optionHeight: 32,
 	timelineColor:"#b300b3",
 
-	backColor:"#393939"
+	backColor:"#393939",
+
+	//colorboard
+	colorPadding: 4
 };
 
 export default skin;

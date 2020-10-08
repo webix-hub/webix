@@ -32,7 +32,7 @@ const api = {
 
 		//create  container for future tooltip
 		this.$view = this._viewobj = this._contentobj = this._dataobj = create("DIV", {role:"alert", "aria-atomic":"true"});
-		this._contentobj.className = "webix_tooltip";
+		this._viewobj.className = this._css_name;
 		insertBefore(this._contentobj,document.body.firstChild,document.body);
 	},
 	adjust:function(){  },
@@ -48,11 +48,12 @@ const api = {
 			this.callEvent("onAfterRender",[]);
 		}
 	},
+	_css_name:"webix_tooltip",
 	css_setter:function(value){
 		if (typeof value === "object")
 			value = createCss(value);
 
-		this._viewobj.className = "webix_tooltip "+value;
+		this._viewobj.className = this._css_name+" "+value;
 		return value;
 	},
 	//show tooltip

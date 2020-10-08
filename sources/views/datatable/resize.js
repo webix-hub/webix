@@ -111,10 +111,9 @@ const Mixin = {
 		e = e||event;
 		var node = e.target;
 		var mode = false; //resize ready flag
-
-		if (node.tagName == "TD" || node.tagName == "TABLE") return ;
 		var element_class = node.className||"";
 		var in_body = typeof element_class === "string" && element_class.indexOf("webix_cell")!=-1;
+		
 		//ignore resize in case of drag-n-drop enabled
 		if (in_body && config.drag) return;
 		var in_header = typeof element_class === "string" && element_class.indexOf("webix_hcell")!=-1;

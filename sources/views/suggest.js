@@ -219,13 +219,21 @@ const api = {
 				this.getParentView().setMasterValue({ value:list.getSelectedDate() }, list.config.multiselect);
 			});
 			list.attachEvent("onTodaySet", function(date){
-				this.getParentView().setMasterValue({ value:date});
+				this.getParentView().setMasterValue({ value: date });
 			});
 			list.attachEvent("onDateClear", function(date){
-				this.getParentView().setMasterValue({ value:date});
+				this.getParentView().setMasterValue({ value: date });
 			});
 		} else if (type == "colorboard"){
 			list.attachEvent("onItemClick", function(value){
+				this.getParentView().setMasterValue({ value: value });
+			});
+		} else if (type == "timeboard"){
+			list.attachEvent("onTimeSelect", function(value){
+				this.getParentView().setMasterValue({ value: value });
+			});
+		} else if (type == "colorselect"){
+			list.attachEvent("onColorSelect", function(value){
 				this.getParentView().setMasterValue({ value:value });
 			});
 		}

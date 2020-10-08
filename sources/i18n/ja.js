@@ -110,6 +110,9 @@ const ja = {
 		notEndsWith: "で終わりではありません",
 		between: "間に",
 		notBetween: "いない間"
+	},
+	timeboard:{
+		seconds: "秒"
 	}
 };
 

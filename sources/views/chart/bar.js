@@ -147,9 +147,8 @@ const BarChart = {
 		}
 	},
 	_correctBarParams:function(ctx,x,y,value,unit,barWidth,minValue){
-		var xax = this._settings.xAxis;
 		var axisStart = y;
-		if(!!xax&&this._settings.origin!="auto" && (this._settings.origin>minValue)){
+		if(this._settings.origin!="auto" && (this._settings.origin>minValue)){
 			y -= (this._settings.origin-minValue)*unit;
 			axisStart = y;
 			value = value-(this._settings.origin-minValue);

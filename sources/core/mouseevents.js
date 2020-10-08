@@ -59,6 +59,7 @@ const MouseEvents={
 			return false;
 
 		UIManager._focus_action(this);
+
 		if(this.on_dblclick){
 			// emulates double click
 			var stamp = (new Date()).valueOf();

@@ -10,7 +10,7 @@ import wDate from "../core/date";
 const datafilter = {
 	textWaitDelay:500,
 	"summColumn":{
-		getValue:function(node){ return node.firstChild.innerHTML; },
+		getValue:function(node){ return node.innerText; },
 		setValue: function(){},
 		refresh:function(master, node, value){ 
 			var result = 0;
@@ -25,7 +25,7 @@ const datafilter = {
 			if (value.template)
 				result = value.template({value:result});
 
-			node.firstChild.innerHTML = result;
+			node.innerHTML = result;
 		},
 		trackCells:true,
 		render:function(master, config){ 
@@ -62,7 +62,7 @@ const datafilter = {
 		}
 	},
 	"textFilter":{
-		getInputNode:function(node){ return node.firstChild?node.firstChild.firstChild:{ value: null }; },
+		getInputNode:function(node){ return node.querySelector("input") || { value: null }; },
 		getValue:function(node){ return this.getInputNode(node).value;  },
 		setValue:function(node, value){ this.getInputNode(node).value = value;  },
 		refresh:function(master, node, value){
@@ -95,7 +95,7 @@ const datafilter = {
 		}
 	},
 	"selectFilter":{
-		getInputNode:function(node){ return node.firstChild?node.firstChild.firstChild:{ value: null}; },
+		getInputNode:function(node){ return node.querySelector("select") || { value: null}; },
 		getValue:function(node){ return this.getInputNode(node).value;  },
 		setValue:function(node, value){ this.getInputNode(node).value = value;  },
 		refresh:function(master, node, value){
@@ -120,8 +120,8 @@ const datafilter = {
 				select.add(option);
 			}
 
-			node.firstChild.innerHTML = "";
-			node.firstChild.appendChild(select);
+			node.innerHTML = "";
+			node.appendChild(select);
 
 			if (value.value) this.setValue(node, value.value);
 			node.onclick = preventEvent;

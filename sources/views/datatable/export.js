@@ -30,7 +30,7 @@ const Mixin = {
 		var columns = this.config.columns, styles = [];
 		this._style_hash = this._style_hash || {};
 
-		if(options.docHeader)
+		if(options.docHeader && type == "excel")
 			styles = [{ 0:this._getExportDocStyle(options.docHeader.css)},{ 0:{}}];
 		if(options.header!==false)
 			styles = this._getExportHStyles(options, "header", styles, type);
@@ -71,7 +71,7 @@ const Mixin = {
 
 		if(options.footer!==false && this.config.footer)
 			styles = this._getExportHStyles(options, "footer", styles, type);
-		if(options.docFooter)
+		if(options.docFooter && type =="excel")
 			styles = styles.concat([{ 0:{}},{ 0:this._getExportDocStyle(options.docFooter.css)}]);
 
 		return styles;
@@ -114,10 +114,6 @@ const Mixin = {
 		if(this._style_hash[name]) 
 			return  this._style_hash[name];
 		else{
-			let parentStyle;
-			if(node.parentNode && node.parentNode.nodeName =="TD") //borders for header are set for parent td
-				parentStyle = this._getRules(node.parentNode);
-
 			const cellStyle = this._getRules(node);
 
 			const bg = color.rgbToHex(cellStyle["background-color"])||"FFFFFF";
@@ -126,10 +122,10 @@ const Mixin = {
 				fontSize: cellStyle["font-size"].replace("px", "")*0.75, //px to pt conversion
 				color: color.rgbToHex(cellStyle["color"]),
 				textAlign: cellStyle["text-align"],
-				borderRightColor: this._getBorderColor(parentStyle||cellStyle, bg, "right"),
-				borderLeftColor: this._getBorderColor(parentStyle||cellStyle, bg, "left"),
-				borderBottomColor: this._getBorderColor(parentStyle||cellStyle, bg, "bottom"),
-				borderTopColor: this._getBorderColor(parentStyle||cellStyle, bg, "top")
+				borderRightColor: this._getBorderColor(cellStyle, bg, "right"),
+				borderLeftColor: this._getBorderColor(cellStyle, bg, "left"),
+				borderBottomColor: this._getBorderColor(cellStyle, bg, "bottom"),
+				borderTopColor: this._getBorderColor(cellStyle, bg, "top")
 			};
 
 			const rules = type == "pdf" ? common : this._getExcelCellRules(cellStyle, node, common);

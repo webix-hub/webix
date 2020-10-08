@@ -1,3 +1,19 @@
+Version 8.0 (October 2020)
+==============================
+
+### Major features
+
+- New Scheduler widget
+- New Gantt widget
+- Updates for Spreadsheet
+- Horizontal mode for Timeline
+- ColorSelect and TimeBoard conrols
+- Updated ColorBoard palette
+- Overflow-Only tooltips
+- Enhanced performance for Datatable header
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_8_0.html)
+
 Version 7.4 (July 2020)
 ==============================
 

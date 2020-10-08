@@ -110,6 +110,9 @@ const zh = {
 		notEndsWith: "不是以",
 		between: "之间",
 		notBetween: "不在之间"
+	},
+	timeboard:{
+		seconds: "秒"
 	}
 };
 

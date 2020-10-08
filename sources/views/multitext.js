@@ -101,12 +101,17 @@ const api = {
 	on_click:{
 		"webix_input_icon":function(){
 			if (this.config.mode == "extra"){
+				const parent = this.getParentView();
+
 				this.removeSection(this.config.id);
-				var childs = this.getParentView().getChildViews();
+
+				const childs = parent.getChildViews();
+
 				childs[childs.length - 1].focus();
+				
 				this._subOnChange();
 			} else
-				$$( this.addSection() ).focus();
+				$$(this.addSection()).focus();
 
 			return false;
 		}

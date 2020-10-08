@@ -1,6 +1,7 @@
 import {protoUI} from "../ui/core";
 import {insertBefore, remove, createCss} from "../webix/html";
 import {$active} from "../webix/skin";
+import {isUndefined} from "../webix/helpers";
 
 import base from "../views/baseview";
 import template from "../webix/template";
@@ -21,8 +22,16 @@ const api = {
 	defaults:{
 		scroll:"auto"
 	},
-	$init:function(){
-		this._viewobj.className += " webix_timeline";
+	$init:function(config){
+		const isHorizontal = config.layout === "x";
+
+		if(isHorizontal){
+			const common = config.type;
+			this.type.type = common && common.type || "top";
+			if (isUndefined(config.scroll)) config.scroll = "x";
+		}
+
+		this._viewobj.className += isHorizontal ? " webix_timeline_horizontal" : " webix_timeline";
 		this.$blockRender = true;
 
 		this.data.provideApi(this,true);
@@ -70,8 +79,12 @@ const api = {
 
 			if(common.type !== "alternate")
 				css += "  webix_timeline_"+common.type;
-			else
-				css += " webix_timeline_"+(index%2?"right":"left");
+			else {
+				if (this._settings.layout == "x")
+					css += " webix_timeline_"+(index%2?"bottom":"top");
+				else
+					css += " webix_timeline_"+(index%2?"right":"left");
+			}
 
 			if (common.css) css += " "+common.css;
 			if (obj.$css){
@@ -96,43 +109,110 @@ const api = {
 			const lineColor = typeof common.lineColor == "string" ? common.lineColor : common.lineColor(obj, common);
 			const commonStyle = `stroke-width:${stroke}px; stroke:${lineColor || $active.timelineColor};`;
 			const scrollSize = this._settings.scroll ? env.scrollSize : 0;
+
 			const width = this.$width - (padding*2)-scrollSize;
+			const height = this.$height - (padding*2)-scrollSize;
+
 			const type = common.type;
 			const last = index+1 == this.count();
 			const circleCenter = paddingTop + radius + stroke/2;
 			const circleSize = radius*2+stroke;
 			const innerPadding = circleSize/2 + 7;
 
-			let left = padding, center = Math.floor(width*0.35), rwidth = Math.floor(width*0.65)-innerPadding;
-			let right = center+innerPadding+padding, lwidth = center-innerPadding;
+			let center = 0;
 
-			if(type == "right"){
-				center = width-right+innerPadding+padding;
-				left = center+innerPadding+padding;
-				right = padding;
-			}
-			else if(type == "alternate"){
-				center = Math.floor(width*0.5);
-				right = center+innerPadding+padding;
-				lwidth = rwidth = center-innerPadding;
-				if(index%2){
-					left = right;
+			// common properties for HTML markup, values are different for layouts
+			let dateStyle = "",
+				eventStyle = "",
+				svgWidth, svgHeight,
+				x1, y1, x2, y2,
+				cx, cy;
+
+			const details = common.templateDetails(obj, common);
+			const value = common.templateValue(obj, common);
+
+			if(this._settings.layout == "x"){
+
+				center = $active.listItemHeight;
+
+				let dateHeight = center,
+					dateOffset = center-padding*2,
+					eventHeight = height-center,
+					eventOffset = center+innerPadding+padding,
+					eventPos = "top";
+
+				const fixDetails = details?innerPadding:0;
+
+				if (type == "bottom"){
+					center = height-center;
+					eventHeight = center-fixDetails;
+					dateOffset = center+innerPadding+padding;
+					eventOffset = (height-center)+dateHeight+innerPadding+padding+circleSize/2;
+					eventPos = "bottom";
+				} else if(type == "alternate"){
+					center = Math.floor(height*0.5);
+					dateOffset = center-padding*2,
+					eventOffset = center+innerPadding+padding;
+					eventHeight = center-fixDetails;
+					if(index%2){
+						dateOffset = eventOffset;
+						eventOffset = center+dateHeight+innerPadding+padding+circleSize/2;
+						eventPos = "bottom";
+					}
+				}
+
+				dateStyle = `top:${dateOffset}px; height:${dateHeight}px;`;
+				eventStyle = `${eventPos}:${eventOffset}px; height:auto; max-height:${eventHeight}px; width:inherit;`;
+				svgWidth = common.width+circleSize;
+				svgHeight = center+circleSize;
+				x1 = circleCenter+radius; y1 = center; x2 = common.width+circleCenter-radius+padding; y2 = center;
+				cx = circleCenter; cy = center;
+
+			} else {
+
+				center = Math.floor(width*0.35);
+				let left = padding, rwidth = Math.floor(width*0.65)-innerPadding;
+				let right = center+innerPadding+padding, lwidth = center-innerPadding;
+
+				if(type == "right"){
+					center = width-right+innerPadding+padding;
+					left = center+innerPadding+padding;
 					right = padding;
 				}
+				else if(type == "alternate"){
+					center = Math.floor(width*0.5);
+					right = center+innerPadding+padding;
+					lwidth = rwidth = center-innerPadding;
+					if(index%2){
+						left = right;
+						right = padding;
+					}
+				}
+
+				dateStyle = `left:${left}px; width:${lwidth}px;`;
+				eventStyle = `left:${right}px; width:${rwidth}px; height:${common.height-padding}px;`;
+				svgWidth = center+circleSize;
+				svgHeight = common.height+circleSize;
+				x1 = center; y1 = circleCenter+radius; x2 = center; y2 = common.height+circleCenter-radius;
+				cx = center; cy = circleCenter;
+
 			}
 
-			//circle inline styles contain fill property as html2canvas ignores it in css
-			return `<div style="left:${left}px; width:${lwidth}px;" class="webix_timeline_date">${common.templateDate(obj,common)}</div>
-					<svg xmlns="http://www.w3.org/2000/svg" width="${center+circleSize}px" height="${common.height+circleSize}px">
-						${(!last) ? `<line x1="${center}px" y1="${circleCenter+radius}" x2="${center}px" y2="${common.height+circleCenter-radius}" class="webix_timeline_node" style="${commonStyle}"/>` : ""}
-						<circle cx="${center}px" cy="${circleCenter}" r="${radius}" class="webix_timeline_node webix_timeline_point" style="${commonStyle} fill:transparent;" />
+			return `<div style="${dateStyle}" class="webix_timeline_date">${common.templateDate(obj,common)}</div>
+					<svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}px" height="${svgHeight}px">
+						${(!last) ? `<line x1="${x1}px" y1="${y1}" x2="${x2}px" y2="${y2}" class="webix_timeline_node" style="${commonStyle}"/>` : ""}
+						<circle cx="${cx}px" cy="${cy}" r="${radius}" class="webix_timeline_node webix_timeline_point" style="${commonStyle} fill:transparent;" />
 					</svg>
-					<div class="webix_timeline_event" style="left:${right}px; width:${rwidth}px; height:${common.height-padding}px;">
-						<div class="webix_timeline_value">${common.templateValue(obj,common)}</div>
-						<div class="webix_timeline_details">${common.templateDetails(obj,common)}</div>
+					<div class="webix_timeline_event" style="${eventStyle}">
+						<div class="webix_timeline_value">${value}</div>
+						${details?`<div class="webix_timeline_details">${details}</div>`:""}
 					</div>`;
 		},
 		templateStart:function(obj, common, index){
+			// horizontal layout
+			if (this._settings.layout == "x"){
+				return `<div ${/*@attr*/"webix_tl_id"}="${obj.id}" class="${common.classname.call(this,obj,common,index)}" style="width:${common.width}px;">`;
+			}
 			return `<div ${/*@attr*/"webix_tl_id"}="${obj.id}" class="${common.classname.call(this,obj,common,index)}" style="height:${common.height}px;">`;
 		},
 		templateEnd:template("</div>")
@@ -148,6 +228,7 @@ const api = {
 	},
 	$skin:function(){
 		this.type.height = $active.timelineItemHeight;
+		this.type.width = $active.timelineItemHeight*3;
 	}
 };
 

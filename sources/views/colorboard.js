@@ -1,8 +1,9 @@
-import {locate} from "../webix/html";
+import {locate, addCss, removeCss} from "../webix/html";
 import {protoUI} from "../ui/core";
 import {bind} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 import template from "../webix/template";
+import {$active} from "../webix/skin";
 
 import color from "../webix/color";
 import KeysNavigation from "../core/keysnavigation";
@@ -12,19 +13,26 @@ import base from "../views/view";
 const api = {
 	name:"colorboard",
 	defaults:{
-		template:"<div style=\"width:100%;height:100%;background-color:{obj.val}\"></div>",
+		template:(obj) => {
+			return `<div class="webix_color_item" style="background-color:${obj.val};"></div>`;
+		},
 		palette:null,
-		height:220,
-		width:220,
-		cols:12,
+		height:250,
+		width:260,
+		cols:11,
 		rows:10,
 		minLightness:0.15,
 		maxLightness:1,
-		navigation:true
+		navigation:true,
+		grayScale:true,
+		type:"material" // "classic"
 	},
 	$init:function(){
 		_event(this._viewobj, "click", bind(function(e){
-			let value = locate(e, /*@attr*/"webix_val");
+
+			// prevent selection the main item container
+			const node = e.target.parentNode;
+			let value = locate(node, /*@attr*/"webix_val");
 			// locate can return null in case of drag
 			if (value){
 				const oldvalue = this._settings.value;
@@ -39,15 +47,30 @@ const api = {
 		this.$view.setAttribute("role", "grid");
 		this._viewobj.setAttribute("aria-readonly", "true");
 	},
+	_get_clear_palette:function(){
+		return [
+			"#F34336",
+			"#FF9700",
+			"#FFEA3B",
+			"#4CB050",
+			"#009788",
+			"#00BCD4",
+			"#2196F3",
+			"#3F51B5",
+			"#673BB7",
+			"#9C28B1",
+			"#EA1E63",
+		];
+	},
 	_set_item_focus:function(){
 		if(!this.getValue())
 			this.moveSelection("up");
 	},
 	_findIndex:function(value){
-		var pal = this._settings.palette;
+		const pal = this._settings.palette;
 		value = (value || "").toUpperCase();
-		for(var r= 0, rows= pal.length; r < rows; r++)
-			for(var c= 0, cols = pal[r].length; c < cols; c++){
+		for(let r= 0, rows= pal.length; r < rows; r++)
+			for(let c= 0, cols = pal[r].length; c < cols; c++){
 				if(pal[r][c].toUpperCase() == value){
 					return {row:r, col:c};
 				}
@@ -83,127 +106,135 @@ const api = {
 
 		return value;
 	},
-	_selectBox:null,
-	_getSelectBox:function(){
-		if( this._selectBox && this._selectBox.parentNode ){
-			return this._selectBox;
-		}else{
-			var div = this._selectBox = document.createElement("div");
-			div.className = "webix_color_selector";
-			this._viewobj.lastChild.appendChild(div);
-			return div;
-		}
-	},
 	$setValue:function(value, oldvalue){
 		if(this.isVisible(this._settings.id)){
-			var cell, div, ind, parent, style,
-				left = 0, top = 0;
+			let cell, ind;
 
-			//remove tabindex for previous selection
 			if(oldvalue) ind = this._findIndex(oldvalue);
 			if(!ind) ind = {row:0, col:0};
-			this._viewobj.lastChild.childNodes[ind.row].childNodes[ind.col].setAttribute("tabindex", "-1");
+			const oldCell = this._getCell(ind);
+			this._setSelection(oldCell, false);
 
 			ind = this._findIndex(value);
 			if(ind){
-				cell = this._viewobj.lastChild.childNodes[ind.row].childNodes[ind.col];
-			}
-
-			if(cell && cell.parentNode && cell.parentNode.parentNode){
-				parent = cell.parentNode;
-				left = cell.offsetLeft - parent.offsetLeft ;
-				top = - (this.$height - (cell.offsetTop -parent.parentNode.offsetTop ));
-
-				cell.setAttribute("tabindex", "0");
-				cell.setAttribute("aria-selected", "true");
-				cell.setAttribute("tabindex", "0");
-				cell.setAttribute("aria-selected", "true");
-			}else{
-				if (this._selectBox)
-					this._selectBox.style.left = "-100px";
-				this._viewobj.lastChild.childNodes[0].childNodes[0].setAttribute("tabindex", "0");
-				return;
-			}
-
-			div = this._getSelectBox();
-			div.setAttribute("webix_val", value);
-			style =  [
-				"left:" + left + "px",
-				"top:" + top+"px",
-				"width:" + cell.style.width,
-				"height:" + cell.style.height
-			].join(";");
-
-			if( typeof( div.style.cssText ) !== "undefined" ) {
-				div.style.cssText = style;
-			} else {
-				div.setAttribute("style",style);
+				cell = this._getCell(ind);
+				if (cell)	this._setSelection(cell, true);
 			}
 		}
 	},
+	_getCell(ind){
+		return this._viewobj.lastChild.childNodes[ind.row].childNodes[ind.col];
+	},
+	_setSelection(cell, state){
+		if (state){
+			cell.setAttribute("tabindex", "0");
+			cell.setAttribute("aria-selected", "true");
+			addCss(cell, "webix_color_selected");
+		} else {
+			cell.setAttribute("tabindex", "-1");
+			cell.removeAttribute("aria-selected");
+			removeCss(cell, "webix_color_selected");
+		}
+	},
+	/* handle colors */
+	_numToHex:function(n){
+		return color.toHex(n, 2);
+	},
+	_rgbToHex:function(r,g,b){
+		return "#"+this._numToHex( Math.floor(r)) +this._numToHex( Math.floor(g)) + this._numToHex(Math.floor(b));
+	},
+	_hslToRgb:function(h, s, l){
+		let r, g, b;
+		if(!s){
+			r = g = b = l; // achromatic
+		}else{
+			let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+			let p = 2 * l - q;
+			r = this._hue2rgb(p, q, h + 1/3);
+			g = this._hue2rgb(p, q, h);
+			b = this._hue2rgb(p, q, h - 1/3);
+		}
 
+		return {r:r * 255, g:g * 255, b:b * 255};
+	},
+	_hue2rgb:function(p, q, t){
+		if(t < 0) t += 1;
+		if(t > 1) t -= 1;
+		if (t < 1/6)
+			return p + (q - p) * 6 * t; 
+		else if (t <= 1/2)
+			return q;
+		else if (t < 2/3) 
+			return p + (q - p) * (2/3 - t) * 6;
+		else
+			return p;
+	},
+	_lightenRgb:function(rgb, lt){
+		/*	color = color * alpha + background * (1 - alpha); */
+		const r = rgb[0]*lt + 255*(1-lt);
+		const g = rgb[1]*lt + 255*(1-lt);
+		const b = rgb[2]*lt + 255*(1-lt);
+		return {r, g, b};
+	},
+	_getGrayScale:function(colCount){
+		const gray = [];
+		let	val = 255,
+			step = val / colCount;
 
+		for(let i=0; i < colCount; i++){
+			val = Math.round(val > 0 ? val : 0);
+			gray.push(this._rgbToHex(val, val, val));
+			val -= step;
+		}
+		gray[gray.length - 1] = "#000000";
+		return gray;
+	},
 	_initPalette:function(config){
-		function numToHex(n){
-			return color.toHex(n, 2);
-		}
-		function rgbToHex(r,g,b){
-			return "#"+numToHex( Math.floor(r)) +numToHex( Math.floor(g)) + numToHex(Math.floor(b));
-		}
-		function hslToRgb(h, s, l){
-			var r, g, b;
-			if(!s){
-				r = g = b = l; // achromatic
-			}else{
-				var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-				var p = 2 * l - q;
-				r = hue2rgb(p, q, h + 1/3);
-				g = hue2rgb(p, q, h);
-				b = hue2rgb(p, q, h - 1/3);
-			}
+		/* default palette (material and custom) */
+		const clearColors = this._get_clear_palette();		
+		config.cols = clearColors.length; // always use the same set
 
-			return {r:r * 255, g:g * 255, b:b * 255};
-		}
-		function hue2rgb(p, q, t){
-			if(t < 0) t += 1;
-			if(t > 1) t -= 1;
-			if (t < 1/6)
-				return p + (q - p) * 6 * t; 
-			else if (t <= 1/2)
-				return q;
-			else if (t < 2/3) 
-				return p + (q - p) * (2/3 - t) * 6;
-			else
-				return p;
-		}
+		const colors = [];
+		const colorRows = config.rows - 1;
+		
+		let lightStep = 1/config.rows;
+		let colorRange = null;
 
-		function renderGrayBar(colCount){
-			var gray = [],
-				val = 255,
-				step = val / colCount;
+		if (this._settings.grayScale){
+			const grayColors = this._getGrayScale(config.cols);
+			colors.push(grayColors.reverse()); // inverted order
+		}			
 
-			for(var i=0; i < colCount; i++){
-				val = Math.round(val > 0 ? val : 0);
-				gray.push(rgbToHex(val, val, val));
-				val -= step;
-			}
-			gray[gray.length - 1] = "#000000";
-			return gray;
-		}
+		colors.push(clearColors);
 
-		var colors = [];
-		var colorRows = config.rows - 1;
-		var colorStep = 1/config.cols;
-		var lightStep = (config.maxLightness - config.minLightness)/colorRows;
-		var colorRange = null;
-
-		colors.push(renderGrayBar(config.cols));
-
-		for(var step = 0, lt = config.minLightness; step < colorRows; step++){
+		for(let step = 0, lt = config.maxLightness; step < colorRows; step++){
+			lt-=lightStep;
 			colorRange = [];
-			for(var c = 0, col = 0; c < config.cols; c++ ){
-				var val = hslToRgb(col, 1, lt );
-				colorRange.push(rgbToHex(val.r, val.g, val.b));
+			for(let col = 0; col < config.cols; col++ ){
+				const clearRgb = color.toRgb(clearColors[col]);
+				const val = this._lightenRgb(clearRgb, lt);
+				colorRange.push(this._rgbToHex(val.r, val.g, val.b));
+			}
+			colors.push(colorRange);
+		}
+		this._settings.palette = colors;
+	},
+	_initOldPalette:function(config){
+		/* old (classic) palette */
+		const colors = [];
+		const colorRows = config.rows - 1;
+		const colorStep = 1/config.cols;
+		let lightStep = (config.maxLightness - config.minLightness)/colorRows;
+		let colorRange = null;
+
+		if (this._settings.grayScale)
+			colors.push(this._getGrayScale(config.cols));
+
+		for(let step = 0, lt = config.minLightness; step < colorRows; step++){
+			colorRange = [];
+			for(let c = 0, col = 0; c < config.cols; c++ ){
+				const val = this._hslToRgb(col, 1, lt );
+				colorRange.push(this._rgbToHex(val.r, val.g, val.b));
 				col += colorStep;
 			}
 			colors.push(colorRange);
@@ -213,7 +244,7 @@ const api = {
 		this._settings.palette = colors;
 	},
 	moveSelection:function(mode, details, focus){
-		var value = this.getValue(), ind, cell;
+		let value = this.getValue(), ind, cell;
 
 		if(value) ind = this._findIndex(value);
 		if(!ind) ind = {row:0, col:0};
@@ -230,71 +261,86 @@ const api = {
 				ind.col = this._viewobj.lastChild.childNodes[ind.row].childNodes.length-1;
 			}
 			ind.row = Math.max(ind.row, 0);
-			if(ind.row>=0)
-				cell = this._viewobj.lastChild.childNodes[ind.row].childNodes[ind.col];
+			if(ind.row>=0){
+				// check if this is a last row
+				const row = this._viewobj.lastChild.childNodes[ind.row];
+				if (row) cell = row.childNodes[ind.col];
+			}
 			if(cell){
 				value =  cell.getAttribute(/*@attr*/"webix_val");
 				this.setValue(value);
 				this.callEvent("onSelect", [this._settings.value]);
 
 				if(focus !==false){
-					var sel = this._viewobj.querySelector("div[tabindex='0']");
+					const sel = this._viewobj.querySelector("div[tabindex='0']");
 					if(sel)  sel.focus();
 				}
 			}
 		}
 	},
+	_renderRow:function(row, widths, height){
+		const data = {width: 0, height:0, val:0};
+		let rowHtml = "<div class=\"webix_color_row\" role=\"row\">";
 
+		for(let cell = 0; cell < row.length; cell++){
+			data.width = widths[cell];
+			data.height = height;
+			data.val = row[cell];
+			rowHtml += this._renderItem(data);
+		}
+		rowHtml += "</div>";
+		return rowHtml;
+	},
+	_renderItem:function(obj){
+		const colorTemplate = template(this._settings.template||"");
+		return `<div role="gridcell" tabindex="-1" aria-label="${obj.val}" style="width:${obj.width}px;height:${obj.height}px;" ${/*@attr*/"webix_val"}="${obj.val}">${colorTemplate(obj)}</div>`;
+	},
 	render:function(){
 		if(!this.isVisible(this._settings.id))
 			return;
 
-		if(!this._settings.palette)
-			this._initPalette(this._settings);
-		var palette = this._settings.palette;
+		const type = this._settings.type;
+		if(!this._settings.palette){
+			if (type === "classic")
+				this._initOldPalette(this._settings);
+			else 
+				this._initPalette(this._settings);
+		}
+		const palette = this._settings.palette;
 
 		this.callEvent("onBeforeRender",[]);
-		var config = this._settings,
-			itemTpl = template("<div role='gridcell' tabindex='-1' aria-label=\"{obj.val}\" style=\"width:{obj.width}px;height:{obj.height}px;\" "+/*@attr*/"webix_val"+"=\"{obj.val}\">" + (config.template||"") + "</div>"),
-			data = {width: 0, height:0, val:0},
-			width = this.$width,
-			height =  this.$height,
+		const padding = type === "classic" ? 0 : $active.colorPadding;
+		const single = typeof palette[0] == "object";
+		const firstRow = single ? palette[0] : palette;
+
+		const deltaWidth = padding*2 + padding*(firstRow.length-1);
+		const deltaHeight = padding*2 + padding*(single ? palette.length-1 : 0);
+
+		let width = this.$width - deltaWidth,
+			height =  this.$height - deltaHeight,
 			widths = [];
 
-		var html = "<div class=\"webix_color_palette\"role=\"rowgroup\">";
-
-		var firstRow = (typeof palette[0] == "object") ? palette[0] : palette;
-		for(var i=0; i < firstRow.length; i++){
+		let html = `<div class="webix_color_palette ${"webix_palette_"+type}" role="rowgroup">`;
+		
+		for(let i=0; i < firstRow.length; i++){
 			widths[i] = Math.floor(width/(firstRow.length - i));
 			width -= widths[i];
 		}
 
 		if(typeof palette[0] == "object"){
-			for(var r=0; r < palette.length; r++){
-				var cellHeight = Math.floor(height/(palette.length - r));
+			for(let r=0; r < palette.length; r++){
+				const cellHeight = Math.floor(height/(palette.length - r));
 				height -= cellHeight;
-				var row = palette[r];
-				html += renderRow(row, widths, cellHeight);
+				const row = palette[r];
+				html += this._renderRow(row, widths, cellHeight);
 			}
 		}else{
-			html+= renderRow(palette, widths, height);
+			html+= this._renderRow(palette, widths, height);
 		}
 
 		html += "</div>";
 		this._viewobj.innerHTML = html;
 
-		function renderRow(row, widths, height){
-			var rowHtml = "<div class=\"webix_color_row\" role=\"row\">";
-			for(var cell = 0; cell < row.length; cell++){
-				data.width = widths[cell];
-				data.height = height;
-				data.val = row[cell];
-				rowHtml += itemTpl(data);
-			}
-			rowHtml += "</div>";
-			return rowHtml;
-		}
-		this._selectBox = null;
 		if(this._settings.value)
 			this.$setValue(this._settings.value);
 		else

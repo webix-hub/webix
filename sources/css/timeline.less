@@ -30,3 +30,26 @@
 	text-overflow:ellipsis;
 	line-height:18px;
 }
+// horizontal mode
+.webix_timeline_horizontal .webix_scroll_cont{
+	display:inline-block;
+	padding-top:unset;
+	padding-left:28px;
+	height:100%;
+}
+.webix_view.webix_timeline_horizontal{
+	white-space:nowrap;
+}
+.webix_timeline_horizontal .webix_timeline_item{
+	display:inline-block;
+	height:100%;
+	border-bottom:none;
+	padding:@dataPadding @dataPadding @dataPadding 0;
+	white-space:normal;
+	.webix_timeline_date, .webix_timeline_event{
+		left:0px;
+	}
+	&.webix_timeline_bottom .webix_timeline_event{
+		top: initial;
+	}
+}

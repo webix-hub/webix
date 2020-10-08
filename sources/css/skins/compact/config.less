@@ -198,7 +198,7 @@
 		border-color: @backColor;
 		box-shadow: none;
 	}
-	.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
+	.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker{
 		.webix_input_icon{
 			.barButton;
 			color: @fontColor;
@@ -476,7 +476,7 @@
 	.webix_last_topcell{
 		border-bottom:1px solid darken(@borderColor,5%);
 	}
-	.webix_hs_right td.webix_first {
+	.webix_hs_right .webix_hcell.webix_first {
 		border-left: @dataHeaderBordersStyle;
 	}
 	.webix_hcell.webix_ss_filter {
@@ -492,18 +492,8 @@
 	}
 }
 .webix_ss_sort_asc, .webix_ss_sort_desc {
-	font-size: 14px;
-	font-family: @iconFamily;
+	font-size: 18px;
 }
-.webix_ss_sort_asc:before{
-	content: '\F004';
-}
-.webix_ss_sort_desc:before{
-	content: '\F001';
-}
-/*.webix_ss_header tr:nth-child(2) td{
-	border-top: 1px solid transparent ;
-}*/
 
 .dtBodyCell{
 	border-bottom: 1px solid @dataBorderColor ;
@@ -549,6 +539,9 @@
 	.buttonStyle;
 	.buttonBackground;
 	font-size: @fontSize;
+	.webix_icon{
+		font-size:15px;
+	}
 }
 .webix_view .webix_pager_item_selected{
 	.buttonStyle;
@@ -567,6 +560,16 @@
 	.dataHeaderFont();
 }
 
+.webix_arrow_icon {
+	margin-top:-11px;
+	font-size: 18px;
+}
+.webix_group_back{
+	.webix_arrow_icon{
+		left: 6px;
+	}
+}
+
 @listPaddingX: 10px;
 @listPaddingY:  2px;
 @treeItemHeight: 22px;
@@ -576,7 +579,7 @@
 .webix_view .webix_tree_open, .webix_view .webix_tree_close{
 	background-image: none;
 	font-family: @iconFamily;
-	font-size: 14px;
+	font-size: 16px;
 	text-align:center;
 	color: @fontColor;
 }
@@ -598,7 +601,7 @@
 		border:none;
 	}
 	.dbllist_button .webix_icon{
-		font-size:14px;
+		font-size:18px;
 	}
 }
 
@@ -606,9 +609,9 @@
 
 .webix_menu-x, .webix_view.webix_menu{
 	.webix_submenu_icon{
-		width:6px;
+		width:7px;
 		height: auto;
-		font-size: 14px;
+		font-size: 16px;
 		font-family: @iconFamily;
 		line-height: 1px;
 		margin-top: 3px;
@@ -723,7 +726,7 @@
    .altBackBorderColor;*/
 }
 
-.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
+.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker{
 	.webix_input_icon{
 		background-color: @buttonColor;
 		color: @buttonFontColor;
@@ -752,7 +755,7 @@
 	}
 }
 
-.webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
+.webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker{
 	input, .webix_inp_static{
 		#border > .radius(@skin_input_radius);
 		padding-right: 28px;
@@ -773,11 +776,11 @@
 }
 .webix_el_combo, .webix_el_richselect{
 	span.webix_input_icon{
-		width: 21px;
-		padding-left:8px;
+		width: 24px;
+		padding-left:5px;
 	}
 }
-.webix_el_datepicker, .webix_el_dbldatepicker, .webix_el_colorpicker, .webix_el_search{
+.webix_el_datepicker, .webix_el_colorpicker, .webix_el_search{
 	span.webix_input_icon{
 		width: 24px;
 	}
@@ -795,8 +798,13 @@
 		color: @buttonColor;
 	}
 	.wxi-checkbox-marked, .wxi-checkbox-blank{
-		height:20px;
+		font-size: 20px;
 	}
+}
+.webix_multicombo_delete:after{
+	content: "\F011";
+	font-size:14px;
+	color:@fontColor;
 }
 
 .buttonBorderStyle(@color:@buttonColor){
@@ -844,13 +852,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	.buttonStyle;
 	font-weight: bold;
 	font-family: "Courier New",Courier,monospace;
-}
-.webix_inp_counter_prev{
-	font-size: 20px;
-
-}
-.webix_inp_counter_next{
-	font-size: 20px;
 }
 
 .webix_inp_label, .webix_inp_top_label, .webix_label_right, .webix_el_label .webix_el_box{
@@ -1175,12 +1176,12 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	content: "\F020";
 	color: @buttonColor;
 	font-family: @iconFamily;
-
-	font-size: 16px;
+	font-weight:600;
+	font-size: 20px;
 	height: 14px;
 	display: block;
 	line-height: 13px;
- 	//padding-left: 1px;
+ 	margin-left: -2px;
 	width: 14px;
 }
 .webix_checkbox_0 .webix_custom_checkbox:before{
@@ -1257,6 +1258,15 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 @formFontSize: @fontSize;
 @iconFontColor: #606060;
 
+//richtext
+.webix_richtext{
+    .wxi-underline, .wxi-italic, .wxi-bold{
+        vertical-align: sub;
+        font-size: 20px;
+        width: 20px;
+    }
+}
+
 //-------------------------------------------///
 //                   Calendar                ///
 //-------------------------------------------///
@@ -1305,6 +1315,9 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 	font-size: (@fontSize - 1);
 	font-weight: normal;
 }
+.webix_cal_time .webix_icon{
+	font-size:18px;
+}
 
 //Daterange
 .webix_cal_range{
@@ -1345,13 +1358,18 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 //comments
 .webix_comments_menu.webix_icon{
 	line-height:24px;
-	margin:0 4px;
-	font-size:15px;
+	font-size:20px;
 }
 
 //timeline
 .webix_timeline_point{
 	r:4;
+}
+
+//colors
+.webix_color_out_block, .webix_color_out_text, 
+.webix_color_area .webix_button{
+	height:24px;
 }
 
 //for skin autodetection

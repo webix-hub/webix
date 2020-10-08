@@ -56,7 +56,10 @@ const skin = {
 	organogramLineColor: "#CCD7E6",
 	timelineColor:"#1CA1C1",
 
-	backColor:"#ffffff"
+	backColor:"#ffffff",
+
+	//colorboard
+	colorPadding: 4
 };
 
 export default skin;

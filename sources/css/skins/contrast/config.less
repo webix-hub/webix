@@ -323,7 +323,7 @@
 @messagePadding: 5px 10px 5px 10px;
 @messageColor: @mainColor;
 
-.webix_win_head{
+.webix_win_head>div{
 	background: @mainColor;
 	color: @barFontColor;
 }
@@ -395,7 +395,7 @@
 	.webix_last_topcell{
 		border-bottom:1px solid darken(@borderColor,5%);
 	}
-	.webix_hs_right td.webix_first {
+	.webix_hs_right .webix_hcell.webix_first {
 		border-left: @dataHeaderBordersStyle;
 	}
 	.webix_hcell.webix_ss_filter {
@@ -425,18 +425,8 @@
 		}
 	}
 }
-.webix_ss_sort_asc, .webix_ss_sort_desc {
-	font-size: 14px;
-	font-family: @iconFamily;
-}
 .webix_ss_sort_num{
 	color: @fontColor;
-}
-.webix_ss_sort_asc:before{
-	content: '\F004';
-}
-.webix_ss_sort_desc:before{
-	content: '\F001';
 }
 
 .dtBodyCell{
@@ -525,7 +515,11 @@
 	.dataHeaderFont();
 }
 
-
+.webix_group_back{
+	.webix_arrow_icon{
+		left: 6px;
+	}
+}
 
 @listPaddingX: 10px;
 @listPaddingY:  2px;
@@ -553,9 +547,9 @@
 
 .webix_menu-x, .webix_view.webix_menu{
 	.webix_submenu_icon{
-		width:6px;
+		width:8px;
 		height: auto;
-		font-size: 14px;
+		font-size: 18px;
 		font-family: @iconFamily;
 		line-height: 1px;
 		margin-top: 3px;
@@ -694,7 +688,7 @@
 	background-color: @inputButtonColor;
 	color: @foreColor;
 }
-.webix_el_combo, .webix_el_search, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
+.webix_el_combo, .webix_el_search, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker{
 	   span.webix_input_icon{
 		   background-color: @inputButtonColor;
 		   color: @foreColor;
@@ -721,7 +715,7 @@
 	}
 
 }
-.webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
+.webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker{
 	.webix_inp_static{
 		#border > .radius(@skin_input_radius);
 		padding-right: 28px;
@@ -742,11 +736,11 @@
 }
 .webix_el_combo, .webix_el_richselect{
 	span.webix_input_icon{
-		width: 21px;
-		padding-left:8px;
+		width: 24px;
+		padding-left:5px;
 	}
 }
-.webix_el_datepicker, .webix_el_dbldatepicker, .webix_el_colorpicker, .webix_el_search{
+.webix_el_datepicker, .webix_el_colorpicker, .webix_el_search{
 	span.webix_input_icon{
 		width: 24px;
 	}
@@ -764,9 +758,11 @@
 	.wxi-checkbox-marked{
 		color: @buttonBorderColor;
 	}
-	.wxi-checkbox-marked, .wxi-checkbox-blank{
-		height:20px;
-	}
+}
+.webix_multicombo_delete:after{
+	content: "\F011";
+	font-size:16px;
+	color:@fontColor;
 }
 
 .buttonBorderStyle(@color:@buttonColor){
@@ -829,6 +825,10 @@ div.webix_inp_static,.webix_el_textarea textarea {
 
 .webix_layout_line, .webix_multiview, .webix_layout_clean, .webix_layout_accordion{
 	background: @backColor;
+}
+
+.webix_img_btn .webix_icon_btn{
+	vertical-align: text-bottom;
 }
 
 
@@ -1140,6 +1140,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 
 .webix_control.webix_el_search span {
 	.altBackColor;
+	font-size:22px;
 }
 
 // disabled controls
@@ -1163,11 +1164,12 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	content: "\F020";
 	color: @foreColor;
 	font-family: @iconFamily;
-	font-size: 16px;
+	font-size: 20px;
+	font-weight:600;
 	height: 16px;
 	display: block;
 	line-height: 13px;
-
+	margin-left:-2px;
 	width: 14px;
 }
 .webix_custom_checkbox{
@@ -1341,10 +1343,13 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 }
 .webix_cal_month_name, .webix_cal_time,
 .webix_cal_prev_button, .webix_cal_next_button{
-	&hover, &:focus{
+	&:hover, &:focus{
 		color: @linkFontColor;
 		text-decoration: underline;
 	}
+}
+.webix_cal_time .webix_icon{
+	font-size:18px;
 }
 
 .webix_cal_outside{
@@ -1428,6 +1433,12 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 .webix_view::-webkit-scrollbar-corner, .webix_view ::-webkit-scrollbar-corner,
 .webix_view::-webkit-scrollbar-track-piece, .webix_view ::-webkit-scrollbar-track-piece{
 	background: @backColor;
+}
+
+//sidebar
+span.webix_sidebar_dir_icon{
+	font-size: 22px;
+    width: 22px;
 }
 
 
@@ -1532,10 +1543,6 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 .webix_comments_name{
 	color:@fontColor;
 }
-.webix_comments_menu.webix_icon{
-	line-height:32px;
-	margin:0 4px;
-}
 .webix_comments_status{
 	height:12px;
 	width:12px;
@@ -1549,4 +1556,14 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 //for skin autodetection
 .webix_skin_mark{
 	height: 230px;
+}
+
+//colorboard selection
+.webix_color_row .webix_color_selected {
+	&>*{
+		box-shadow: @linkFontColor 0 0 0 2px;
+	}
+	&:focus>* {
+		box-shadow: #FFFFFF 0 0 0 2px;
+	}
 }

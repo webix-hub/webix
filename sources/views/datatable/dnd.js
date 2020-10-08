@@ -118,14 +118,12 @@ const Mixin = {
 			var ind = this.getColumnIndex(column_id);
 			var hind = this._settings.leftSplit > ind ? 0 : (this._rightSplit <=ind ? 2 :1 );
 			row_index = row_index || 0;
-			
-			var rows = group.childNodes[hind].getElementsByTagName("TR");
-			if(rows.length){
-				var nodes = rows[row_index+1].childNodes;
-				for (var i=0; i<nodes.length; i++)
-					if (nodes[i].getAttribute(/*@attr*/"column") == ind)
-						return nodes[i].firstChild;
-			}
+
+			const groupNode = group.childNodes[hind];
+
+			const row = /*@attr*/"column";
+			const column = /*@attr*/"row";
+			return groupNode.querySelector(`div[${row}="${ind}"][${column}="${row_index}"]`);
 		}
 		return null;
 	},

@@ -139,10 +139,10 @@ const api = {
 	},
 	$init:function(config){
 		this.on_click = extend({}, this.on_click);
-		var html  = "<div class='webix_ss_header'><div class='webix_hs_left'></div><div class='webix_hs_center'></div><div class='webix_hs_right'></div></div><div class='webix_ss_body'><div class='webix_ss_left'><div class='webix_ss_center_scroll'></div></div>";
+		var html  = "<div class='webix_ss_header' section='header'><div class='webix_hs_left'></div><div class='webix_hs_center'></div><div class='webix_hs_right'></div></div><div class='webix_ss_body'><div class='webix_ss_left'><div class='webix_ss_center_scroll'></div></div>";
 		html += "<div class='webix_ss_center'><div class='webix_ss_center_scroll' role='rowgroup'></div></div>";
 		html += "<div class='webix_ss_right'><div class='webix_ss_center_scroll'></div></div></div>";
-		html += "<div class='webix_ss_hscroll' role='scrollbar' aria-orientation='horizontal'></div><div class='webix_ss_footer'><div class='webix_hs_left'></div><div class='webix_hs_center'></div><div class='webix_hs_right'></div></div><div class='webix_ss_vscroll_header'></div><div class='webix_ss_vscroll' role='scrollbar' aria-orientation='vertical'></div><div class='webix_ss_vscroll_footer'></div>";
+		html += "<div class='webix_ss_hscroll' role='scrollbar' aria-orientation='horizontal'></div><div class='webix_ss_footer' section='footer'><div class='webix_hs_left'></div><div class='webix_hs_center'></div><div class='webix_hs_right'></div></div><div class='webix_ss_vscroll_header'></div><div class='webix_ss_vscroll' role='scrollbar' aria-orientation='vertical'></div><div class='webix_ss_vscroll_footer'></div>";
 
 		this._contentobj.innerHTML = html;
 		this._top_id = this._contentobj.id = this.name+uid();
@@ -199,9 +199,10 @@ const api = {
 	},
 	_render_initial:function(){
 		this._scrollSizeX = this._scrollSizeY = env.scrollSize;
+		const hheight = this._settings.headerRowHeight + 1;
 
 		addStyle("#"+this._top_id +" .webix_cell { height:"+this._settings.rowHeight+"px; line-height:"+(this._settings.rowLineHeight || this._settings.rowHeight)+"px;" +(this._settings.fixedRowHeight?"":"white-space:normal;")+" }");
-		addStyle("#"+this._top_id +" .webix_hcell { height:"+this._settings.headerRowHeight+"px; line-height:"+this._settings.headerRowHeight+"px;}");
+		addStyle("#"+this._top_id +" .webix_hcell { height:"+hheight+"px; line-height:"+hheight+"px;}");
 		this._render_initial = function(){};
 	},
 	_first_render:function(){
@@ -275,16 +276,16 @@ const api = {
 			if (!this._dtable_fully_ready)
 				this._apply_headers();
 
+			if (!id || mode!="update"){
+				this._dtable_height = this._get_total_height();
+				this._set_split_sizes_y();
+			}
+
 			if (this._content_width){
 				if (fast_mode && (mode == "paint" || mode == "update") && id)
 					this._repaint_single_row(id);
 				else
 					this._check_rendered_cols(true, true);
-			}
-
-			if (!id || mode!="update"){
-				this._dtable_height = this._get_total_height();
-				this._set_split_sizes_y();
 			}
 
 			//don't depend on hidden rows/rolumns
@@ -457,9 +458,9 @@ const api = {
 		this.refreshHeaderContent(false, false);
 		this._size_header_footer_fix();
 
-		for (let i=0; i<this._last_order.length; i++){
-			let col_id = this._last_order[i];
-			this.markSorting(col_id, this._last_sorted[col_id].dir, !!i);
+		for (let i=0; i<this._sort_signs_order.length; i++){
+			const col_id = this._sort_signs_order[i];
+			this._render_single_mark(col_id, this._sort_signs[col_id]);
 		}
 	},
 	_getHeaderHeight:function(header, column, ind){
@@ -543,10 +544,8 @@ const api = {
 		return rows;
 	},
 	_find_header_content:function(sec, id){
-		var alltd = sec.getElementsByTagName("TD");
-		for (var i = 0; i < alltd.length; i++)
-			if (alltd[i].getAttribute(/*@attr*/"active_id") == id)
-				return alltd[i];
+		const attr = /*@attr*/"active_id";
+		return sec.querySelector(`DIV[${attr}="${id}"]`);
 	},
 	getHeaderContent:function(id){
 		var obj = this._find_header_content(this._header, id);
@@ -567,34 +566,30 @@ const api = {
 			return base;
 		}
 	},
-	_summ_next:function(heights, start, i){
-		var summ = i ? -1 : 0;
-
-		i += start;
-		for (start; start<i; start++) 
-			summ+=heights[start] + 1;
-
-		return summ;
-	},
 	_render_subheader:function(start, end, width, name, heights){
 		if (start == end) return "";
 
-		var html = "<table role='presentation' style='width:"+width+"px' cellspacing='0' cellpadding='0'>";
-		html += "<tr class='webix_size_row'>";
-		for (let i = start; i < end; i++)
-			html += "<td style='width:"+this._columns[i].width+"px;'></td>";
-		html += "</tr>";
-
+		var html = "";
+		var spans = "";
 		var count = this._columns[0][name].length;
-
-		for (var j = 0; j < count; j++){
-			html += "<tr "+/*@attr*/"section"+"='"+name+"' role='row'>";
-			for (let i = start; i < end; i++){
+		let left = 0;
+		for (let i = start; i < end; i++){
+			const width = this._columns[i].width;
+			let top = 0;
+			const abs = i == start ? "position:static;" : `position:absolute; top:${top}px; left:${left}px;`;
+			html += `<div class="webix_hcolumn" style="${abs}width:${width}px;overflow:hidden;">`;
+			for (var j = 0; j < count; j++){
+				let isSpan = false;
 				var header = this._columns[i][name][j];
-				if (header === null) continue;
+				var cell_height = heights[j];
+				if (!header){
+					html += `<div class='webix_hcell' style='border-bottom-color:transparent;border-right-color:transparent;height:${cell_height+1}px;'></div>`;
+					top+=cell_height+1;
+					continue;
+				}
 
 				if (header.content){
-					header.contentId = header.contentId || uid();
+					header.contentId = header.contentId||uid();
 					header.columnId = this._columns[i].id;
 					header.format = this._columns[i].format;
 
@@ -606,52 +601,79 @@ const api = {
 					this._has_active_headers = true;
 				}
 
-				html += "<td  role='presentation' "+/*@attr*/"column"+"='"+(header.colspan?(header.colspan-1+i):i)+"'";
+				let cell = "<div "+/*@attr*/"row"+"='"+j+"'"+/*@attr*/"column"+"='"+(header.colspan?(header.colspan-1+i):i)+"'";
 
-				var hcss = "";
-				if (i==start)	
-					hcss+="webix_first";
+				var hcss = "webix_hcell";
+				if (header.css)
+					hcss += " " + header.css;
+				if (this._columns[i].$selected)
+					hcss += " webix_sel_hcell";
+
+				if (i==start)
+					hcss+=" webix_first";
 				var column_pos = i + (header.colspan?header.colspan-1:0);
+
 				if (column_pos>=end-1)
 					hcss+=" webix_last";
 				if ((header.rowspan && j+header.rowspan === count) || j === count-1)
 					hcss+=" webix_last_row";
-				if (hcss)
-					html+=" class=\""+hcss+"\"";
-				
-				var cell_height = heights[j];
+
 				var sheight="";
 				if (header.contentId)
-					html+=" "+/*@attr*/"active_id"+"='"+header.contentId+"'";
-				if (header.colspan)
-					html+=" colspan='"+header.colspan+"'";
-				if (header.rowspan){
-					html+=" rowspan='"+header.rowspan+"'";
-					cell_height = this._summ_next(this._headers, j, header.rowspan);
+					cell+=" "+/*@attr*/"active_id"+"='"+header.contentId+"'";
+
+				if (header.colspan || header.rowspan){
+					const cwidth = this._summ_right(this._columns, i, header.colspan) || width;
+					let cheight = this._summ_next(heights, j, header.rowspan);
+					if (cheight <= 0) cheight = cell_height;
+					hcss += " webix_span";
+					sheight = ` colspan='${header.colspan||1}' style='position:absolute; top:${top}px; left:${left}px; line-height:${cheight+1}px; width:${cwidth}px; height:${cheight+1}px;'`;
+					html += `<div class='webix_hcell' style='border-bottom-color:transparent;border-right-color:transparent;height:${cell_height+1}px;'></div>`;
+					isSpan = true;
+				} else {
+					if (cell_height != this._settings.headerRowHeight)
+						sheight =` style='line-height:${cell_height+1}px; height:${cell_height+1}px;'`;
 				}
 
-				if (cell_height != this._settings.headerRowHeight)
-					sheight =" style='line-height:"+cell_height+"px; height:"+cell_height+"px;'";
+				if (hcss)
+					cell+=" class=\""+hcss+"\"";
 
-				var css = "webix_hcell";
-				if (header.css)
-					css += " " + header.css;
-				if (this._columns[i].$selected)
-					css += " webix_sel_hcell";
-
-				html+="><div role='columnheader' class='"+css+"'"+sheight+">";
+				top+=cell_height+1;
+				cell+=" "+sheight+">";
 
 				var text = (header.text===""?"&nbsp;":header.text);
 				if (header.rotate)
 					text = "<div class='webix_rotate' style='width:"+(cell_height-10)+"px; transform-origin:center "+(cell_height-15)/2+"px;-webkit-transform-origin:center "+(cell_height-15)/2+"px;'>"+text+"</div>";
 
-				html += text + "</div></td>";
+				cell += text + "</div>";
+				if (isSpan)
+					spans += cell;
+				else
+					html += cell;
 			}
-			html += "</tr>";
+			left += width;
+			html += "</div>";
 		}
-		html+="</tr></table>";	
 
-		return html;
+		return html+spans;
+	},
+	_summ_next: function(heights, start, i){
+		var summ = -1;
+
+		i += start;
+		for (start; start<i; start++)
+			summ+=heights[start]+1;
+
+		return summ;
+	},
+	_summ_right: function(columns, start, i){
+		var summ = 0;
+
+		i += start;
+		for (start; start<i; start++)
+			summ+=columns[start].width;
+
+		return summ;
 	},
 	showItemByIndex:function(row_ind, column_ind){
 		var pager = this._settings.pager;
@@ -794,23 +816,23 @@ const api = {
 	},
 	_refreshHeaderContent:function(sec, cellTrackOnly, getOnly, byId){
 		if (this._has_active_headers && sec){
-			var alltd = sec.getElementsByTagName("TD");
+			const tag = "DIV";
+			const attr = /*@attr*/"active_id";
+			const cells = sec.querySelectorAll(`${tag}[${attr}]`);
 
-			for (var i = 0; i < alltd.length; i++){
-				var activeId = alltd[i].getAttribute(/*@attr*/"active_id");
+			for (let i = 0; i < cells.length; i++){
+				const activeId = cells[i].getAttribute(/*@attr*/"active_id");
 				if (activeId){
-					var obj = this._active_headers[activeId];
+					const obj = this._active_headers[activeId];
 					if (byId && byId != obj.columnId) continue;
-
 					
 					var content = datafilter[obj.content];
-
 					if (getOnly){
 						if (content.getValue){
-							obj.value = content.getValue(alltd[i]);
+							obj.value = content.getValue(cells[i]);
 						}
 					} else if (!cellTrackOnly || content.trackCells){
-						content.refresh(this, alltd[i], obj);
+						content.refresh(this, cells[i], obj);
 					}
 				}
 			}
@@ -1865,16 +1887,11 @@ const api = {
 			this._sort_signs[column].className = `webix_ss_sort_${direction}`;
 		} else {
 			const sign = create("div", {
+				webix_sort_dir: direction,
 				class: `webix_ss_sort_${direction}`
 			}, `<div class="webix_ss_sort_num">${this._sort_signs_order.length + 1}</div>`);
 
-			const cell = this._get_header_cell(this.getColumnIndex(column));
-			if (cell){
-				cell.style.position = "relative";
-				cell.appendChild(sign);
-				cell.setAttribute("aria-sort", direction + "ending");
-				cell.setAttribute("tabindex", "0");
-			}
+			this._render_single_mark(column, sign, direction);
 
 			this._sort_signs[column] = sign;
 			this._sort_signs_order.push(column);
@@ -1889,6 +1906,18 @@ const api = {
 				removeCss(first, "webix_ss_sort_single");
 		}
 	},
+	_render_single_mark:function(column, sign, direction){
+		direction = direction || sign.getAttribute("webix_sort_dir");
+
+		const cell = this._get_header_cell(this.getColumnIndex(column));
+		if (cell){
+			if (cell.style.position != "absolute")
+				cell.style.position = "relative";
+			cell.appendChild(sign);
+			cell.setAttribute("aria-sort", direction + "ending");
+			cell.setAttribute("tabindex", "0");
+		}
+	},
 	scroll_setter:function(mode){
 		if (typeof mode == "string"){
 			this._settings.scrollX = (mode.indexOf("x") != -1);
@@ -1898,18 +1927,20 @@ const api = {
 			return (this._settings.scrollX = this._settings.scrollY = mode);
 	},
 	_get_header_cell:function(column){
-		var cells = this._header.getElementsByTagName("TD");
-		var maybe = null;
-		for (var i = 0; i<cells.length; i++)
-			if (cells[i].getAttribute(/*@attr*/"column") == column){
-				const activeId = cells[i].getAttribute(/*@attr*/"active_id");
+		const attr = /*@attr*/"column";
+		const cells = this._header.querySelectorAll(`div[${attr}="${column}"]`);
+		let maybe = null;
+		
+		for (var i = 0; i<cells.length; i++){
+			const activeId = cells[i].getAttribute(/*@attr*/"active_id");
 
-				if (activeId && !datafilter[ this._active_headers[activeId].content ].$icon)
-					return null;
+			if (activeId && !datafilter[ this._active_headers[activeId].content ].$icon)
+				return null;
 
-				maybe = cells[i].firstChild;
-				if ((cells[i].colSpan||0) < 2) return maybe;
-			}
+			if (!cells[i].innerHTML) continue;
+			maybe = cells[i];
+			if ((cells[i].colSpan||0) < 2) return maybe;
+		}
 		return maybe;
 	},
 	_last_order:[],
@@ -1992,8 +2023,7 @@ const api = {
 			if (trg.parentNode.getAttribute && !id){
 				var column = trg.parentNode.getAttribute(/*@attr*/"column") || trg.getAttribute(/*@attr*/"column");
 				if (column){ //we need to ignore TD - which is header|footer
-					var  isBody = trg.parentNode.tagName == "DIV";
-
+					var  isBody = this._body.contains(trg);
 					//column already hidden or removed
 					if(!this._columns[column]) return;
 
@@ -2028,7 +2058,7 @@ const api = {
 						}
 					}
 					else if (name == "ItemClick"){
-						var isHeader = (trg.parentNode.parentNode.getAttribute(/*@attr*/"section") == "header");
+						var isHeader = this._header.contains(trg);
 						if (isHeader && this.callEvent("onHeaderClick", [id, e, trg]))
 							this._on_header_click(id.column, e);
 					}
@@ -2047,18 +2077,25 @@ const api = {
 
 		let tooltip = TooltipControl._tooltip;
 		let data;
+
 		if (id.header){
 			let node = e.target;
+			let section = node;
 			let pos;
 			let cind = id.cind - (id.span?id.span-1:0);
 			let rind = -1;
 
-			while (node && !pos){
-				node = node.parentNode;
-				pos = node.getAttribute("section");
+			while (section && !pos){
+				section = section.parentNode;
+				pos = section.getAttribute("section");
 			}
-			while( (node = node.previousSibling) !== null )
-				rind++;
+
+			while (node && rind < 0){
+				let row = node.getAttribute("row");
+				if(row)
+					rind = row;
+				node = node.parentNode;
+			}
 
 			let config = this._columns[cind][pos][rind];
 			if (config.tooltip)

@@ -20,7 +20,6 @@ const api = {
 
 	defaults:{
 		date: new Date(), //selected date, not selected by default
-		select: false,
 		navigation: true,
 		monthSelect: true,
 		weekHeader: true,

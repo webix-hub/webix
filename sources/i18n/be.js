@@ -110,6 +110,9 @@ const be = {
 		notEndsWith: "не сканчаецца",
 		between: "паміж",
 		notBetween: "не паміж"
+	},
+	timeboard:{
+		seconds: "Секунды"
 	}
 };
 

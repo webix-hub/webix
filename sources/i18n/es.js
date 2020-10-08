@@ -110,6 +110,9 @@ const es = {
 		notEndsWith: "no termina con",
 		between: "entre",
 		notBetween: "no entre"
+	},
+	timeboard:{
+		seconds: "segundos"
 	}
 };
 

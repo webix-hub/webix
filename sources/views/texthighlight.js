@@ -103,7 +103,7 @@ const api = {
 		highlight.scrollLeft = text.scrollLeft;
 	},
 	_updatePos: function(){
-		if(this.isVisible()){
+		if(this._rendered_input && this.isVisible()){
 			const input = this.getInputNode();
 			const highlightStyles = this._getHighlightNode().style;
 
@@ -113,10 +113,12 @@ const api = {
 		}
 	},
 	_syncText: function(){
-		delay(()=>{
+		delay(function(){
+			if (this.$destructed) return;
+
 			this._handleInput();
 			this._handleScroll();
-		});
+		}, this);
 	}
 };
 

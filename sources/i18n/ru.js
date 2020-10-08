@@ -105,6 +105,9 @@ const ru = {
 		notEndsWith: "не заканчиватся",
 		between: "между",
 		notBetween: "не между"
+	},
+	timeboard:{
+		seconds: "Секунды"
 	}
 };
 

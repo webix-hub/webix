@@ -112,6 +112,9 @@ const pt = {
 		notEndsWith: "não termina com",
 		between: "entre",
 		notBetween: "não entre"
+	},
+	timeboard:{
+		seconds: "segundos"
 	}
 };
 

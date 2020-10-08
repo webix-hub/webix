@@ -1,5 +1,5 @@
 import list from "../views/list";
-import {insertBefore, remove} from "../webix/html";
+import {insertBefore, remove, createCss} from "../webix/html";
 import {protoUI} from "../ui/core";
 import {$active} from "../webix/skin";
 import {_to_array} from "../webix/helpers";
@@ -93,18 +93,30 @@ const api = {
 	},
 	type:{
 		headerHeight: 20,
+		classname:function(obj, type, marks){
+			let css = "webix_list_item";
+			if (type.css)
+				css += " webix_list_"+type.css+"_item";
+			if (marks && marks.$css)
+				css += " "+marks.$css;
+			if (obj.$css){
+				if (typeof obj.$css == "object")
+					obj.$css = createCss(obj.$css);
+				css += " "+obj.$css;
+			}
+			return css;
+		},
 		templateHeader: function(value){
 			return "<span class='webix_unit_header_inner'>"+value+"</span>";
 		},
 		templateStart:function(obj,type,marks){
 			if(obj.$unit)
 				return type.templateStartHeader.apply(this,arguments);
-			const className = "webix_list_item webix_list_"+(type.css)+"_item"+((marks&&marks.webix_selected)?" webix_selected":"")+(obj.$css?obj.$css:"");
 			const style = "width:"+type.widthSize(obj,type,marks)+"; height:"+type.heightSize(obj,type,marks)+"; overflow:hidden;"+(type.layout&&type.layout=="x"?"float:left;":"");
-			return "<div "+/*@attr*/"webix_item_id"+"=\""+obj.id+"\" class=\""+className+"\" style=\""+style+"\" "+type.aria(obj, type, marks)+">";
+			return "<div "+/*@attr*/"webix_item_id"+"=\""+obj.id+"\" class=\""+type.classname(obj,type,marks)+"\" style=\""+style+"\" "+type.aria(obj, type, marks)+">";
 		},
 		templateStartHeader:function(obj,type,marks){
-			const className = "webix_unit_header webix_unit_"+(type.css)+"_header"+(obj.$selected?"_selected":"");
+			const className = "webix_unit_header"+(type.css?" webix_unit_header_"+type.css+"_item":"");
 			const style = "width:"+type.widthSize(obj,type,marks)+"; height:"+type.headerHeight+"px; overflow:hidden;";
 			return "<div "+/*@attr*/"webix_unit_id"+"=\""+obj.$unit+"\" class=\""+className+"\" style=\""+style+"\">";
 		}

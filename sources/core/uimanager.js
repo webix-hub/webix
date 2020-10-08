@@ -45,7 +45,7 @@ const UIManager = {
 	_enable: function() {
 		// attaching events here
 		event(document, "keydown", this._keypress, { bind:this });
-		event(document.body, "click", this._focus_click, { bind:this });
+		event(document.body, "click", this._focus_click, { capture:true, bind:this });
 		event(document.body, "mousedown", function(){
 			this._mouse_time = new Date();
 		}, { bind:this });
@@ -110,7 +110,11 @@ const UIManager = {
 
 		if (view){
 			if (this.canFocus(view)){
-				this.setFocus(view);
+				// keep form focus
+				if (this._view && this._view.getFormView() == view && this._view.focus)
+					this._view.focus();
+				else
+					this.setFocus(view);
 			}
 			//remove focus from an unreachable view
 			else if (view.$view.contains(e.target))

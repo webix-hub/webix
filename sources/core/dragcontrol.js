@@ -132,9 +132,9 @@ const DragControl ={
 		if (longTouchLimit || Math.abs(pos.x-DragControl._start_pos.x)<5 && Math.abs(pos.y-DragControl._start_pos.y)<5)
 			return;
 
+		if (!DragControl._html && !DragControl.createDrag(DragControl._saved_event))
+			return DragControl._clean_dom_after_drag();
 		DragControl._clean_dom_after_drag(true);
-		if(!DragControl._html)
-			if (!DragControl.createDrag(DragControl._saved_event)) return;
 
 		DragControl.sendSignal("start"); //useless for now
 

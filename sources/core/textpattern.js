@@ -1,4 +1,3 @@
-import UIManager from "../core/uimanager";
 import Number from "../core/number";
 
 import env from "../webix/env";
@@ -8,12 +7,7 @@ import {preventEvent, getSelectionRange, setSelectionRange} from "../webix/html"
 import {bind, isUndefined} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 
-
-var controls = {};
-for(var i in UIManager._controls){
-	controls[UIManager._controls[i]] = i;
-}
-var nav_controls = {
+const nav_controls = {
 	9:"tab",
 	38:"up",
 	40:"down",
@@ -21,11 +15,10 @@ var nav_controls = {
 	39:"right"
 };
 
-
 const TextPattern = {
 	$init:function(config){
-		var pattern =  this.defaults.pattern || config.pattern;
-		var format = this.defaults.format || config.format;
+		const pattern =  this.defaults.pattern || config.pattern;
+		let format = this.defaults.format || config.format;
 		config.value = isUndefined(config.value) ? "" :config.value;
 
 		if (pattern || (format && !this.format_setter)){
@@ -36,9 +29,7 @@ const TextPattern = {
 				if(code>105 && code<112) //numpad operators
 					code -=64;
 
-				if(controls[code] && code !== 8 && code !==46){  //del && bsp
-					if(!nav_controls[code])
-						preventEvent(e);
+				if(nav_controls[code] && code !== 8 && code !==46){  //del && bsp
 					return;
 				}
 

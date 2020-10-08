@@ -12,12 +12,12 @@ const api = {
 		icon:true
 	},
 	_init_popup:function(){
-		var obj = this._settings;
+		const obj = this._settings;
 		if (obj.suggest)
 			obj.popup = obj.suggest;
 		else if (!obj.popup)
 			obj.popup = obj.suggest = this.suggest_setter({
-				type:"colorboard", height:200
+				type:"colorboard"
 			});
 		this._init_once = function(){};
 	},

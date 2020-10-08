@@ -1,15 +1,16 @@
 import {pos as getPos} from "../webix/html";
-import {toNode, _to_array, delay} from "../webix/helpers";
+import {toNode, _to_array, isUndefined, delay} from "../webix/helpers";
 import {event, eventRemove} from "../webix/htmlevents";
 import {attachEvent, detachEvent} from "../webix/customevents";
 import {assert} from "../webix/debug";
 import {ui} from "../ui/core";
 
 
-const TooltipControl ={
+const TooltipControl = {
 	_tooltip_masters: _to_array(["dummy"]),
 	_tooltip_exist: 0,
-	delay:400,
+	overflow: false,
+	delay: 400,
 	addTooltip:function(target,config){
 		let node, ctrl;
 		target = toNode(target);
@@ -36,32 +37,39 @@ const TooltipControl ={
 
 		if(!this._tooltip){
 			this._tooltip = new ui.tooltip({});
+			this._tooltip._css_name = "webix_tooltip webix_global_tooltip";
 
 			this._webix_tooltip_mm = event(document,"mousemove",this._move_tooltip,{ bind:this });
 			this._webix_tooltip_ml = event(document,"mouseleave",this._hide_tooltip, { bind:this });
-			this._drag_event = attachEvent("onDragMode", () => { this._hide_tooltip(); });
-			this._click_event = attachEvent("onClick", () => { this._hide_tooltip(); });
+			this._drag_event = attachEvent("onDragMode", () => this._hide_tooltip());
+			this._click_event = attachEvent("onClick", () => this._hide_tooltip());
 		}
 	},
 	getTooltip:function(){
 		return this._tooltip;
 	},
 	_move_tooltip:function(e){
+		const c = { };
 		let node = e.target;
-		let text;
 		while (node instanceof Element && node.tagName != "HTML"){
+			// find `webix_tooltip` marker
+			if (!c.first || !c.overflow){
+				const text = node.getAttribute("webix_tooltip");
+				c.first = c.first || text;
+				if (text && node.scrollWidth > node.clientWidth)
+					c.overflow = text;
+			}
+			// find tooltip master
 			if ( this._tooltip_masters[node.webix_tooltip] ){
-				if(this._last && this._last != node){
+				if (this._last && this._last != node){
 					this.$tooltipOut(this._last,node,e);
 					this._last = null;
 					return;
 				}
-				if(!this._last)
+				if (!this._last)
 					this._last = this.$tooltipIn(node,e);
-				this.$tooltipMove(node,e,text);
-				return;
+				return this.$tooltipMove(node,e,c);
 			}
-			text = text || node.getAttribute("webix_tooltip");
 			node = node.parentElement;
 		}
 		if (this._last)
@@ -108,25 +116,32 @@ const TooltipControl ={
 			this._tooltip_masters = _to_array(["dummy"]);
 		}
 	},
-
 	$tooltipIn:function(t,e){
 		let m = this._tooltip_masters[t.webix_tooltip];
-		if (m.$tooltipIn && m!=this) return m.$tooltipIn(t,e);
-		this._tooltip.define( { dx:20, dy:0, template:t.getAttribute("webix_tooltip")||"", css:""} );
+		if (m.$tooltipIn && m!=this)
+			return m.$tooltipIn(t,e);
+		this._tooltip.define( { dx:20, dy:0, template:"", css:""} );
 		return t;
 	},
 	$tooltipOut:function(t,n,e){
 		let m = this._tooltip_masters[t.webix_tooltip];
-		if (m.$tooltipOut && m!=this) return m.$tooltipOut(t,n,e);
+		if (m.$tooltipOut && m!=this)
+			return m.$tooltipOut(t,n,e);
 		this._hide_tooltip();
 		return null;
 	},
-	$tooltipMove:function(t,e,text){
+	$tooltipMove:function(t,e,c){
 		let m = this._tooltip_masters[t.webix_tooltip];
-		if (m.$tooltipMove && m!=this) return m.$tooltipMove(t,e,text);
-		this._tooltip.hide();
-		clearTimeout(this._before_show_delay);
-		this._before_show_delay = delay(this._tooltip.show,this._tooltip,[text||{},getPos(e)],this.delay);
+		if (m.$tooltipMove && m!=this)
+			return m.$tooltipMove(t,e,c);
+
+		const overflow = isUndefined(m.overflow) ? this.overflow : m.overflow;
+		const time = isUndefined(m.delay) ? this.delay : m.delay;
+		const text = overflow ? c.overflow : c.first;
+
+		if (time > 0)
+			this._hide_tooltip();
+		this._before_show_delay = delay(this._tooltip.show, this._tooltip, [text||{ }, getPos(e)], time);
 	}
 
 };

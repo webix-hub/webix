@@ -113,6 +113,9 @@ const en = {
 		notEndsWith: "not ends with",
 		between: "between",
 		notBetween: "not between"
+	},
+	timeboard:{
+		seconds: "Seconds"
 	}
 };
 

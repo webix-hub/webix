@@ -13,8 +13,12 @@ const api = {
 	_editable:true,
 	$init:function(config){
 		// value_setter handling
-		if(config.multiselect)
+		if (config.multiselect) {
 			this._settings.multiselect = config.multiselect;
+		}
+		if (config.type){
+			this._settings.type = config.type;
+		}
 
 		this.$ready.push(this._init_popup);
 	},
@@ -97,17 +101,17 @@ const api = {
 		else
 			return this._prepareSingleValue(value);
 	},
-	_prepareSingleValue:function(value){
+	_prepareSingleValue: function(value) {
 		const type = this._settings.type;
 		const timeMode = type == "time";
 
 		//setValue("1980-12-25")
-		if(!isNaN(parseFloat(value)))
+		if (!isNaN(parseFloat(value)))
 			value = ""+value;
 
-		if (typeof value=="string" && value){
+		if (typeof value == "string" && value){
 			let formatDate = null;
-			if((type == "month" || type == "year") && this._formatDate)
+			if ((type == "month" || type == "year") && this._formatDate)
 				formatDate = this._formatDate;
 			else
 				formatDate = (timeMode ? i18n.parseTimeFormatDate : i18n.parseFormatDate);

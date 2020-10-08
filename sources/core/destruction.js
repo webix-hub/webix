@@ -76,8 +76,9 @@ const Destruction = {
 			this.unbind();
 
 		this.data = null;
+		this._parent_cell = null;
 		this._viewobj = this.$view = this._contentobj = this._dataobj = null;
-		this._evs_events = this._evs_handlers = {};
+		this._evs_events = this._evs_handlers = this._evs_map = {};
 
 		//remove focus from destructed view
 		if (UIManager._view == this)

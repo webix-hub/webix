@@ -52,6 +52,8 @@ const api = {
 		if(config.modal)
 			this._modal = true;
 		// head_setter handling
+		if(config.headHeight)
+			this._settings.headHeight = config.headHeight;
 		if(config.close)
 			this._settings.close = config.close;
 
@@ -377,8 +379,9 @@ const api = {
 	head_setter:function(value){
 		if (value === false) return value;
 
+		const height = this._settings.headHeight;
 		const text = typeof value == "string";
-		const config = { padding:0, css: "webix_win_title", type:"header", borderless:true };
+		const config = { height, padding:0, css: "webix_win_title", type:"header", borderless:true };
 		if(text){
 			this._viewobj.setAttribute("aria-label", value);
 			value = { template:value };
@@ -389,7 +392,7 @@ const api = {
 		if(text && this.config.close){
 			value = { padding:{ left: $active.inputHeight+2, right:2 }, cols:[
 				value,
-				{ view:"icon", icon:"wxi-close", click:()=>{
+				{ height, view:"icon", icon:"wxi-close", click:()=>{
 					this.hide();
 				}}
 			]};
@@ -399,6 +402,10 @@ const api = {
 
 		state._parent_cell = this;
 		this._head_cell = ui._view(value);
+
+		const template = this._head_cell._viewobj.querySelector(".webix_win_title>div");
+		if(template)
+			template.style.lineHeight = height + "px";
 
 		this._headobj.appendChild(this._head_cell._viewobj);
 		return value;

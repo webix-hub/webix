@@ -198,7 +198,7 @@
 		border-color: @backColor;
 		box-shadow: none;
 	}
-	.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
+	.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker{
 		.webix_input_icon{
 			.barButton;
 			color: @fontColor;
@@ -446,6 +446,7 @@
 .dataHeaderBg(){
 	background: @dataHeaderBgColor;
 }
+
 .dataHeaderFont(){
 	font-size: @dataHeaderFontSize;
 	//color:@barFontColor;
@@ -469,7 +470,7 @@
 	.webix_ss_right .webix_column.webix_first>div{
 		border-left: 1px solid darken(@borderColor,5%);
 	}
-	.webix_hs_right td.webix_first {
+	.webix_hs_right .webix_hcell.webix_first {
 		border-left: @dataHeaderBordersStyle;
 	}
 	.webix_hcell.webix_ss_filter {
@@ -486,16 +487,7 @@
 	}
 
 }
-.webix_ss_sort_asc, .webix_ss_sort_desc {
-	font-size: 14px;
-	font-family: @iconFamily;
-}
-.webix_ss_sort_asc:before{
-	content: '\F004';
-}
-.webix_ss_sort_desc:before{
-	content: '\F001';
-}
+
 /*.webix_ss_header tr:nth-child(2) td{
 	border-top: 1px solid transparent ;
 }*/
@@ -561,6 +553,12 @@
 	.dataHeaderFont();
 }
 
+.webix_group_back{
+	.webix_arrow_icon{
+		left: 6px;
+	}
+}
+
 @listPaddingX: 10px;
 @listPaddingY:  2px;
 @treeItemHeight: 28px;
@@ -570,7 +568,7 @@
 .webix_view .webix_tree_open, .webix_view .webix_tree_close{
 	background-image: none;
 	font-family: @iconFamily;
-	font-size: 14px;
+	font-size: 16px;
 	text-align:center;
 	color: @fontColor;
 }
@@ -601,9 +599,9 @@
 
 .webix_menu-x, .webix_view.webix_menu{
 	.webix_submenu_icon{
-		width:6px;
+		width:8px;
 		height: auto;
-		font-size: 14px;
+		font-size: 18px;
 		font-family: @iconFamily;
 		line-height: 1px;
 		margin-top: 3px;
@@ -716,7 +714,7 @@
 	.altBackBorderColor;*/
 }
 
-.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
+.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker{
 	.webix_input_icon{
 		background-color: @buttonColor;
 		color: @buttonFontColor;
@@ -743,7 +741,7 @@
 	}
 
 }
-.webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_dbldatepicker{
+.webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker {
 	.webix_inp_static{
 		#border > .radius(@skin_input_radius);
 		padding-right: 28px;
@@ -773,11 +771,11 @@
 }
 .webix_el_combo, .webix_el_richselect{
 	span.webix_input_icon{
-		width: 21px;
-		padding-left:8px;
+		width: 24px;
+		padding-left:5px;
 	}
 }
-.webix_el_datepicker, .webix_el_dbldatepicker, .webix_el_colorpicker, .webix_el_search{
+.webix_el_datepicker, .webix_el_colorpicker, .webix_el_search{
 	span.webix_input_icon{
 		width: 24px;
 	}
@@ -794,9 +792,11 @@
 	.wxi-checkbox-marked{
 		color: @buttonColor;
 	}
-	.wxi-checkbox-marked, .wxi-checkbox-blank{
-		height:20px;
-	}
+}
+.webix_multicombo_delete:after{
+	content: "\F011";
+	font-size:16px;
+	color:@fontColor;
 }
 
 .buttonBorderStyle(@color:@buttonColor){
@@ -847,6 +847,9 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	font-size: 20px;
 }
 
+.webix_img_btn .webix_icon_btn{
+	vertical-align: text-bottom;
+}
 
 .webix_view.webix_control.webix_el_tabbar{
 	background: transparent;
@@ -1134,6 +1137,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 
 .webix_control.webix_el_search span {
 	.altBackColor;
+	font-size:22px;
 }
 
 // disabled controls
@@ -1157,11 +1161,13 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	content: "\F020";
 	color: @buttonColor;
 	font-family: @iconFamily;
-	font-size: 16px;
+	font-size: 20px;
+	font-weight:600;
 	height: 14px;
 	display: block;
 	line-height: 13px;
 	width: 14px;
+	margin-left:-2px;
 }
 .webix_checkbox_0 .webix_custom_checkbox:before{
 	visibility:hidden;
@@ -1284,6 +1290,10 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 	font-weight: normal;
 }
 
+.webix_cal_time .webix_icon{
+	font-size:18px;
+}
+
 //Daterange
 .webix_daterange .webix_range_timepicker .webix_cal_time{
 	padding:5px 15px;
@@ -1313,10 +1323,10 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 	outline-width:1px;
 }
 
-//comments
-.webix_comments_menu.webix_icon{
-	line-height:32px;
-	margin:0 4px;
+//sidebar
+span.webix_sidebar_dir_icon{
+	font-size: 22px;
+    width: 22px;
 }
 
 //for skin autodetection

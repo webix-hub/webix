@@ -1,5 +1,5 @@
 import {pos as getPos} from "../webix/html";
-import {delay, extend} from "../webix/helpers";
+import {delay, extend, isUndefined} from "../webix/helpers";
 import TooltipControl from "../core/tooltipcontrol";
 
 //indirect UI import
@@ -16,6 +16,9 @@ const AutoTooltip = {
 				value = { template:value };
 			if (typeof value !== "object")
 				value = {};
+
+			if (value.overflow && isUndefined(value.template))
+				value.template = "";
 
 			this._init_tooltip_once();
 			return value;
@@ -44,18 +47,21 @@ const AutoTooltip = {
 		TooltipControl._hide_tooltip();
 		return null;
 	},
-	$tooltipMove:function(t,e,text){
-		TooltipControl._tooltip.hide();
+	$tooltipMove:function(t,e,c){
+		const tooltip = this._settings.tooltip;
+		const overflow = isUndefined(tooltip.overflow) ? TooltipControl.overflow : tooltip.overflow;
+		const time = isUndefined(tooltip.delay) ? TooltipControl.delay : tooltip.delay;
+		const text = overflow ? c.overflow : c.first;
 
-		clearTimeout(TooltipControl._before_show_delay);
-		TooltipControl._before_show_delay = delay(this._show_tooltip,this,[t,e,text],TooltipControl.delay);
+		if (time > 0)
+			TooltipControl._hide_tooltip();
+		TooltipControl._before_show_delay = delay(this._show_tooltip, this, [t, e, text], time);
 	},
 	_show_tooltip:function(t,e,text){
-		let data = text || this._get_tooltip_data(t,e);
+		const data = text || this._get_tooltip_data(t,e);
 		if (!data || !this.isVisible())
 			return;
-
-		TooltipControl._tooltip.show(data,getPos(e));
+		TooltipControl._tooltip.show(data, getPos(e));
 	},
 	_get_tooltip_data:function(t,e){
 		if (this.locate && this.getItem){

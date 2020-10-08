@@ -432,8 +432,7 @@ label.webix_required:after, legend.webix_required:after,
 	list-style: none;
 }
 .webix_multicombo_value, .webix_multicombo_tag{
-
-	padding: 0 5px 0 7px;
+	padding-left:7px;
 	background-color: darken(@backColor,5%);
 	display: inline-block;
 	margin: 3px;
@@ -445,12 +444,22 @@ label.webix_required:after, legend.webix_required:after,
 	text-align: center;
 	padding: 0 5px 0 5px;
 }
+
+
 .webix_multicombo_delete{
-	margin-left: 10px;
-	padding: 0 5px ;
-	color: darken(@fontColor,15%);
-	cursor: pointer;
-}
+		#box > .noselect;
+		color: transparent;
+		margin:0 4px 0 2px;
+		padding: 0;
+		cursor:pointer;
+		&:after{
+			vertical-align: bottom;
+			font-size: 20px;
+			content: "\F033";
+			font-family: @iconFamily;
+			color: @inactiveFontColor;
+		}
+	}
 
 .webix_multilist .webix_selected{
 	background: darken(@backColor,5%);
@@ -459,6 +468,9 @@ label.webix_required:after, legend.webix_required:after,
 .webix_multilist{
 	.wxi-checkbox-marked, .wxi-checkbox-blank{
 		vertical-align:middle;
+		font-size: 24px;
+		width: 24px;
+		margin-right: 4px;
 	}
 }
 

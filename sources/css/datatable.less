@@ -11,7 +11,7 @@
 @import "message.less";
 @import "dnd.less";
 
-.webix_column{
+.webix_column, .webix_hcolumn{
 	position:absolute;
 	top:0px;
 }
@@ -38,13 +38,12 @@
 .webix_hs_left, .webix_hs_center, .webix_hs_right, .webix_ss_center, .webix_ss_right, .webix_ss_left{
 	overflow:hidden;
 	float:left;
+	position:relative;
 }
 .webix_ss_center, .webix_ss_right{
 	position: relative;
 }
-.webix_ss_header table, .webix_ss_footer table{
-	table-layout:fixed;
-}
+
 .webix_ss_center_scroll{
 	height:100%;
 	position:relative;
@@ -87,8 +86,7 @@
 
 
 
-
-.webix_table_cell, .webix_view.webix_table_cell, .webix_block_selection, .webix_ss_header td, .webix_ss_footer td, .webix_hcell, .webix_cell{
+.webix_table_cell, .webix_view.webix_table_cell, .webix_block_selection, .webix_hcell, .webix_cell{
 	#box > .sizing;
 }
 .webix_table_cell{
@@ -104,7 +102,9 @@
 	top: 50%;
 	right: 2px;
 
-	width: 20px;
+	font-family: @iconFamily;
+	font-size: 20px;
+	width: 24px;
 	height: 24px;
 	line-height: 24px;
 	margin-top: -12px;
@@ -116,6 +116,13 @@
 	}
 	#box >.noselect;
 }
+.webix_ss_sort_asc:before{
+	content: '\F004';
+}
+.webix_ss_sort_desc:before{
+	content: '\F001';
+}
+
 .webix_ss_sort_num{
 	position: absolute;
 	top: 0;
@@ -147,13 +154,12 @@
 	text-align: center;
 	cursor: pointer;
 	color:@inactiveFontColor;
-	font-size: 14px;
 	&:hover{
 		color: @baseColor;
 	}
 }
 
-.webix_excel_filter + .webix_ss_sort_asc, .webix_excel_filter + .webix_ss_sort_desc{
+.webix_excel_filter ~ .webix_ss_sort_asc, .webix_excel_filter ~ .webix_ss_sort_desc{
 	right: 24px;
 }
 
@@ -206,14 +212,16 @@
 }
 
 /*headers and footers*/
-.webix_ss_header, .webix_ss_header TD, .webix_ss_vscroll_header, .webix_dd_drag_column{
+.webix_ss_header, .webix_hcolumn, .webix_ss_vscroll_header, .webix_dd_drag_column,
+.webix_hs_left, .webix_hs_center, .webix_hs_right{ //only for export with styles
 	.dataHeaderFont;
 	.dataHeaderBg;
 }
-.webix_ss_footer TD, .webix_ss_vscroll_footer{
+.webix_ss_footer, .webix_ss_footer .webix_hcolumn,
+.webix_ss_footer .webix_hs_left, .webix_ss_footer .webix_hs_center, .webix_ss_footer .webix_hs_right,
+.webix_ss_footer div.webix_ss_vscroll_footer{
 	.dataFooterFont;
 	.dataFooterBg;
-
 	background: darken(@backColor,2%);
 }
 .webix_hcell.webix_measure_size{
@@ -228,21 +236,18 @@
 }
 
 /*borders in header and footer*/
-.webix_ss_header td{
+.webix_ss_header .webix_hcolumn .webix_hcell, .webix_ss_header .webix_span {
 	border-right:1px solid @dataHeaderBorderColor;
 	border-bottom:1px solid @dataHeaderBorderColor;
 	.dataHeaderBorders;
 }
-.webix_ss_footer td{
+.webix_ss_footer .webix_hcolumn .webix_hcell, .webix_ss_footer .webix_span {
 	border-right:1px solid @dataBorderColor;
 	border-top:1px solid @dataBorderColor;
 }
-.webix_size_row td{
-	border:none;
-}
 
 /*remove rightmost borders*/
-.webix_hs_right td.webix_last, .webix_hs_center td.webix_last{
+.webix_hs_right .webix_hcell.webix_last, .webix_hs_center .webix_hcell.webix_last{
 	border-right-width:0px;
 }
 
@@ -252,7 +257,8 @@
 	border-right-width:0px;
 }
 /*borders between split areas*/
-.webix_ss_right .webix_column.webix_first>div, .webix_hs_right td.webix_first{
+.webix_ss_right .webix_column.webix_first>div,
+.webix_hs_right .webix_first{
 	border-left:1px solid @borderColor;
 }
 .webix_ss_left .webix_column.webix_last>div{
@@ -273,12 +279,14 @@
 	.dtBodyCell;
 }
 
-.webix_column{
+.webix_column, .webix_hcolumn{
 	text-align:left;
 }
 
-/*header selection in column mode*/
-.webix_sel_hcell, .webix_dd_over_column{
+/*header selection in column mode, column dnd*/
+.webix_ss_header .webix_sel_hcell,
+.webix_ss_footer .webix_sel_hcell,
+.webix_ss_header .webix_dd_over_column {
 	background-color:#c9eaf5;
 }
 
@@ -321,10 +329,7 @@
 	}
 }
 
-.webix_ss_header td, .webix_ss_header table{
-	padding:0px;
-	margin:0px;
-}
+
 
 .webix_cell.webix_invalid{
 	background-color: #ffeeee;
