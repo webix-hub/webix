@@ -195,15 +195,17 @@ const api = {
 		config.cols = clearColors.length; // always use the same set
 
 		const colors = [];
-		const colorRows = config.rows - 1;
-		
+
+		let colorRows = config.rows - 1; // a row is reserved for clear colors		
 		let lightStep = 1/config.rows;
 		let colorRange = null;
 
 		if (this._settings.grayScale){
 			const grayColors = this._getGrayScale(config.cols);
 			colors.push(grayColors.reverse()); // inverted order
-		}			
+			lightStep = 1/colorRows;
+			colorRows -= 1;
+		}
 
 		colors.push(clearColors);
 
@@ -222,13 +224,17 @@ const api = {
 	_initOldPalette:function(config){
 		/* old (classic) palette */
 		const colors = [];
-		const colorRows = config.rows - 1;
 		const colorStep = 1/config.cols;
-		let lightStep = (config.maxLightness - config.minLightness)/colorRows;
+
+		let colorRows = config.rows;
 		let colorRange = null;
 
-		if (this._settings.grayScale)
+		if (this._settings.grayScale){
 			colors.push(this._getGrayScale(config.cols));
+			colorRows -= 1;
+		}
+
+		let lightStep = (config.maxLightness - config.minLightness)/colorRows;
 
 		for(let step = 0, lt = config.minLightness; step < colorRows; step++){
 			colorRange = [];

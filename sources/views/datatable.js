@@ -622,9 +622,10 @@ const api = {
 				if (header.contentId)
 					cell+=" "+/*@attr*/"active_id"+"='"+header.contentId+"'";
 
+				let cheight = cell_height;
 				if (header.colspan || header.rowspan){
 					const cwidth = this._summ_right(this._columns, i, header.colspan) || width;
-					let cheight = this._summ_next(heights, j, header.rowspan);
+					cheight = this._summ_next(heights, j, header.rowspan);
 					if (cheight <= 0) cheight = cell_height;
 					hcss += " webix_span";
 					sheight = ` colspan='${header.colspan||1}' style='position:absolute; top:${top}px; left:${left}px; line-height:${cheight+1}px; width:${cwidth}px; height:${cheight+1}px;'`;
@@ -643,7 +644,7 @@ const api = {
 
 				var text = (header.text===""?"&nbsp;":header.text);
 				if (header.rotate)
-					text = "<div class='webix_rotate' style='width:"+(cell_height-10)+"px; transform-origin:center "+(cell_height-15)/2+"px;-webkit-transform-origin:center "+(cell_height-15)/2+"px;'>"+text+"</div>";
+					text = "<div class='webix_rotate' style='width:"+(cheight-10)+"px; transform-origin:center "+(cheight-15)/2+"px;-webkit-transform-origin:center "+(cheight-15)/2+"px;'>"+text+"</div>";
 
 				cell += text + "</div>";
 				if (isSpan)

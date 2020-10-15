@@ -1,3 +1,14 @@
+Version 8.0.1 (October 2020)
+==============================
+
+### Fixes
+
+- Datatable: footer styling regression in Material and Mini skins
+- Datatable: text alignment regression in rotated header
+- Datatable: correct header styles for export
+- number of rows and gray scale in Colorboard
+- cursor:pointer for Colorboard items
+
 Version 8.0 (October 2020)
 ==============================
 

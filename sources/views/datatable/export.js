@@ -88,7 +88,7 @@ const Mixin = {
 					var cid = header.colspan ? columns[i+header.colspan-1].id : columns[i].id;
 					var node = (group == "header"?this.getHeaderNode(cid, h):this.getFooterNode(cid, h));
 					if(node){
-						var name = [node.parentNode.className, (header.css||""), "webix_hcell", group];
+						var name = [node.className, (header.css||""), group];
 						hrow[i] = this._getExportCellStyle(node, name.join(":"), type);
 
 						if(header.colspan || header.rowspan)
