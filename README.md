@@ -7,7 +7,7 @@ https://webix.com
 
 If you don't know where to start - check 
 
-- https://webix.com/quick-start/#!/1
+- https://webix.com/tutorials/intro/1
 - https://docs.webix.com/
 - https://forum.webix.com
 
