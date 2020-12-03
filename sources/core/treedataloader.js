@@ -9,11 +9,10 @@ const TreeDataLoader = {
 		//redefine methods
 		this._feed_common = this._feed_commonA;
 	},
-	_feed_commonA:function(id, count, callback, url){
+	_feed_commonA:function(from, count, callback, url, details, defer){
 		// branch loading
-		var details = (count === 0?{parent: encodeURIComponent(id)}:null);
-
-		return DataLoader.prototype._feed_common.call(this,id, count, callback, url, details);
+		details = (count === 0) ? {parent: encodeURIComponent(from)} : null;
+		return DataLoader.prototype._feed_common.call(this, from, count, callback, url, details, defer);
 	},
 	//load next set of data rows
 	loadBranch:function(id, callback, url){

@@ -5,16 +5,21 @@ import clipbuffer from "../webix/clipbuffer";
 import csv from "../webix/csv";
 import env from "../webix/env";
 
-import {isUndefined} from "../webix/helpers";
+import {isUndefined, delay} from "../webix/helpers";
 
 
 const TablePaste = {
 	clipboard_setter:function(value){
 		if (env.touch) return value;
-		
+
 		if (value === true || value === 1) value = "block";
 		clipbuffer.init();
 		this.attachEvent("onSelectChange",this._sel_to_clip);
+		this.attachEvent("onAfterEditStop", function(v, ed){
+			const sel = this.getSelectedId(true);
+			if(sel.length == 1 && ed.row == sel[0].row)
+				this._sel_to_clip();
+		});
 		// solution for clicks on selected items
 		this.attachEvent("onItemClick",function(){
 			if(document.activeElement && this.$view.contains(document.activeElement)){
@@ -28,13 +33,14 @@ const TablePaste = {
 	},
 	templateCopy_setter: template,
 	_sel_to_clip: function() {
-		if (!this.getEditor || !this.getEditor()){
-			var data = this._get_sel_text();
-			clipbuffer.set(data);
-			UIManager.setFocus(this);
-		}
+		delay(() => { //wait until editor is closed
+			if (!this.getEditor || !this.getEditor()){
+				var data = this._get_sel_text();
+				clipbuffer.set(data);
+				UIManager.setFocus(this);
+			}
+		});
 	},
-
 	_get_sel_text: function() {
 		var data = [];
 		var filter = this._settings.templateCopy;

@@ -1,13 +1,8 @@
-Version 8.0.1 (October 2020)
+Version 8.1 (December 2020)
 ==============================
 
-### Fixes
-
-- Datatable: footer styling regression in Material and Mini skins
-- Datatable: text alignment regression in rotated header
-- Datatable: correct header styles for export
-- number of rows and gray scale in Colorboard
-- cursor:pointer for Colorboard items
+- New Report Manager widget
+- Updates for Gantt widget
 
 Version 8.0 (October 2020)
 ==============================

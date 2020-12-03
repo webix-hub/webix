@@ -381,14 +381,17 @@ body:not(:-moz-handler-blocked) .webix_el_select select{
 }
 
 .webix_view.webix_control .webix_disabled_box{
-	label, .webix_input_icon, button{
+	label, .webix_input_icon, button, .webix_slider_title{
 		color: @disabledFontColor;
 	}
-	input, select, textarea, .webix_inp_static{
+	input, select, textarea, .webix_inp_static, .webix_slider_right, .webix_slider_handle{
 		.inputDisabled();
 	}
 	.webix_inp_counter_prev, .webix_inp_counter_next, .webix_segment_0, .webix_segment_1, .webix_segment_N{
 		.buttonDisabled;
+	}
+	.webix_slider_left {
+		background-color:@disabledFontColor;
 	}
 }
 .webix_disabled_top_label{

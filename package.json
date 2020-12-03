@@ -1,7 +1,7 @@
 {
   "name": "webix",
   "productTag": "webix",
-  "version": "8.0.1",
+  "version": "8.1.0",
   "description": "Javascript UI for Web",
   "scripts": {
     "lint": "yarn eslint \"sources/**/*.js\"",

@@ -1,4 +1,4 @@
-Webix UI v.8.0.1
+Webix UI v.8.1.0
 ================
 
 [![npm version](https://badge.fury.io/js/webix.svg)](https://badge.fury.io/js/webix)
@@ -7,7 +7,7 @@ https://webix.com
 
 If you don't know where to start - check 
 
-- https://webix.com/tutorials/intro/1
+- https://webix.com/quick-start/#!/1
 - https://docs.webix.com/
 - https://forum.webix.com
 

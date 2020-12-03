@@ -1,4 +1,4 @@
-import {errorMessage, getExportScheme, getExportData} from "./common";
+import {errorMessage, getExportScheme, getExportData, getFileName} from "./common";
 
 import csv from "../../webix/csv";
 import promise from "../../thirdparty/promiz";
@@ -10,7 +10,7 @@ import {assert} from "../../webix/debug";
 export const toCSV = function(id, options){
 	options = options || {};
 
-	var view = $$(id);
+	let view = $$(id);
 	if (view && view.$exportView)
 		view = view.$exportView(options);
 	assert(view, errorMessage);
@@ -19,13 +19,13 @@ export const toCSV = function(id, options){
 	options.export_mode = "csv";
 	options.filterHTML = true;
 
-	var scheme = getExportScheme(view, options);
-	var result = getExportData(view, options, scheme);
+	const scheme = getExportScheme(view, options);
+	const result = getExportData(view, options, scheme);
 
-	var data = getCsvData(result, scheme);
-	var filename =  (options.filename || "Data")+".csv";
+	const data = getCsvData(result, scheme);
+	const filename = getFileName(options.filename, "csv");
 
-	var blob = new Blob(["\uFEFF" + data], { type: "text/csv" });
+	const blob = new Blob(["\uFEFF" + data], { type: "text/csv" });
 	if(options.download !== false)
 		download(blob, filename);
 

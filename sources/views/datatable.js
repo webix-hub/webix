@@ -1854,11 +1854,14 @@ const api = {
 		const col = this.getColumnConfig(column);
 		if (!this._settings.sort || !col.sort) return;
 
-		let order = "asc";
-		if (this._last_sorted[col.id])
-			order = (this._last_sorted[col.id].dir == "asc") ? "desc" : "asc";
-
-		this._sort(col.id, order, col.sort, (e.ctrlKey||e.metaKey));
+		let dir = "asc";
+		if (this._last_sorted[col.id]) {
+			dir = (this._last_sorted[col.id].dir == "asc") ? "desc" : "asc";
+		}
+		else if (this._sort_signs[col.id]) {
+			dir = (this._sort_signs[col.id].getAttribute("webix_sort_dir") == "asc") ? "desc" : "asc";
+		}
+		this._sort(col.id, dir, col.sort, (e.ctrlKey||e.metaKey));
 	},
 	markSorting:function(column, direction, preserve){
 		direction = direction || "asc";

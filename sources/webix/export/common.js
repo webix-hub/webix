@@ -28,14 +28,14 @@ export function getStyles(r, c, styles){
 }
 
 export function getExportScheme(view, options){
-	var scheme = [];
-	var h_count = 0, f_count = 0;
-	var isTable = view.getColumnConfig;
-	var columns = options.columns;
-	var raw = !!options.rawValues;
-	var isTree = view.data.name == "TreeStore";
+	const scheme = [];
+	let h_count = 0, f_count = 0;
+	const isTable = view.getColumnConfig;
+	let columns = options.columns;
+	const raw = !!options.rawValues;
+	const isTree = view.data.name == "TreeStore";
 
-	var treeLines = options.treeLines;
+	let treeLines = options.treeLines;
 	if(treeLines === true || isUndefined(treeLines))
 		treeLines = "value";
 
@@ -46,7 +46,7 @@ export function getExportScheme(view, options){
 			columns = [].concat(view._columns);
 		else {
 			columns = [];
-			var obj = view.data.pull[view.data.order[0]];
+			const obj = view.data.pull[view.data.order[0]];
 			for (let key in obj)
 				if(key !== "id" && key[0] != "$")
 					columns.push({id:key, isTree: isTree && key === treeLines});
@@ -54,7 +54,7 @@ export function getExportScheme(view, options){
 	}
 	else if(!columns.length){
 	//export options are set as - columns:{ rank:true, title:{ header:"custom"}}
-		var arr = [];
+		const arr = [];
 		for(let key in columns)
 			arr.push(extend({ id:key}, extend({}, columns[key])));
 		columns = arr;
@@ -69,10 +69,10 @@ export function getExportScheme(view, options){
 		scheme.push({ id:"id", width:50, header:" ", template:function(obj){ return obj.id; }});
 
 	if (options.flatTree){
-		var flatKey = options.flatTree.id;
-		var copy = [].concat(options.flatTree.columns);
-		var fill = [];
-		var fillMode = !!options.flatTree.fill;
+		const flatKey = options.flatTree.id;
+		const copy = [].concat(options.flatTree.columns);
+		const fill = [];
+		const fillMode = !!options.flatTree.fill;
 		for (let i = 1; i <= copy.length; i++)
 			copy[i-1].template = (function(i){ 
 				return function(obj){ 
@@ -80,7 +80,7 @@ export function getExportScheme(view, options){
 				};
 			})(i);
 
-		var index = 0;
+		let index = 0;
 		for (let i = columns.length-1; i >= 0; i--)
 			if (columns[i].id === flatKey)
 				index = i;
@@ -88,7 +88,7 @@ export function getExportScheme(view, options){
 		columns = [].concat(columns.slice(0,index)).concat(copy).concat(columns.slice(index+1));
 	}
 
-	var treeColumn;
+	let treeColumn;
 
 	for (let j = 0; j < columns.length; j++) {
 		let column = columns[j];
@@ -98,7 +98,7 @@ export function getExportScheme(view, options){
 
 		// raw mode has sense only for datatable
 		// in other cases we don't have built-in data templates
-		var rawColumn = raw && isTable;
+		let rawColumn = raw && isTable;
 		if (isTable){
 			let sourceColumn = view._columns_pull[key];
 			// when these's no column to take raw data from, or custom template defined - ignore raw mode
@@ -153,7 +153,7 @@ export function getExportScheme(view, options){
 
 	for(let i =0; i<scheme.length; i++){
 
-		var diff = h_count-scheme[i].header.length;
+		let diff = h_count-scheme[i].header.length;
 		for(let d=0; d<diff; d++)
 			scheme[i].header.push("");
 
@@ -167,13 +167,18 @@ export function getExportScheme(view, options){
 	return scheme;
 }
 
+export function getFileName(name, extension){
+	if(name)
+		name = name.replace(/[/?\\<>:*|"]/g, "").substring(0, 150);
+	return `${name || "Data"}.${extension}`;
+}
 
 export function getExportData(view, options, scheme){
-	var filterHTML = !!options.filterHTML;
-	var htmlFilter = /<[^>]*>/gi;
-	var data = [];
-	var header, headers;
-	var mode = options.export_mode;
+	const filterHTML = !!options.filterHTML;
+	const htmlFilter = /<[^>]*>/gi;
+	let data = [];
+	let header, headers;
+	const mode = options.export_mode;
 
 	if((mode === "excel" || mode == "csv") && options.docHeader){
 		data = [[(options.docHeader.text || options.docHeader).toString()], [""]];
@@ -204,7 +209,7 @@ export function getExportData(view, options, scheme){
 	}
 	options.yCorrection = (options.yCorrection||0)-data.length;
 
-	var treeline = (options.flatTree || options.plainOutput) ? "" : "-";
+	const treeline = (options.flatTree || options.plainOutput) ? "" : "-";
 
 	view.data.each(function(item){
 		if(!options.filter || options.filter(item)){

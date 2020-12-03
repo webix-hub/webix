@@ -35,6 +35,9 @@ const Mixin = {
 		Touch._set_matrix(this._body.childNodes[1].firstChild, 0,0,"0ms");
 		this._sync_scroll(0,0,"0ms");
 	},
+	$hasYScroll(){
+		return this._dtable_height - this._dtable_offset_height > 2;
+	},
 	_touchNative:{
 		_scrollTo_touch:function(x,y){
 			Touch._set_matrix(this._body.childNodes[1].firstChild, -x, -y,"0ms");
@@ -93,9 +96,6 @@ const Mixin = {
 		$scroll:{
 			gravity:0,
 			elastic:false
-		},
-		$hasYScroll(){
-			return this._dtable_height - this._dtable_offset_height > 2;
 		},
 		$init:function(){
 			//if the result column's width < container's width,

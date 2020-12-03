@@ -1,4 +1,4 @@
-import {errorMessage, getExportScheme, getExportData, getStyles} from "./common";
+import {errorMessage, getExportScheme, getExportData, getStyles, getFileName} from "./common";
 
 import i18n from "../../webix/i18n";
 import promise from "../../thirdparty/promiz";
@@ -101,7 +101,7 @@ export const toPDF = function(id, options){
 };
 
 function getBlob(pdf, options){
-	const filename = (options.filename || "Data")+".pdf";
+	const filename = getFileName(options.filename, "pdf");
 	const blob = new Blob([pdf.toString()], { type: "application/pdf" });
 
 	if(options.download !== false)
@@ -199,7 +199,7 @@ export function getAutowidth(view, options, scheme){
 }
 
 function addPDFDoc(options){
-	var width = options.width||595.296, height = options.height || 841.896;// default A4 size
+	let width = options.width||595.296, height = options.height || 841.896;// default A4 size
 
 	if(options.orientation && options.orientation ==="landscape")
 		height = [width, width = height][0];
@@ -208,8 +208,8 @@ function addPDFDoc(options){
 		padding: 40,
 		font: options._export_font,
 		threshold:256,
-		width:width,
-		height:height
+		width,
+		height
 	});
 }
 
@@ -224,33 +224,33 @@ function addPDFTable(view, doc){
 	options.table = options.table || {};
 
 	//render table
-	var h_count = options.header === false ? 0: scheme[0].header.length;
-	var f_count = (options.footer === false || !scheme[0].footer) ? 0: scheme[0].footer.length;
+	const h_count = options.header === false ? 0: scheme[0].header.length;
+	const f_count = (options.footer === false || !scheme[0].footer) ? 0: scheme[0].footer.length;
 
-	var colWidths = [];
+	const colWidths = [];
 	for(let i = 0; i<scheme.length; i++)
 		colWidths[i] = scheme[i].width;
 
-	var tableOps = extend(options.table, {
+	const tableOps = extend(options.table, {
 		borderWidth: 1,height:20, lineHeight:1.1,
 		borderColor: 0xEEEEEE, backgroundColor: 0xFFFFFF, color:0x666666,
 		textAlign:"left", paddingRight:10, paddingLeft:10,
 		headerRows:h_count, widths: colWidths.length?colWidths:["100%"]
 	});
 
-	var table = doc.table(tableOps);
+	const table = doc.table(tableOps);
 
 	//render table header
 	if(h_count){
-		var headerOps = extend(options.header, {
+		const headerOps = extend(options.header, {
 			borderRightColor:0xB0CEE3, borderBottomColor:0xB0CEE3,
 			color:0x4A4A4A, backgroundColor:0xD2E3EF,
 			height:27, lineHeight:1.2
 		});
 
 		for(let i = 0; i<h_count; i++){
-			var header = table.tr(headerOps);
-			for(var s=0; s<scheme.length; s++){
+			const header = table.tr(headerOps);
+			for(let s=0; s<scheme.length; s++){
 				const options = styles ? getStyles(i, s, styles) : {};
 				header.td(scheme[s].header[i].toString(), options);
 			}
@@ -294,7 +294,7 @@ function addPDFHeader(doc, options){
 		}).append((i18n.dataExport.page||"Page")).pageNumber().append("  "+(i18n.dataExport.of || "of")+"  ").pageCount();
 	}
 
-	var horder = { text:0, image:1};
+	const horder = { text:0, image:1};
 
 	//doc header, configurable
 	if(options.docHeader){
@@ -320,7 +320,7 @@ function addPDFHeader(doc, options){
 		const defer = promise.defer();
 		pdfjs.load(options.docHeaderImage.url, function(err, buffer){
 			if (!err){
-				var img = new pdfjs.Image(buffer);
+				const img = new pdfjs.Image(buffer);
 				doc.header({paddingBottom:10}).image(img, options.docHeaderImage);
 
 				if(options.docHeader && horder.image < horder.text)

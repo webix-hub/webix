@@ -1,4 +1,4 @@
-import {errorMessage, getExportScheme, getExportData, getStyles} from "./common";
+import {errorMessage, getExportScheme, getExportData, getStyles, getFileName} from "./common";
 
 import promise from "../../thirdparty/promiz";
 import require from "../../load/require";
@@ -14,11 +14,11 @@ export const toExcel = function(id, options){
 	options.export_mode = "excel";
 
 	id = isArray(id)?id:[id];
-	var views = [];
+	let views = [];
 
-	for(var i = 0; i<id.length; i++){
+	for(let i = 0; i<id.length; i++){
 		if(!id[i].id) id[i]  = { id:id[i] }; 
-		var view = $$(id[i].id);
+		let view = $$(id[i].id);
 		const viewOptions = extend(id[i].options || {}, options);
 		if (view && view.$exportView)
 			view = view.$exportView(viewOptions);
@@ -30,7 +30,7 @@ export const toExcel = function(id, options){
 			views = views.concat(view);
 		else if(view.data && view.data.pull){
 			//spreadsheet and excelviewer require plain data output first
-			var scheme = getExportScheme(view, viewOptions);
+			const scheme = getExportScheme(view, viewOptions);
 			views.push({
 				scheme : scheme,
 				exportData:getExportData(view, viewOptions, scheme),
@@ -41,14 +41,14 @@ export const toExcel = function(id, options){
 	}
 	if(options.dataOnly) return views;
 
-	var defer = promise.defer(); 
+	const defer = promise.defer(); 
 
 	return require(env.cdn + "/extras/xlsx.core.styles.min.js").then(function(){
 		if(!views.length) return defer.reject(errorMessage);
 
-		var wb = { SheetNames:[], Sheets:{}, Workbook:{ WBProps :{}, Names:[] }};
+		const wb = { SheetNames:[], Sheets:{}, Workbook:{ WBProps :{}, Names:[] }};
 
-		for(var i = 0; i<views.length; i++){
+		for(let i = 0; i<views.length; i++){
 			const viewOptions = views[i].viewOptions;
 			const scheme = views[i].scheme;
 			const result = views[i].exportData;
@@ -70,7 +70,7 @@ export const toExcel = function(id, options){
 
 		/* global XLSX */
 		const xls = XLSX.write(wb, {bookType:"xlsx", bookSST:false, type: "binary"});
-		const filename =  (options.filename || "Data")+".xlsx";
+		const filename =  getFileName(options.filename, "xlsx");
 
 		const blob = new Blob([str2array(xls)], { type: "application/xlsx" });
 		if(options.download !== false)
@@ -81,9 +81,9 @@ export const toExcel = function(id, options){
 };
 
 function str2array(s) {
-	var buf = new ArrayBuffer(s.length);
-	var view = new Uint8Array(buf);
-	for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+	const buf = new ArrayBuffer(s.length);
+	const view = new Uint8Array(buf);
+	for (let i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
 	return buf;
 }
 
@@ -167,33 +167,33 @@ function getExcelData(data, scheme, spans, styles, options) {
 }
 
 function getRowHeights(heights){
-	for(var i in heights)
+	for(const i in heights)
 		heights[i] = {hpx:heights[i], hpt:heights[i]*0.75};
 	return heights;
 }
 
 function getSpans(view, options){
-	var isTable = view.getColumnConfig;
-	var pull = view._spans_pull;
-	var spans = [];
+	const isTable = view.getColumnConfig;
+	const pull = view._spans_pull;
+	let spans = [];
 
 	if(isTable){
 		if(options.header!==false)
 			spans = getHeaderSpans(view, options, "header", spans); 
 
 		if(pull){
-			var xc = options.xCorrection || 0;
-			var yc = options.yCorrection || 0;
-			for(var row in pull){
+			const xc = options.xCorrection || 0;
+			const yc = options.yCorrection || 0;
+			for(const row in pull){
 				//{ s:{c:1, r:0}, e:{c:3, r:0} }
-				var cols = pull[row];
-				for(var col in cols){
-					var sc = view.getColumnIndex(col) - xc;
-					var sr = view.getIndexById(row) - yc;
+				const cols = pull[row];
+				for(const col in cols){
+					const sc = view.getColumnIndex(col) - xc;
+					const sr = view.getIndexById(row) - yc;
 					if(sc<0||sr<0) //hidden cols/rows
 						continue;
-					var ec = sc+cols[col][0]-1;
-					var er = sr+(cols[col][1]-1);
+					const ec = sc+cols[col][0]-1;
+					const er = sr+(cols[col][1]-1);
 
 					spans.push({ s:{c:sc, r:sr}, e:{c:ec, r:er} });
 				}
@@ -207,12 +207,12 @@ function getSpans(view, options){
 }
 
 function getHeaderSpans(view, options, group, spans){
-	var columns = view.config.columns;
-	var delta = (options.docHeader?2:0)+(group == "header" ? 0 :((options.header!==false?view._headers.length:0)+view.count()));
+	const columns = view.config.columns;
+	const delta = (options.docHeader?2:0)+(group == "header" ? 0 :((options.header!==false?view._headers.length:0)+view.count()));
 
-	for(var i=0; i<columns.length; i++){
-		var header = columns[i][group];
-		for(var h = 0; h<header.length; h++){
+	for(let i=0; i<columns.length; i++){
+		const header = columns[i][group];
+		for(let h = 0; h<header.length; h++){
 			if(header[h] && (header[h].colspan || header[h].rowspan)){
 				spans.push({
 					s:{ c:i, r:h+delta},
@@ -230,8 +230,8 @@ function excelDate(date) {
 }
 
 function getColumnsWidths(scheme){
-	var wscols = [];
-	for (var i = 0; i < scheme.length; i++)
+	const wscols = [];
+	for (let i = 0; i < scheme.length; i++)
 		wscols.push({ wch: scheme[i].width });
 
 	return wscols;

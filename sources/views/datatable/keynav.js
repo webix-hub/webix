@@ -6,7 +6,7 @@ import {assert} from "../../webix/debug";
 // #include core/keynav.js
 
 const Mixin = {
-	$init:function(){
+	$init:function(config){
 		this.attachEvent("onAfterScroll", this._set_focusable_item);
 		this.attachEvent("onFocus", function(){
 			addCss(this.$view, "webix_dtable_focused");
@@ -14,6 +14,19 @@ const Mixin = {
 		this.attachEvent("onBlur", function(){
 			removeCss(this.$view,"webix_dtable_focused");
 		});
+		//open selected node in tree-like tables
+		if(config.select != "column" && (this.open || this._subViewStorage))
+			this.attachEvent("onEnter", function(){
+				let sel = this.getSelectedId(true);
+				if(sel.length == 1 && !(this.getEditor && this.getEditor())){
+					const node = this.getItemNode(sel[0]);
+					sel = sel[0].row;
+					if(this.config.select == "row" || (node.querySelector(".webix_tree_open") || node.querySelector(".webix_tree_close"))){
+						if(this.isBranchOpen(sel)) this.close(sel);
+						else this.open(sel);
+					}
+				}
+			});
 	},
 	_set_focusable_item:function(){
 		var sel = this._getVisibleSelection();

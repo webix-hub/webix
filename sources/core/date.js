@@ -314,6 +314,12 @@ const wDate = {
 					return 	d0.getMonth() == d.getMonth() && d0.getYear() == d.getYear();
 				});
 				break;
+			case "quarter":
+				date.setMonth(date.getMonth() + inc * 3);
+				this._correctDate(date,d,inc,function(d,d0){
+					return 	d0.getMonth() == d.getMonth() && d0.getYear() == d.getYear();
+				});
+				break;
 			case "year":
 				date.setYear(date.getFullYear()+inc);
 				this._correctDate(date,d,inc,function(d,d0){

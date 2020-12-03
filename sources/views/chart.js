@@ -14,7 +14,7 @@ import HtmlMap from "../core/htmlmap";
 import Canvas from "../core/canvas";
 import GroupMethods from "../core/groupmethods";
 
-import {locate, offset as getOffset, pos as getPos, create} from "../webix/html";
+import {locate, offset as getOffset, pos as getPos, create, remove} from "../webix/html";
 import {protoUI} from "../ui/core";
 import {bind, extend, isUndefined} from "../webix/helpers";
 import {assert} from "../webix/debug";
@@ -845,8 +845,20 @@ const api = {
 			for(i = 0; i < legend.values.length; i++){
 				legendItems.push(this._drawLegendText(legendContainer,legend.values[i].text,(typeof legend.values[i].id!="undefined"?typeof legend.values[i].id:i),legend.values[i].$hidden));
 			}
-		if (legendContainer.offsetWidth === 0)
-			legendContainer.style.width = "auto"; 
+
+		const rendered = document.body.contains(this._contentobj);
+		let parentNode, d;
+
+		// inside window
+		if(!rendered){
+			d = create("DIV",{"style":"visibility:hidden; position:absolute; top:0px; left:0px;"},"");
+
+			parentNode = this._contentobj.parentNode;
+
+			document.body.appendChild(d);
+			d.appendChild(this._contentobj);
+		}
+
 		legendWidth = legendContainer.offsetWidth;
 		legendHeight = legendContainer.offsetHeight;
 
@@ -892,6 +904,12 @@ const api = {
 			this._drawLegendMarker(ctx,item.offsetLeft+x,item.offsetTop+y,itemColor,item.offsetHeight,disabled,i);
 		}
 		ctx.restore();
+
+		if(!rendered){
+			parentNode.appendChild(this._contentobj);
+			remove(d);
+		}
+
 		legendItems = null;
 	},
 	/**

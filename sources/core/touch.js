@@ -148,13 +148,13 @@ const Touch = {
 				Touch._init_scroller(delta); //apply scrolling
 			} else if (env.isMac) {
 				const view = $$(Touch._start_context);
-				if (view && view.$hasYScroll && view.$hasYScroll()){
+				if (view && view.$hasYScroll && view.$hasYScroll() && e.cancelable){
 					return preventEvent(e);
 				}
 			}
 		}
 
-		if (Touch._scroll_mode)
+		if (Touch._scroll_mode && e.cancelable)
 			return preventEvent(e);
 	},
 	_set_scroll_pos:function(){

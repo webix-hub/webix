@@ -68,13 +68,16 @@ const DragControl ={
 		const dragCtrl = DragControl;
 		const master = this._getActiveDragMaster();
 		// for data items only
-		if (master && master._getDragItemPos){
+		if (master && master.$longTouchLimit){
 			if (!dragCtrl._html && !dragCtrl.createDrag(e)) return;
 			e.longtouch_drag = true;
 
+			const pos = { x:e.x, y:e.y };
+			const customPos = dragCtrl.$dragPos(pos, e);
+
 			const ctx = dragCtrl._drag_context;
-			dragCtrl._html.style.left= e.x+dragCtrl.left+ (ctx.x_offset||0)+"px";
-			dragCtrl._html.style.top= e.y+dragCtrl.top+ (ctx.y_offset||0) +"px";
+			dragCtrl._html.style.top= pos.y+dragCtrl.top+(customPos||!ctx.y_offset?0:ctx.y_offset)+"px";
+			dragCtrl._html.style.left= pos.x+dragCtrl.left+(customPos||!ctx.x_offset?0:ctx.x_offset)+"px";
 		}
 	},
 	/*
@@ -128,7 +131,7 @@ const DragControl ={
 		var master = DragControl._getActiveDragMaster();
 
 		// only long-touched elements can be dragged
-		var longTouchLimit = (master && env.touch && master._getDragItemPos && !Touch._long_touched);
+		var longTouchLimit = (env.touch && master && master.$longTouchLimit && !Touch._long_touched);
 		if (longTouchLimit || Math.abs(pos.x-DragControl._start_pos.x)<5 && Math.abs(pos.y-DragControl._start_pos.y)<5)
 			return;
 

@@ -149,6 +149,7 @@ const DragItem ={
 			context.from.move(context.source,context.index,context.to, details);
 		}
 	},
+	$longTouchLimit: true,
 	_getDragItemPos: function(pos,e){
 		if (this.getItemNode){
 			var id = this.locate(e, true);
