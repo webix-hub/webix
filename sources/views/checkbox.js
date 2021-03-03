@@ -60,13 +60,14 @@ const api = {
 		}
 		input.checked = isChecked;
 	},
-	toggle:function(){
-		var value = (this.getValue() != this._settings.checkValue)?this._settings.checkValue:this._settings.uncheckValue;
-		this.setValue(value);
+	toggle:function(config){
+		const c = this._settings;
+		const value = (this.getValue() != c.checkValue) ? c.checkValue : c.uncheckValue;
+		this.setValue(value, config);
 	},
 	getValue:function(){
-		var value = this._settings.value;
-		return  (value == this._settings.checkValue)?this._settings.checkValue:this._settings.uncheckValue;
+		const c = this._settings;
+		return (c.value == c.checkValue) ? c.checkValue : c.uncheckValue;
 	},
 	getInputNode: function() {
 		return this.$view.getElementsByTagName(this._settings.customCheckbox?"button":"input")[0];

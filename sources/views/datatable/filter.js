@@ -11,8 +11,8 @@ const Mixin = {
 			var first = false;
 			for (var key in this._filter_elements){
 				assert(key, "empty column id for column with filtering");
-				if(!this.isColumnVisible(key))
-					continue;
+				if (!this.isColumnVisible(key)) continue;
+
 				var record = this._filter_elements[key];
 				var originvalue = record[2].getValue(record[0]);
 
@@ -26,7 +26,7 @@ const Mixin = {
 				var compare = record[1].compare;
 
 				if (!this.callEvent("onBeforeFilter",[key, inputvalue, record[1]])) continue;
-				if(record[2].$server || server){ //if one of filters is server side, do not run any client side filters
+				if (record[2].$server || server){ //if one of filters is server side, do not run any client side filters
 					server = true;
 				} else {
 					if (inputvalue === "") continue;

@@ -143,6 +143,10 @@ const api = {
 
 		return true;
 	},
+	_fix_cover:function(){
+		if (this._disable_cover && !this._disable_cover.parentNode)
+			this._viewobj.appendChild(this._disable_cover);
+	},
 	disable:function(){
 		remove(this._disable_cover);
 		this._settings.disabled = true;

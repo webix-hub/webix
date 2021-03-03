@@ -36,7 +36,7 @@ const api = {
 			// locate can return null in case of drag
 			if (value){
 				const oldvalue = this._settings.value;
-				value = this.setValue(value);
+				value = this.setValue(value, "user");
 
 				this.callEvent("onItemClick", [value, e]);
 				if (value != oldvalue)
@@ -97,28 +97,29 @@ const api = {
 	value_setter:function(value){
 		return this.$prepareValue(value);
 	},
-	setValue:function(value){
+	setValue:function(value, config){
 		value = this.$prepareValue(value);
 		const oldvalue = this._settings.value;
 
-		this._settings.value = value;
-		this.$setValue(value, oldvalue);
-
+		if (oldvalue != value){
+			this._settings.value = value;
+			this.$setValue(value);
+			this.callEvent("onChange", [value, oldvalue, config]);
+		}
 		return value;
 	},
-	$setValue:function(value, oldvalue){
+	$setValue:function(value){
 		if(this.isVisible(this._settings.id)){
-			let cell, ind;
+			// clear previous
+			if (this._activeSelection){
+				const oldCell = this._getCell(this._activeSelection);
+				this._setSelection(oldCell, false);
+			}
 
-			if(oldvalue) ind = this._findIndex(oldvalue);
-			if(!ind) ind = {row:0, col:0};
-			const oldCell = this._getCell(ind);
-			this._setSelection(oldCell, false);
-
-			ind = this._findIndex(value);
-			if(ind){
-				cell = this._getCell(ind);
-				if (cell)	this._setSelection(cell, true);
+			const ind = this._activeSelection = this._findIndex(value);
+			if (ind){
+				const cell = this._getCell(ind);
+				this._setSelection(cell, true);
 			}
 		}
 	},
@@ -273,13 +274,14 @@ const api = {
 				if (row) cell = row.childNodes[ind.col];
 			}
 			if(cell){
-				value =  cell.getAttribute(/*@attr*/"webix_val");
-				this.setValue(value);
+				value = cell.getAttribute(/*@attr*/"webix_val");
+				const config = (details && details.e instanceof KeyboardEvent) ? "user" : "auto";
+				this.setValue(value, config);
 				this.callEvent("onSelect", [this._settings.value]);
 
-				if(focus !==false){
+				if(focus !== false){
 					const sel = this._viewobj.querySelector("div[tabindex='0']");
-					if(sel)  sel.focus();
+					if(sel) sel.focus();
 				}
 			}
 		}
@@ -340,17 +342,18 @@ const api = {
 				const row = palette[r];
 				html += this._renderRow(row, widths, cellHeight);
 			}
-		}else{
-			html+= this._renderRow(palette, widths, height);
-		}
-
+		} else
+			html += this._renderRow(palette, widths, height);
 		html += "</div>";
+
 		this._viewobj.innerHTML = html;
 
 		if(this._settings.value)
 			this.$setValue(this._settings.value);
 		else
 			this._viewobj.lastChild.childNodes[0].childNodes[0].setAttribute("tabindex", "0");
+
+		this._fix_cover();
 		this.callEvent("onAfterRender",[]);
 	},
 	refresh:function(){ this.render(); }

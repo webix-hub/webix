@@ -1,4 +1,4 @@
-import {uid, isArray} from "../webix/helpers";
+import {isArray} from "../webix/helpers";
 import {$$} from "../ui/core";
 
 import i18n from "../webix/i18n";
@@ -70,16 +70,10 @@ const MapCollection = {
 		}
 	},
 	_build_data_map:function(columns){ //for datatable
-		for (var i=0; i<columns.length; i++){
-			var map = columns[i].map;
-			var id = columns[i].id;
-			if (!id) {
-				id = columns[i].id = "i"+uid();
-				if (!columns[i].header)
-					columns[i].header = "";
-			}
-			if (map)
-				this._scheme_init_order.push(this._process_single_map(id, map, columns[i]));
+		for (let i=0; i<columns.length; i++){
+			const col = columns[i];
+			if (col.map)
+				this._scheme_init_order.push(this._process_single_map(col.id, col.map, columns[i]));
 
 			this._map_options(columns[i]);
 		}

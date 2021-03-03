@@ -1,5 +1,4 @@
 import {protoUI} from "../ui/core";
-import {$active} from "../webix/skin";
 
 import text from "./text";
 
@@ -7,15 +6,15 @@ import text from "./text";
 const api = {
 	name:"search",
 	on_click:{
+		webix_clear_icon:function(){
+			if (this.$allowsClear) this.setValue("", "user");
+			return false;
+		},
 		"webix_input_icon":function(e){
 			this.getInputNode().focus();
-			this.callEvent("onSearchIconClick", [e]);
+			if(this.config.clear !== "hover" && e.target && e.target.classList.contains(this.config.icon))
+				this.callEvent("onSearchIconClick", [e]);
 		}
-	},
-	$skin:function(){
-		text.api.$skin.call(this);
-
-		this.defaults.inputPadding = $active.inputPadding;
 	},
 	defaults:{
 		type:"text",

@@ -27,9 +27,9 @@ const BindSource = {
 			this._ignore_binds[key] = true;
 
 		if (this.setValue)
-			this.setValue(data);
+			this.setValue(data, "auto");
 		else if (this.setValues)
-			this.setValues(data);
+			this.setValues(data, "auto");
 		else {
 			var id = this.getCursor();
 			if (id)
@@ -87,13 +87,13 @@ const BindSource = {
 	//copy data from source to the target
 	_bind_update_common:function(target, rule, data){
 		if (target.setValue)
-			target.setValue((data&&rule)?data[rule]:data);
+			target.setValue((data&&rule)?data[rule]:data,"auto");
 		else if (!target.filter){
 			if (!data && target.clear)
-				target.clear();
+				target.clear("auto");
 			else {
 				if (target._check_data_feed(data))
-					target.setValues(clone(data));
+					target.setValues(clone(data),"auto");
 			}
 		} else {
 			target.data.silent(function(){

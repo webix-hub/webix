@@ -130,9 +130,8 @@ const EditAbility ={
 
 		form = $$(form);
 		var realform = form.setValues?form:form.getChildViews()[0];
-
 		
-		realform.setValues(this.getItem(id.row || id));
+		realform.setValues(this.getItem(id.row || id), "auto");
 		form.config.master = this.config.id;
 		form.show( this.getItemNode(id) );
 

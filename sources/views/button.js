@@ -149,7 +149,7 @@ const api = {
 			this.render();
 		}
 	},
-	setValue:function(value){
+	setValue:function(value, config){
 		value = this.$prepareValue(value);
 		const oldvalue = this._settings.value;
 
@@ -163,7 +163,7 @@ const api = {
 		if (this._rendered_input)
 			this.$setValue(value);
 
-		this.callEvent("onChange", [value, oldvalue]);
+		this.callEvent("onChange", [value, oldvalue, config]);
 	},
 	$compareValue:function(oldvalue, value){ 
 		if (typeof value === "number") value = value.toString();
@@ -312,7 +312,7 @@ const api = {
 			const opt = this.getOption(id);
 
 			if (opt && !opt.disabled && this.callEvent("onBeforeTabClick", [id, ev])){
-				this.setValue(id);
+				this.setValue(id, "user");
 				this.focus();
 				this.callEvent("onAfterTabClick", [id, ev]);
 			}
@@ -325,29 +325,33 @@ const api = {
 		},
 		webix_inp_counter_next:function(){
 			if (!this._settings.readonly)
-				this.next();
+				this.next(this._settings.step, "user");
 		},
 		webix_inp_counter_prev:function(){
 			if (!this._settings.readonly)
-				this.prev();
+				this.prev(this._settings.step, "user");
 		},
 		webix_input_icon:function(){
 			this.getInputNode().focus();
 		},
+		webix_clear_icon:function(){
+			if (this.$allowsClear) this.setValue("", "user");
+			return false;
+		},
 		webix_inp_checkbox_border: function(e) {
 			if (!this._settings.disabled && e.target.tagName != "DIV" && !this._settings.readonly)
-				this.toggle();
+				this.toggle("user");
 		},
 		webix_inp_checkbox_label: function() {
 			if (!this._settings.readonly)
-				this.toggle();
+				this.toggle("user");
 		},
 		webix_inp_radio_border: function(e) {
 			const id = locate(e, /*@attr*/"radio_id");
 			const opt = this.getOption(id);
 
 			if (opt && !opt.disabled){
-				this.setValue(id);
+				this.setValue(id, "user");
 				this.focus();
 			}
 		},

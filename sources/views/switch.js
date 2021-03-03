@@ -69,11 +69,11 @@ const api = {
 	on_click:{
 		"webix_switch_box":function(){
 			if(!this._settings.readonly)
-				this.toggle();
+				this.toggle("user");
 		},
 		"webix_label_right":function(){
 			if(!this._settings.readonly)
-				this.toggle();
+				this.toggle("user");
 		}
 	}
 };

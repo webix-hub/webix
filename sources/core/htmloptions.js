@@ -59,7 +59,7 @@ const HTMLOptions = {
 					if (!inp[i].getAttribute("webix_disabled")){
 						const id = inp[i].getAttribute(/*@attr*/"button_id");
 
-						this.setValue(id);
+						this.setValue(id, "user");
 						inp[i].focus();
 						i = "success";
 					}
@@ -112,7 +112,7 @@ const HTMLOptions = {
 		}
 
 		if (show)
-			this.setValue(id);
+			this.setValue(id, "auto");
 	},
 	removeOption: function(id){
 		const index = this.optionIndex(id);
@@ -138,15 +138,15 @@ const HTMLOptions = {
 			//forward search
 			for (let i=index; i<size; i++)
 				if (!options[i].hidden)
-					return this.setValue(options[i].id);
+					return this.setValue(options[i].id,"auto");
 			//backward search
 			for (let i=index; i>=0; i--)
 				if (!options[i].hidden)
-					return this.setValue(options[i].id);
+					return this.setValue(options[i].id,"auto");
 		}
 
 		//nothing found		
-		this.setValue("");
+		this.setValue("","auto");
 	},
 	_getFirstActive(first){
 		const options = this._settings.options;

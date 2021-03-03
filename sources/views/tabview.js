@@ -6,8 +6,8 @@ import {assert} from "../webix/debug";
 
 const api = {
 	name:"tabview",
-	setValue:function(val){
-		this._cells[0].setValue(val);
+	setValue:function(val, config){
+		this._cells[0].setValue(val, config);
 	},
 	getValue:function(){
 		return this._cells[0].getValue();

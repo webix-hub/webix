@@ -186,21 +186,19 @@ const api = {
 			if (typeof value !== "object")
 				value = value.toString().split(",");
 
-			for (var i = 0; i < value.length; i++)
+			for (let i=0; i<value.length; i++)
 				this._moved[value[i]] = true;
 		}
-		
 		this._refresh();
 	},
 	getValue: function() {
 		const value = [];
 		const list = this.$$("left");
 
-		for (var key in this._moved){
+		for (let key in this._moved){
 			if (!this._data_ready || list.data.pull[key])
 				value.push(key);
 		}
-
 		return value.join(",");
 	}
 };

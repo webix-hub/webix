@@ -1,5 +1,25 @@
+Version 8.2 (March 2021)
+==============================
+
+- Gantt: Resource Management
+	- Allocating resources
+	- Resource view
+	- Resource Diagram
+- Gantt: Scheduling benefits
+	- Critical path
+	- Conversion of all tasks with sub tasks into projects
+	- Excluding holidays from task duration
+- Spreadsheet: new math engine to support fully-fledged multi-sheet math and global named ranges.
+- File and Document Manager: ability to edit several text files simultaneously
+- Datatable: ability to deny resizing of a particular column
+- Form controls: a "clear" icon to remove value from the input field
+- Form and Controls: ability to differentiate between API and user changes
+- Tabbar: ability to fine-tune the popup in detail
+
 Version 8.1 (December 2020)
 ==============================
+
+### Major features
 
 - New Report Manager widget
 - Updates for Gantt widget

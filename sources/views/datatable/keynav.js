@@ -37,9 +37,9 @@ const Mixin = {
 		}
 	},
 	_getVisibleSelection:function(){
-		var sel = this.getSelectedId(true);
-		for(var i = 0; i<sel.length; i++){
-			if(this.isColumnVisible(sel[i].column))
+		const sel = this.getSelectedId(true);
+		for(let i = 0; i<sel.length; i++){
+			if(sel[i].column && this.isColumnVisible(sel[i].column))
 				return this.getItemNode(sel[i]);
 		}
 		return null;

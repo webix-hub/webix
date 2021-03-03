@@ -85,7 +85,6 @@ const api = {
 	_add_files: function(files){
 		for (var i = 0; i < files.length; i++)
 			this.addFile(files[i]);
-
 	},
 	link_setter:function(value){
 		if (value)
@@ -101,7 +100,7 @@ const api = {
 					view.sync(this.files);
 				else if (view.setValues)
 					this.files.data.attachEvent("onStoreUpdated", function(){
-						view.setValues(this);
+						view.setValues(this, "auto");
 					});
 				view._settings.uploader = this._settings.id;
 			}, this);

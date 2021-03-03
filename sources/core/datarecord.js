@@ -18,9 +18,9 @@ const DataRecord = proto({
 	getValues:function(){
 		return this.data;
 	},
-	setValues:function(data, update){
+	setValues:function(data, update, config){
 		this.data = update?extend(this.data, data, true):data;
-		this.callEvent("onChange", [data]);
+		this.callEvent("onChange", [data, config]);
 	},
 	refresh:function(){ this.callEvent("onBindRequest"); }
 }, EventSystem, BaseBind, AtomDataLoader, Settings);

@@ -114,7 +114,6 @@ const Mixin = {
 	},
 	_getHeaderNode:function(column_id, row_index, group){
 		if(this.isColumnVisible(column_id)){
-
 			var ind = this.getColumnIndex(column_id);
 			var hind = this._settings.leftSplit > ind ? 0 : (this._rightSplit <=ind ? 2 :1 );
 			row_index = row_index || 0;
@@ -342,6 +341,8 @@ const Mixin = {
 			if (!this._auto_scroll)
 				extend(this, AutoScroll, true);
 		}
+
+		return value;
 	}
 };
 

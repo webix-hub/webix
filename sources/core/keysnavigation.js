@@ -40,7 +40,7 @@ const KeysNavigation = {
 
 			if (view && view.moveSelection && view.config.navigation && !view._in_edit_mode){
 				preventEvent(e);
-				return view.moveSelection(mode, {shift:e.shiftKey, ctrl:e.ctrlKey});
+				return view.moveSelection(mode, {shift:e.shiftKey, ctrl:e.ctrlKey, e});
 			}
 		};
 	},

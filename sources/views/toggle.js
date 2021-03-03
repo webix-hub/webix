@@ -9,7 +9,7 @@ const api = {
 	$allowsClear:true,
 	$init:function(){
 		this.attachEvent("onItemClick", function(){
-			this.toggle();
+			this.toggle("user");
 		});
 	},
 	$renderInput:function(obj){
@@ -45,8 +45,8 @@ const api = {
 		const changeCss = isPressed ? addCss : removeCss;
 		changeCss(input.parentNode, "webix_pressed");
 	},
-	toggle:function(){
-		this.setValue(!this.getValue());
+	toggle:function(config){
+		this.setValue(!this.getValue(), config);
 	},
 	getValue:function(){
 		var value = this._settings.value;

@@ -178,7 +178,7 @@ const api = {
 						temp[i] = i === this._activeIndex ? value : c.value[i];
 					value = temp;
 				}
-				this.setValue(value);
+				this.setValue(value, "user");
 				this._activeIndex = -1;
 			}
 		}
@@ -242,7 +242,7 @@ const api = {
 			value = copy(value);
 
 		this._settings.value = this._start_value;
-		this.setValue(value);
+		this.setValue(value, "user");
 
 		this._get_slider_handle(this._activeIndex).focus();
 		this._activeIndex = -1;

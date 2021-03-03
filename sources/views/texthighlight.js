@@ -38,6 +38,7 @@ const api = {
 		this._viewobj.className += " webix_el_" + type;
 
 		if(type == "textarea"){
+			delete config.clear;
 			config.height = config.height || 0;
 			config.minHeight = config.minHeight || 60;
 			this._skipSubmit = true;
@@ -68,6 +69,11 @@ const api = {
 	$setSize:function(){
 		text.api.$setSize.apply(this, arguments);
 		this._updatePos();
+	},
+	$renderIcon:function(c){
+		if (c.type == "text")
+			return text.api.$renderIcon.apply(this, arguments);
+		return "";
 	},
 	_getLabelHeight:function(top){
 		if(this._settings.type == "textarea")

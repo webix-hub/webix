@@ -14,11 +14,11 @@ const api = {
 		// remove fieldset sizing
 		paddingY:0, paddingX:0
 	},
-	setValue:function(value){
+	setValue:function(value, config){
 		if(this._body_view.setValue)
-			this._body_view.setValue(value);
+			this._body_view.setValue(value, config);
 		else if (this._body_view.setValues)
-			this._body_view.setValues(value);
+			this._body_view.setValues(value, false, config);
 	},
 	focus:function(){
 		if (this._body_view.focus){
@@ -62,7 +62,7 @@ const api = {
 
 			label.style.textAlign = this._settings.labelAlign;
 
-			if(this._settings.value) this.setValue(this._settings.value);
+			if(this._settings.value) this.setValue(this._settings.value, "auto");
 		});
 
 		if (obj.labelPosition != "top"){

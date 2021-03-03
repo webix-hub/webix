@@ -198,18 +198,14 @@
 		border-color: @backColor;
 		box-shadow: none;
 	}
-	.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker{
-		.webix_input_icon{
+	.webix_el_combo, .webix_el_richselect, .webix_el_datepicker,
+	.webix_el_colorpicker, .webix_el_search, .webix_el_text, .webix_el_texthighlight{
+		.webix_input_icon, .webix_clear_icon.webix_icon_transparent{
 			.barButton;
 			color: @fontColor;
 		}
-		.webix_input_icon:hover{
-			background-color: rgba(0,0,0,0);
-			color: @fontColor;
-		}
-		.webix_input_icon:active, .webix_input_icon:focus{
-			background-color: rgba(0,0,0,0);
-			color: @fontColor;
+		.webix_clear_icon:hover{
+			color: @dangerColor;
 		}
 	}
 	.webix_selected.webix_segment_0, .webix_selected.webix_segment_1, .webix_selected.webix_segment_N{
@@ -722,6 +718,17 @@
 	}
 }
 
+.webix_el_combo, .webix_el_richselect, .webix_el_datepicker,
+.webix_el_colorpicker, .webix_el_search, .webix_el_text, .webix_el_texthighlight{
+	.webix_clear_icon.webix_icon_transparent{
+		background-color: transparent;
+		color: @inactiveFontColor;
+	}
+	.webix_clear_icon.webix_icon_transparent:hover{
+		color: @dangerColor;
+	}
+}
+
 .focusStyle{
 	border: 1px solid @buttonColor;
 	box-shadow: 0 0 1px @buttonColor inset;
@@ -769,17 +776,7 @@
 .webix_el_select select, .webix_el_textarea textarea{
 	#border > .radius(@skin_input_radius);
 }
-.webix_el_combo, .webix_el_richselect{
-	span.webix_input_icon{
-		width: 24px;
-		padding-left:5px;
-	}
-}
-.webix_el_datepicker, .webix_el_colorpicker, .webix_el_search{
-	span.webix_input_icon{
-		width: 24px;
-	}
-}
+
 // multiselect combo
 .webix_el_text .webix_inp_static{
 	#border > .radius(@skin_input_radius);
@@ -792,11 +789,6 @@
 	.wxi-checkbox-marked{
 		color: @buttonColor;
 	}
-}
-.webix_multicombo_delete:after{
-	content: "\F011";
-	font-size:16px;
-	color:@fontColor;
 }
 
 .buttonBorderStyle(@color:@buttonColor){
@@ -1054,11 +1046,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	.darkActiveRule(@buttonColor);
 	.activeShadow;
 }
-.webix_el_text .webix_input_icon:hover, .webix_el_text .webix_input_icon:active{
-	color: @buttonColor;
-	background: inherit;
-	cursor:pointer;
-}
 
 .webix_selected.webix_segment_0:hover, .webix_selected.webix_segment_1:hover, .webix_selected.webix_segment_N:hover{
 	.darkHoverRule(@selectColor);
@@ -1133,11 +1120,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 }
 .activeShadow{
 	box-shadow: inset 0 3px 5px rgba(0,0,0,0.125)
-}
-
-.webix_control.webix_el_search span {
-	.altBackColor;
-	font-size:22px;
 }
 
 // disabled controls

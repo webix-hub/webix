@@ -42,8 +42,8 @@ const api = {
 		if (this._last_input_target)
 			this._last_cursor_pos = getSelectionRange(this._last_input_target).start;
 	},
-	_get_details:function(){
-		return { pos:this._last_cursor_pos, symbol:this._settings.symbol };
+	_get_details:function(config){
+		return { pos:this._last_cursor_pos, symbol:this._settings.symbol, config };
 	},
 	_preselectMasterOption:function(){},
 	_set_input_value:function(text){

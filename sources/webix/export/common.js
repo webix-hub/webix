@@ -220,8 +220,11 @@ export function getExportData(view, options, scheme){
 			let line = [];
 			for (let i = 0; i < scheme.length; i++){
 				let column = scheme[i], cell = null;
-				//spreadsheet can output math
-				if(options.math && item["$"+column.id] && item["$"+column.id].charAt(0) =="=" && !item["$"+column.id].match(/^=(image|sparkline)\(/i))
+				//spreadsheet use muon to store data, get value via $getExportValue
+				if(view.$getExportValue)
+					cell = view.$getExportValue(item.id, column.id, options);
+				//datatable math
+				else if(options.math && item["$"+column.id] && item["$"+column.id].charAt(0) =="=")
 					cell = item["$"+column.id];
 				if(this._spans_pull){
 					let span = this.getSpan(item.id, column.id);

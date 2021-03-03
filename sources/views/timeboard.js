@@ -8,12 +8,17 @@ import { $active } from "../webix/skin";
 const api = {
 	name:"timeboard",
 	defaults: {
-		width:270,
-		padding: $active.layoutPadding.space,
-		margin: $active.layoutMargin.form,
+		width: 260,
 		hours: true,
 		seconds: false,
 		twelve: /%([a,A])/.test(i18n.timeFormat)
+	},
+
+	$skin:function(){
+		layout.api.$skin.call(this);
+
+		this.defaults.margin = $active.layoutMargin.form;
+		this.defaults.padding = $active.layoutPadding.space;
 	},
 
 	$init: function(config) {
@@ -38,33 +43,33 @@ const api = {
 			view:"form", 
 			elements:rows, padding:0, borderless:true,
 			on:{
-				onChange:() => this._recollectValues()
+				onChange:(v,o,c) => this._recollectValues(c)
 			}
 		}];
 
 		this.$ready.push(function(){
 			this._form = this.queryView("form");
 			const value = this._settings.value;
-			if(value) this.setValue(value);
+			if(value) this.setValue(value, "auto");
 		});
 	},
 
 	// accepts strings and Dates
-	setValue: function(value) {
-		const old = this._settings.value;
+	setValue: function(value, config) {
 		value = this.$prepareValue(value);
-		if(!wDate.equal(value, old)) {
+		const oldvalue = this._settings.value;
+
+		if(!wDate.equal(value, oldvalue)) {
 			this._settings.value = value;
-			this.callEvent("onChange", [value, old]);
-		}
-		if(value)
 			this.$setValue(value);
+			this.callEvent("onChange", [value, oldvalue, config]);
+		}
 	},
 
 	$prepareValue:function(value){
 		if (typeof value === "string")
 			value = i18n.parseTimeFormatDate(value);
-		return value;
+		return value || wDate.datePart(new Date());
 	},
 
 	$setValue:function(value){
@@ -83,11 +88,11 @@ const api = {
 				obj.shours =  obj.hours == 12 ? 0 : obj.hours;
 			}
 		}
-		
-		this._form.setValues(obj);
+
+		this._form.setValues(obj, "auto");
 	},
 
-	_recollectValues(){
+	_recollectValues(config){
 		const values = this.$getValue();
 		
 		const date = this._settings.value ? wDate.copy(this._settings.value) : new Date();
@@ -96,7 +101,7 @@ const api = {
 		if(this._settings.seconds)
 			date.setSeconds(values.seconds);
 
-		this.setValue(date);
+		this.setValue(date, config);
 	},
 
 	$getValue:function(){
@@ -125,12 +130,12 @@ const api = {
 
 	_getClock: function(hours, seconds, twelve) {
 		const inputs = [
-			{}, this._getText("minutes"),{}
+			{}, this._getText("minutes"), {}
 		];
 
 		const separator = {
-			css: "colon_template", template: "<span class=\"colon\">:</span>",
-			borderless: true, width: 18
+			css: "webix_colon_template", template: ":",
+			borderless: true, width: 16
 		};
 
 		if (hours)
@@ -145,12 +150,12 @@ const api = {
 			const control = {
 				view: "label",
 				name: "day_part",
-				css: "day_part",
+				css: "webix_day_part",
 				template:"<div tabindex='0' role='button' class='webix_el_box' style='width:#awidth#px;height:#aheight#px;line-height:#cheight#px'>#label#</div>",
-				inputWidth:25,
+				inputWidth: 30,
 				on: {
 					onItemClick:function(){
-						this.setValue(this.getValue() == am ? pm : am);
+						this.setValue(this.getValue() == am ? pm : am, "user");
 					},
 					onKeyPress:function(code, e){
 						this._onKeyPress(code, e);
@@ -172,7 +177,7 @@ const api = {
 
 		return {
 			view: "text",
-			width: 46, 
+			width: 46,
 			name: name,
 			format: {
 				parse: a => {
@@ -188,7 +193,8 @@ const api = {
 			},
 			on: {
 				onChange:(nv) => {
-					this._form.elements["s"+name].setValue((twelve && name === "hours" && (!nv || nv == 12) ? 0 : nv) * 1);
+					const v = (twelve && name === "hours" && (!nv || nv == 12) ? 0 : nv) * 1;
+					this._form.elements["s"+name].setValue(v, "auto");
 				},
 			},
 		};
@@ -223,13 +229,13 @@ const api = {
 			min: 0, max: max,
 			on: {
 				onChange:(nv) => {
-					this._form.elements[name].setValue((enLocale ? (!nv || nv == 12 ? 12 : nv%12) : nv) + "");
+					this._form.elements[name].setValue((enLocale ? (!nv || nv == 12 ? 12 : nv%12) : nv) + "", "auto");
 				},
 				onSliderDrag:function(){
 					const nv = this.getValue();
 					const form = this.getFormView();
 					form.blockEvent();
-					form.elements[name].setValue((enLocale ? (!nv || nv == 12 ? 12 : nv%12) : nv) + "");
+					form.elements[name].setValue((enLocale ? (!nv || nv == 12 ? 12 : nv%12) : nv) + "", "auto");
 					form.unblockEvent();
 				}
 			}

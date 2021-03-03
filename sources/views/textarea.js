@@ -27,6 +27,9 @@ const api = {
 	_getLabelHeight:function(top){
 		return top ? this._labelTopHeight-this._settings.inputPadding : "";
 	},
+	$renderIcon:function(){
+		return "";
+	},
 	//get input element
 	getInputNode: function() {
 		return this._dataobj.getElementsByTagName("textarea")[0];

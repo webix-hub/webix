@@ -5,7 +5,7 @@ import rules from "../webix/rules";
 const ValidateCollection = {
 	_validate_init_once:function(){
 		this.data.attachEvent("onStoreUpdated",bind(function(id, data, mode){
-			if (id && (mode == "add" || mode == "update"))
+			if (id && (mode == "add" || mode == "update" || mode =="save"))
 				this.validate(id);
 		}, this));
 		this.data.attachEvent("onClearAll",bind(this.clearValidation, this));

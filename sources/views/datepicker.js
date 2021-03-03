@@ -46,7 +46,7 @@ const api = {
 			return;
 
 		const value = this._settings.editable ? this.getValue() : this.getPopup().getValue();
-		this.setValue(value||"");
+		this.setValue(value||"", "user");
 	},
 	$skin:function(){
 		text.api.$skin.call(this);
@@ -171,6 +171,7 @@ const api = {
 	$setValue:function(value){
 		this._settings.text = (value?this._get_visible_text(value):"");
 		this._set_visible_text();
+		this._toggleClearIcon(this._settings.text);
 	},
 	format_setter:function(value){
 		if(value){

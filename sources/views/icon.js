@@ -14,12 +14,13 @@ const api = {
 	},
 	defaults:{
 		template:function(obj, view){
-			let min = Math.min(obj.awidth, obj.aheight);
-			let top = Math.round((view._content_height-obj.aheight)/2);
-			let inner = "<button type='button' style='height:"+min+"px;width:"+min+"px;' class='webix_icon_button'>"+
-                "<span class='webix_icon "+obj.icon+"'></span></button>";
+			const min = Math.min(obj.awidth, obj.aheight);
+			const top = Math.round((view._content_height-obj.aheight)/2);
+			const inner = "<button type='button' style='height:"+min+"px;width:"+min+"px;' class='webix_icon_button'>"+
+				"<span class='webix_icon "+obj.icon+"'></span></button>";
 
-			return "<div class='webix_el_box' style='width:"+obj.awidth+"px;height:"+obj.aheight+"px;line-height:"+obj.aheight+
+			const lineHeight = obj.aheight != min ? obj.aheight : 0;
+			return "<div class='webix_el_box' style='width:"+obj.awidth+"px;height:"+obj.aheight+"px;line-height:"+lineHeight+
 				"px;margin-top:"+top+"px'>"+inner+(obj.badge||obj.badge===0 ? "<span class='webix_badge'>"+obj.badge+"</span>":"")+
 				"</div>";
 		}

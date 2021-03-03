@@ -29,12 +29,12 @@ const Values = {
 		}
 		return false;
 	},
-	setValues:function(data, update){
+	setValues:function(data, update, config){
 		if (this._settings.complexData)
 			data = CodeParser.collapseNames(data, "", {}, (v) => !this.elements[v]);
-		this._inner_setValues(data, update);
+		this._inner_setValues(data, update, config);
 	},
-	_inner_setValues:function(data, update){
+	_inner_setValues:function(data, update, config){
 		this._is_form_dirty = update;
 		//prevent onChange calls from separate controls
 		this.blockEvent();
@@ -47,12 +47,12 @@ const Values = {
 				this._values[name] = data[name];
 
 		for (let name in this.elements){
-			var input = this.elements[name];
+			const input = this.elements[name];
 			if (input){
 				if (!isUndefined(data[name]))
-					input.setValue(data[name]);
+					input.setValue(data[name], config);
 				else if (!update && input.$allowsClear)
-					input.setValue("");
+					input.setValue("", config);
 				this._values[name] = input.getValue();
 			}
 		}
@@ -123,14 +123,14 @@ const Values = {
 		}
 		return data;
 	},
-	clear:function(){
+	clear:function(config){
 		this._is_form_dirty = false;
 		var data = {};
 		for (var name in this.elements)
 			if (this.elements[name].$allowsClear)
 				data[name] = "";
 		
-		this._inner_setValues(data);
+		this._inner_setValues(data, false, config);
 	},
 	markInvalid: function(name, state){
 		// remove 'invalid' mark

@@ -16,8 +16,9 @@ export const toPDF = function(id, options){
 	options = options || {};
 
 	options.export_mode = "pdf";
-	options._export_font = font;
+
 	options.fontName = options.fontName || "pt-sans.regular";
+	options.boldFontName = options.boldFontName || "pt-sans.bold";
 
 	id = isArray(id)?id:[id];
 	let views = [];
@@ -48,9 +49,9 @@ export const toPDF = function(id, options){
 					if(view.data && view.data.pull){
 						const scheme = getExportScheme(view, viewOptions);
 						views.push({
-							scheme: scheme, 
+							scheme, 
 							exportData: getExportData(view, viewOptions, scheme),
-							viewOptions: viewOptions
+							viewOptions
 						});
 						if(options.autowidth)
 							getAutowidth(view, options, scheme);
@@ -77,8 +78,9 @@ export const toPDF = function(id, options){
 		if(views.length == 0)
 			return promise.reject(errorMessage);
 
-		if(font[options.fontName]){
+		if(font[options.fontName] && font[options.boldFontName]){
 			options._export_font = font[options.fontName];
+			options._export_font_bold = font[options.boldFontName];
 			return getPdfData(views, options).then(function(pdf){
 				return getBlob(pdf, options);
 			});
@@ -86,14 +88,19 @@ export const toPDF = function(id, options){
 		else{
 			const defer = promise.defer();
 			/* global pdfjs */
-			pdfjs.load(options.fontURL||env.cdn + "/extras/"+options.fontName+".ttf", function(err, buf){
-				if(err) throw err;
-				options._export_font = font[options.fontName] = new pdfjs.TTFFont(buf);
-				defer.resolve(
-					getPdfData(views, options).then(function(pdf){
-						return getBlob(pdf, options);
-					})
-				);
+			pdfjs.load(options.fontURL||env.cdn + "/extras/"+options.fontName+".ttf", function(err, regular){
+				if(err)
+					return defer.reject(err);
+				pdfjs.load(options.boldFontURL||env.cdn + "/extras/"+options.boldFontName+".ttf", function(err, bold){
+					options._export_font = font[options.fontName] = new pdfjs.TTFFont(regular);
+					options._export_font_bold = font[options.boldFontName] = err ? null : new pdfjs.TTFFont(bold);
+
+					defer.resolve(
+						getPdfData(views, options).then(function(pdf){
+							return getBlob(pdf, options);
+						})
+					);
+				});
 			});
 			return defer;
 		}
@@ -127,8 +134,10 @@ function getPdfData(views, options){
 
 			if(images[i])
 				doc.image(images[i], {align:"center"});
-			else
+			else{
+				viewOptions._export_font_bold = options._export_font_bold;
 				addPDFTable(views[i], doc);
+			}
 
 			if(viewOptions.textAfter)
 				addText(doc, "after", viewOptions.textAfter);
@@ -239,6 +248,7 @@ function addPDFTable(view, doc){
 	});
 
 	const table = doc.table(tableOps);
+	const boldFont = options._export_font_bold;
 
 	//render table header
 	if(h_count){
@@ -251,8 +261,10 @@ function addPDFTable(view, doc){
 		for(let i = 0; i<h_count; i++){
 			const header = table.tr(headerOps);
 			for(let s=0; s<scheme.length; s++){
-				const options = styles ? getStyles(i, s, styles) : {};
-				header.td(scheme[s].header[i].toString(), options);
+				const cellStyle = styles ? getStyles(i, s, styles) : {};
+				if(boldFont && cellStyle.bold)
+					cellStyle.font = boldFont;
+				header.td(scheme[s].header[i].toString(), cellStyle);
 			}
 		}
 	}
@@ -261,8 +273,10 @@ function addPDFTable(view, doc){
 	for(let r=0; r<data.length;r++){
 		let row = table.tr({});
 		for(let c=0; c< data[r].length; c++){
-			const options = styles ? getStyles(r+h_count, c, styles) : {};
-			row.td(data[r][c], options);
+			const cellStyle = styles ? getStyles(r+h_count, c, styles) : {};
+			if(boldFont && cellStyle.bold)
+				cellStyle.font = boldFont;
+			row.td(data[r][c], cellStyle);
 		}
 	}
 
@@ -278,8 +292,10 @@ function addPDFTable(view, doc){
 			const beforeCount = h_count + data.length;
 			let footer = table.tr(footerOps);
 			for(let s=0; s<scheme.length; s++){
-				const options = styles ? getStyles(i+beforeCount, s, styles) : {};
-				footer.td(scheme[s].footer[i].toString(), options);
+				const cellStyle = styles ? getStyles(i+beforeCount, s, styles) : {};
+				if(boldFont && cellStyle.bold)
+					cellStyle.font = boldFont;
+				footer.td(scheme[s].footer[i].toString(), cellStyle);
 			}
 		}
 	}

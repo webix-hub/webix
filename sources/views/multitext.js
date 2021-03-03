@@ -2,6 +2,7 @@ import text from "../views/text";
 import {protoUI, $$} from "../ui/core";
 import {extend, _to_array} from "../webix/helpers";
 
+import i18n from "../webix/i18n";
 
 const api = {
 	name:"multitext",
@@ -53,13 +54,23 @@ const api = {
 		}
 		this._full_value = "";
 	},
-	_subOnChange:function(){
-		var parent = this.config.master ? $$(this.config.master) : this;
-		var newvalue = parent.getValue();
-		var oldvalue = parent._settings.value;
-		if (newvalue !== oldvalue){
-			parent._settings.value = newvalue;
-			parent.callEvent("onChange", [newvalue, oldvalue]);
+	$renderIcon:function(c){
+		if (c.icon){
+			const height = c.aheight - 2*c.inputPadding;
+			const padding = (height - 18)/2 -1;
+			const aria = "role='button' tabindex='0' aria-label='"+(i18n.aria["multitext"+(c.mode || "")+"Section"])+"'";
+			return "<span style='right:0;height:"+(height-padding)+"px;padding-top:"+padding+"px;' class='webix_input_icon webix_multitext_icon "+c.icon+"' "+aria+"></span>";
+		}
+		return "";
+	},
+	_subOnChange:function(v, o, config){
+		const parent = this.config.master ? $$(this.config.master) : this;
+		const value = parent.getValue();
+		const oldvalue = parent._settings.value;
+
+		if (value != oldvalue){
+			parent._settings.value = value;
+			parent.callEvent("onChange", [value, oldvalue, config]);
 		}
 	},
 	addSection:function(text){
@@ -102,14 +113,12 @@ const api = {
 		"webix_input_icon":function(){
 			if (this.config.mode == "extra"){
 				const parent = this.getParentView();
-
 				this.removeSection(this.config.id);
 
 				const childs = parent.getChildViews();
-
 				childs[childs.length - 1].focus();
 				
-				this._subOnChange();
+				this._subOnChange(null,null,"user");
 			} else
 				$$(this.addSection()).focus();
 

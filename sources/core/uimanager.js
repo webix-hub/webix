@@ -408,7 +408,7 @@ const UIManager = {
 			if (!node) continue;
 	
 			if (!isUndefined(state.collapsed)) node.define("collapsed", state.collapsed);
-			if (!isUndefined(state.activeCell)) node.setValue(state.activeCell);
+			if (!isUndefined(state.activeCell)) node.setValue(state.activeCell, "auto");
 	
 			node.define("width", state.width);
 			node.define("height", state.height);

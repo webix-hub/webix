@@ -27,8 +27,8 @@
 }
 
 //text
-.webix_el_text input, .webix_el_search input, .webix_el_combo input, .webix_el_datepicker input, .webix_el_colorpicker input{
-
+.webix_el_text input, .webix_el_search input, .webix_el_combo input,
+.webix_el_datepicker input, .webix_el_colorpicker input{
 	font-size: @formFontSize;
 	height:100%;
 	padding:0px @skin_content_padding;
@@ -38,6 +38,12 @@
 	.inputStyle;
 	-webkit-appearance: none;
 	border-radius: 0;
+}
+
+.webix_multitext_icon:hover, .webix_multitext_icon:active{
+	color: @baseColor;
+	background: inherit;
+	cursor: pointer;
 }
 
 .webix_inp_label, .webix_inp_top_label, .webix_label_right{
@@ -239,41 +245,40 @@ body:not(:-moz-handler-blocked) .webix_el_select select{
 
 .webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_search{
 	font-size: @formFontSize;
-	.webix_el_box{
-		color: @fontColor;
-		position: relative;
-	}
 	input,  .webix_inp_static{
 		color: @fontColor;
-		padding-right: 24px;
 		font-family: @fontFamily;
 		.inputStyle;
 		-webkit-appearance: none;
 	}
+}
+.webix_el_combo, .webix_el_richselect, .webix_el_datepicker,
+.webix_el_colorpicker, .webix_el_search, .webix_el_text, .webix_el_texthighlight{
+	.webix_el_box{
+		color: @fontColor;
+		position: relative;
+	}
 	.webix_input_icon{
-		right:2px;
-		background: transparent;
-
+		background-color: transparent;
+		position: absolute;
 		z-index: 1;
-		position:absolute;
-		//margin-top: (@inputHeight - @skin_input_y_padding - 20)/2 ;
+		padding-left: 4px;
+		width: 24px;
 	}
 }
-.webix_el_combo, .webix_el_richselect{
-	.webix_input_icon{
-		padding-left: 7px;
-		width: 19px;
-	}
-}
-.webix_el_datepicker, .webix_el_colorpicker, .webix_el_search{
-	.webix_input_icon{
-		padding-left: 5px;
-		width: 21px;
+
+.webix_clear_icon:hover{
+	color: @dangerColor;
+	cursor: pointer;
+
+	&::before{
+		content: "\F011";
+		font-family: @iconFamily;
 	}
 }
 
 // Remove clear button in IE/Edge
-.webix_view input[type="text"]::-ms-clear{
+.webix_view input::-ms-clear{
 	display: none;
 }
 
@@ -343,8 +348,6 @@ body:not(:-moz-handler-blocked) .webix_el_select select{
 
 .webix_el_colorpicker .webix_input_icon{
 	padding-left:0;
-	top: @skin_input_y_padding + 4px;
-	right: @skin_input_x_padding  + 6px;
 	width: @cPickerSize;
 	height: @cPickerSize;
 	border-radius: @skin_input_radius;
@@ -407,11 +410,10 @@ label.webix_required:after, legend.webix_required:after,
 // multicombo
 @mcomboPadding: 3px;
 .webix_multicombo .webix_inp_static{
-	padding: 0 @mcomboPadding;
+	padding: 0 @mcomboPadding 0 0;
 }
 
 .webix_el_text .webix_multicombo_input{
-
 	background-color: transparent;
 	border: 0;
 	float: left;
@@ -435,40 +437,56 @@ label.webix_required:after, legend.webix_required:after,
 	list-style: none;
 }
 .webix_multicombo_value, .webix_multicombo_tag{
-	padding-left:7px;
+	float: left;
+	position: relative;
 	background-color: darken(@backColor,5%);
 	display: inline-block;
-	margin: 3px;
-	float: left;
+	margin: @mcomboPadding 0 0 @mcomboPadding;
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+
 	#border > .radius(@skin_input_radius);
+	#box > .sizing;
+}
+.webix_multicombo_value{
+	padding: 0 20px 0 5px;
 }
 .webix_multicombo_tag{
 	min-width: 15px;
 	text-align: center;
+}
+.webix_multicombo_tag, .webix_multicombo_value.webix_readonly{
 	padding: 0 5px 0 5px;
 }
 
-
 .webix_multicombo_delete{
-		#box > .noselect;
-		color: transparent;
-		margin:0 4px 0 2px;
-		padding: 0;
-		cursor:pointer;
-		&:after{
-			vertical-align: bottom;
-			font-size: 20px;
-			content: "\F033";
-			font-family: @iconFamily;
-			color: @inactiveFontColor;
-		}
-	}
-
-.webix_multilist .webix_selected{
-	background: darken(@backColor,5%);
+	position: absolute;
+	top: 50%;
+	right: 4px;
+	margin-top: -8px;
+	font-size: 16px;
+	height: 16px;
+	line-height: 1;
 	color: @fontColor;
+	cursor: pointer;
+	#box > .noselect;
+	&::after{
+		content: "\F011";
+		font-family: @iconFamily;
+	}
 }
+
 .webix_multilist{
+	.webix_list_item{
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+	.webix_selected{
+		background: darken(@backColor,5%);
+		color: @fontColor;
+	}
 	.wxi-checkbox-marked, .wxi-checkbox-blank{
 		vertical-align:middle;
 		font-size: 24px;
@@ -515,8 +533,8 @@ label.webix_required:after, legend.webix_required:after,
 			-ms-overflow-style:-ms-autohiding-scrollbar;
 			padding: 0 @skin_content_padding;
 		}
-		input::-ms-clear{
-			display: none;
+		.webix_input_icon{
+			top: @skin_input_y_padding;
 		}
 	}
 	&.webix_el_textarea{

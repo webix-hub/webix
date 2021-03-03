@@ -1,85 +1,82 @@
 .webix_color_area{
-	-moz-user-select: none;
-	-webkit-user-select: none; 
 	width:100%;
 	height:100%;
-	
+	#box > .noselect;
 }
 .webix_color_block{
-	background: red;
 	position: relative;
     border-radius: 2px;
-    overflow: hidden;
-    margin:@dataPadding @dataPadding 14px;
+    margin: @dataPadding @dataPadding 14px;
 }
 
-.webix_color_block:before {
+.webix_color_block:before, .webix_color_block:after {
 	content: "";
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+.webix_color_block:before {
     background-image: linear-gradient(0deg,#000,hsla(0,0%,100%,0));
     z-index: 2;
 }
 .webix_color_block:after {
-	content: "";
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
     background-image: linear-gradient(90deg,#fff,hsla(20,42%,65%,0));
     z-index: 1;
 }
 
 .webix_color_line {
 	position: relative;
-    height:8px;
+    height: 8px;
     margin: 0 @dataPadding;
-    border-radius: 21px;
+    border-radius: 8px;
     background-image: linear-gradient(90deg,red,#ff0 17%,#0f0 33%,#0ff 50%,#00f 67%,#f0f 83%,red);
 }
 
 .webix_color_circle {
-	width:8px;
-	height:8px;
-	border:1px solid @fontColor;
-	border-radius:50%;
-	position:absolute;
-	left:0;
-	top:0;
-	z-index:3;
-	-moz-user-select: none;
-	-khtml-user-select: none;
-	user-select: none; 
-	-webkit-user-select: none;   
+	width: 8px;
+	height: 8px;
+	margin: -6px 0 0 -6px;
+	border: 2px solid #FFFFFF;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	border-radius: 50%;
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: 3;
 }
 .webix_color_circle:focus, 
-.webix_color_area_active .webix_color_circle{
-	box-shadow:inset 0 0 4px #fff;
+.webix_color_area_active .webix_color_circle {
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 0 4px #FFFFFF;
 }
+
 .webix_color_line_circle {
-	position: absolute;
 	width: 12px;
 	height: 12px;
-	left: 0px;
-	top: -4px;
-	background: #12FF08;
+	margin: -4px 0 0 -8px;
 	border: 2px solid #FFFFFF;
-	border-radius:50%;
+	border-radius: 50%;
+	position: absolute;
+	left: 0;
+	top: 0;
+	background: #12FF08;
 }
 .webix_color_line_circle:focus,
 .webix_color_area_active .webix_color_line_circle{
-	box-shadow:inset 0 0 8px #fff;
+	box-shadow:inset 0 0 8px #FFFFFF;
+}
+
+.webix_color_area_active .webix_color_circle,
+.webix_color_area_active .webix_color_line_circle{
+	pointer-events: none;
 }
 
 .webix_color_out_block, .webix_color_out_text{
-	height:32px;
-	float:left;
-	border:1px solid @inputBorderColor;
-	margin:@dataPadding 0px @dataPadding @dataPadding;
+	height: @inputHeight - 2*@skin_input_y_padding;
+	float: left;
+	border: 1px solid @inputBorderColor;
+	margin: @dataPadding 0px @dataPadding @dataPadding;
 	box-sizing: border-box;
 }
 .webix_color_out_text{
@@ -92,8 +89,8 @@
 	}
 }
 .webix_color_area .webix_button{
-	width:calc(100% - @dataPadding*2);
-	height:32px;
-	margin:0px 0px @dataPadding @dataPadding;
+	width: calc(100% - @dataPadding*2);
+	height: @inputHeight - 2*@skin_input_y_padding;
+	margin: 0px 0px @dataPadding @dataPadding;
 	box-sizing: border-box;
 }

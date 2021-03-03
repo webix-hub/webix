@@ -49,8 +49,8 @@ const AutoTooltip = {
 	},
 	$tooltipMove:function(t,e,c){
 		const tooltip = this._settings.tooltip;
-		const overflow = isUndefined(tooltip.overflow) ? TooltipControl.overflow : tooltip.overflow;
-		const time = isUndefined(tooltip.delay) ? TooltipControl.delay : tooltip.delay;
+		const overflow = !tooltip || isUndefined(tooltip.overflow) ? TooltipControl.overflow : tooltip.overflow;
+		const time = !tooltip || isUndefined(tooltip.delay) ? TooltipControl.delay : tooltip.delay;
 		const text = overflow ? c.overflow : c.first;
 
 		if (time > 0)

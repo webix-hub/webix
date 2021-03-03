@@ -53,24 +53,35 @@ const api = {
 
 		return {width: (len?totalWidth/len:config.tabMinWidth)};
 	},
-	_init_popup: function(){
+	_init_popup: function () {
 		const obj = this._settings;
-		if (!obj.tabbarPopup){
-			const popupConfig = {
-				view: "popup",
-				autofocus:false,
-				width: (obj.popupWidth||200),
-				body:{
+
+		// if tabbar popup is set as plain object with config
+		if (!obj.tabbarPopup || !$$(obj.tabbarPopup)) {
+			const popupConfig = extend(
+				{
+					view: "popup",
+					autofocus: false,
+					width: obj.popupWidth || 200,
+				},
+				obj.tabbarPopup || {}
+			);
+
+			const body = extend(
+				{
 					view: "list",
 					borderless: true,
-					select: true, navigation:true,
-					css: "webix_tab_list",
-					autoheight: true, yCount: obj.yCount,
-					type:{
-						template: obj.popupTemplate
-					}
-				}
-			};
+					select: true,
+					autoheight: true,
+					yCount: obj.yCount || 7,
+					template: template(obj.popupTemplate || "#value#"),
+				},
+				obj.tabbarPopup ? obj.tabbarPopup.body || {} : {},
+				true
+			);
+			body.css = `webix_tab_list ${body.css || ""}`;
+			popupConfig.body = body;
+
 			const view = ui(popupConfig);
 			const list = view.getBody();
 
@@ -79,23 +90,23 @@ const api = {
 				UIManager.setFocus(list);
 
 				const node = list.getItemNode(list.getFirstId());
-				if (node)
-					node.focus();
+				if (node) node.focus();
 			});
-			list.attachEvent("onItemClick", (id) => this._popupInnerClick(id));
+			list.attachEvent("onItemClick", id => this._popupInnerClick(id));
 			list.attachEvent("onEnter", () => this._popupInnerClick());
 
 			obj.tabbarPopup = view._settings.id;
 			this._destroy_with_me.push(view);
 		}
-		this._init_popup = function(){};
+
+		this._init_popup = function () {};
 	},
 	_popupInnerClick(id){
 		const popup = $$(this._settings.tabbarPopup);
 		id = id || popup.getBody().getSelectedId();
 
 		if (id && this.callEvent("onBeforeTabClick", [id])){
-			this.setValue(id);
+			this.setValue(id, "user");
 			popup.hide();
 			this.callEvent("onAfterTabClick", [id]);
 			this.refresh();
@@ -108,11 +119,7 @@ const api = {
 		return $$(this._settings.tabbarPopup);
 	},
 	moreTemplate_setter: template,
-	popupTemplate_setter: template,
 	defaults:{
-		popupWidth: 200,
-		popupTemplate: "#value#",
-		yCount: 7,
 		moreTemplate: "<span class=\"webix_icon wxi-dots\"></span>",
 		template:function(obj,common) {
 			common._check_options(obj.options);
@@ -158,8 +165,10 @@ const api = {
 							body.clearAll();
 						}
 					}
-				} else if (common._settings.tabbarPopup)
-					$$(common._settings.tabbarPopup).hide();
+				} else if (common._settings.tabbarPopup) {
+					const popup = $$(common._settings.tabbarPopup);
+					if (popup) popup.hide();
+				}
 
 				sum = obj.tabOffset;
 				for (let i=0, lastTab=false; (i<tabs.length) && !lastTab; i++) {

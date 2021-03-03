@@ -36,12 +36,12 @@ const api = {
 		if(code>32 && code <41){
 			if(code === 36) value = c.min;
 			else if(code === 35) value = c.max === Infinity? 1000000 :c.max;
-			else if(code === 33) this.next();
-			else if(code === 34) this.prev();
+			else if(code === 33) this.next(c.step, "user");
+			else if(code === 34) this.prev(c.step, "user");
 			else value = value+(code === 37 || code ===40?-1:1);
 
 			if(code>34 && value>=c.min && value<=c.max)
-				this.setValue(value);
+				this.setValue(value, "user");
 		}
 	},
 	$setValue:function(value){
@@ -64,18 +64,18 @@ const api = {
 	getValue:function(){
 		return  button.api.getValue.apply(this,arguments)*1;
 	},
-	next:function(step){
+	next:function(step,config){
 		step = 1*( step || this._settings.step );
-		this.shift(step);
+		this.shift(step,config);
 	},
-	prev:function(step){
+	prev:function(step,config){
 		step = (-1)*( step || this._settings.step );
-		this.shift(step);
+		this.shift(step,config);
 	},
-	shift:function(step){
+	shift:function(step,config){
 		//round values to fix math precision issue in JS
 		const new_value = Math.round((this.getValue() + step)*100000)/100000;
-		this.setValue(new_value);
+		this.setValue(new_value,config);
 	}
 };
 

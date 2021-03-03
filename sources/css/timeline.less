@@ -2,14 +2,17 @@
 	padding-top:28px;
 }
 .webix_timeline_item{
-	height:@timelineItemHeight;
-	padding:0 @dataPadding;
-	position:relative;
-	.webix_timeline_date, .webix_timeline_event{
-		overflow:hidden;
-		position:absolute;
-		top:0px;
-	}
+	height: @timelineItemHeight;
+	line-height: 0;
+	box-sizing: border-box;
+	padding: 0 @dataPadding;
+	position: relative;
+}
+.webix_timeline_date, .webix_timeline_event{
+	line-height: 20px;
+	overflow:hidden;
+	position:absolute;
+	top:0px;
 }
 .webix_timeline_left .webix_timeline_date,
 .webix_timeline_right .webix_timeline_details,
@@ -18,7 +21,6 @@
 }
 .webix_timeline_value{
 	font-weight: @boldStyle;
-	line-height:18px;
 }
 .webix_timeline_details{
 	color:@inactiveFontColor;
@@ -28,23 +30,19 @@
 	white-space: nowrap;
 	overflow:hidden;
 	text-overflow:ellipsis;
-	line-height:18px;
 }
 // horizontal mode
 .webix_timeline_horizontal .webix_scroll_cont{
+	white-space:nowrap;
 	display:inline-block;
 	padding-top:unset;
 	padding-left:28px;
 	height:100%;
 }
-.webix_view.webix_timeline_horizontal{
-	white-space:nowrap;
-}
 .webix_timeline_horizontal .webix_timeline_item{
 	display:inline-block;
 	height:100%;
-	border-bottom:none;
-	padding:@dataPadding @dataPadding @dataPadding 0;
+	padding:@dataPadding 0 @dataPadding 0;
 	white-space:normal;
 	.webix_timeline_date, .webix_timeline_event{
 		left:0px;

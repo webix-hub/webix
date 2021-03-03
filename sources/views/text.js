@@ -6,7 +6,6 @@ import {setSelectionRange} from "../webix/html";
 import {assert} from "../webix/debug";
 import template from "../webix/template";
 
-import i18n from "../webix/i18n";
 import rules from "../webix/rules";
 import button from "./button";
 import base from "../views/view";
@@ -18,21 +17,43 @@ const api = {
 	$allowsClear:true,
 	_init_onchange:function(){
 		if (this.$allowsClear){
+			const c = this._settings;
+			const node = this.getInputNode();
 			//attach onChange handler only for controls which do not manage blur on their own
 			//for example - combo
 			if (!this._onBlur)
-				_event(this.getInputNode(), "change", this._applyChanges, {bind:this});
-			if (this._settings.suggest)
-				$$(this._settings.suggest).linkInput(this);
+				_event(node, "change", this._applyChanges, {bind:this});
+			if (c.suggest)
+				$$(c.suggest).linkInput(this);
+			if (c.clear && !this.addSection){
+				this._clear_icon = [...this.$view.getElementsByClassName("webix_input_icon")].pop();
+
+				if (node.tagName == "INPUT" || node.tagName == "SELECT")
+					_event(node, "input", (e) => this._toggleClearIcon(e.target.value));
+
+				const text = this.getText ? this.getText() : c.text||c.value;
+				this._toggleClearIcon(text);
+			}
 		}
 	},
 	_applyChanges: function(){
-		var newvalue = this.getValue();
-		
-		var res = this.setValue(newvalue, true);
+		const value = this.getValue();
+		const res = this.setValue(value, "user");
 		//controls with post formating, we need to repaint value
-		if (this._custom_format && res === false ){
-			this.$setValue(newvalue);
+		if (this._custom_format && res === false )
+			this.$setValue(value);
+	},
+	_toggleClearIcon:function(value){
+		const c = this._settings;
+		if (!c.clear || !this._clear_icon) return;
+
+		if (c.clear === "hover" || c.clear === "replace"){
+			const css = value ? "webix_clear_icon "+(c.clear==="hover"?c.icon:"wxi-close") : c.icon;
+			this._clear_icon.className = "webix_input_icon " + css;
+		} else {
+			const state = value ? "" : "hidden";
+			if (this._clear_icon.style.visibility !== state)
+				this._clear_icon.style.visibility = state;
 		}
 	},
 	$skin:function(){
@@ -48,21 +69,44 @@ const api = {
 			if (isUndefined(config.height) && this.defaults.height)  // textarea
 				config.height = this.defaults.height + (config.label?this._labelTopHeight:0);
 
+		// used in clear_setter
+		if (!isUndefined(config.icon))
+			this._settings.icon = config.icon;
+
 		if (this._onBlur)
 			this.attachEvent("onBlur", function(){
 				if (this._rendered_input) this._onBlur();
 			});
 		this.attachEvent("onAfterRender", this._init_onchange);
+		this.attachEvent("onDestruct", function(){
+			this._clear_icon = null;
+		});
 	},
-	$renderIcon:function(){
-		var config = this._settings;
-		if (config.icon){
-			var height = config.aheight - 2*config.inputPadding,
-				padding = (height - 18)/2 -1,
-				aria = this.addSection ? "role='button' tabindex='0' aria-label='"+(i18n.aria["multitext"+(config.mode || "")+"Section"])+"'": "";
-			return "<span style='height:"+(height-padding)+"px;padding-top:"+padding+"px;' class='webix_input_icon "+config.icon+"' "+aria+"></span>";
+	clear_setter:function(value){
+		if (value){
+			if (!this._settings.icon) value = true;
+
+			if (value !== "hover" && value !== "replace")
+				value = !!value;
 		}
-		return "";
+		return value;
+	},
+	$renderIcon:function(c){
+		const height = c.aheight - 2*c.inputPadding;
+		const padding = (height - 18)/2 -1;
+		let right = this._inputSpacing/2 - 24;
+		let html = "";
+
+		if (c.icon){
+			right += 24;
+			html += "<span style='right:"+right+"px;height:"+(height-padding)+"px;padding-top:"+padding+"px;' class='webix_input_icon "+c.icon+"'></span>";
+		}
+
+		if (c.clear === true){
+			right += 24;
+			html += "<span style='right:"+right+"px;height:"+(height-padding)+"px;padding-top:"+padding+"px;' class='webix_input_icon webix_clear_icon webix_icon_transparent wxi-close'></span>";
+		}
+		return html;
 	},
 	relatedView_setter:function(value){
 		this.attachEvent("onChange", function(){
@@ -186,9 +230,10 @@ const api = {
 		var id = "x"+uid();
 		var width = common._get_input_width(obj);
 		var inputAlign = obj.inputAlign || "left";
-		var height = this._settings.aheight - 2*$active.inputPadding - 2*$active.borderWidth;
+		var height = obj.aheight - 2*$active.inputPadding - 2*$active.borderWidth;
+		var rightPadding = obj.clear === true ? "padding-right:51px;" : "";
 		var text = (obj.text||obj.value||this._get_div_placeholder(obj));
-		var html = "<div class='webix_inp_static' role='combobox' aria-label='"+template.escape(obj.label)+"' tabindex='0'"+(obj.readonly?" aria-readonly='true'":"")+(obj.invalid?"aria-invalid='true'":"")+" onclick='' style='line-height:"+height+"px;width: " + width + "px; text-align: " + inputAlign + ";' >"+ text +"</div>";
+		var html = "<div class='webix_inp_static' role='combobox' aria-label='"+template.escape(obj.label)+"' tabindex='0'"+(obj.readonly?" aria-readonly='true'":"")+(obj.invalid?"aria-invalid='true'":"")+" onclick='' style='line-height:"+height+"px;width:"+width+"px;text-align:"+inputAlign+";"+rightPadding+"'>"+text+"</div>";
 		return common.$renderInput(obj, html, id);
 	},
 	_baseInputHTML:function(tag){
@@ -232,22 +277,25 @@ const api = {
 
 		id = id||uid();
 
-		var label = this.$renderLabel(config,id);
-
-		var html = "";
+		const label = this.$renderLabel(config,id);
+		let html = "";
 		if(div_start){
 			html += div_start;
 		} else {
-			var value =  template.escape(config.text || this._pattern(config.value) );
-			html += this._baseInputHTML("input")+"id='" + id + "' type='"+(config.type||this.name)+"'"+(config.editable?" role='combobox'":"")+" value='" + value + "' style='width: " + inputWidth + "px; text-align: " + inputAlign + ";'";
-			var attrs = config.attributes;
+			const value =  template.escape(config.text || this._pattern(config.value));
+			let rightPadding = (config.icon || config.clear ? 27 : 0) + (config.icon && config.clear === true ? 24 : 0);
+			rightPadding = rightPadding && !this.addSection ? "padding-right:"+rightPadding+"px;" : "";
+
+			html += this._baseInputHTML("input")+"id='"+id+"' type='"+(config.type||this.name)+"'"+(config.editable?" role='combobox'":"")+
+				" value='"+value+"' style='width:"+inputWidth+"px;text-align:"+inputAlign+";"+rightPadding+"'";
+
+			const attrs = config.attributes;
 			if (attrs)
-				for(var prop in attrs)
+				for(let prop in attrs)
 					html += " "+prop+"='"+attrs[prop]+"'";
 			html += " />";
 		}
-		var icon = this.$renderIcon?this.$renderIcon(config):"";
-		html += icon;
+		html += this.$renderIcon ? this.$renderIcon(config) : "";
 
 		var result = "";
 		//label position, top or left
@@ -281,7 +329,9 @@ const api = {
 	_set_default_css:function(){},
 	_pattern:function(value){ return value; },
 	$setValue:function(value){
-		this.getInputNode().value = this._pattern(value);
+		value = this._pattern(value);
+		this.getInputNode().value = value;
+		this._toggleClearIcon(value);
 	},
 	$getValue:function(){
 		return this._pattern(this.getInputNode().value, false);
@@ -295,10 +345,10 @@ const api = {
 			value = value.substring(0, details.pos);
 			value = value.substring(0, value.lastIndexOf(s)+s.length) + v;
 
-			this.setValue(value + last);
+			this.setValue(value + last, details.config);
 			setSelectionRange(this.getInputNode(), value.length);
 		} else
-			this.setValue(v);
+			this.setValue(v, details && details.config);
 	},
 	suggest_setter:function(value){
 		if (value){

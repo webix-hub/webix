@@ -162,7 +162,7 @@ const api = {
 			if (line)
 				line.value = data[key];
 		}
-		
+
 		this._props_dataset = data;
 		this.refresh();
 	},

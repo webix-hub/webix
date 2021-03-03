@@ -234,7 +234,7 @@ const api = {
 					var date = new Date();
 					if(!this._settings.timepicker)
 						date = DateHelper.datePart(date);
-					this.setValue(date);
+					this.setValue(date, "user");
 					this.callEvent("onTodaySet",[this.getSelectedDate()]);
 				}
 			}
@@ -245,7 +245,7 @@ const api = {
 			},
 			on_click:{
 				"webix_cal_icon_clear": function(){
-					this.setValue("");
+					this.setValue("", "user");
 					this.callEvent("onDateClear",[this.getSelectedDate()]);
 				}
 			}
@@ -317,6 +317,7 @@ const api = {
 			this._changeZoomLevel(2,date);
 		}
 
+		this._fix_cover();
 		this.callEvent("onAfterRender",[]);
 	},
 	_icons_template: function(date){
@@ -546,11 +547,11 @@ const api = {
 				else if(mode === false)
 					newdate = this._findActive(date, mode, calendar);
 
-				calendar.selectDate(newdate, false);
+				calendar.selectDate(newdate, false, false, "user");
 
 				if(newdate){
 					calendar._update_zoom_level(newdate);
-					calendar.selectDate(newdate, false);
+					calendar.selectDate(newdate, false, false, "user");
 				}
 
 				return "webix_cal_block"+(mode === "left" || mode === "right"?"_min":"");
@@ -584,7 +585,7 @@ const api = {
 					newdate = calendar._findActive(date, mode);
 				
 				if(newdate)
-					calendar.selectDate(newdate, true);
+					calendar.selectDate(newdate, true, false, "user");
 				return "webix_cal_day";
 			},
 			
@@ -645,7 +646,7 @@ const api = {
 				
 				if(newdate){
 					calendar._update_zoom_level(newdate);
-					calendar.selectDate(newdate, false);
+					calendar.selectDate(newdate, false, false, "user");
 				}
 				
 				return "webix_cal_block";
@@ -699,7 +700,7 @@ const api = {
 				
 				if(newdate){
 					calendar._update_zoom_level(newdate);
-					calendar.selectDate(newdate, false);
+					calendar.selectDate(newdate, false, false, "user");
 				}
 
 				return "webix_cal_block";
@@ -908,8 +909,7 @@ const api = {
 			date = this._zoom_logic[this._zoom_level]._correctDate(date,this);
 		return date;
 	},
-	_mode_selected:function(target){
-
+	_mode_selected:function(target, config){
 		var next = this._locate_date(target);
 		var zoom = this._zoom_level-(this._fixed?0:1);
 
@@ -918,13 +918,13 @@ const api = {
 			this._changeZoomLevel(zoom, next);
 			var type = this._settings.type;
 			if(type == "month" || type == "year")
-				this._selectDate(next);
+				this._selectDate(next, false, config);
 		}
 	},
 	// selects date and redraw calendar
-	_selectDate: function(date, add){
+	_selectDate: function(date, add, config){
 		if(this.callEvent("onBeforeDateSelect", [date])){
-			this.selectDate(date, true, add);
+			this.selectDate(date, true, add, config);
 			this.callEvent("onDateSelect", [date]);       // should be deleted in a future version
 			this.callEvent("onAfterDateSelect", [date]);
 		}
@@ -966,7 +966,7 @@ const api = {
 		webix_cal_day: function(e, id, target){
 			var date = this._locate_day(target);
 			var add = this._settings.multiselect === "touch"  || (e.ctrlKey || e.metaKey);
-			this._selectDate(date, add);
+			this._selectDate(date, add, "user");
 		},
 		webix_cal_time:function(){
 			if(this._zoom_logic[this._zoom_level-1]){
@@ -984,7 +984,7 @@ const api = {
 		webix_cal_done:function(){
 			var date = DateHelper.copy(this._settings.date);
 			date = this._correctDate(date);
-			this._selectDate(date);
+			this._selectDate(date, false, "user");
 		},
 		webix_cal_month_name:function(){
 			if (!this._settings.navigation) return;
@@ -1005,7 +1005,7 @@ const api = {
 			}
 			else{
 				if(trg.className.indexOf("webix_cal_day_disabled")==-1)
-					this._mode_selected(trg);
+					this._mode_selected(trg, "user");
 			}
 		}
 	},
@@ -1054,17 +1054,17 @@ const api = {
 		return day && this._selected_days[day.valueOf()];
 	},
 	getSelectedDate: function() {
-		var result = [];
-		for (var key in this._selected_days)
+		const result = [];
+		for (let key in this._selected_days)
 			result.push(DateHelper.copy(this._selected_days[key]));
-		
+
 		return this.config.multiselect ? result : (result[0] || null);
 	},
 	getVisibleDate: function() {
 		return DateHelper.copy(this._settings.date);
 	},
-	setValue: function(date){
-		this.selectDate(date, true);
+	setValue: function(date, config){
+		this.selectDate(date, true, false, config);
 	},
 	getValue: function(format){
 		var date = this.getSelectedDate();
@@ -1072,16 +1072,15 @@ const api = {
 			date = DateHelper.dateToStr(format)(date);
 		return date;
 	},
-	selectDate: function(date, show, add){
+	selectDate: function(date, show, add, config){
 		if (!date || !add || !this.config.multiselect)
 			this._selected_days = {};
 
-		if(date){
-			if (!isArray(date))
-				date = [date];
-			for (var i=0; i<date.length; i++){
-				var days = this._string_to_date(date[i]);
-				var key = DateHelper.datePart(DateHelper.copy(days)).valueOf();
+		if (date){
+			if (!isArray(date)) date = [date];
+			for (let i=0; i<date.length; i++){
+				const days = this._string_to_date(date[i]);
+				const key = DateHelper.datePart(DateHelper.copy(days)).valueOf();
 				if (this._selected_days[key] && add)
 					delete this._selected_days[key];
 				else
@@ -1095,10 +1094,10 @@ const api = {
 				this.showCalendar(date[0]);
 		}
 
-		if(show !== false)
+		if (show !== false)
 			this.render();
 
-		this.callEvent("onChange",[date]);
+		this.callEvent("onChange",[date,config]);
 	}, 
 	locate:function(){ return null; }
 };

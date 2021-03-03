@@ -63,7 +63,6 @@ const api = {
 					var node = master._getInputDiv ? master._getInputDiv() : master.getInputNode();
 					node.setAttribute("aria-expanded", "true");
 				}
-					
 			}
 			this._show_selection();
 		});
@@ -74,7 +73,6 @@ const api = {
 					var node = master._getInputDiv ? master._getInputDiv() : master.getInputNode();
 					node.setAttribute("aria-expanded", "false");
 				}
-					
 			}
 		});
 		this._old_text = {};
@@ -82,8 +80,8 @@ const api = {
 	_get_extendable_cell:function(obj){
 		return obj;
 	},
-	_get_details:function(){
-		return null;
+	_get_details:function(config){
+		return isUndefined(config) ? null : { config };
 	},
 	_set_input_value:function(text){
 		this._last_input_target.value = text;
@@ -117,7 +115,7 @@ const api = {
 		if (node)
 			node.focus();
 	},
-	setMasterValue:function(data, refresh){
+	setMasterValue:function(data, refresh, config){
 		const text = data.id ? this.getItemText(data.id) : (data.text||data.value);
 
 		if (this._settings.master){
@@ -125,11 +123,11 @@ const api = {
 			if (refresh && data.id)
 				master.refresh();
 			else if (master.options_setter)
-				master.setValue(data.$empty?"":data.id);
+				master.setValue(data.$empty?"":data.id, config);
 			else if (master.setValueHere)
-				master.setValueHere(text, data, this._get_details());
+				master.setValueHere(text, data, this._get_details(config));
 			else
-				master.setValue(text);
+				master.setValue(text, config);
 		}
 		else if (this._last_input_target)
 			this._set_input_value(text);
@@ -201,40 +199,41 @@ const api = {
 
 		if (list.count){
 			list.attachEvent("onItemClick", bind(function(item){
-				this.setMasterValue(list.getItem(item));
+				this.setMasterValue(list.getItem(item), false, "user");
 			}, this));
-			list.data.attachEvent("onstoreupdated",bind(function(id, obj, mode){
+			list.data.attachEvent("onStoreUpdated",bind(function(id, obj, mode){
 				if (mode == "delete" && id == this.getMasterValue())
-					this.setMasterValue({ id:"", text:"" }, 1);
+					this.setMasterValue({ id:"", text:"" }, true, "auto");
 				else if (mode == "update" && id == this.getMasterValue()){
-					this.setMasterValue(obj, 1);
+					this.setMasterValue(obj, true, "auto");
 				}
 			}, this));
 			list.data.attachEvent("onAfterFilter", bind(this._suggest_after_filter, this));
+			list.data.attachEvent("onStoreLoad", bind(this._suggest_after_filter, this));
 			
 			if (isUndefined(this._settings.fitMaster))
 				this._settings.fitMaster = true;
 		} else if (type == "calendar"){
-			list.attachEvent("onDateSelect", function(){
-				this.getParentView().setMasterValue({ value:list.getSelectedDate() }, list.config.multiselect);
+			list.attachEvent("onAfterDateSelect", function(){
+				this.getParentView().setMasterValue({ value:list.getSelectedDate() }, list.config.multiselect, "user");
 			});
 			list.attachEvent("onTodaySet", function(date){
-				this.getParentView().setMasterValue({ value: date });
+				this.getParentView().setMasterValue({ value: date }, false, "user");
 			});
 			list.attachEvent("onDateClear", function(date){
-				this.getParentView().setMasterValue({ value: date });
+				this.getParentView().setMasterValue({ value: date }, false, "user");
 			});
 		} else if (type == "colorboard"){
 			list.attachEvent("onItemClick", function(value){
-				this.getParentView().setMasterValue({ value: value });
+				this.getParentView().setMasterValue({ value: value }, false, "user");
 			});
 		} else if (type == "timeboard"){
 			list.attachEvent("onTimeSelect", function(value){
-				this.getParentView().setMasterValue({ value: value });
+				this.getParentView().setMasterValue({ value: value }, false, "user");
 			});
 		} else if (type == "colorselect"){
 			list.attachEvent("onColorSelect", function(value){
-				this.getParentView().setMasterValue({ value:value });
+				this.getParentView().setMasterValue({ value:value }, false, "user");
 			});
 		}
 	},
@@ -376,25 +375,23 @@ const api = {
 		}
 		popup.api.show.apply(this, arguments);
 	},
-	_show_selection:function(list){
-		list = list||this.getList();
-		var value = this.getMasterValue();
+	_show_selection:function(){
+		const list = this.getList();
+		let value = this.getMasterValue();
 
-		if( list.select && list.showItem ){
-
+		if (list.select && list.showItem){
 			if (value && list.exists && list.exists(value)){
 				list.select(value);
 				list.showItem(value);
-			}
-			else{
+			} else {
 				list.unselect();
 				list.showItem(list.getFirstId());
 			}
 		}
-		else if(list.setValue){
+		else if (list.setValue){
 			if (this._settings.master)
 				value = $$(this._settings.master).$prepareValue(value);
-			list.setValue(value);
+			list.setValue(value, "auto");
 		}
 	},
 	$enterKey:function(e, list){
@@ -422,7 +419,7 @@ const api = {
 			}
 			
 			if (value)
-				this.setMasterValue(value);
+				this.setMasterValue(value, false, "user");
 		}
 
 		if (visible)
@@ -499,13 +496,13 @@ const api = {
 		return value;
 	},
 	setValue:function(value){
-		var list = this.getList();
-		if(value){
-			if(list.exists(value)){
+		const list = this.getList();
+		if (value){
+			if (list.exists(value)){
 				list.select(value);
 				list.showItem(value);
 			}
-		}else{
+		} else {
 			list.unselect();
 			list.showItem(list.getFirstId());
 		}

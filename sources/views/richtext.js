@@ -50,25 +50,17 @@ const api = {
 				onAfterRender: function() {
 					top._rendered_input = true;
 					top.refresh();
-					_event( 
-						top.getInputNode(),
-						"blur",
-						function(){
-							top._updateValue(this.innerHTML);
-						}
-					);
-					_event( 
-						top.getInputNode(),
-						"keyup",
-						function(){
-							top._getselection();
-						}
-					);
+					_event(top.getInputNode(), "blur", function(){
+						top._updateValue(this.innerHTML, "user");
+					});
+					_event(top.getInputNode(), "keyup", function(){
+						top._getselection("auto");
+					});
 				}
 			},
 			onClick: {
 				webix_richtext_editor: function() {
-					top._getselection();
+					top._getselection("auto");
 				}
 			}
 		};
@@ -114,14 +106,14 @@ const api = {
 	labelWidth_setter:function(value){
 		return value ? Math.max(value, $active.dataPadding) : 0;
 	},
-	_getselection: function() {
+	_getselection: function(config) {
 		var top = this;
 		var bar = top.$$("toolbar");
 		var sel;
 
 		bar.setValues({
 			italic:false, underline:false, bold:false
-		});
+		}, config);
 
 		if(window.getSelection) {
 			sel = window.getSelection();
@@ -132,20 +124,20 @@ const api = {
 		for (var i = 0; i < sel.rangeCount; ++i) {
 			if (top.$view.contains(this.getInputNode())){
 				if (document.queryCommandState("bold")) {
-					top.$$("bold").setValue(true);
+					top.$$("bold").setValue(true,config);
 				} 
 				if (document.queryCommandState("underline")) {
-					top.$$("underline").setValue(true);
+					top.$$("underline").setValue(true,config);
 				}
 				if (document.queryCommandState("italic")) {
-					top.$$("italic").setValue(true);
+					top.$$("italic").setValue(true,config);
 				}
 			}
 		}
 	},
 	refresh: function() {
 		if(this._rendered_input)
-			this.getInputNode().innerHTML = this.config.value || "";
+			this.getInputNode().innerHTML = this._settings.value;
 	},
 	_execCommandOnElement:function(commandName) {
 		let sel, selText;
@@ -194,24 +186,29 @@ const api = {
 		var editableElement = this.getInputNode();
 		editableElement.focus();
 	},
-	_updateValue: function(value){
-		var old = this.config.value;
-		this.config.value = value || "";
+	_updateValue: function(value, config){
+		value = this.$prepareValue(value);
+		const oldvalue = this._settings.value;
 
-		if (old !== value)
-			this.callEvent("onChange", [value, old]);
+		if (oldvalue != value){
+			this._settings.value = value;
+			this.callEvent("onChange", [value, oldvalue, config]);
+		}
 	},
-	setValue: function(value) {
-		this._updateValue(value);
+	setValue: function(value, config) {
+		this._updateValue(value, config);
 		this.refresh();
 	},
+	$prepareValue:function(value){ return value === 0 ? "0" : (value || "").toString(); },
+	value_setter:function(value){
+		return this.$prepareValue(value);
+	},
 	getValue: function() {
-		var input = this.getInputNode();
+		const input = this.getInputNode();
 		if (input)
-			this.config.value = this.getInputNode().innerHTML;
+			return input.innerHTML;
 
-		var value = this.config.value;
-		return value || (value ===0?"0":"");
+		return this._settings.value;
 	}
 };
 

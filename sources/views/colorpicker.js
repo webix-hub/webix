@@ -21,6 +21,9 @@ const api = {
 			});
 		this._init_once = function(){};
 	},
+	clear_setter:function(value){
+		return !!value;
+	},
 	getValue:function(){
 		if (this._rendered_input && this._settings.editable)
 			return this.getInputNode().value;
@@ -45,6 +48,7 @@ const api = {
 	$setValue:function(value){
 		this._getColorNode().style.backgroundColor = value;
 		this._settings.text = value;
+		this._toggleClearIcon(value);
 
 		var node = this.getInputNode();
 		if(node.value == undefined)
@@ -52,9 +56,17 @@ const api = {
 		else
 			node.value = value;
 	},
-	$renderIcon:function(){
-		var config = this.config;
-		return "<div class=\"webix_input_icon\" style=\"background-color:"+config.value+";\"> </div>";
+	$renderIcon:function(c){
+		let right = this._inputSpacing/2 + 5;
+		let html = "<div class='webix_input_icon' style='top:"+(c.inputPadding+4)+"px;right:"+right+"px;background-color:"+c.value+";'></div>";
+
+		if (c.clear){
+			const height = c.aheight - 2*c.inputPadding;
+			const padding = (height - 18)/2 -1;
+			right += 24;
+			html += "<span style='right:"+right+"px;height:"+(height-padding)+"px;padding-top:"+padding+"px;' class='webix_input_icon webix_clear_icon wxi-close'></span>";
+		}
+		return html;
 	}
 };
 

@@ -24,7 +24,7 @@ const api = {
 				value = suggest.getSuggestion()||value;
 		}
 		if (value != this._settings.value)
-			this.setValue(value, true);
+			this.setValue(value, "user");
 		else
 			this.$setValue(value);
 	},
@@ -35,6 +35,10 @@ const api = {
 		icon: "wxi-menu-down"
 	},
 	on_click:{
+		webix_clear_icon:function(){
+			if (this.$allowsClear) this.setValue("", "user");
+			return false;
+		},
 		"webix_inp_label": function(e){this._ignoreLabelClick(e);},
 		"webix_inp_top_label": function(e){this._ignoreLabelClick(e);}
 	}

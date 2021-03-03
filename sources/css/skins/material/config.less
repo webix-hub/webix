@@ -217,7 +217,8 @@
 	.webix_segment_0:active, .webix_segment_1:active, .webix_segment_N:active{
 		.barButtonActive;
 	}
-	.webix_inp_static, input[type=text], input[type=combo], textarea, select, .webix_text_highlight{
+	.webix_inp_static, input[type=text], input[type=combo], input[type=datepicker],
+	textarea, select, .webix_text_highlight{
 		border-color: transparent;
 		background-color:@barButtonBgColor;
 		color:@barkBarInputColor;
@@ -235,7 +236,8 @@
 	.webix_multicombo_value, .webix_multicombo_tag{
 		color: @secondaryBg;
 	}
-	.webix_inp_static:focus, input[type=text]:focus, input[type=combo]:focus, textarea:focus, select:focus{
+	.webix_inp_static:focus, input[type=text]:focus, input[type=combo]:focus, input[type=datepicker]:focus,
+	textarea:focus, select:focus{
 		border-color: @backColor;
 		box-shadow: none;
 	}
@@ -955,15 +957,6 @@
 	.altBackBorderColor;*/
 }
 
-.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker{
-	span.webix_input_icon{
-		background-color: transparent;
-		color: @inactiveFontColor;
-		#border > .corners(0,@skin_input_radius,@skin_input_radius,0);
-
-	}
-}
-
 .focusStyle{
 	border: 1px solid @baseColor;
 }
@@ -1011,12 +1004,7 @@
 .webix_el_select select, .webix_el_textarea textarea{
 	#border > .radius(@skin_input_radius);
 }
-.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_search{
-	span.webix_input_icon{
-		width: 24px;
-		padding-left:4px;
-	}
-}
+
 // multiselect combo
 .webix_el_text .webix_inp_static{
 	#border > .radius(@skin_input_radius);
@@ -1033,18 +1021,23 @@
 }
 
 // multicombo
-
-.webix_multicombo .webix_inp_static{
-	padding-right:3px;
-}
-.webix_multicombo_value, .webix_multicombo_tag{
+.webix_multicombo_value, .webix_multicombo_tag,
+.webix_multicombo_value.webix_readonly{
 	background-color: @baseBg;
 	#border > .radius(100px);
-	margin: 3px 0 0 3px;
-	padding: 0 12px 0 12px;
+	padding: 0 @dataPadding 0 @dataPadding;
 }
 .webix_multicombo_value{
-	padding: 0 0 0 12px;
+	padding: 0 26px 0 @dataPadding;
+}
+.webix_multicombo_delete{
+	color: @inactiveFontColor;
+	margin-top: -10px;
+	font-size: 20px;
+	height: 20px;
+	&::after{
+		content: "\F033";
+	}
 }
 .webix_checksuggest_select_all{
 	&:hover{
@@ -1329,14 +1322,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	.darkActiveRule(@buttonColor);
 	.activeShadow;
 }
-.webix_el_text span.webix_input_icon{
-	color: @inactiveFontColor;
-}
-.webix_el_text .webix_input_icon:hover, .webix_el_text .webix_input_icon:active{
-	color: @baseColor;
-	background: inherit;
-	cursor:pointer;
-}
 
 // Button border
 .webix_el_button button, .webix_el_toggle button,
@@ -1441,10 +1426,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	.fontStyle(@smallFontSize);
 }
 
-.webix_control.webix_el_search span {
-	.altBackColor;
-}
-
 // disabled controls
 @disabledColor: tint(@selectColor, 60%);
 @disabledFontColor: @inactiveFontColor;
@@ -1537,7 +1518,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 @skin_content_padding: 12px;
 @formFontSize: @fontSize;
 @iconFontColor: @inactiveFontColor;
-@mcomboPadding: 0px;
 
 //-------------------------------------------///
 //                   Calendar                ///

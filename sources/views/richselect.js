@@ -27,10 +27,10 @@ const api = {
 			oldvalue = this.getValue();
 
 		//non-empty value that differs from old value and matches filtering rule
-		if (value && value !=oldvalue && !(nodeValue==="" && suggest.getItemText(value)!==""))
-			this.setValue(value);
+		if (value && value!=oldvalue && !(nodeValue==="" && suggest.getItemText(value)!==""))
+			this.setValue(value, "user");
 		else if (nodeValue === "")
-			this.setValue("");
+			this.setValue("", "user");
 		else if (this._revertValue)
 			this._revertValue();
 	},
@@ -52,11 +52,9 @@ const api = {
 		return suggest.getList();
 	},
 	_reset_value:function(){
-		const value = this._settings.value;
-		const text = this._settings.text;
-
-		//this.getInputNode - check that input is already rendered, as in IE11 it can be destroy during parent repainting
-		if(!isUndefined(value) && !this.getPopup().isVisible() && !text && this.getInputNode())
+		// multiselect requires value as an array
+		const value = this._settings.value||[];
+		if (value.length && !this.getPopup().isVisible() && this.getInputNode() && !(this._settings.text || this.getText()))
 			this.$setValue(value);
 	},
 	$skin:function(){
@@ -122,6 +120,7 @@ const api = {
 			node.value = text = text.replace(/<[^>]*>/g,"");
 
 		this._settings.text = text;
+		this._toggleClearIcon(text);
 	},
 	getValue:function(){
 		return this._settings.value||"";

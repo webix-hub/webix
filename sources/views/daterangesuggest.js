@@ -14,8 +14,8 @@ const api = {
 	getValue:function(){
 		return this.getRange().getValue();
 	},
-	setValue:function(value){
-		this.getRange().setValue(copy(value));
+	setValue:function(value, config){
+		this.getRange().setValue(copy(value), config);
 	},
 	getRange:function(){
 		return this.getBody();
@@ -23,15 +23,10 @@ const api = {
 	getButton:function(){
 		return this.getBody().getChildViews()[1].getChildViews()[1];
 	},
-	_setValue:function(value, hide){
-		var master = $$(this._settings.master);
-
-		if(master){
-			master.setValue(value);
-			if(hide) this.hide();
-		}
-		else
-			this.setValue(value);
+	_setValue:function(value){
+		const master = $$(this._settings.master);
+		if (master)
+			master.setValue(value, "user");
 	},
 	_set_on_popup_click:function(){
 		var range  = this.getRange();

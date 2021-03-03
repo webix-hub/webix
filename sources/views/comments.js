@@ -167,17 +167,17 @@ const api = {
 	getMenu: function(){
 		return this._listMenu;
 	},
-	setCurrentUser: function(id){
+	setCurrentUser: function(id,config){
 		this.config.currentUser = id;
-		this._form.clear();
+		this._form.clear(config);
 		this._list.refresh();
 	},
-	edit: function(id){
+	edit: function(id, config){
 		if(!this.config.readonly && this.callEvent("onBeforeEditStart", [id])){
 			this._changeTextarea(true);
 
 			var values = this._list.getItem(id);
-			this._form.setValues(values);
+			this._form.setValues(values, config);
 			this._form.focus();
 
 			//set cursor to the last character and scroll to bottom
@@ -201,14 +201,14 @@ const api = {
 				this.add(values);
 				this._list.showItem(values.id);
 			}
-			this._form.clear();
+			this._form.clear("user");
 			if(clear)
 				this._input.getInputNode().value = "";
 		}
 	},
 	_removeComment:function(id){
 		if(this._form.getValues().id == id){
-			this._form.clear();
+			this._form.clear("user");
 		}
 		this.remove(id);
 	},
@@ -266,7 +266,7 @@ const api = {
 					var ctx = this._listMenu.getContext();
 					if(this.callEvent("onBeforeMenuAction", [id, ctx.id])){
 						if(id=="edit")
-							this.edit(ctx.id);
+							this.edit(ctx.id, "user");
 						else if(id =="remove"){
 							if(i18n.comments.confirmMessage)
 								confirm({

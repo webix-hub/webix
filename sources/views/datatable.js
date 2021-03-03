@@ -34,7 +34,7 @@ import SpansMixin from "./datatable/spans";
 import {addStyle, addCss, removeCss, createCss, create, remove, getTextSize, _getClassName, index as getIndex} from "../webix/html";
 import {protoUI, $$, ui} from "../ui/core";
 import {$active} from "../webix/skin";
-import {extend, uid, bind, delay, toFunctor, isUndefined, clone} from "../webix/helpers";
+import {extend, uid, bind, delay, toFunctor, isUndefined, isArray, clone} from "../webix/helpers";
 import {debug_size_box} from "../webix/debug";
 import {assert} from "../webix/debug";
 import {callEvent} from "../webix/customevents";
@@ -164,7 +164,6 @@ const api = {
 		this.$ready.push(this._first_render);
 
 		this._columns = [];
-		this._hidden_column_order = [];
 		this._headers = [];
 		this._footers = [];
 		this._rows_cache = [];
@@ -296,6 +295,16 @@ const api = {
 			return true;
 		}
 	},
+	getColumns:function(all){
+		const horder = this._hidden_column_order;
+		if(all && horder.length){
+			const columns = [];
+			for(let i=0; i<horder.length; i++)
+				columns.push(this.getColumnConfig(horder[i]));
+			return columns;
+		} else
+			return [...this._columns];
+	},
 	getColumnConfig:function(id){
 		return this._columns_pull[id] || this._hidden_column_hash[id];
 	},
@@ -314,52 +323,58 @@ const api = {
 	_config_table_from_file:function(config){
 		this._create_scheme_init();
 		if (config.columns && this._dtable_fully_ready)
-			this.refreshColumns(null, true);
+			this.refreshColumns(config.columns);
 	},
 	_define_structure:function(){
 		if (this._settings.columns){
-			this._columns = this._settings.columns;
 			this._columns_pull = {};
+			this._columns = this._settings.columns;
+			this._rightSplit = this._columns.length - (this.config.rightSplit || 0);
 
-			for (var i = 0; i < this._columns.length; i++){
-				var col = this._columns[i];
-				this._columns_pull[col.id] = col;
-
-				var format = col.cssFormat;
-				if (format)
-					col.cssFormat = toFunctor(format, this.$scope);
-
-				col.width = this._correctColumnWidth(col.width||this._settings.columnWidth, col);
-				if (typeof col.format == "string") 
-					col.format = i18n[col.format]||window[col.format];
-				if (col.numberFormat){
-					var nformat = col.numberFormat;
-					if (typeof nformat === "string")
-						col.numberFormat = nformat = Number.getConfig(nformat);
-					col.format = Number.numToStr(nformat);
-					col.editFormat = col.editFormat || function(val){ return Number.format(val, nformat); };
-					col.editParse = col.editParse || function(val){ return Number.parse(val, nformat); };
-				}
-
-				//default settings for checkboxes and radios
-				if (isUndefined(col.checkValue)) col.checkValue = 1;
-				if (isUndefined(col.uncheckValue)) col.uncheckValue = 0;
-				
-				if (col.css && typeof col.css == "object")
-					col.css = createCss(col.css);
-
-				var rawTemplate = col.template;
-				if (rawTemplate){
-					if (typeof rawTemplate == "string")
-						rawTemplate = rawTemplate.replace(/#\$value#/g,"#"+col.id+"#");
-					col.template = template(rawTemplate);
-				}
-			}
+			for(let i = 0; i < this._columns.length; i++)
+				this._prepare_single_column(this._columns[i]);
 
 			this._normalize_headers("header", this._headers);
 			this._normalize_headers("footer", this._footers);
 
 			this.callEvent("onStructureLoad",[]);
+		}
+	},
+	_prepare_single_column:function(col){
+		if (!col.id) col.id = "i"+uid();
+		else if (isUndefined(col.header))
+			col.header = col.id;
+
+		this._columns_pull[col.id] = col;
+
+		let format = col.cssFormat;
+		if (format)
+			col.cssFormat = toFunctor(format, this.$scope);
+
+		col.width = this._correctColumnWidth(col.width||this._settings.columnWidth, col);
+		if (typeof col.format == "string") 
+			col.format = i18n[col.format]||window[col.format];
+		if (col.numberFormat){
+			let nformat = col.numberFormat;
+			if (typeof nformat === "string")
+				col.numberFormat = nformat = Number.getConfig(nformat);
+			col.format = Number.numToStr(nformat);
+			col.editFormat = col.editFormat || function(val){ return Number.format(val, nformat); };
+			col.editParse = col.editParse || function(val){ return Number.parse(val, nformat); };
+		}
+
+		//default settings for checkboxes and radios
+		if (isUndefined(col.checkValue)) col.checkValue = 1;
+		if (isUndefined(col.uncheckValue)) col.uncheckValue = 0;
+		
+		if (col.css && typeof col.css == "object")
+			col.css = createCss(col.css);
+
+		let rawTemplate = col.template;
+		if (rawTemplate){
+			if (typeof rawTemplate == "string")
+				rawTemplate = rawTemplate.replace(/#\$value#/g,"#"+col.id+"#");
+			col.template = template(rawTemplate);
 		}
 	},
 	_define_structure_and_render:function(){
@@ -374,7 +389,7 @@ const api = {
 		}
 	},
 	_apply_headers:function(){
-		this._rightSplit = this._columns.length-this._settings.rightSplit;
+		this._rightSplit = this._columns.length - (this.config.rightSplit || 0);
 		this._dtable_width = 0;
 
 		for (let i = 0; i < this._columns.length; i++){
@@ -490,16 +505,9 @@ const api = {
 		heights.length = 0;
 
 		for (let i=0; i<this._columns.length; i++){
-			let data = this._columns[i][collection];
-			if (!data || typeof data != "object" || !data.length){
-				if (isUndefined(data)){
-					if (collection == "header")
-						data = this._columns[i].id;
-					else
-						data = "";
-				}
-				data = [data];
-			}
+			let data = this._columns[i][collection] || "";
+			if (!isArray(data)) data = [data];
+
 			for (let j = 0; j < data.length; j++){
 				if (typeof data[j] != "object")
 					data[j] = { text:data[j] };

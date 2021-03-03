@@ -15,9 +15,9 @@ const DataValue = proto({
 		this._settings = { id:id };
 		ui.views[id] = this;
 	},
-	setValue:function(value){
+	setValue:function(value,config){
 		this.data = value;
-		this.callEvent("onChange", [value]);
+		this.callEvent("onChange", [value,config]);
 	},
 	getValue:function(){
 		return this.data;

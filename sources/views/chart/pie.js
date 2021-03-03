@@ -109,9 +109,9 @@ const Pie = {
 	 *   @param: data array
 	 */
 	_getValues:function(data){
-		var v = [];
-		for(var i = 0; i < data.length;i++)
-			v.push(Math.abs(parseFloat(this._settings.value(data[i])||0)));
+		const v = [];
+		for(let i=0; i<data.length; i++)
+			v.push(Math.abs(parseFloat(this._settings.value(data[i]))||0));
 		return v;
 	},
 	/**

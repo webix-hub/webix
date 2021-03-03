@@ -1,4 +1,4 @@
-import {isArray} from "../webix/helpers";
+import {isArray, _to_array} from "../webix/helpers";
 
 const DataState = {
 	getState:function(){
@@ -58,8 +58,9 @@ const DataState = {
 		this.blockEvent();
 
 		if (obj.order && obj.order.length){
-			this._hidden_column_order = [].concat(obj.order);
-			this._hidden_split = [ this._settings.leftSplit, obj.order.length - this._settings.rightSplit ];
+			this._hidden_column_order = _to_array([].concat(obj.order));
+			const rs = obj.order.length - this._settings.rightSplit;
+			this._hidden_split = [this._settings.leftSplit, rs, this._settings.rightSplit];
 		}
 
 		if (obj.hidden){

@@ -36,6 +36,9 @@ const api = {
 				return value;
 		}
 	},
+	$renderIcon:function(){
+		return "";
+	},
 	//get input element
 	getInputNode: function() {
 		return this._dataobj.getElementsByTagName("select")[0];

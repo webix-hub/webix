@@ -10,7 +10,7 @@ const Mixin = {
 	_clear_hidden_state:function(){
 		this._hidden_column_hash = {};
 		this._hidden_column_order = _to_array();
-		this._hidden_split=[0,0];
+		this._hidden_split = [0,0,0];
 	},
 	_hideInitialColumns:function(){
 		var cols = this._columns;
@@ -36,63 +36,60 @@ const Mixin = {
 		}
 	},
 	moveColumn:function(id, index){
-		var start_index = this.getColumnIndex(id);
-		if (start_index == index) return; //already in place
-		var columns = this._settings.columns;
+		const cindex = this.getColumnIndex(id);
+		if (cindex == index || cindex == -1) return false; //already in place
 
-		var start = columns.splice(start_index,1);
-		var pos = index - (index>start_index?1:0);
-		_power_array.insertAt.call(columns, start[0], pos);
+		const horder = this._hidden_column_order;
+		const columns = this._settings.columns;
 
-		var order = this._hidden_column_order;
-		// order exists even if columns are not reordered, so checking for length
-		if (order.length){
-			order = _to_array(order);
-
-			var hidden_index = order.find(id);
-			order.removeAt(hidden_index);
-			if (pos === 0)
-				order.unshift(id);
-			else { 
-				order.insertAt(id, order.find(columns[pos-1].id)+1);
-			}
+		// remove from the previous place
+		let hindex;
+		const col = columns.splice(cindex, 1)[0];
+		if (horder.length){
+			hindex = horder.find(id);
+			horder.removeAt(hindex);
 		}
+		this._updateSplit(cindex, hindex, -1);
 
-		//TODO: split handling
-		//we can move split line when column dropped after it
+		// paste into new
+		const nindex = index - (index>cindex ? 1 : 0);
+		_power_array.insertAt.call(columns, col, nindex);
+
+		let pos;
+		if (horder.length){
+			const prev = columns[nindex-1];
+			pos = prev && prev.id ? horder.find(prev.id)+1 : 0;
+			horder.insertAt(col.id, pos);
+		}
+		this._updateSplit(nindex, pos, 1);
 
 		this._refresh_columns();
 	},
-	_init_horder:function(){
-		var horder = this._hidden_column_order;
-		var cols = this._settings.columns;
+	_init_horder:function(horder, cols){
 		if (!horder.length){
 			for (let i=0; i<cols.length; i++)
 				horder[i] = cols[i].id;
-			this._hidden_split = [this._settings.leftSplit, this._rightSplit];
+			this._hidden_split = [this._settings.leftSplit, this._rightSplit, this._settings.rightSplit];
 		}
 	},
 	isColumnVisible:function(id){
 		return !this._hidden_column_hash[id];
 	},
 	hideColumn:function(id, opts, silent, mode){
-		var cols = this._settings.columns;
-		var horder = this._hidden_column_order;
-		var hhash = this._hidden_column_hash;
-		var column;
-		var span = 1;
+		const cols = this._settings.columns;
+		const horder = this._hidden_column_order;
+		const hhash = this._hidden_column_hash;
+		let column, span = 1;
 		opts = opts || {};
 
 		if (mode!==false){
-			
-			let index = this.getColumnIndex(id);
+			const index = this.getColumnIndex(id);
 			assert(index != -1, "hideColumn: invalid ID or already hidden");
-			if(index === -1 || !this.callEvent("onBeforeColumnHide", [id])) return;
 
 			//in case of second call to hide the same column, command will be ignored
-			if (index == -1) return;
+			if (index == -1 || !this.callEvent("onBeforeColumnHide", [id])) return;
 
-			this._init_horder();
+			this._init_horder(horder, cols);
 			
 			if(opts.spans){
 				var header = cols[index].header;
@@ -103,19 +100,14 @@ const Mixin = {
 					}
 				}
 			}
-
-			if (index<this._settings.leftSplit)
-				this._settings.leftSplit-=span;
-			if (index>=this._rightSplit)
-				this._settings.rightSplit-=span;
-			else 
-				this._rightSplit-=span;
+			this._fixSplit(index, span, -1);
 
 			for (let i=index+span-1; i>=index; i--){
 				this._hideColumn(index);
 				column  = cols.splice(index, 1)[0];
 				hhash[column.id] = column;
 				column._yr0 = -1;
+				column.hidden = true;
 				delete this._columns_pull[column.id];
 			}
 
@@ -128,9 +120,8 @@ const Mixin = {
 			if(!column || !this.callEvent("onBeforeColumnShow", [id])) return;
 
 			let prev = null;
-			let i=0;
 			let hindex = 0;
-			for (; i<horder.length; i++){
+			for (let i=0; i<horder.length; i++){
 				if (horder[i] == id){
 					hindex = i;
 					break;
@@ -139,8 +130,6 @@ const Mixin = {
 					prev = horder[i];
 			}
 
-			let index = prev?this.getColumnIndex(prev)+1:0;
-			
 			if(opts.spans){
 				let header = column.header;
 				for(let i = 0; i<header.length; i++){
@@ -152,25 +141,23 @@ const Mixin = {
 				}
 			}
 
+			const index = prev ? this.getColumnIndex(prev)+1 : 0;
 			for (let i=hindex+span-1; i>=hindex; i--){
-				let column = hhash[horder[i]];
-				if(column){ //can be already shown by another action
-					_power_array.insertAt.call(cols, column, index);
-					delete column.hidden;
-					delete hhash[column.id];
-					this._columns_pull[column.id] = column;
+				const col = hhash[horder[i]];
+				if (col){ //can be already shown by another action
+					_power_array.insertAt.call(cols, col, index);
+					delete col.hidden;
+					delete hhash[col.id];
+					this._columns_pull[col.id] = col;
 				}
 				else
 					span--;
 			}
 
-			if (hindex<this._hidden_split[0])
-				this._settings.leftSplit+=span;
-			if (hindex>=this._hidden_split[1])	
-				this._settings.rightSplit+=span;
-			else
-				this._rightSplit+=span;
+			this._fixSplit(hindex, span, 1, true);
 
+			if (horder.length === cols.length)
+				this._clear_hidden_state();
 
 			this.callEvent("onAfterColumnShow", [id]);
 		}
@@ -180,6 +167,39 @@ const Mixin = {
 
 		if (!silent)
 			this._refresh_columns();
+	},
+	showColumn:function(id, opts, silent){
+		return this.hideColumn(id, opts, silent, false);
+	},
+	_fixSplit:function(index, span, op, hidden){
+		const [lSplit, rSplit] = hidden ? this._hidden_split : [this._settings.leftSplit, this._rightSplit];
+
+		if (index < lSplit)
+			this._settings.leftSplit += op*span;
+		if (index >= rSplit)
+			this._settings.rightSplit += op*span;
+		else
+			this._rightSplit += op*span;
+	},
+	_updateSplit:function(index, hindex, op){
+		if (index >= 0){
+			if (index < this._settings.leftSplit)
+				this._settings.leftSplit += op;
+			if (this._settings.rightSplit && index >= this._rightSplit)
+				this._settings.rightSplit += op;
+			else
+				this._rightSplit += op;
+		}
+
+		const horder = this._hidden_column_order;
+		if (horder.length && hindex >= 0){
+			if (hindex < this._hidden_split[0])
+				this._hidden_split[0] += op;
+			if (this._hidden_split[2] && hindex >= this._hidden_split[1])
+				this._hidden_split[2] += op;
+			else
+				this._hidden_split[1] += op;
+		}
 	},
 	_fixColspansHidden:function(config, mod, elName){
 		for (let i=config[elName].length - 1; i >= 0; i--) {
@@ -217,13 +237,11 @@ const Mixin = {
 			}
 		}
 	},
-	refreshColumns:function(columns, reset){
+	refreshColumns:function(columns){
 		this._dtable_column_refresh = true;
-		if ((columns && columns != this.config.columns) || reset){
+		if (columns){
 			this._clear_hidden_state();
 			this._filter_elements = {};
-			if (columns)
-				this._rightSplit = columns.length - (this.config.rightSplit || 0);
 		}
 
 		this._columns_pull = {};
@@ -240,7 +258,7 @@ const Mixin = {
 
 		//render new structure
 		this._columns = this.config.columns = (columns || this.config.columns);
-		this._rightSplit = this._columns.length-this._settings.rightSplit;
+		this._rightSplit = this._columns.length - (this.config.rightSplit || 0);
 
 		this._dtable_fully_ready = 0;
 		this._define_structure();
@@ -249,7 +267,7 @@ const Mixin = {
 		this.callEvent("onStructureUpdate");
 
 		this.render();
-		this._dtable_column_refresh = 0;
+		this._dtable_column_refresh = false;
 	},
 	_refresh_columns:function(){
 		this._dtable_fully_ready = 0;
@@ -257,9 +275,6 @@ const Mixin = {
 		
 		this._apply_headers();
 		this.render();
-	},
-	showColumn:function(id, opts, silent){
-		return this.hideColumn(id, opts, silent, false);
 	},
 	showColumnBatch:function(batch, mode){
 		var preserve = typeof mode != "undefined";
