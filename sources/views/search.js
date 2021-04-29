@@ -12,7 +12,7 @@ const api = {
 		},
 		"webix_input_icon":function(e){
 			this.getInputNode().focus();
-			if(this.config.clear !== "hover" && e.target && e.target.classList.contains(this.config.icon))
+			if(this.config.clear !== "hover" && e.target && (e.target.className.indexOf(this.config.icon) !== -1))
 				this.callEvent("onSearchIconClick", [e]);
 		}
 	},

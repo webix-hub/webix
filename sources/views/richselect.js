@@ -21,10 +21,14 @@ const api = {
 		if (this._settings.text == text || (isUndefined(this._settings.text) && !text))
 			return;
 
-		var suggest = this.getPopup(),
-			nodeValue = this.getInputNode().value,
-			value = suggest.getSuggestion(nodeValue),
-			oldvalue = this.getValue();
+		const suggest = this.getPopup();
+		//handle clicks on suggest items
+		if (suggest.$view.contains(document.activeElement)) 
+			return;
+
+		const nodeValue = this.getInputNode().value;
+		const value = suggest.getSuggestion(nodeValue);
+		const oldvalue = this.getValue();
 
 		//non-empty value that differs from old value and matches filtering rule
 		if (value && value!=oldvalue && !(nodeValue==="" && suggest.getItemText(value)!==""))
@@ -76,7 +80,7 @@ const api = {
 			node = this.getInputNode();
 		if(!node)
 			return value?this.getPopup().getItemText(value):"";
-		if (typeof node.value == "undefined"){
+		if (isUndefined(node.value)){
 			if (node.firstChild && node.firstChild.className === "webix_placeholder")
 				return "";
 			return node.innerHTML;

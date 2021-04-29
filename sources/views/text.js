@@ -26,8 +26,7 @@ const api = {
 			if (c.suggest)
 				$$(c.suggest).linkInput(this);
 			if (c.clear && !this.addSection){
-				this._clear_icon = [...this.$view.getElementsByClassName("webix_input_icon")].pop();
-
+				this._clear_icon = this.$view.querySelector(".webix_input_icon:last-child");
 				if (node.tagName == "INPUT" || node.tagName == "SELECT")
 					_event(node, "input", (e) => this._toggleClearIcon(e.target.value));
 

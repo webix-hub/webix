@@ -53,7 +53,7 @@ const api = {
 			var value = config.value%config.step?(Math.round(config.value/config.step)*config.step):config.value;
 			var max = config.max - config.min;
 			
-			value =  Math.max(Math.min(value,config.max),config.min);
+			value =  this._safeValue(value);
 			value = config.vertical?(max-(value-config.min)):(value-config.min);
 			
 			//top or left
@@ -68,8 +68,8 @@ const api = {
 			handle.parentNode.style[sizeStr] = size+"px";
 
 			//1px border
-			corner2= Math.min(Math.max(corner2, 2 * this._sliderBorder), size - this._sliderPadding * 2 - 2 * this._sliderBorder);
-			corner1 = Math.min(Math.max(corner1, 2 * this._sliderBorder), size - this._sliderPadding * 2 - 2 * this._sliderBorder);
+			corner2 = this._safeValue(corner2, 2 * this._sliderBorder, size - this._sliderPadding * 2 - 2 * this._sliderBorder);
+			corner1 = this._safeValue(corner1, 2 * this._sliderBorder, size - this._sliderPadding * 2 - 2 * this._sliderBorder);
 
 			//width for left/top and right/bottom bars
 			var part = handle.previousSibling;
@@ -102,6 +102,12 @@ const api = {
 	_set_value_now:function(){
 		this._get_slider_handle().setAttribute("aria-valuenow", this._settings.value);
 	},
+	_safeValue: function(value, min, max){
+		min = min ? min : this._settings.min;
+		max = max ? max : this._settings.max;
+		
+		return Math.min(Math.max(value, min), max);
+	},
 	refresh:function(){
 		var handle =  this._get_slider_handle();
 		if(handle){
@@ -120,7 +126,11 @@ const api = {
 	},
 	$prepareValue:function(value){
 		value = parseFloat(value);
-		return isNaN(value)?0:value;
+
+		if(isNaN(value))
+			value = this._settings.min;
+
+		return this._safeValue(value);
 	},
 	$init:function(config){
 		if(env.touch)
@@ -276,7 +286,7 @@ const api = {
 		if(config.vertical)
 			newvalue = max-newvalue;
 		newvalue = Math.round((newvalue + 1*config.min)/config.step) * config.step;
-		return Math.max(Math.min(newvalue, config.max), config.min);
+		return this._safeValue(newvalue);
 	},
 	_init_onchange:function(){} //need not ui.text logic
 };

@@ -158,7 +158,7 @@ function getExcelData(data, scheme, spans, styles, options) {
 	}
 	if(range.s.c < 10000000) ws["!ref"] = XLSX.utils.encode_range(range);
 
-	ws["!rows"] = getRowHeights(scheme.heights);
+	ws["!rows"] = getRowHeights(scheme);
 	ws["!cols"] = getColumnsWidths(scheme);
 	if(spans.length)
 		ws["!merges"] = spans;
@@ -166,9 +166,19 @@ function getExcelData(data, scheme, spans, styles, options) {
 	return ws;
 }
 
-function getRowHeights(heights){
+function getRowHeights(scheme){
+	const heights = scheme.heights;
 	for(const i in heights)
-		heights[i] = {hpx:heights[i], hpt:heights[i]*0.75};
+		heights[i] = {hpx:heights[i], hpt:heights[i]*0.75 };
+
+	const hidden = scheme.hiddenRows;
+	if(hidden)
+		for(const i in hidden){
+			if(!heights[i])
+				heights[i] = {};
+			heights[i].hidden = 1;
+		}
+
 	return heights;
 }
 
@@ -188,8 +198,25 @@ function getSpans(view, options){
 				//{ s:{c:1, r:0}, e:{c:3, r:0} }
 				const cols = pull[row];
 				for(const col in cols){
-					const sc = view.getColumnIndex(col) - xc;
-					const sr = view.getIndexById(row) - yc;
+					let colIndex = view.getColumnIndex(col);
+
+					const rowId = view.getItem(row).id;
+					let rowIndex = view.getIndexById(rowId);
+
+					if(options.hidden){
+						const hiddenColsOrder = view._hidden_column_order;
+						if(hiddenColsOrder.length){
+							const colId = view.getColumnConfig(col).id;
+							colIndex = hiddenColsOrder.indexOf(colId);
+						}
+
+						const hiddenRowsOrder = view.data._filter_order;
+						if(hiddenRowsOrder && hiddenRowsOrder.length)
+							rowIndex = hiddenRowsOrder.indexOf(rowId);
+					}
+
+					const sc = colIndex - xc;
+					const sr = rowIndex - yc;
 					if(sc<0||sr<0) //hidden cols/rows
 						continue;
 					const ec = sc+cols[col][0]-1;
@@ -231,8 +258,13 @@ function excelDate(date) {
 
 function getColumnsWidths(scheme){
 	const wscols = [];
-	for (let i = 0; i < scheme.length; i++)
-		wscols.push({ wch: scheme[i].width });
+	for (let i = 0; i < scheme.length; i++){
+		const col = scheme[i];
+		wscols.push({
+			wch: col.width,
+			hidden: scheme.hiddenCols ? scheme.hiddenCols[ col.id ] : 0
+		});
+	}
 
 	return wscols;
 }

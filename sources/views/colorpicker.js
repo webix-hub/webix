@@ -1,4 +1,5 @@
 import {protoUI} from "../ui/core";
+import {isUndefined} from "../webix/helpers";
 
 import datepicker from "./datepicker";
 
@@ -50,8 +51,8 @@ const api = {
 		this._settings.text = value;
 		this._toggleClearIcon(value);
 
-		var node = this.getInputNode();
-		if(node.value == undefined)
+		const node = this.getInputNode();
+		if(isUndefined(node.value))
 			node.innerHTML = value;
 		else
 			node.value = value;

@@ -145,7 +145,7 @@ const AtomDataLoader={
 		parsed = record?driver.getDetails(record):{};
 
 		if (this.setValues)
-			this.setValues(parsed, "auto");
+			this.setValues(parsed, false, "auto");
 		else
 			this.data = parsed;
 	},
@@ -210,7 +210,7 @@ const AtomDataLoader={
 			var driver = DataDriver.json;
 			var data = driver.toObject(text, xml);
 			if (data)
-				this.setValues(driver.getDetails(driver.getRecords(data)[0]), "auto");
+				this.setValues(driver.getDetails(driver.getRecords(data)[0]), false, "auto");
 			else
 				this._onLoadError(loader);
 			this._ignore_feed = false;

@@ -177,7 +177,7 @@ const api = {
 			this._changeTextarea(true);
 
 			var values = this._list.getItem(id);
-			this._form.setValues(values, config);
+			this._form.setValues(values, false, config);
 			this._form.focus();
 
 			//set cursor to the last character and scroll to bottom
@@ -389,7 +389,7 @@ const api = {
 				return obj.date?("<span class='"+css+"date'>"+format(obj.date)+"</span>"):"";
 			},
 			templateLinks: (obj) => {
-				var text = obj.text.replace(/(https?:\/\/[^\s]+)/g, function(match){
+				const text = obj.text.replace(/(https?:\/\/[^\s]+)/g, function(match){
 					match = template.escape(match);
 					var html = "<a target='_blank' href='"+match+"'>";
 					if(match.match(/.(jpg|jpeg|png|gif)$/))
@@ -401,14 +401,13 @@ const api = {
 				return text;
 			},
 			templateMentioned: (obj) => {
-				return this._highlightMention(obj.text);
+				let text = obj.text;
+				if(this._settings.mentions && this._settings.highlight)
+					text = this._highlightMention(obj.text);
+				return text;
 			},
-			templateText: (obj, common) => {
-				if(this._settings.mentions && this._settings.highlight){
-					obj = copy(obj);
-					obj.text = common.templateMentioned(obj, common);
-				}
-				return "<div class = '"+css+"message'>"+common.templateLinks(obj)+"</div>";
+			templateText: (obj) => {
+				return "<div class = '"+css+"message'>"+obj.text+"</div>";
 			},
 			templateAvatar: (obj, common) => {
 				var avatar = "<div class='"+css+"avatar'>";
@@ -430,23 +429,29 @@ const api = {
 				return avatar;
 			},
 			template: (obj, common) => {
-				var message;
+				let message;
 				if(obj.id == "$more"){
 					message = "<div class='webix_comments_more'>"+this._settings.moreButton(obj)+"</div>";
 				}
 				else{
-					var avatar = common.templateAvatar(obj, common);
-					var user = common.templateUser(obj, common);
-					var date = common.templateDate(obj, common);
-					var menu = common.templateMenu(obj, common);
-					var text = common.templateText(obj, common);
+					obj = copy(obj);
+
+					const avatar = common.templateAvatar(obj, common);
+					const user = common.templateUser(obj, common);
+					const date = common.templateDate(obj, common);
+					const menu = common.templateMenu(obj, common);
+
+					obj.text = common.templateMentioned(obj);
+					obj.text = common.templateLinks(obj);
+
+					const text = common.templateText(obj, common);
 
 					message = avatar+user+menu+date+text;
 				}
 				return message;
 			},
 			classname: (obj, common, marks) => {
-				var css = list.api.type.classname(obj, common, marks);
+				let css = list.api.type.classname(obj, common, marks);
 				if((obj.user_id && obj.user_id == this._settings.currentUser) || !this._users.count())
 					css += " webix_comments_current";
 				return css;

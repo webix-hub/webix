@@ -28,7 +28,7 @@ const Mixin = {
 	},
 	_block_sel_flag:true,
 	_childOf:function(e, tag){
-		var src = e.target;
+		let src = e.target;
 		while (src){
 			if (src.getAttribute && src.getAttribute(/*@attr*/"webixignore")) return false;
 			if (src == tag)
@@ -45,7 +45,7 @@ const Mixin = {
 			if (e.target && e.target.tagName == "INPUT" || this._rs_process) return;
 
 			this._bs_position = offset(this._body);
-			var pos = env.touch ? e : getPos(e);
+			const pos = env.touch ? e : getPos(e);
 			this._bs_ready = [pos.x - this._bs_position.x, pos.y - this._bs_position.y];
 
 			preventEvent(e);
@@ -73,12 +73,12 @@ const Mixin = {
 			delay(this._bs_select, this, [false, false]);
 	},
 	_bs_select:function(mode, theend, e){
-		var start = null;
+		let start = null;
 		if(!this._bs_ready[2])
 			this._bs_ready[2] = this._locate_cell_xy.apply(this, this._bs_ready);
 		start = this._bs_ready[2];
 
-		var end = this._locate_cell_xy.apply(this, this._bs_progress);
+		const end = this._locate_cell_xy.apply(this, this._bs_progress);
 
 		if (!this.callEvent("onBeforeBlockSelect", [start, end, theend, e]))
 			return;
@@ -88,7 +88,7 @@ const Mixin = {
 				this._clear_selection();
 				this._selectRange(start, end);
 			} else {
-				var startx, starty, endx, endy;
+				let startx, starty, endx, endy;
 
 				if (mode === "box"){
 					startx = Math.min(this._bs_ready[0],this._bs_progress[0]);
@@ -97,12 +97,12 @@ const Mixin = {
 					starty = Math.min(this._bs_ready[1],this._bs_progress[1]);
 					endy = Math.max(this._bs_ready[1],this._bs_progress[1]);
 				} else {
-					var startn = this._cellPosition(start.row, start.column);
-					var endn = this._cellPosition(end.row, end.column);
-					var scroll = this.getScrollState();
+					const startn = this._cellPosition(start.row, start.column);
+					const endn = this._cellPosition(end.row, end.column);
+					const scroll = this.getScrollState();
 
-					var startWidth = startn.width;
-					var endWidth = endn.width;
+					let startWidth = startn.width;
+					let endWidth = endn.width;
 
 					if (this._right_width && this._bs_ready[0] > this._left_width+this._center_width){
 						startn.left += this._left_width+this._center_width;
@@ -156,9 +156,8 @@ const Mixin = {
 					if (e && (!env.touch || this._settings.prerender))
 						this._auto_scroll_delay = delay(this._auto_scroll, this, [getPos(e)], 250);
 				}
-  
 
-				var style = this._block_panel.style;
+				const style = this._block_panel.style;
 				style.left = startx+"px";
 				style.top = starty+"px";
 				style.width = (endx-startx)+"px";
@@ -176,11 +175,12 @@ const Mixin = {
 		this._body.appendChild(this._block_panel);
 	},
 	_bs_move:function(e){
+		if (this._rs_progress) return;
 		if (this._bs_ready !== false){
 			if(!this._bs_progress) addCss(document.body,"webix_noselect");
-			
-			var pos = env.touch ? env.mouse.context(e) : getPos(e);
-			var progress = [pos.x - this._bs_position.x, pos.y - this._bs_position.y];
+
+			const pos = env.touch ? env.mouse.context(e) : getPos(e);
+			const progress = [pos.x - this._bs_position.x, pos.y - this._bs_position.y];
 
 			//prevent unnecessary block selection while dbl-clicking
 			if (Math.abs(this._bs_ready[0] - progress[0]) < 5 && Math.abs(this._bs_ready[1] - progress[1]) < 5)
@@ -196,7 +196,7 @@ const Mixin = {
 		}
 	},
 	_locate_cell_xy:function(x,y){
-		var inTopSplit = false,
+		let inTopSplit = false,
 			row = null,
 			column = null;
 
@@ -207,7 +207,7 @@ const Mixin = {
 			x+= this._x_scroll.getScroll();
 
 		if(this._settings.topSplit && this._render_scroll_top > this._settings.topSplit) {
-			var splitPos = this._cellPosition(this.getIdByIndex(this._settings.topSplit-1), this.columnId(0));
+			const splitPos = this._cellPosition(this.getIdByIndex(this._settings.topSplit-1), this.columnId(0));
 			if(splitPos.top + splitPos.height > y){
 				inTopSplit = true;
 			}
@@ -218,10 +218,10 @@ const Mixin = {
 		if (x<0) x=0;
 		if (y<0) y=0;
 
-		var cols = this._settings.columns;
-		var rows = this.data.order;
+		const cols = this._settings.columns;
+		const rows = this.data.order;
 
-		var summ = 0; 
+		let summ = 0; 
 		for (let i=0; i<cols.length; i++){
 			summ+=cols[i].width;
 			if (summ>=x){
@@ -234,7 +234,7 @@ const Mixin = {
 
 		summ = 0;
 
-		var start = this.data.$min || 0;
+		const start = this.data.$min || 0;
 		if (this._settings.fixedRowHeight){
 			row = rows[start + Math.floor(y/this._settings.rowHeight)];
 		} else for (let i=start; i<rows.length; i++){
@@ -250,12 +250,12 @@ const Mixin = {
 		return {row:row, column:column};
 	},
 	_getTopSplitOffset: function(cell, area){
-		var y = 0,
+		let y = 0,
 			startIndex = this.getIndexById(cell.row);
 
 		if(startIndex >= this._settings.topSplit){
-			var startPos = this._cellPosition(this.getIdByIndex(startIndex), cell.column);
-			var splitPos = this._cellPosition(this.getIdByIndex(this._settings.topSplit-1), cell.column);
+			const startPos = this._cellPosition(this.getIdByIndex(startIndex), cell.column);
+			const splitPos = this._cellPosition(this.getIdByIndex(this._settings.topSplit-1), cell.column);
 			if(splitPos.top + splitPos.height > startPos.top)
 				y = splitPos.top + splitPos.height - ((startPos.top > 0 || !area) ? startPos.top : 0);
 		}

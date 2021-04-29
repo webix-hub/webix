@@ -216,8 +216,9 @@ const VirtualRenderStack ={
 	_getVisibleRange:function(){
 		var state = this.getScrollState();
 		var top = Math.max(0, state.y);
-		var width = this._content_width; 
-		var height = this._content_height;
+		var tpadding = this._tilesPadding||0;
+		var width = this._content_width - tpadding; 
+		var height = this._content_height - tpadding/2;
 
 		//size of single item
 		var t = this.type;

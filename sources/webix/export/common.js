@@ -24,7 +24,7 @@ export function getStyles(r, c, styles){
 	//row index, column index, styles array
 	if(styles[r] && styles[r][c])
 		return styles[r][c];
-	return "";
+	return {};
 }
 
 export function getExportScheme(view, options){
@@ -41,11 +41,27 @@ export function getExportScheme(view, options){
 
 	scheme.heights = {};
 
+	if(options.hidden){
+		scheme.hiddenCols = {};
+		scheme.hiddenRows = {};
+	}
+
 	if (!columns){
-		if (isTable)
-			columns = [].concat(view._columns);
+		columns = [];
+		if (isTable){
+			const order = view._hidden_column_order;
+			if(options.hidden && order.length){
+				for (let i = 0; i < order.length; i++){
+					const col = view.getColumnConfig(order[i]);
+					if(!view.isColumnVisible(col.id))
+						scheme.hiddenCols[col.id] = 1;
+					columns.push(col);
+				}
+			}
+			else
+				columns = columns.concat(view._columns);
+		}
 		else {
-			columns = [];
 			const obj = view.data.pull[view.data.order[0]];
 			for (let key in obj)
 				if(key !== "id" && key[0] != "$")
@@ -100,7 +116,7 @@ export function getExportScheme(view, options){
 		// in other cases we don't have built-in data templates
 		let rawColumn = raw && isTable;
 		if (isTable){
-			let sourceColumn = view._columns_pull[key];
+			const sourceColumn = view.getColumnConfig(key);
 			// when these's no column to take raw data from, or custom template defined - ignore raw mode
 			if (column.template && (!sourceColumn || sourceColumn.template != column.template))
 				rawColumn = false;
@@ -211,7 +227,7 @@ export function getExportData(view, options, scheme){
 
 	const treeline = (options.flatTree || options.plainOutput) ? "" : "-";
 
-	view.data.each(function(item){
+	view.data.each(function(item, index){
 		if(!options.filter || options.filter(item)){
 			if(this.data._scheme_export){
 				item = view.data._scheme_export(item);
@@ -253,13 +269,18 @@ export function getExportData(view, options, scheme){
 				line.push(cell);
 			}
 
-			if(mode =="excel" && view._columns &&  options.heights !==false &&
-			((item.$height && item.$height !== $active.rowHeight) || options.heights =="all")
+			if(mode =="excel" && view._columns && options.heights !== false &&
+			((item.$height && item.$height !== $active.rowHeight) || options.heights == "all")
 			) scheme.heights[data.length] = item.$height || this.config.rowHeight;
+
+			if(scheme.hiddenRows && view.data._filter_order && view.getIndexById(item.id) == -1){
+				const header = (options.docHeader?2:0)+(options.header===false?0:scheme[0].header.length);
+				scheme.hiddenRows[header+index] = 1;
+			}
 
 			data.push(line);
 		}
-	}, view);
+	}, view, options.hidden);
 
 	if( options.footer !==false ){
 		let f_count = scheme[0].footer?scheme[0].footer.length:0;

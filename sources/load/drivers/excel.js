@@ -17,11 +17,11 @@ const excel = extend({
 
 			data = data.data || data;
 			var promise = Promise.defer();
-			
+
 			if(data.name){ //file
 				opts.ext = data.name.split(".").pop();
 				var reader = new FileReader();
-				
+
 				reader.onload = bind(function (e) {
 					promise.resolve(this.parseData(e.target.result, opts));
 				}, this);
@@ -29,7 +29,7 @@ const excel = extend({
 			}
 			else //arraybuffer
 				promise.resolve(this.parseData(data, opts));
-				
+
 			return promise;
 		}
 		//plain jsarray or hash
@@ -71,6 +71,7 @@ const excel = extend({
 		const styles = [];
 		const sizes = [];
 		const types = [];
+		const hidden = [];
 
 		const cellTypes = { n:"number", d:"date", s:"string", b:"boolean"};
 
@@ -117,17 +118,31 @@ const excel = extend({
 			}
 			if(sheet["!cols"]){
 				var widths = sheet["!cols"];
-				for(let i = 0; i<widths.length; i++)
-					if(widths[i]) sizes.push(["column", i-xCorrection, Math.round(widths[i].wch/(8.43/70))]); //mode, colind, value
+				for(let i = 0; i<widths.length; i++){
+					const item = widths[i];
+					if(item){
+						const index = i-xCorrection;
+						sizes.push(["column", index, Math.round(item.wch/(8.43/70))]); //mode, colind, value
+						if(item.hidden)
+							hidden.push(["column", index]);
+					}
+				}
 			}
 			if(sheet["!rows"]){
 				var heights = sheet["!rows"];
-				for(let i = 0; i<heights.length; i++)
-					if(heights[i]) sizes.push(["row", i-yCorrection, heights[i].hpx]); //mode ("row", "column"), rowind, value
+				for(let i = 0; i<heights.length; i++){
+					const item = heights[i];
+					if(item){
+						const index = i-yCorrection;
+						sizes.push(["row", index, item.hpx]); //mode ("row", "column"), rowind, value
+						if(item.hidden)
+							hidden.push(["row", index]);
+					}
+				}
 			}
 		}
 
-		return { data:all, spans: spans, styles:styles, sizes:sizes, types:types, excel: true };
+		return { data:all, spans, styles, sizes, types, hidden, excel: true };
 	},
 	_urlToOptions:function(details){
 		var parts = details.split("[");

@@ -29,7 +29,7 @@ const BindSource = {
 		if (this.setValue)
 			this.setValue(data, "auto");
 		else if (this.setValues)
-			this.setValues(data, "auto");
+			this.setValues(data, false, "auto");
 		else {
 			var id = this.getCursor();
 			if (id)
@@ -93,7 +93,7 @@ const BindSource = {
 				target.clear("auto");
 			else {
 				if (target._check_data_feed(data))
-					target.setValues(clone(data),"auto");
+					target.setValues(clone(data), false, "auto");
 			}
 		} else {
 			target.data.silent(function(){

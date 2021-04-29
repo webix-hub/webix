@@ -195,10 +195,10 @@ const Mixin = {
 				for (let i=0; i<this._selected_areas.length; i++){
 					if (!this.callEvent("onBeforeUnSelect", [this._selected_areas[i]])) return false;
 				}
-				
+
 				for (let i=0; i<this._selected_rows.length; i++)
-					this.data.removeMark(this._selected_rows[i], "webix_selected");
-				
+					this.data.removeMark(this._selected_rows[i], "webix_selected", 0, true);
+
 				var cols = this._settings.columns;
 				if (cols)
 					for (let i = 0; i < cols.length; i++) {
@@ -250,8 +250,7 @@ const Mixin = {
 			},
 			_add_item_select:function(id){
 				var item = this.getItem(id);
-				return this.data.addMark(item.id, "webix_selected", 0, { $count : 0 }, true);
-
+				return this.data.addMark(item.id, "webix_selected", 0, { $count: 0 }, true);
 			},
 			_finalize_select:function(id){
 				if (id)
@@ -333,7 +332,7 @@ const Mixin = {
 				this._unselect({row : row_id});
 			},
 			_post_unselect:function(data){
-				this.data.removeMark(data.row, "webix_selected", 0, 1);
+				this.data.removeMark(data.row, "webix_selected", 0, true);
 				return data.row;
 			},
 			mapSelection:function(callback){
@@ -393,7 +392,7 @@ const Mixin = {
 				sel.$count-- ;
 				sel[data.column] = false;
 				if (sel.$count<=0)
-					this.data.removeMark(data.row,"webix_selected");
+					this.data.removeMark(data.row, "webix_selected", 0, true);
 				return data.row;
 			},
 			mapSelection:function(callback){

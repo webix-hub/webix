@@ -113,7 +113,7 @@ const api = {
 
 		bar.setValues({
 			italic:false, underline:false, bold:false
-		}, config);
+		}, false, config);
 
 		if(window.getSelection) {
 			sel = window.getSelection();

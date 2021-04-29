@@ -1,5 +1,20 @@
+Version 8.3 (April 2021)
+==============================
+
+- New Diagram widget
+- Gantt: split tasks
+- Scheduler
+	- Timeline view
+	- Units view
+- Spreadsheet
+	- Chart usability: legend settings and labels
+	- Currency symbol to custom format window
+	- Export to Excel with hidden rows and columns
+
 Version 8.2 (March 2021)
 ==============================
+
+### Major features
 
 - Gantt: Resource Management
 	- Allocating resources

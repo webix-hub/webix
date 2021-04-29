@@ -93,6 +93,7 @@ const FlexLayout = {
 			}
 		}
 
+		this.$view.style.height = "";
 		this.$height = this._content_height = this.$view.scrollHeight;
 		this.$view.style.height = this._content_height+"px";
 	}

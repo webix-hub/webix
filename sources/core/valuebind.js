@@ -12,7 +12,7 @@ const ValueBind={
 		else if (!target.filter){
 			var pod = {}; pod[rule] = data;
 			if (target._check_data_feed(data))
-				target.setValues(pod,"auto");
+				target.setValues(pod,false,"auto");
 		} else{
 			target.data.silent(function(){
 				this.filter(rule,data);

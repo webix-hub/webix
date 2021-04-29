@@ -620,7 +620,7 @@ DataStore.prototype={
 		const sorter = this.sorting.create(sort);
 
 		this.order = this._sort_core(sorter, this.order);
-		if (this._filter_order && this._filter_order.length != this.order.length)
+		if (this._filter_order)
 			this._filter_order = this._sort_core(sorter, this._filter_order);
 
 		//repaint self

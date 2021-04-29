@@ -89,7 +89,7 @@ const api = {
 			}
 		}
 
-		this._form.setValues(obj, "auto");
+		this._form.setValues(obj, false, "auto");
 	},
 
 	_recollectValues(config){

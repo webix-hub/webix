@@ -42,7 +42,7 @@ const api = {
 	},
 	_onBlur:function(){
 		const text = this.getText();
-		if (this._settings.text == text || (isUndefined(this._settings.text) && !text))
+		if (this._settings.text == text)
 			return;
 
 		const value = this._settings.editable ? this.getValue() : this.getPopup().getValue();
@@ -245,10 +245,13 @@ const api = {
 	},
 	getText:function(){
 		const node = this.getInputNode();
-		let text = "";
-		if(node)
-			text = isUndefined(node.value) ? node.innerHTML : node.value;
-		return text;
+		if (!node) return "";
+		if (isUndefined(node.value)){
+			if (node.firstChild && node.firstChild.className === "webix_placeholder")
+				return "";
+			return node.innerHTML;
+		}
+		return node.value;
 	}
 };
 

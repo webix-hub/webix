@@ -100,7 +100,7 @@ const api = {
 					view.sync(this.files);
 				else if (view.setValues)
 					this.files.data.attachEvent("onStoreUpdated", function(){
-						view.setValues(this, "auto");
+						view.setValues(this, false, "auto");
 					});
 				view._settings.uploader = this._settings.id;
 			}, this);

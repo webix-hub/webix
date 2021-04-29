@@ -4,6 +4,8 @@ import replace from "rollup-plugin-replace";
 import license from "rollup-plugin-license";
 import { uglify } from "rollup-plugin-uglify";
 import { eslint } from "rollup-plugin-eslint";
+import common from "rollup-plugin-commonjs";
+import resolve from "rollup-plugin-node-resolve";
 
 module.exports = function(cli){
 	const pkg = require("./package.json");
@@ -30,7 +32,9 @@ module.exports = function(cli){
 webix <%= pkg.productName %> v.<%= pkg.version %>
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details`
-		})
+		}),
+		resolve({ main:true, module:false }),
+		common({})
 	];
 
 	let sourcemap = false;

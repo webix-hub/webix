@@ -565,13 +565,17 @@ const api = {
 		}
 		var stepHeight = (y0-y1)*step/(end-start);
 		var c = 0;
+		const origin = this._settings.origin;
 		for(var i = start; i<=end; i += step){
 			var value = this._logScaleCalc?Math.pow(10,i):i;
 			if (scaleParam.fixNum)  value = parseFloat(value).toFixed(scaleParam.fixNum);
 			var yi = Math.floor(y0-c*stepHeight)+ 0.5;/*canvas line fix*/
-			if(!(i==start&&this._settings.origin=="auto") &&this._settings.yAxis.lines.call(this,i))
+			if(!(i==start&&origin=="auto") &&this._settings.yAxis.lines.call(this,i))
 				this._drawLine(ctx,x0,yi,point1.x,yi,this._settings.yAxis.lineColor.call(this,i),1);
-			if(i == this._settings.origin) lineX = yi;
+
+			if(origin != "auto" && i<=origin && i+step>origin)
+				lineX = yi-stepHeight*(origin-value)/step;
+
 			/*correction for JS float calculation*/
 			if(step<1 && !this._logScaleCalc){
 				var power = Math.min(Math.floor(this._log10(step)),(start<=0?0:Math.floor(this._log10(start))));
@@ -952,17 +956,9 @@ const api = {
 
 		if(type=="round"||!marker.radius){
 			ctx.beginPath();
-			ctx.lineWidth = marker.height;
-			ctx.lineCap = marker.type;
-			/*start of marker*/
-			x += ctx.lineWidth/2+5;
-			y += height/2;
-			ctx.moveTo(x,y);
-			let x1 = x + marker.width-marker.height +1;
-			ctx.lineTo(x1,y);
-			ctx.stroke();
+			const r = marker.height/2;
+			ctx.arc(x+r+5, y+height/2, r, 0, 2 * Math.PI);
 			ctx.fill();
-
 		}
 		else if(type=="item"){
 			/*copy of line*/

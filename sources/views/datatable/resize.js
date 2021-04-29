@@ -97,7 +97,8 @@ const Mixin = {
 		let mode = false;
 		const node = e.target;
 		const config = this._settings;
-		const element_class = node.className||"";
+		//we can't use node.className because there can be SVG (in SVG it is an SVGAnimatedString object)
+		const element_class = node.getAttribute("class")||"";
 
 		//ignore resize in case of drag-n-drop enabled
 		const in_body = element_class.indexOf("webix_cell") != -1;
@@ -147,6 +148,9 @@ const Mixin = {
 	_is_row_rs:function(cell, pos, node, rRow){
 		// if resize is only within the first column
 		if (!rRow || (rRow.headerOnly && cell.cind > 0)) return false;
+
+		// block selection in progress
+		if (this._bs_progress) return false;
 
 		const dy = node.offsetHeight;
 		rRow = rRow.size ? rRow.size : 3;

@@ -197,13 +197,17 @@ const Mixin = {
 			handler.call(this, order[i]);
 	},
 	eachColumn:function(handler, all){
-		for (let i in this._columns_pull){
-			let column = this._columns_pull[i];
-			handler.call(this, column.id, column);
+		const hidden = this._hidden_column_order;
+		if(all && hidden.length){
+			for(let i = 0; i < hidden.length; i++){
+				const column = this.getColumnConfig( hidden[i] );
+				handler.call(this, column.id, column);
+			}
 		}
-		if (all){
-			for (let i in this._hidden_column_hash){
-				let column = this._hidden_column_hash[i];
+		else{
+			const columns = this._columns;
+			for (let i = 0; i < columns.length; i++){
+				const column = columns[i];
 				handler.call(this, column.id, column);
 			}
 		}

@@ -1,7 +1,7 @@
 {
   "name": "webix",
   "productTag": "webix",
-  "version": "8.2.0",
+  "version": "8.3.0",
   "description": "Javascript UI for Web",
   "scripts": {
     "lint": "yarn eslint \"sources/**/*.js\"",
@@ -22,6 +22,8 @@
     "rollup-plugin-license": "^0.7.0",
     "rollup-plugin-replace": "^2.1.0",
     "rollup-plugin-uglify": "^6.0.0",
+    "rollup-plugin-commonjs": "^9.1.8",
+    "rollup-plugin-node-resolve": "^3.4.0",
 
     "apollo-server-express": "^2.2.2",
     "bluebird": "^3.5.3",

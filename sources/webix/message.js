@@ -81,18 +81,20 @@ function modality(mode, container){
 
 	//trigger visibility only if necessary
 	if((mode && node.modality === 1) || node.modality === 0){
-		if(cover)
-			cover.style.display = "inline-block";
-		else{
-			cover = node.querySelectorAll(".webix_modal_cover");
-			for(var i = 0; i < cover.length; i++){
-				if(cover[i].parentNode == node){
-					cover[i].style.display = node.modality == 1 ? "inline-block" : "none";
-					break;
-				}
+		cover = cover || Array.from( node.querySelectorAll(".webix_modal_cover") ).find(el => el.parentNode == node);
+
+		if(cover){
+			if(!node.modality){
+				cover.style.display = "none";
+				removeCss(node, "webix_modalbox_inside");
 			}
-		}	
+			else if(node.modality == 1){
+				cover.style.display = "inline-block";
+				addCss(node, "webix_modalbox_inside");
+			}
+		}
 	}
+	return cover;
 }
 
 function button(text, result, className){
@@ -213,23 +215,31 @@ modalbox.pull = {};
 modalbox.order = [];
 
 function _createBox(config, ok, cancel, hasInput){
-	var box = config.tagName ? config : _boxStructure(config, ok, cancel, hasInput);
+	const box = config.tagName ? config : _boxStructure(config, ok, cancel, hasInput);
+	const container = config.container;
 
-	var containerWidth = config.container ? config.container.offsetWidth : (window.innerWidth||document.documentElement.offsetWidth);
-	var containerHeight = config.container ? config.container.offsetHeight : (window.innerHeight||document.documentElement.offsetHeight);
+	const containerWidth = container ? container.offsetWidth : (window.innerWidth||document.documentElement.offsetWidth);
+	const containerHeight = container ? container.offsetHeight : (window.innerHeight||document.documentElement.offsetHeight);
+	const containerLeft = container ? container.scrollLeft : 0;
+	const containerTop = container ? container.scrollTop : 0;
 
 	if(config.container)
 		box.style.position = "absolute";
 
 	toNode((config.container || document.body).appendChild(box));
-	modality(true, config.container);
+	const cover = modality(true, config.container);
 
-	var x = config.left||Math.abs(Math.floor((containerWidth - box.offsetWidth)/2));
-	var y = config.top||Math.abs(Math.floor((containerHeight - box.offsetHeight)/2));
+	const x = config.left||Math.abs(containerLeft+Math.floor((containerWidth - box.offsetWidth)/2));
+	const y = config.top||Math.abs(containerTop+Math.floor((containerHeight - box.offsetHeight)/2));
 	if (config.position == "top")
 		box.style.top = "-3px";
-	else
+	else{
 		box.style.top = y+"px";
+		if(cover){
+			cover.style.top = containerTop+"px";
+			cover.style.left = containerLeft+"px";
+		}
+	}
 	box.style.left = x+"px";
 	//necessary for IE only
 	box.onkeydown = modal_key;

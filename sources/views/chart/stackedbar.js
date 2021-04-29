@@ -1,4 +1,4 @@
-
+import {getTextSize} from "../../webix/html";
 
 const StackedBarChart = {
 	/**
@@ -65,7 +65,7 @@ const StackedBarChart = {
 		}
 
 		for(var i=0; i < data.length;i ++){
-			var value =  Math.abs(parseFloat(config.value(data[i]||0)));
+			var value =  parseFloat(config.value(data[i]||0));
 
 			if(this._logScaleCalc)
 				value = this._log10(value);
@@ -97,6 +97,9 @@ const StackedBarChart = {
 
 			value *= valueFactor;
 
+			const border = config.border;
+			let label = config.label(data[i]);
+
 			/*the max height limit*/
 			if(y0 < (point0.y+1)) continue;
 
@@ -111,7 +114,13 @@ const StackedBarChart = {
 
 			var y1 = y0 - unit*value + (firstSector?(negValue?-1:1):0);
 
-			var points = this._setStakedBarPoints(ctx,x0-(config.border?0.5:0),y0,barWidth+(config.border?0.5:0),y1, 0,point0.y);
+			if(Math.floor(y1) > point1.y){
+				y1 = point1.y;
+				if(label != "" && y1-y0 < getTextSize(`<div class="webix_canvas_text">${label}</div>`, this.$view.className).height)
+					label = "";
+			}
+
+			var points = this._setStakedBarPoints(ctx,x0-(border?0.5:0),y0,barWidth+(border?0.5:0),y1, 0,point0.y);
 			ctx.fill();
 			ctx.stroke();
 
@@ -121,15 +130,15 @@ const StackedBarChart = {
 				var gradParam = this._setBarGradient(ctx,x0,y0,x0+barWidth,points[1],inner_gradient,color,"y");
 				ctx.fillStyle = gradParam.gradient;
 				ctx.beginPath();
-				points = this._setStakedBarPoints(ctx,x0+gradParam.offset,y0,barWidth-gradParam.offset*2,y1,(config.border?1:0),point0.y);
+				points = this._setStakedBarPoints(ctx,x0+gradParam.offset,y0,barWidth-gradParam.offset*2,y1,(border?1:0),point0.y);
 				ctx.fill();
 				ctx.restore();
 			}
 			/*drawing the gradient border of a bar*/
-			if(config.border){
+			if(border){
 				ctx.save();
-				if(typeof config.border == "string")
-					ctx.strokeStyle = config.border;
+				if(typeof border == "string")
+					ctx.strokeStyle = border;
 				else
 					this._setBorderStyles(ctx,color);
 				ctx.beginPath();
@@ -141,7 +150,7 @@ const StackedBarChart = {
 			ctx.globalAlpha = 1;
 
 			/*sets a bar label*/
-			this.canvases[sIndex].renderTextAt(false, true, x0+Math.floor(barWidth/2),(points[1]+(y0-points[1])/2)-7,this._settings.label(data[i]));
+			this.canvases[sIndex].renderTextAt(false, true, x0+Math.floor(barWidth/2),(points[1]+(y0-points[1])/2)-7,label);
 			/*defines a map area for a bar*/
 			map.addRect(data[i].id,[x0-point0.x,points[1]-point0.y,points[0]-point0.x,data[i][negValue?"$startYN":"$startY"]-point0.y],sIndex);
 
