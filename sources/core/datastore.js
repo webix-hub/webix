@@ -143,7 +143,7 @@ DataStore.prototype={
 			if (!this.order[endpos-1])
 				this.order[endpos-1] = undefined;
 			if (endpos < this.order.length)
-				this.order = this.order.slice(0, endpos);
+				this.order = _to_array(this.order.slice(0, endpos));
 		}
 	},
 	//generate id for data object

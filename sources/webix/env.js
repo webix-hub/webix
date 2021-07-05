@@ -1,6 +1,6 @@
 const env = {};
 
-env.cdn = "//cdn.webix.com/";
+env.cdn = "//cdn.webix.com";
 env.codebase = "";
 env.zIndexBase = 100;
 env.scrollSize = 17;

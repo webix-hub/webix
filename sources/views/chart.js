@@ -313,6 +313,7 @@ const api = {
 	lineColor_setter:template,
 	borderColor_setter:template,
 	pieInnerText_setter:template,
+	donutInnerText_setter:template,
 	gradient_setter:function(config){
 		if((typeof(config)!="function")&&config&&(config === true))
 			config = "light";

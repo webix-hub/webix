@@ -224,7 +224,15 @@ const api = {
 				else
 					formatDate = i18n.dateFormatDate;
 			}
-			value = formatDate(this.getInputNode().value);
+
+			const time = formatDate(this.getInputNode().value);
+
+			if(timeMode && value != ""){
+				value.setHours(time.getHours());
+				value.setMinutes(time.getMinutes());
+			}
+			else
+				value = time;
 		}
 
 		//return string from getValue

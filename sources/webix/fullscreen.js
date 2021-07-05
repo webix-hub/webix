@@ -27,11 +27,14 @@ const fullscreen = {
 		if(view.setPosition){
 			viewConfig.fullscreen = true;
 			view.resize();
+
+			return view;
 		}
 		else{
 			this._fullscreen = ui({
 				view:"window",
 				head: this._getHeadConfig(config),
+				css:config.css||"",
 				fullscreen:true,
 				borderless:true,
 				//better resize logic
@@ -64,6 +67,8 @@ const fullscreen = {
 
 			this._fullscreen.show();
 			this._setSizes(view);
+
+			return this._fullscreen;
 		}
 	},
 	exit:function(){

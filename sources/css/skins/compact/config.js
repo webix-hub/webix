@@ -19,7 +19,7 @@ const skin = {
 	inputSpacing: 4,
 	borderWidth: 1,
 
-	sliderHandleWidth: 12,
+	sliderHandleWidth: 10,
 	sliderPadding: 10,
 	sliderBorder: 1,
 	vSliderPadding:13,

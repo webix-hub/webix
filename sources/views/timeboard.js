@@ -4,6 +4,7 @@ import layout from "../views/layout";
 import { isUndefined, copy } from "../webix/helpers";
 import wDate from "../core/date";
 import { $active } from "../webix/skin";
+import { getTextSize } from "../webix/html";
 
 const api = {
 	name:"timeboard",
@@ -177,7 +178,7 @@ const api = {
 
 		return {
 			view: "text",
-			width: 46,
+			width: getTextSize("00").width + 2*$active.dataPadding + 2*$active.inputPadding,
 			name: name,
 			format: {
 				parse: a => {

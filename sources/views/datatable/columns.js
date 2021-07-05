@@ -155,15 +155,14 @@ const Mixin = {
 			}
 
 			this._fixSplit(hindex, span, 1, true);
-
-			if (horder.length === cols.length)
-				this._clear_hidden_state();
-
 			this.callEvent("onAfterColumnShow", [id]);
 		}
 
 		if(column.header) this._fixColspansHidden(column, mode !== false ? 0 : 1, "header");
 		if(column.footer) this._fixColspansHidden(column, mode !== false ? 0 : 1, "footer");
+
+		if (horder.length === cols.length)
+			this._clear_hidden_state();
 
 		if (!silent)
 			this._refresh_columns();

@@ -341,11 +341,10 @@ const api = {
 		}
 	},
 	_prepare_single_column:function(col){
-		if (!col.id) col.id = "i"+uid();
-		else if (isUndefined(col.header))
-			col.header = col.id;
-
 		this._columns_pull[col.id] = col;
+
+		if (isUndefined(col.header))
+			col.header = col.id;
 
 		let format = col.cssFormat;
 		if (format)

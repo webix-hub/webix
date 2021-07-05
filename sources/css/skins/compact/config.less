@@ -505,6 +505,11 @@
 		border-color: @buttonColor;
 	}
 }
+
+.webix_hcell span.webix_input_icon{
+	background-color: @dataHeaderBorderColor;
+}
+
 @dtCheckboxMarginTop: (@rowHeight - 14)/2;
 
 .dataItemStyle{
@@ -1084,8 +1089,8 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	.webix_slider_handle{
 		background-color: @backColor;
 		border: 1px solid @inputBorderColor;
-		top:(@inputHeight - 12)/2;
-		height: 12px;
+		top:(@inputHeight - 10)/2;
+		height: 10px;
 	}
 }
 .sliderStyle(){
@@ -1101,11 +1106,11 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		border-color: @inputBorderColor;
 	}
 	.webix_slider_handle{
-		width: 12px;
-		height: 12px;
+		width: 10px;
+		height: 10px;
 		border: 1px solid @inputBorderColor;
 		background-color: @backColor;
-		top:(@inputHeight - 12)/2;
+		top:(@inputHeight - 10)/2;
 	}
 }
 
@@ -1115,12 +1120,14 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		width:6px;
 	}	
 	.webix_slider_handle{
-		left:6px;
+		left:7px;
 	}
 }
 .webix_slider_vertical.webix_slider_alt .webix_slider_handle{
-	left:3px;
-	height:11px;
+	left:4px;
+	height:10px;
+	width:12px;
+	background-position: 2px center;
 }
 .webix_rangeslider {
 	.webix_slider_title_box{
@@ -1353,6 +1360,11 @@ a:focus .webix_custom_radio, a:active .webix_custom_radio{
 //timeline
 .webix_timeline_point{
 	r:4;
+}
+
+//timeboard
+.webix_timeboard .webix_colon_template .webix_template{
+	font-size: 25px;
 }
 
 //for skin autodetection

@@ -144,7 +144,7 @@ const Undo = {
 					data: copy(obj.data.$branch)
 				};
 				delete obj.data.$branch;
-				if(parentId && !this.data.branch[parentId])
+				if(parentId && !this.data.pull[parentId])
 					parentId = 0;
 			}
 

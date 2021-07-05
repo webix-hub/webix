@@ -1,5 +1,22 @@
+Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
+
+Version 8.4 (July 2021)
+==============================
+
+### Major features
+
+- Diagram Editor
+- Chat: video calls
+- Gantt: optomize performance on task reordering
+- Spreadsheet: wide set of rules for conditional formatting
+- Chart: ability to add text inside Donut charts
+- Form: autowidth for labels within all form controls
+- Export to Excel: ability to hide arbitrary rows or columns
+
 Version 8.3 (April 2021)
 ==============================
+
+### Major features
 
 - New Diagram widget
 - Gantt: split tasks

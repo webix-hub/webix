@@ -1,7 +1,7 @@
 import {addCss, removeCss} from "../webix/html";
 import {protoUI, ui, $$} from "../ui/core";
 import {$active} from "../webix/skin";
-import {copy, extend, isArray} from "../webix/helpers";
+import {copy, extend, isArray, isUndefined} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 
 import type from "../webix/type";
@@ -27,6 +27,12 @@ const api = {
 		this.defaults.titleHeight = $active.sidebarTitleHeight;
 	},
 	$init: function(config){
+		this._fullWidth = isUndefined(config.width) ? this.defaults.width : config.width;
+		this._settings.width = config.width = 
+			config.collapsed
+				? (config.collapsedWidth || this.defaults.collapsedWidth)
+				: this._fullWidth;
+
 		this.$view.className += " webix_sidebar";
 		this.$ready.push(this._initSidebar);
 		this.$ready.push(this._initContextMenu);
@@ -42,7 +48,6 @@ const api = {
 	on_context:{},
 	on_mouse_move:{},
 	_initSidebar: function(){
-		this._fullWidth = this.config.width;
 		this.attachEvent("onBeforeOpen", function(id){
 			if(!this.config.multipleOpen){
 				var open = this.getOpenItems();
@@ -81,9 +86,6 @@ const api = {
 			if (this.config.collapsed)
 				this.getPopup().masterId = null;
 		});
-
-		if(this.config.collapsed)
-			this.collapse();
 	},
 	_showPopup: function(id, node){
 		if (this.config.collapsed){
@@ -317,7 +319,7 @@ const api = {
 		this.define("collapsed", collapsed);
 	},
 	collapsed_setter: function(value){
-		var width;
+		let width;
 
 		if(!value){
 			width = this._fullWidth;
@@ -331,8 +333,10 @@ const api = {
 			removeCss(this.$view, "webix_sidebar_expanded");
 		}
 
-		this.define("width",width);
-		this.resize();
+		if(!isUndefined(width) && width !== this.config.width){ //skip first rendering
+			this.define("width", width);
+			this.resize();
+		}
 
 		return value;
 	},

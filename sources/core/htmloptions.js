@@ -111,8 +111,11 @@ const HTMLOptions = {
 			this.callEvent("onOptionAdd", [id, obj]);
 		}
 
-		if (show)
+		if (show){
+			if (this._settings.options.length === 1)
+				this._settings.value = "";
 			this.setValue(id, "auto");
+		}
 	},
 	removeOption: function(id){
 		const index = this.optionIndex(id);

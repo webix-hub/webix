@@ -27,7 +27,7 @@ const api = {
 
 	$init:function(config){
 		this._viewobj.innerHTML = "<div class='webix_win_content'><div class='webix_win_head'></div><div class='webix_win_body'></div></div>";
-		
+
 		this._contentobj = this._viewobj.firstChild;
 		this._headobj = this._contentobj.childNodes[0];
 		this._dataobj = this._bodyobj = this._contentobj.childNodes[1];
@@ -37,7 +37,7 @@ const api = {
 		this._viewobj.setAttribute("tabindex", "0");
 
 		this._head_cell = this._body_cell = null;
-		config._inner = {top:false, left:false, right:false, bottom:false }; //set border flags
+		this._settings._inner = {top:false, left:false, right:false, bottom:false }; //set border flags
 		if (!config.id) config.id = uid();
 
 		_event(this._contentobj, "click", this._ignore_clicks, {bind:this});
@@ -63,8 +63,8 @@ const api = {
 		});
 	},
 	_ignore_clicks:function(e){
-		var popups = state._popups;
-		var index = popups.find(this);
+		const popups = state._popups;
+		let index = popups.find(this);
 		if (index == -1)
 			index = popups.length - 1;
 
@@ -128,7 +128,7 @@ const api = {
 			this._modal = null; // hidden_setter handling
 		}
 
-		var elPos, dx, dy;
+		let elPos, dx, dy;
 		mode = mode || {};
 		if (!mode.pos)
 			mode.pos = this._settings.relative;
@@ -145,33 +145,31 @@ const api = {
 					dy = 5;
 				} else
 					elPos = node;
-
-				
 			} else {
 				node = toNode(node);
 				assert(node,"Not existing target for window:show");
 				elPos = offset(node);
-			}	
+			}
 
 			//size of body, we need to fit popup inside
-			var x = Math.max(window.innerWidth || 0, document.body.offsetWidth);
-			var y = Math.max(window.innerHeight || 0, document.body.offsetHeight);
+			const x = Math.max(window.innerWidth || 0, document.body.offsetWidth);
+			const y = Math.max(window.innerHeight || 0, document.body.offsetHeight);
 
 			//size of node, near which popup will be rendered
 			dx = dx || node.offsetWidth  || 0;
 			dy = dy || node.offsetHeight || 0;
 			//size of popup element
-			var size = this._last_size;
+			const size = this._last_size;
 
-			var fin_x = elPos.x;
-			var fin_y = elPos.y;
-			var point_y=0;
-			var point_x = 0;
-			var scrollLeft = 0, scrollTop = 0;
-			var fit = this._settings.autofit;
+			let fin_x = elPos.x;
+			let fin_y = elPos.y;
+			let point_y = 0;
+			let point_x = 0;
+			let scrollLeft = 0, scrollTop = 0;
+			const fit = this._settings.autofit;
 			if (fit){
-				var nochange = (fit === "node");
-				var delta_x = 6; var delta_y=6; var delta_point = 6;
+				const nochange = (fit === "node");
+				let delta_x = 6, delta_y = 6, delta_point = 6;
 				if (!this._settings.point)
 					delta_x = delta_y = delta_point = 0;
 
@@ -211,7 +209,7 @@ const api = {
 					//when we have a small popup, point need to be rendered at center of popup
 					point_x = Math.min(point_x, fin_x + size[0] - delta_point*3);
 				}
-				
+
 				//if height is not fixed - use default position
 				scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
 				if (((!size[1] || (y+scrollTop-dy-elPos.y-delta_y > size[1])) || nochange) && mode.pos != "top"){
@@ -236,10 +234,10 @@ const api = {
 				}
 			}
 
-			var deltax = (mode.x || 0);
-			var deltay = (mode.y || 0);
+			const deltax = (mode.x || 0);
+			const deltay = (mode.y || 0);
 
-			var fixed = this._checkFixedPosition();
+			const fixed = this._checkFixedPosition();
 			this.$view.style.position = fixed ? "fixed" : "absolute";
 			if (fixed){
 				fin_y = fin_y - scrollTop;
@@ -259,10 +257,9 @@ const api = {
 		this._viewobj.style.display = "block";
 		this._hide_timer = 1;
 		delay(function(){ this._hide_timer = 0; }, this, [], (env.touch ? 400 : 100 ));
-		
+
 		this._render_hidden_views();
-		
-		
+
 		if (this.config.autofocus){
 			this._prev_focus = UIManager.getFocus();
 			UIManager.setFocus(this);
@@ -281,15 +278,15 @@ const api = {
 		//do not hide popup, when starting dnd with a long touch
 		if (e && env.touch && e.longtouch_drag) return;
 		//do not hide popup, when we have modal layer above the popup
-		if (state._modality && this._viewobj.style.zIndex <= state._modality) return;
+		if (state._modality.length && this._viewobj.style.zIndex <= Math.max(...state._modality)) return;
 
 		//ignore inside clicks and clicks in child-popups
 
 		if (e){
-			var index = e.click_view;
+			let index = e.click_view;
 			if (!index && index !== 0) index = -1;
 
-			var myindex = state._popups.find(this);
+			const myindex = state._popups.find(this);
 
 			if (myindex <= index) return;
 		}
@@ -316,7 +313,7 @@ const api = {
 		this._hiding_process();
 
 		if (this._settings.autofocus){
-			var el = document.activeElement;
+			const el = document.activeElement;
 			//as result of hotkey, we can have a activeElement set to document.body
 			if (el && this._viewobj && (this._viewobj.contains(el) || el === document.body)){
 				UIManager.setFocus(this._prev_focus);
@@ -430,7 +427,7 @@ const api = {
 	},
 	_checkFixedPosition: function() {
 		if(this._settings.master) {
-			var top = $$(this._settings.master).getTopParentView().$view;
+			const top = $$(this._settings.master).getTopParentView().$view;
 			return top && top.style.position === "fixed";
 		}
 		return false;
@@ -439,17 +436,17 @@ const api = {
 		if ((this._settings.position || this._checkFixedPosition())){
 			this.$view.style.position = "fixed";
 
-			var width = this._content_width;
-			var height = this._content_height;
+			const width = this._content_width;
+			const height = this._content_height;
 			if (width <= 0 || height <= 0) return;
 
-			var maxWidth = (window.innerWidth||document.documentElement.offsetWidth);
-			var maxHeight = (window.innerHeight||document.documentElement.offsetHeight);
-			var left = Math.round((maxWidth-width)/2);
-			var top = Math.round((maxHeight-height)/2);
+			const maxWidth = (window.innerWidth||document.documentElement.offsetWidth);
+			const maxHeight = (window.innerHeight||document.documentElement.offsetHeight);
+			let left = Math.round((maxWidth-width)/2);
+			let top = Math.round((maxHeight-height)/2);
 
 			if (typeof this._settings.position == "function"){
-				var state = { 	left:left, top:top, 
+				const state = { 	left:left, top:top, 
 					width:width, height:height, 
 					maxWidth:maxWidth, maxHeight:maxHeight };
 				this._settings.position.call(this, state);
@@ -472,7 +469,7 @@ const api = {
 				}
 				this.setPosition(left, top);
 			}
-			
+
 			if (this._settings.position == "top")
 				animate(this._viewobj, {type: "slide", x:0, y:height-((this._settings.padding||0)*2), duration: 300 ,callback:this._topPositionCallback, master:this});
 		} else 
@@ -489,7 +486,7 @@ const api = {
 		this._settings.left = x; this._settings.top=y;
 	},
 	$getSize:function(dx, dy){
-		var _borders = this._settings._inner;
+		const _borders = this._settings._inner;
 		if (_borders){
 			dx += (_borders.left?0:1)+(_borders.right?0:1);
 			dy += (_borders.top?0:1)+(_borders.bottom?0:1);
@@ -498,10 +495,10 @@ const api = {
 		if (this._settings.head)
 			dy += 1;
 
-		var size =  this._body_cell.$getSize(0,0);
-		var headMinWidth = 0;
+		const size =  this._body_cell.$getSize(0,0);
+		let headMinWidth = 0;
 		if (this._head_cell){
-			var head_size = this._head_cell.$getSize(0,0);
+			const head_size = this._head_cell.$getSize(0,0);
 			if (head_size[3]==head_size[2])
 				this._settings.headHeight = head_size[3];
 			dy += this._settings.headHeight;
@@ -509,13 +506,13 @@ const api = {
 		}
 
 		if (this._settings.fullscreen){
-			var width = window.innerWidth || document.body.clientWidth;
-			var height = window.innerHeight || document.body.clientHeight;
+			const width = window.innerWidth || document.body.clientWidth;
+			const height = window.innerHeight || document.body.clientHeight;
 			return [width, width, height, height];
 		}
 
 		//get layout sizes
-		var self_size = base.api.$getSize.call(this, 0, 0);
+		const self_size = base.api.$getSize.call(this, 0, 0);
 
 		//use child settings if layout's one was not defined
 		if (headMinWidth && size[1] > 100000)

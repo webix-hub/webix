@@ -17,6 +17,8 @@ export const toPNG = function(id, options){
 		if (typeof options === "string") options = { filename: options };
 		options = options || {};
 
+		options.export_mode = "png";
+
 		let view = $$(id);
 		if (view && view.$exportView)
 			view = view.$exportView(options);

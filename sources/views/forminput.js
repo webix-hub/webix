@@ -1,9 +1,7 @@
 import fieldset from "../views/fieldset";
-import {remove, create} from "../webix/html";
+import {remove, create, getTextSize} from "../webix/html";
 import {protoUI} from "../ui/core";
 import {$active} from "../webix/skin";
-import {isUndefined} from "../webix/helpers";
-
 
 const api = {
 	name:"forminput",
@@ -40,49 +38,54 @@ const api = {
 		this._inputSpacing = $active.inputSpacing;
 		this._labelTopHeight = $active.labelTopHeight;
 	},
-	$init:function(obj){
+	$init:function(){
 		this.$ready.push(function(){
 			let label = this._viewobj.firstChild.childNodes[0];
 			let body = this._viewobj.firstChild.childNodes[1];
 
-			if (!this._settings.label || (!this._settings.labelWidth && this._settings.labelPosition != "top")){
+			const config = this._settings;
+
+			if (config.labelPosition != "top"){
+				config.labelWidth = config.label ? this._getLabelWidth(config.labelWidth, config.label) : 0;
+				config.paddingX = config.labelWidth + this._inputSpacing;
+			}
+			else {
+				config.paddingY = this._labelTopHeight;
+				config.paddingX = this._inputSpacing;
+			}
+
+			if (!config.label || (!config.labelWidth && config.labelPosition != "top")){
 				label.style.display = "none";
 				body.style.padding = "0 " + this._inputSpacing/2 + "px";
-				this._settings.paddingX = this._inputSpacing;
-				this._settings.paddingY = 0;
+				config.paddingX = this._inputSpacing;
+				config.paddingY = 0;
 				return;
 			}
 
-			if (this._settings.labelPosition == "top"){
+			if (config.labelPosition == "top"){
 				label.style.lineHeight = this._labelTopHeight - this._inputPadding + "px";
 				label.className += " "+this.defaults.$cssName+"_label_top";
 				body.style.padding = "0 " + this._inputSpacing/2 + "px";
 			}
-			else label.style.width = this._settings.paddingX - this._inputSpacing/2 + "px";
+			else label.style.width = config.paddingX - this._inputSpacing/2 + "px";
 
-			label.style.textAlign = this._settings.labelAlign;
+			label.style.textAlign = config.labelAlign;
 
-			if(this._settings.value) this.setValue(this._settings.value, "auto");
+			if(config.value) this.setValue(config.value, "auto");
 		});
-
-		if (obj.labelPosition != "top"){
-			var lw = isUndefined(obj.labelWidth) ? this.defaults.labelWidth : obj.labelWidth;
-			obj.paddingX = lw + this._inputSpacing;
-		} else {
-			obj.paddingY = this._labelTopHeight;
-			obj.paddingX = this._inputSpacing;
-		}
 	},
-	labelWidth_setter:function(value){
-		return value ? Math.max(value, $active.dataPadding) : 0;
+	_getLabelWidth: function(width, label){
+		if(width == "auto")
+			width = getTextSize(label, "webix_inp_label").width;
+		return width ? Math.max(width, $active.dataPadding) : 0;
 	},
 	setBottomText: function(text) {
-		var config = this._settings;
+		const config = this._settings;
 		if (typeof text != "undefined"){
 			if (config.bottomLabel == text) return;
 			config.bottomLabel = text;
 		}
-		var message = (config.invalid ? config.invalidMessage : "") || config.bottomLabel;
+		const message = (config.invalid ? config.invalidMessage : "") || config.bottomLabel;
 		if(this._invalidMessage) {
 			remove(this._invalidMessage);
 		}

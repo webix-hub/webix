@@ -38,20 +38,41 @@ function callback(config, result){
 	modalbox.hide(config.id);
 }
 function modal_key(e){
-	var count = modalbox.order.length;
+	const order = modalbox.order;
+	const count = order.length;
+	const source = e.target;
+
 	if (count > 0 && message.keyboard){
 		e = e||window.event;
 		const code = e.which||e.keyCode;
-		const lastModalbox = modalbox.pull[modalbox.order[count-1]];
-		const hasInput = lastModalbox.type.indexOf("prompt") != -1;
+		if(code != 13 && code != 32 && code != 27)
+			return;
 
-		if (code == 13 || (code == 32 && !hasInput))
-			callback(lastModalbox, true);
-		if (code == 27)
-			callback(lastModalbox, false);
+		let activeBox;
 
-		if (!hasInput)
-			preventEvent(e);
+		for(let i = count - 1; i >= 0; i--){
+			const box = modalbox.pull[ order[i] ];
+
+			if(box.container && box.container.contains(source)){
+				const insideModalbox = box._box != source && box._box.contains(source);
+				if(code == 32 && insideModalbox) // ignore space inside input
+					return;
+				else{
+					activeBox = box;
+					break;
+				}
+			}
+		}
+
+		if(!activeBox)
+			activeBox = modalbox.pull[ order[order.length-1] ];
+
+		if (code == 13 || code == 32)
+			callback(activeBox, true);
+		else if (code == 27)
+			callback(activeBox, false);
+
+		preventEvent(e);
 		return !(e.cancelBubble = true);
 	}
 }

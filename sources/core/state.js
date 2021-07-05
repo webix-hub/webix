@@ -1,8 +1,6 @@
 import {_to_array} from "../webix/helpers";
 
 const state = {
-	codebase:"./",
-	cdn:"//cdn.webix.com",
 	top_views:[],
 
 	_global_scope:null,
@@ -23,7 +21,7 @@ const state = {
 
 	_noselect_element:null,
 
-	_modality:0,
+	_modality:[],
 	_popups:_to_array(),
 
 	_wait_animate:null

@@ -58,19 +58,21 @@ const api = {
 
 		this.attachEvent("onShow", function(){
 			if (this._settings.master){
-				var master = $$(this._settings.master);
-				if(master){
-					var node = master._getInputDiv ? master._getInputDiv() : master.getInputNode();
+				const master = $$(this._settings.master);
+				if (master){
+					const node = master._getInputDiv ? master._getInputDiv() : master.getInputNode();
 					node.setAttribute("aria-expanded", "true");
 				}
+
+				// execute only if there is a master view
+				this._show_selection();
 			}
-			this._show_selection();
 		});
 		this.attachEvent("onHide", function(){
 			if (this._settings.master){
-				var master = $$(this._settings.master);
-				if(master){
-					var node = master._getInputDiv ? master._getInputDiv() : master.getInputNode();
+				const master = $$(this._settings.master);
+				if (master){
+					const node = master._getInputDiv ? master._getInputDiv() : master.getInputNode();
 					node.setAttribute("aria-expanded", "false");
 				}
 			}
@@ -303,7 +305,7 @@ const api = {
 			return false;
 		}
 
-		const contentEditable = trg.getAttribute("contentEditable") == "true";
+		const contentEditable = trg.getAttribute("contentEditable") == "true" || trg.getAttribute("contentEditable") == "";
 		if (isUndefined(trg.value) && !contentEditable) return;
 
 		this._last_delay = delay(function(){
@@ -313,7 +315,7 @@ const api = {
 
 			this._resolve_popup = true;
 			//spreadsheet use contentEditable div for cell highlighting
-			var val = contentEditable ? trg.innerText : trg.value;
+			const val = contentEditable ? trg.innerText : trg.value;
 
 			if (this._before_filtering)
 				this._before_filtering();

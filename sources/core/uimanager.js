@@ -5,6 +5,7 @@ import {event} from "../webix/htmlevents";
 import {delay,uid,_power_array,isUndefined,isArray} from "../webix/helpers";
 import {callEvent} from "../webix/customevents";
 import {locate,preventEvent} from "../webix/html";
+import {modalbox} from "../webix/message";
 import fullscreen from "../webix/fullscreen";
 
 import {$$} from "../ui/core";
@@ -97,6 +98,11 @@ const UIManager = {
 		return (view === this._view) ? true : false;
 	},
 	_focus: function(e){
+		for(let i = 0; i < modalbox.order.length; i++){
+			if(modalbox.pull[ modalbox.order[i] ]._box.contains(e.target))
+				return;
+		}
+
 		var view = locate(e, /*@attr*/"view_id") || this._focus_was_there;
 
 		//if html was repainted we can miss the view, so checking last processed one
@@ -138,12 +144,15 @@ const UIManager = {
 		return this._focus(e);
 	},
 	_top_modal: function(view){
-		if (!state._modality) return true;
+		const modality = state._modality;
+		if (!modality.length) return true;
 
 		const top = view.queryView(a => !a.getParentView(), "parent") || view;
-		return (top.$view.style.zIndex||0) >= state._modality;
+		return (top.$view.style.zIndex||0) >= Math.max(...modality);
 	},
 	canFocus:function(view){
+		if(document.body.modality || view.$view.modality || view.queryView(view => view.$view.modality, "parent")) //modalbox
+			return false;
 		return view.isVisible() && view.isEnabled() && !view.config.disabled && this._top_modal(view) && !view.queryView({disabled:true}, "parent");
 	},
 

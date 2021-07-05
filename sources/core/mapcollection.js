@@ -1,4 +1,4 @@
-import {isArray} from "../webix/helpers";
+import {uid,isArray} from "../webix/helpers";
 import {$$} from "../ui/core";
 
 import i18n from "../webix/i18n";
@@ -72,6 +72,11 @@ const MapCollection = {
 	_build_data_map:function(columns){ //for datatable
 		for (let i=0; i<columns.length; i++){
 			const col = columns[i];
+			if (!col.id) {
+				col.id = "i" + uid();
+				if (!col.header)
+					col.header = "";
+			}
 			if (col.map)
 				this._scheme_init_order.push(this._process_single_map(col.id, col.map, columns[i]));
 

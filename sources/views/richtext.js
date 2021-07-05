@@ -5,7 +5,7 @@ import {protoUI} from "../ui/core";
 import {$active} from "../webix/skin";
 import i18n from "../webix/i18n";
 import {_event} from "../webix/htmlevents";
-
+import {getTextSize} from "../webix/html";
 
 const api = {
 	name: "richtext",
@@ -39,9 +39,9 @@ const api = {
 		};
 	},
 	_setLayout: function() {
-		var top = this;
+		const top = this;
 
-		var editField = {
+		const editField = {
 			view: "template",
 			css: "webix_richtext_container",
 			borderless: true,
@@ -65,51 +65,59 @@ const api = {
 			}
 		};
 
-		var controls = [
+		const controls = [
 			this._button("underline"),
 			this._button("bold"),
 			this._button("italic"),
 			{ }
 		];
 
-		var editorToolbar = {
+		const editorToolbar = {
 			view: "toolbar",
 			id:"toolbar",
 			elements: controls
 		};
 
-		var rows = [
+		const rows = [
 			editorToolbar,
 			editField
 		];
 
-		if (this.config.labelPosition === "top"){
+		const config = this.config;
+
+		if (config.labelPosition == "top"){
 			editorToolbar.elements = controls.concat([
-				{ view:"label", label: this.config.label, align:"right"},
+				{ view:"label", label: config.label, align:"right"},
 				{ width:4 }
 			]);
 			this.rows_setter(rows);
 		} 
-		else if (this.config.labelWidth){
-			this.config.margin = 0;
-			this.cols_setter([{ 
-				template: (this.config.label || " "),
-				css: "webix_richtext_inp_label"+(this.config.required?" webix_required":""),
-				borderless: true,
-				width: this.config.labelWidth
-			}, {
-				rows:rows
-			}]);
+		else{
+			config.labelWidth = config.label ? this._getLabelWidth(config.labelWidth, config.label) : 0;
+			if(config.labelWidth){
+				config.margin = 0;
+				this.cols_setter([{ 
+					template: config.label,
+					css: "webix_richtext_inp_label"+(config.required?" webix_required":""),
+					borderless: true,
+					width: config.labelWidth
+				}, {
+					rows
+				}]);
+			}
+			else
+				this.rows_setter(rows);
 		}
-		else this.rows_setter(rows);
 	},
-	labelWidth_setter:function(value){
-		return value ? Math.max(value, $active.dataPadding) : 0;
+	_getLabelWidth: function(width, label){
+		if(width == "auto")
+			width = getTextSize(label, "webix_inp_label").width;
+		return width ? Math.max(width, $active.dataPadding) : 0;
 	},
 	_getselection: function(config) {
-		var top = this;
-		var bar = top.$$("toolbar");
-		var sel;
+		const top = this;
+		const bar = top.$$("toolbar");
+		let sel;
 
 		bar.setValues({
 			italic:false, underline:false, bold:false
@@ -121,7 +129,7 @@ const api = {
 			sel = document.selection.createRange();
 		}
 
-		for (var i = 0; i < sel.rangeCount; ++i) {
+		for (let i = 0; i < sel.rangeCount; ++i) {
 			if (top.$view.contains(this.getInputNode())){
 				if (document.queryCommandState("bold")) {
 					top.$$("bold").setValue(true,config);
@@ -151,19 +159,19 @@ const api = {
 		} else return; //ie8
 
 		if(selText > 0) {
-			for (var i = 0; i < sel.rangeCount; ++i) {
-				var range = sel.getRangeAt(i);
+			for (let i = 0; i < sel.rangeCount; ++i) {
+				const range = sel.getRangeAt(i);
 				if (!sel.isCollapsed) {
 					document.execCommand(commandName, false, "");
 				} else {
-					var textValue = sel.focusNode.textContent;
-					var focusEl = sel.focusNode;
-					var focustext = sel.anchorOffset;
-					var wordBegining = textValue.substring(0, focustext).match(/[A-Za-z]*$/)[0];
-					var wordEnd = textValue.substring(focustext).match(/^[A-Za-z]*/)[0];
+					const textValue = sel.focusNode.textContent;
+					const focusEl = sel.focusNode;
+					const focustext = sel.anchorOffset;
+					const wordBegining = textValue.substring(0, focustext).match(/[A-Za-z]*$/)[0];
+					const wordEnd = textValue.substring(focustext).match(/^[A-Za-z]*/)[0];
 
-					var startWord = focustext - wordBegining.length;
-					var endWord = focustext + wordEnd.length;
+					const startWord = focustext - wordBegining.length;
+					const endWord = focustext + wordEnd.length;
 
 					range.setStart(focusEl, startWord);
 					range.setEnd(focusEl, endWord);
@@ -171,7 +179,7 @@ const api = {
 
 					sel.addRange(range);
 					document.execCommand(commandName, false, "");
-				}   
+				}
 			}
 		}
 	},
@@ -183,7 +191,7 @@ const api = {
 		if(!UIManager.canFocus(this))
 			return false;
 
-		var editableElement = this.getInputNode();
+		const editableElement = this.getInputNode();
 		editableElement.focus();
 	},
 	_updateValue: function(value, config){

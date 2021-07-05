@@ -391,9 +391,7 @@ editors.richselect = extend({
 		return this.getPopup().getList();
 	},
 	popupInit:function(popup){
-		popup._show_selection = function(){};
 		popup.linkInput(document.body);
-
 		attach_editend(popup);
 	},
 	popupType:"richselect"

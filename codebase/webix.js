@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.8.3.0
+ * webix UI v.8.4.0
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -1510,7 +1510,7 @@
   };
 
   var env = {};
-  env.cdn = "//cdn.webix.com/";
+  env.cdn = "//cdn.webix.com";
   env.codebase = "";
   env.zIndexBase = 100;
   env.scrollSize = 17;
@@ -2932,8 +2932,6 @@
   }
 
   var state = {
-    codebase: "./",
-    cdn: "//cdn.webix.com",
     top_views: [],
     _global_scope: null,
     _global_collection: null,
@@ -2949,7 +2947,7 @@
     _events: [],
     destructors: [],
     _noselect_element: null,
-    _modality: 0,
+    _modality: [],
     _popups: _to_array(),
     _wait_animate: null
   };
@@ -3561,6 +3559,406 @@
     });
   });
 
+  var rules = {
+    isEmail: function (value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((value || "").toString());
+    },
+    isNumber: function (value) {
+      return parseFloat(value) == value;
+    },
+    isChecked: function (value) {
+      return !!value || value === "0";
+    },
+    isNotEmpty: function (value) {
+      return value === 0 || value;
+    }
+  };
+
+  function callback(config, result) {
+    // prompt
+    if (config.type.indexOf("prompt") != -1) {
+      if (result === false) {
+        config._promise.reject();
+      } else {
+        var inputBox = config._box.querySelector(".webix_popup_input");
+
+        var _input = inputBox.querySelector("input");
+
+        if (config.input.required && !_input.value) {
+          config.input.invalid = true;
+          addCss(inputBox, "webix_popup_invalid");
+          return;
+        } else {
+          result = _input.value || "";
+
+          config._promise.resolve(result);
+        }
+      }
+    }
+
+    config.type.indexOf("confirm") != -1 && result === false ? config._promise.reject() : config._promise.resolve(result);
+    var usercall = config.callback;
+    if (usercall) usercall(result, config.details);
+    modalbox.hide(config.id);
+  }
+
+  function modal_key(e) {
+    var order = modalbox.order;
+    var count = order.length;
+    var source = e.target;
+
+    if (count > 0 && message.keyboard) {
+      e = e || window.event;
+      var code = e.which || e.keyCode;
+      if (code != 13 && code != 32 && code != 27) return;
+      var activeBox;
+
+      for (var i = count - 1; i >= 0; i--) {
+        var box = modalbox.pull[order[i]];
+
+        if (box.container && box.container.contains(source)) {
+          var insideModalbox = box._box != source && box._box.contains(source);
+
+          if (code == 32 && insideModalbox) // ignore space inside input
+            return;else {
+            activeBox = box;
+            break;
+          }
+        }
+      }
+
+      if (!activeBox) activeBox = modalbox.pull[order[order.length - 1]];
+      if (code == 13 || code == 32) callback(activeBox, true);else if (code == 27) callback(activeBox, false);
+      preventEvent(e);
+      return !(e.cancelBubble = true);
+    }
+  }
+
+  event$1(document, "keydown", modal_key, {
+    capture: true
+  });
+
+  function modality(mode, container) {
+    var node = container || document.body;
+    var cover;
+
+    if (isUndefined(node.modality)) {
+      cover = create("DIV", {
+        "class": "webix_modal_cover",
+        style: "position:" + (container ? "absolute" : "fixed") + ";"
+      });
+      cover.onkeydown = modal_key;
+
+      if (container) {
+        var position = window.getComputedStyle(container).position;
+        if (position != "fixed" && position != "absolute" && position != "sticky" && position != "relative") node.style.position = "relative";
+      }
+
+      node.appendChild(cover);
+      node.modality = 1;
+    } else mode ? node.modality++ : node.modality--; //trigger visibility only if necessary
+
+
+    if (mode && node.modality === 1 || node.modality === 0) {
+      cover = cover || Array.from(node.querySelectorAll(".webix_modal_cover")).find(function (el) {
+        return el.parentNode == node;
+      });
+
+      if (cover) {
+        if (!node.modality) {
+          cover.style.display = "none";
+          removeCss(node, "webix_modalbox_inside");
+        } else if (node.modality == 1) {
+          cover.style.display = "inline-block";
+          addCss(node, "webix_modalbox_inside");
+        }
+      }
+    }
+
+    return cover;
+  }
+
+  function button(text, result, className) {
+    return "<div role='button' tabindex='0' aria-label='" + text + "' class='webix_popup_button" + (className ? " " + className : "") + "' result='" + result + "' ><div>" + text + "</div></div>";
+  }
+
+  function input(config) {
+    return "<div tabindex='0' class='webix_popup_input webix_el_text" + (config.required ? " webix_required" : "") + "'><input value='" + template.escape(config.value || "") + "' placeholder='" + template.escape(config.placeholder || "") + "'></input></div>";
+  }
+
+  function info(text) {
+    if (!t.area) {
+      t.area = document.createElement("DIV");
+      t.area.className = "webix_message_area";
+      t.area.style[t.position] = "5px";
+      document.body.appendChild(t.area);
+    }
+
+    t.area.setAttribute("role", "alert");
+    t.area.setAttribute("aria-atomic", true);
+    t.hide(text.id);
+    var message = document.createElement("DIV");
+    message.innerHTML = "<div>" + text.text + "</div>";
+    message.className = "webix_message webix_" + text.type;
+
+    message.onclick = function () {
+      if (text) t.hide(text.id);
+      text = null;
+    };
+    if (t.position == "bottom" && t.area.firstChild) t.area.insertBefore(message, t.area.firstChild);else t.area.appendChild(message);
+    if (text.expire > 0) t.timers[text.id] = window.setTimeout(function () {
+      t.hide(text.id);
+    }, text.expire); //styling for animation
+
+    message.style.height = message.offsetHeight - 2 + "px";
+    t.pull[text.id] = message;
+    message = null;
+    return text.id;
+  }
+
+  function _boxStructure(config, ok, cancel, hasInput) {
+    var box = document.createElement("DIV");
+    var css = config.css ? " " + config.css : "";
+    box.className = "webix_modal_box webix_" + config.type + css;
+    box.setAttribute("webixbox", 1);
+    box.setAttribute("role", "alertdialog");
+    box.setAttribute("aria-label", config.title || "");
+    box.setAttribute("tabindex", "0");
+    var inner = "";
+    if (config.width) box.style.width = config.width + (rules.isNumber(config.width) ? "px" : "");
+    if (config.height) box.style.height = config.height + (rules.isNumber(config.height) ? "px" : "");
+    if (config.title) inner += "<div class=\"webix_popup_title\">" + config.title + "</div>";
+    inner += "<div class=\"webix_popup_text" + (hasInput ? " webix_popup_label" : "") + "\"><span>" + (config.content ? "" : config.text || "") + "</span></div>";
+    inner += "<div  class=\"webix_popup_controls\">";
+    if (hasInput) inner += input(config.input);
+    if (cancel) inner += button(config.cancel || i18n.message.cancel, false);
+    if (ok) inner += button(config.ok || i18n.message.ok, true, "confirm");
+
+    if (config.buttons && !ok && !cancel) {
+      for (var i = 0; i < config.buttons.length; i++) {
+        inner += button(config.buttons[i], i);
+      }
+    }
+
+    inner += "</div>";
+    box.innerHTML = inner;
+
+    if (config.content) {
+      var node = config.content;
+      if (typeof node == "string") node = document.getElementById(node);
+      if (node.style.display == "none") node.style.display = "";
+      box.childNodes[config.title ? 1 : 0].appendChild(node);
+    }
+
+    if (config.type.indexOf("prompt") != -1) {
+      var inputBox = box.querySelector(".webix_popup_input");
+
+      var _input2 = inputBox.querySelector("input");
+
+      _input2.oninput = function () {
+        if (config.input.invalid) {
+          removeCss(inputBox, "webix_popup_invalid");
+          config.input.invalid = false;
+        }
+      };
+    }
+
+    box.onclick = function (e) {
+      e = e || window.event;
+      var source = e.target;
+      if (!source.className) source = source.parentNode;
+
+      if (source.className.indexOf("webix_popup_button") != -1) {
+        var result = source.getAttribute("result");
+        result = result == "true" || (result == "false" ? false : result);
+        callback(config, result);
+      }
+
+      e.cancelBubble = true;
+    };
+
+    config._box = box;
+    return box;
+  }
+
+  modalbox.pull = {};
+  modalbox.order = [];
+
+  function _createBox(config, ok, cancel, hasInput) {
+    var box = config.tagName ? config : _boxStructure(config, ok, cancel, hasInput);
+    var container = config.container;
+    var containerWidth = container ? container.offsetWidth : window.innerWidth || document.documentElement.offsetWidth;
+    var containerHeight = container ? container.offsetHeight : window.innerHeight || document.documentElement.offsetHeight;
+    var containerLeft = container ? container.scrollLeft : 0;
+    var containerTop = container ? container.scrollTop : 0;
+    if (config.container) box.style.position = "absolute";
+    toNode((config.container || document.body).appendChild(box));
+    var cover = modality(true, config.container);
+    var x = config.left || Math.abs(containerLeft + Math.floor((containerWidth - box.offsetWidth) / 2));
+    var y = config.top || Math.abs(containerTop + Math.floor((containerHeight - box.offsetHeight) / 2));
+    if (config.position == "top") box.style.top = "-3px";else {
+      box.style.top = y + "px";
+
+      if (cover) {
+        cover.style.top = containerTop + "px";
+        cover.style.left = containerLeft + "px";
+      }
+    }
+    box.style.left = x + "px"; //necessary for IE only
+
+    box.onkeydown = modal_key;
+    box.focus();
+    if (!config.id) config.id = _uid("modalbox");else if (modalbox.pull[config.id]) {
+      modalbox.hide(config.id);
+    }
+    modalbox.order.push(config.id);
+    modalbox.pull[config.id] = config;
+    config._promise = Deferred.defer();
+    return config._promise;
+  }
+
+  function alertPopup(config) {
+    return _createBox(config, true);
+  }
+
+  function confirmPopup(config) {
+    return _createBox(config, true, true);
+  }
+
+  function boxPopup(config) {
+    return _createBox(config);
+  }
+
+  function promptPopup(config) {
+    return _createBox(config, true, true, true);
+  }
+
+  function box_params(text, type, callback) {
+    if (_typeof(text) != "object") {
+      if (typeof type == "function") {
+        callback = type;
+        type = "";
+      }
+
+      text = {
+        text: text,
+        type: type,
+        callback: callback
+      };
+    }
+
+    return text;
+  }
+
+  function params(text, type, expire, id) {
+    if (_typeof(text) != "object") text = {
+      text: text,
+      type: type,
+      expire: expire,
+      id: id
+    };
+    text.id = text.id || _uid("message");
+    text.expire = text.expire || t.expire;
+    return text;
+  }
+
+  function alert() {
+    var text = box_params.apply(this, arguments);
+    text.type = text.type || "alert";
+    return alertPopup(text);
+  }
+  function confirm() {
+    var text = box_params.apply(this, arguments);
+    text.type = text.type || "confirm";
+    return confirmPopup(text);
+  }
+  function modalbox() {
+    var text = box_params.apply(this, arguments);
+    text.type = text.type || "alert";
+    return boxPopup(text);
+  }
+  function prompt() {
+    var text = box_params.apply(this, arguments);
+    text.type = text.type || "prompt";
+    text.input = text.input || {};
+    return promptPopup(text);
+  }
+
+  modalbox.hide = function (id) {
+    if (id && modalbox.pull[id]) {
+      var node = modalbox.pull[id]._box;
+
+      if (node) {
+        node.parentNode.removeChild(node);
+        modalbox.order.splice(modalbox.order.indexOf(id), 1);
+        modality(false, modalbox.pull[id].container);
+        delete modalbox.pull[id];
+      }
+    }
+  };
+
+  modalbox.hideAll = function () {
+    for (var id in modalbox.pull) {
+      this.hide(id);
+    }
+  };
+
+  function message(text, type, expire, id) {
+    //eslint-disable-line
+    text = params.apply(this, arguments);
+    text.type = text.type || "info";
+    var subtype = text.type.split("-")[0];
+
+    switch (subtype) {
+      case "alert":
+        return alertPopup(text);
+
+      case "confirm":
+        return confirmPopup(text);
+
+      case "modalbox":
+        return boxPopup(text);
+
+      case "prompt":
+        return promptPopup(text);
+
+      default:
+        return info(text);
+    }
+  }
+  var t = message;
+  t.expire = 4000;
+  t.keyboard = true;
+  t.position = "top";
+  t.pull = {};
+  t.timers = {};
+
+  t.hideAll = function () {
+    for (var key in t.pull) {
+      t.hide(key);
+    }
+  };
+
+  t.hide = function (id) {
+    var obj = t.pull[id];
+
+    if (obj && obj.parentNode) {
+      window.setTimeout(function () {
+        obj.parentNode.removeChild(obj);
+        obj = null;
+      }, 2000); //styling for animation
+
+      obj.style.height = 0;
+      obj.className += " hidden";
+      t.area.removeAttribute("role");
+      if (t.timers[id]) window.clearTimeout(t.timers[id]);
+      delete t.pull[id];
+    }
+  }; //override circualr dependencies
+
+
+  define("message", message);
+
   var fullscreen = {
     set: function (view, config) {
       config = config || {};
@@ -3580,10 +3978,12 @@
       if (view.setPosition) {
         viewConfig.fullscreen = true;
         view.resize();
+        return view;
       } else {
         this._fullscreen = ui({
           view: "window",
           head: this._getHeadConfig(config),
+          css: config.css || "",
           fullscreen: true,
           borderless: true,
           //better resize logic
@@ -3623,6 +4023,8 @@
         this._fullscreen.show();
 
         this._setSizes(view);
+
+        return this._fullscreen;
       }
     },
     exit: function () {
@@ -3822,6 +4224,10 @@
       return view === this._view ? true : false;
     },
     _focus: function (e) {
+      for (var i = 0; i < modalbox.order.length; i++) {
+        if (modalbox.pull[modalbox.order[i]]._box.contains(e.target)) return;
+      }
+
       var view = locate(e,
       /*@attr*/
       "view_id") || this._focus_was_there; //if html was repainted we can miss the view, so checking last processed one
@@ -3857,13 +4263,18 @@
       return this._focus(e);
     },
     _top_modal: function (view) {
-      if (!state._modality) return true;
+      var modality = state._modality;
+      if (!modality.length) return true;
       var top = view.queryView(function (a) {
         return !a.getParentView();
       }, "parent") || view;
-      return (top.$view.style.zIndex || 0) >= state._modality;
+      return (top.$view.style.zIndex || 0) >= Math.max.apply(Math, _toConsumableArray(modality));
     },
     canFocus: function (view) {
+      if (document.body.modality || view.$view.modality || view.queryView(function (view) {
+        return view.$view.modality;
+      }, "parent")) //modalbox
+        return false;
       return view.isVisible() && view.isEnabled() && !view.config.disabled && this._top_modal(view) && !view.queryView({
         disabled: true
       }, "parent");
@@ -5745,7 +6156,7 @@
     labelTopHeight: 16,
     inputSpacing: 4,
     borderWidth: 1,
-    sliderHandleWidth: 12,
+    sliderHandleWidth: 10,
     sliderPadding: 10,
     sliderBorder: 1,
     vSliderPadding: 13,
@@ -6860,10 +7271,10 @@
           	abs positioned element, but because of attaching order modal layer will be on top anyway
           */
 
-          var index$$1 = zIndex(this._settings.zIndex); //set topmost modal layer
+          var index$$1 = this._modality = zIndex(this._settings.zIndex);
 
-          this._previous_modality = state._modality;
-          state._modality = index$$1;
+          state._modality.push(index$$1);
+
           this._modal_cover.style.zIndex = index$$1 - 1;
           this._viewobj.style.zIndex = index$$1;
           document.body.appendChild(this._modal_cover);
@@ -6874,10 +7285,10 @@
       } else {
         if (this._modal_cover) {
           remove(this._modal_cover);
-          this._modal_cover = null; //restore topmost modal layer
-
-          state._modality = this._previous_modality;
-          if (!state._modality) document.body.style.overflow = "";
+          this._modal_cover = null;
+          var modality = state._modality;
+          modality.splice(modality.indexOf(this._modality), 1);
+          if (!modality.length) document.body.style.overflow = "";
         }
       }
 
@@ -6993,7 +7404,7 @@
       this._viewobj.setAttribute("tabindex", "0");
 
       this._head_cell = this._body_cell = null;
-      config._inner = {
+      this._settings._inner = {
         top: false,
         left: false,
         right: false,
@@ -7120,9 +7531,9 @@
 
         if (fit) {
           var nochange = fit === "node";
-          var delta_x = 6;
-          var delta_y = 6;
-          var delta_point = 6;
+          var delta_x = 6,
+              delta_y = 6,
+              delta_point = 6;
           if (!this._settings.point) delta_x = delta_y = delta_point = 0; //default pointer position - top 
 
           point = "top";
@@ -7229,7 +7640,7 @@
 
       if (e && env.touch && e.longtouch_drag) return; //do not hide popup, when we have modal layer above the popup
 
-      if (state._modality && this._viewobj.style.zIndex <= state._modality) return; //ignore inside clicks and clicks in child-popups
+      if (state._modality.length && this._viewobj.style.zIndex <= Math.max.apply(Math, _toConsumableArray(state._modality))) return; //ignore inside clicks and clicks in child-popups
 
       if (e) {
         var index$$1 = e.click_view;
@@ -7422,7 +7833,7 @@
         var top = Math.round((maxHeight - height) / 2);
 
         if (typeof this._settings.position == "function") {
-          var state$$1 = {
+          var _state = {
             left: left,
             top: top,
             width: width,
@@ -7431,10 +7842,10 @@
             maxHeight: maxHeight
           };
 
-          this._settings.position.call(this, state$$1);
+          this._settings.position.call(this, _state);
 
-          if (state$$1.width != width || state$$1.height != height) this.$setSize(state$$1.width, state$$1.height);
-          this.setPosition(state$$1.left, state$$1.top);
+          if (_state.width != width || _state.height != height) this.$setSize(_state.width, _state.height);
+          this.setPosition(_state.left, _state.top);
         } else {
           if (this._settings.position == "top") {
             if (animate.isSupported()) top = -1 * height;else top = 10;
@@ -8181,21 +8592,6 @@
     }
   };
 
-  var rules = {
-    isEmail: function (value) {
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((value || "").toString());
-    },
-    isNumber: function (value) {
-      return parseFloat(value) == value;
-    },
-    isChecked: function (value) {
-      return !!value || value === "0";
-    },
-    isNotEmpty: function (value) {
-      return value === 0 || value;
-    }
-  };
-
   var ValidateData = {
     $init: function () {
       if (this._events) this.attachEvent("onChange", this.clearValidation);
@@ -8918,7 +9314,7 @@
 
       if (endpos) {
         if (!this.order[endpos - 1]) this.order[endpos - 1] = undefined;
-        if (endpos < this.order.length) this.order = this.order.slice(0, endpos);
+        if (endpos < this.order.length) this.order = _to_array(this.order.slice(0, endpos));
       }
     },
     //generate id for data object
@@ -10620,7 +11016,7 @@
             data: copy(obj.data.$branch)
           };
           delete obj.data.$branch;
-          if (parentId && !this.data.branch[parentId]) parentId = 0;
+          if (parentId && !this.data.pull[parentId]) parentId = 0;
         }
 
         this.add(obj.data, obj.data.$index, parentId);
@@ -11018,8 +11414,6 @@
       return this.getPopup().getList();
     },
     popupInit: function (popup) {
-      popup._show_selection = function () {};
-
       popup.linkInput(document.body);
       attach_editend(popup);
     },
@@ -11395,11 +11789,12 @@
         var key = editor.column || this._settings.editValue || "value";
         var rule = this._settings.rules[key];
         var all = this._settings.rules.$all;
+        var input = editor.getInputNode();
 
-        if (rule || all) {
+        if ((rule || all) && !input._viewobj) {
+          //only for html inputs
           var obj = this.data.getItem(editor.row || editor.id);
           var value = editor.getValue();
-          var input = editor.getInputNode();
           if (rule) result = rule.call(this, value, obj, key);
           if (all) result = all.call(this, value, obj, key) && result;
           if (result) removeCss(input, "webix_invalid");else addCss(input, "webix_invalid");
@@ -12010,7 +12405,10 @@
         this.callEvent("onOptionAdd", [id, obj]);
       }
 
-      if (show) this.setValue(id, "auto");
+      if (show) {
+        if (this._settings.options.length === 1) this._settings.value = "";
+        this.setValue(id, "auto");
+      }
     },
     removeOption: function (id) {
       var index$$1 = this.optionIndex(id);
@@ -12412,6 +12810,12 @@
       //for datatable
       for (var i = 0; i < columns.length; i++) {
         var col = columns[i];
+
+        if (!col.id) {
+          col.id = "i" + uid();
+          if (!col.header) col.header = "";
+        }
+
         if (col.map) this._scheme_init_order.push(this._process_single_map(col.id, col.map, columns[i]));
 
         this._map_options(columns[i]);
@@ -16738,7 +17142,7 @@
     }
   };
 
-  var version$1 = "8.3.0";
+  var version$1 = "8.4.0";
   var name$1 = "core";
 
   var errorMessage = "non-existing view for export";
@@ -16780,7 +17184,7 @@
     if (treeLines === true || isUndefined(treeLines)) treeLines = "value";
     scheme.heights = {};
 
-    if (options.hidden) {
+    if (options.hidden || options.hide) {
       scheme.hiddenCols = {};
       scheme.hiddenRows = {};
     }
@@ -16888,6 +17292,11 @@
           type: column.exportType || "",
           format: column.exportFormat || ""
         });
+
+        if (column.hidden) {
+          if (!scheme.hiddenCols) scheme.hiddenCols = {};
+          scheme.hiddenCols[column.id] = 1;
+        }
       }
 
       if (typeof record.header === "string") record.header = [{
@@ -16977,6 +17386,14 @@
     var treeline = options.flatTree || options.plainOutput ? "" : "-";
     view.data.each(function (item, index) {
       if (!options.filter || options.filter(item)) {
+        var reallyHidden = options.hidden && view.data._filter_order && view.getIndexById(item.id) == -1;
+
+        if (options.hide && options.hide(item) || reallyHidden) {
+          var _header = (options.docHeader ? 2 : 0) + (options.header === false ? 0 : scheme[0].header.length);
+
+          scheme.hiddenRows[_header + index] = 1;
+        }
+
         if (this.data._scheme_export) {
           item = view.data._scheme_export(item);
         }
@@ -17020,13 +17437,6 @@
         }
 
         if (mode == "excel" && view._columns && options.heights !== false && (item.$height && item.$height !== $active.rowHeight || options.heights == "all")) scheme.heights[data.length] = item.$height || this.config.rowHeight;
-
-        if (scheme.hiddenRows && view.data._filter_order && view.getIndexById(item.id) == -1) {
-          var _header = (options.docHeader ? 2 : 0) + (options.header === false ? 0 : scheme[0].header.length);
-
-          scheme.hiddenRows[_header + index] = 1;
-        }
-
         data.push(line);
       }
     }, view, options.hidden);
@@ -17064,6 +17474,7 @@
         filename: options
       };
       options = options || {};
+      options.export_mode = "png";
       var view = $$(id);
       if (view && view.$exportView) view = view.$exportView(options);
       assert(view, errorMessage);
@@ -17769,374 +18180,6 @@
 
     return wscols;
   }
-
-  function callback(config, result) {
-    // prompt
-    if (config.type.indexOf("prompt") != -1) {
-      if (result === false) {
-        config._promise.reject();
-      } else {
-        var inputBox = config._box.querySelector(".webix_popup_input");
-
-        var _input = inputBox.querySelector("input");
-
-        if (config.input.required && !_input.value) {
-          config.input.invalid = true;
-          addCss(inputBox, "webix_popup_invalid");
-          return;
-        } else {
-          result = _input.value || "";
-
-          config._promise.resolve(result);
-        }
-      }
-    }
-
-    config.type.indexOf("confirm") != -1 && result === false ? config._promise.reject() : config._promise.resolve(result);
-    var usercall = config.callback;
-    if (usercall) usercall(result, config.details);
-    modalbox.hide(config.id);
-  }
-
-  function modal_key(e) {
-    var count = modalbox.order.length;
-
-    if (count > 0 && message.keyboard) {
-      e = e || window.event;
-      var code = e.which || e.keyCode;
-      var lastModalbox = modalbox.pull[modalbox.order[count - 1]];
-      var hasInput = lastModalbox.type.indexOf("prompt") != -1;
-      if (code == 13 || code == 32 && !hasInput) callback(lastModalbox, true);
-      if (code == 27) callback(lastModalbox, false);
-      if (!hasInput) preventEvent(e);
-      return !(e.cancelBubble = true);
-    }
-  }
-
-  event$1(document, "keydown", modal_key, {
-    capture: true
-  });
-
-  function modality(mode, container) {
-    var node = container || document.body;
-    var cover;
-
-    if (isUndefined(node.modality)) {
-      cover = create("DIV", {
-        "class": "webix_modal_cover",
-        style: "position:" + (container ? "absolute" : "fixed") + ";"
-      });
-      cover.onkeydown = modal_key;
-
-      if (container) {
-        var position = window.getComputedStyle(container).position;
-        if (position != "fixed" && position != "absolute" && position != "sticky" && position != "relative") node.style.position = "relative";
-      }
-
-      node.appendChild(cover);
-      node.modality = 1;
-    } else mode ? node.modality++ : node.modality--; //trigger visibility only if necessary
-
-
-    if (mode && node.modality === 1 || node.modality === 0) {
-      cover = cover || Array.from(node.querySelectorAll(".webix_modal_cover")).find(function (el) {
-        return el.parentNode == node;
-      });
-
-      if (cover) {
-        if (!node.modality) {
-          cover.style.display = "none";
-          removeCss(node, "webix_modalbox_inside");
-        } else if (node.modality == 1) {
-          cover.style.display = "inline-block";
-          addCss(node, "webix_modalbox_inside");
-        }
-      }
-    }
-
-    return cover;
-  }
-
-  function button(text, result, className) {
-    return "<div role='button' tabindex='0' aria-label='" + text + "' class='webix_popup_button" + (className ? " " + className : "") + "' result='" + result + "' ><div>" + text + "</div></div>";
-  }
-
-  function input(config) {
-    return "<div tabindex='0' class='webix_popup_input webix_el_text" + (config.required ? " webix_required" : "") + "'><input value='" + template.escape(config.value || "") + "' placeholder='" + template.escape(config.placeholder || "") + "'></input></div>";
-  }
-
-  function info(text) {
-    if (!t.area) {
-      t.area = document.createElement("DIV");
-      t.area.className = "webix_message_area";
-      t.area.style[t.position] = "5px";
-      document.body.appendChild(t.area);
-    }
-
-    t.area.setAttribute("role", "alert");
-    t.area.setAttribute("aria-atomic", true);
-    t.hide(text.id);
-    var message = document.createElement("DIV");
-    message.innerHTML = "<div>" + text.text + "</div>";
-    message.className = "webix_message webix_" + text.type;
-
-    message.onclick = function () {
-      if (text) t.hide(text.id);
-      text = null;
-    };
-    if (t.position == "bottom" && t.area.firstChild) t.area.insertBefore(message, t.area.firstChild);else t.area.appendChild(message);
-    if (text.expire > 0) t.timers[text.id] = window.setTimeout(function () {
-      t.hide(text.id);
-    }, text.expire); //styling for animation
-
-    message.style.height = message.offsetHeight - 2 + "px";
-    t.pull[text.id] = message;
-    message = null;
-    return text.id;
-  }
-
-  function _boxStructure(config, ok, cancel, hasInput) {
-    var box = document.createElement("DIV");
-    var css = config.css ? " " + config.css : "";
-    box.className = "webix_modal_box webix_" + config.type + css;
-    box.setAttribute("webixbox", 1);
-    box.setAttribute("role", "alertdialog");
-    box.setAttribute("aria-label", config.title || "");
-    box.setAttribute("tabindex", "0");
-    var inner = "";
-    if (config.width) box.style.width = config.width + (rules.isNumber(config.width) ? "px" : "");
-    if (config.height) box.style.height = config.height + (rules.isNumber(config.height) ? "px" : "");
-    if (config.title) inner += "<div class=\"webix_popup_title\">" + config.title + "</div>";
-    inner += "<div class=\"webix_popup_text" + (hasInput ? " webix_popup_label" : "") + "\"><span>" + (config.content ? "" : config.text || "") + "</span></div>";
-    inner += "<div  class=\"webix_popup_controls\">";
-    if (hasInput) inner += input(config.input);
-    if (cancel) inner += button(config.cancel || i18n.message.cancel, false);
-    if (ok) inner += button(config.ok || i18n.message.ok, true, "confirm");
-
-    if (config.buttons && !ok && !cancel) {
-      for (var i = 0; i < config.buttons.length; i++) {
-        inner += button(config.buttons[i], i);
-      }
-    }
-
-    inner += "</div>";
-    box.innerHTML = inner;
-
-    if (config.content) {
-      var node = config.content;
-      if (typeof node == "string") node = document.getElementById(node);
-      if (node.style.display == "none") node.style.display = "";
-      box.childNodes[config.title ? 1 : 0].appendChild(node);
-    }
-
-    if (config.type.indexOf("prompt") != -1) {
-      var inputBox = box.querySelector(".webix_popup_input");
-
-      var _input2 = inputBox.querySelector("input");
-
-      _input2.oninput = function () {
-        if (config.input.invalid) {
-          removeCss(inputBox, "webix_popup_invalid");
-          config.input.invalid = false;
-        }
-      };
-    }
-
-    box.onclick = function (e) {
-      e = e || window.event;
-      var source = e.target;
-      if (!source.className) source = source.parentNode;
-
-      if (source.className.indexOf("webix_popup_button") != -1) {
-        var result = source.getAttribute("result");
-        result = result == "true" || (result == "false" ? false : result);
-        callback(config, result);
-      }
-
-      e.cancelBubble = true;
-    };
-
-    config._box = box;
-    return box;
-  }
-
-  modalbox.pull = {};
-  modalbox.order = [];
-
-  function _createBox(config, ok, cancel, hasInput) {
-    var box = config.tagName ? config : _boxStructure(config, ok, cancel, hasInput);
-    var container = config.container;
-    var containerWidth = container ? container.offsetWidth : window.innerWidth || document.documentElement.offsetWidth;
-    var containerHeight = container ? container.offsetHeight : window.innerHeight || document.documentElement.offsetHeight;
-    var containerLeft = container ? container.scrollLeft : 0;
-    var containerTop = container ? container.scrollTop : 0;
-    if (config.container) box.style.position = "absolute";
-    toNode((config.container || document.body).appendChild(box));
-    var cover = modality(true, config.container);
-    var x = config.left || Math.abs(containerLeft + Math.floor((containerWidth - box.offsetWidth) / 2));
-    var y = config.top || Math.abs(containerTop + Math.floor((containerHeight - box.offsetHeight) / 2));
-    if (config.position == "top") box.style.top = "-3px";else {
-      box.style.top = y + "px";
-
-      if (cover) {
-        cover.style.top = containerTop + "px";
-        cover.style.left = containerLeft + "px";
-      }
-    }
-    box.style.left = x + "px"; //necessary for IE only
-
-    box.onkeydown = modal_key;
-    box.focus();
-    if (!config.id) config.id = _uid("modalbox");else if (modalbox.pull[config.id]) {
-      modalbox.hide(config.id);
-    }
-    modalbox.order.push(config.id);
-    modalbox.pull[config.id] = config;
-    config._promise = Deferred.defer();
-    return config._promise;
-  }
-
-  function alertPopup(config) {
-    return _createBox(config, true);
-  }
-
-  function confirmPopup(config) {
-    return _createBox(config, true, true);
-  }
-
-  function boxPopup(config) {
-    return _createBox(config);
-  }
-
-  function promptPopup(config) {
-    return _createBox(config, true, true, true);
-  }
-
-  function box_params(text, type, callback) {
-    if (_typeof(text) != "object") {
-      if (typeof type == "function") {
-        callback = type;
-        type = "";
-      }
-
-      text = {
-        text: text,
-        type: type,
-        callback: callback
-      };
-    }
-
-    return text;
-  }
-
-  function params(text, type, expire, id) {
-    if (_typeof(text) != "object") text = {
-      text: text,
-      type: type,
-      expire: expire,
-      id: id
-    };
-    text.id = text.id || _uid("message");
-    text.expire = text.expire || t.expire;
-    return text;
-  }
-
-  function alert() {
-    var text = box_params.apply(this, arguments);
-    text.type = text.type || "alert";
-    return alertPopup(text);
-  }
-  function confirm() {
-    var text = box_params.apply(this, arguments);
-    text.type = text.type || "confirm";
-    return confirmPopup(text);
-  }
-  function modalbox() {
-    var text = box_params.apply(this, arguments);
-    text.type = text.type || "alert";
-    return boxPopup(text);
-  }
-  function prompt() {
-    var text = box_params.apply(this, arguments);
-    text.type = text.type || "prompt";
-    text.input = text.input || {};
-    return promptPopup(text);
-  }
-
-  modalbox.hide = function (id) {
-    if (id && modalbox.pull[id]) {
-      var node = modalbox.pull[id]._box;
-
-      if (node) {
-        node.parentNode.removeChild(node);
-        modalbox.order.splice(modalbox.order.indexOf(id), 1);
-        modality(false, modalbox.pull[id].container);
-        delete modalbox.pull[id];
-      }
-    }
-  };
-
-  modalbox.hideAll = function () {
-    for (var id in modalbox.pull) {
-      this.hide(id);
-    }
-  };
-
-  function message(text, type, expire, id) {
-    //eslint-disable-line
-    text = params.apply(this, arguments);
-    text.type = text.type || "info";
-    var subtype = text.type.split("-")[0];
-
-    switch (subtype) {
-      case "alert":
-        return alertPopup(text);
-
-      case "confirm":
-        return confirmPopup(text);
-
-      case "modalbox":
-        return boxPopup(text);
-
-      case "prompt":
-        return promptPopup(text);
-
-      default:
-        return info(text);
-    }
-  }
-  var t = message;
-  t.expire = 4000;
-  t.keyboard = true;
-  t.position = "top";
-  t.pull = {};
-  t.timers = {};
-
-  t.hideAll = function () {
-    for (var key in t.pull) {
-      t.hide(key);
-    }
-  };
-
-  t.hide = function (id) {
-    var obj = t.pull[id];
-
-    if (obj && obj.parentNode) {
-      window.setTimeout(function () {
-        obj.parentNode.removeChild(obj);
-        obj = null;
-      }, 2000); //styling for animation
-
-      obj.style.height = 0;
-      obj.className += " hidden";
-      t.area.removeAttribute("role");
-      if (t.timers[id]) window.clearTimeout(t.timers[id]);
-      delete t.pull[id];
-    }
-  }; //override circualr dependencies
-
-
-  define("message", message);
 
   function editStop() {
     callEvent("onEditEnd", []);
@@ -20582,68 +20625,68 @@
       increaseValue: "增加值",
       decreaseValue: "减少值",
       navMonth: ["上个月", "下个月"],
-      navYear: ["上年", "明年"],
+      navYear: ["去年", "明年"],
       navDecade: ["过去十年", "下个十年"],
       dateFormat: "%Y'年'%m'月'%j'日'",
       monthFormat: "%Y'年'%m'月",
       yearFormat: "%Y'年",
       hourFormat: "小时: %G",
       minuteFormat: "分钟: %i",
-      removeItem: "删除元素",
+      removeItem: "删除项",
       pages: ["第一页", "上一页", "下一页", "最后一页"],
       page: "页",
       headermenu: "标题菜单",
-      openGroup: "打开栏目组",
-      closeGroup: "关闭栏目组",
+      openGroup: "打开列分组",
+      closeGroup: "关闭列分组",
       closeTab: "关闭标签",
-      showTabs: "显示更多选项卡",
-      resetTreeMap: "回到原来的视图",
-      navTreeMap: "升级",
+      showTabs: "更多标签",
+      resetTreeMap: "重置视图",
+      navTreeMap: "上一级",
       nextTab: "下一个标签",
       prevTab: "前一个标签",
-      multitextSection: "加元",
-      multitextextraSection: "删除元素",
+      multitextSection: "添加项",
+      multitextextraSection: "删除项",
       showChart: "显示图表",
       hideChart: "隐藏图表",
-      resizeChart: "调整图"
+      resizeChart: "调整图表大小"
     },
     richtext: {
-      underline: "强调",
-      bold: "粗體",
+      underline: "下划线",
+      bold: "粗体",
       italic: "斜体"
     },
     combo: {
       select: "选择",
       selectAll: "全选",
-      unselectAll: "全部取消选择"
+      unselectAll: "取消全选"
     },
     message: {
-      ok: "好",
+      ok: "确定",
       cancel: "取消"
     },
     comments: {
       send: "发送",
-      confirmMessage: "评论将被删除. 你确定吗?",
+      confirmMessage: "你确定要删除评论吗?",
       edit: "编辑",
-      remove: "去掉",
+      remove: "删除",
       placeholder: "在此输入..",
       moreComments: "更多评论"
     },
     filter: {
-      less: "减",
-      lessOrEqual: "少于或等于",
-      greater: "更大",
-      greaterOrEqual: "大于或等于",
+      less: "小于",
+      lessOrEqual: "少于等于",
+      greater: "大于",
+      greaterOrEqual: "大于等于",
       contains: "包含",
       notContains: "不包含",
       equal: "等于",
-      notEqual: "不平等",
+      notEqual: "不等于",
       beginsWith: "开始于",
-      notBeginsWith: "不开始",
+      notBeginsWith: "不以开始",
       endsWith: "结束",
-      notEndsWith: "不是以",
+      notEndsWith: "不以结束",
       between: "之间",
-      notBetween: "不在之间"
+      notBetween: "不介于"
     },
     timeboard: {
       seconds: "秒"
@@ -23761,39 +23804,41 @@
       this._inputSpacing = $active.inputSpacing;
       this._labelTopHeight = $active.labelTopHeight;
     },
-    $init: function (obj) {
+    $init: function () {
       this.$ready.push(function () {
         var label = this._viewobj.firstChild.childNodes[0];
         var body = this._viewobj.firstChild.childNodes[1];
+        var config = this._settings;
 
-        if (!this._settings.label || !this._settings.labelWidth && this._settings.labelPosition != "top") {
+        if (config.labelPosition != "top") {
+          config.labelWidth = config.label ? this._getLabelWidth(config.labelWidth, config.label) : 0;
+          config.paddingX = config.labelWidth + this._inputSpacing;
+        } else {
+          config.paddingY = this._labelTopHeight;
+          config.paddingX = this._inputSpacing;
+        }
+
+        if (!config.label || !config.labelWidth && config.labelPosition != "top") {
           label.style.display = "none";
           body.style.padding = "0 " + this._inputSpacing / 2 + "px";
-          this._settings.paddingX = this._inputSpacing;
-          this._settings.paddingY = 0;
+          config.paddingX = this._inputSpacing;
+          config.paddingY = 0;
           return;
         }
 
-        if (this._settings.labelPosition == "top") {
+        if (config.labelPosition == "top") {
           label.style.lineHeight = this._labelTopHeight - this._inputPadding + "px";
           label.className += " " + this.defaults.$cssName + "_label_top";
           body.style.padding = "0 " + this._inputSpacing / 2 + "px";
-        } else label.style.width = this._settings.paddingX - this._inputSpacing / 2 + "px";
+        } else label.style.width = config.paddingX - this._inputSpacing / 2 + "px";
 
-        label.style.textAlign = this._settings.labelAlign;
-        if (this._settings.value) this.setValue(this._settings.value, "auto");
+        label.style.textAlign = config.labelAlign;
+        if (config.value) this.setValue(config.value, "auto");
       });
-
-      if (obj.labelPosition != "top") {
-        var lw = isUndefined(obj.labelWidth) ? this.defaults.labelWidth : obj.labelWidth;
-        obj.paddingX = lw + this._inputSpacing;
-      } else {
-        obj.paddingY = this._labelTopHeight;
-        obj.paddingX = this._inputSpacing;
-      }
     },
-    labelWidth_setter: function (value) {
-      return value ? Math.max(value, $active.dataPadding) : 0;
+    _getLabelWidth: function (width, label) {
+      if (width == "auto") width = getTextSize(label, "webix_inp_label").width;
+      return width ? Math.max(width, $active.dataPadding) : 0;
     },
     setBottomText: function (text) {
       var config = this._settings;
@@ -26624,7 +26669,7 @@
       this._labelTopHeight = $active.labelTopHeight;
     },
     $init: function (config) {
-      if (config.labelPosition == "top") if (isUndefined(config.height) && this.defaults.height) // textarea
+      if (config.labelPosition == "top" && isUndefined(config.height) && this.defaults.height) // textarea
         config.height = this.defaults.height + (config.label ? this._labelTopHeight : 0); // used in clear_setter
 
       if (!isUndefined(config.icon)) this._settings.icon = config.icon;
@@ -26758,11 +26803,12 @@
         if (!x || !y) return;
 
         if (config.labelPosition == "top") {
-          // textarea
+          config.labelWidth = 0; // textarea
+
           if (!config.inputHeight) this._inputHeight = this._content_height - (config.label ? this._labelTopHeight : 0) - (this.config.bottomPadding || 0);
-          config.labelWidth = 0;
-        } else if (config.bottomPadding) {
-          config.inputHeight = this._content_height - this.config.bottomPadding;
+        } else {
+          if (config.label) config.labelWidth = this._getLabelWidth(config.labelWidth, config.label);
+          if (config.bottomPadding) config.inputHeight = this._content_height - this.config.bottomPadding;
         }
 
         this.render();
@@ -26855,8 +26901,9 @@
       label: "",
       labelWidth: 80
     },
-    labelWidth_setter: function (value) {
-      return value ? Math.max(value, $active.dataPadding) : 0;
+    _getLabelWidth: function (width, label) {
+      if (width == "auto") width = getTextSize(label, "webix_inp_label").width;
+      return width ? Math.max(width, $active.dataPadding) : 0;
     },
     type_setter: function (value) {
       return value;
@@ -27397,7 +27444,12 @@
             if (timeMode) formatDate = i18n.timeFormatDate;else if (this.config.timepicker) formatDate = i18n.fullDateFormatDate;else formatDate = i18n.dateFormatDate;
           }
 
-          value = formatDate(this.getInputNode().value);
+          var time = formatDate(this.getInputNode().value);
+
+          if (timeMode && value != "") {
+            value.setHours(time.getHours());
+            value.setMinutes(time.getMinutes());
+          } else value = time;
         } //return string from getValue
 
       if (this._settings.stringResult) {
@@ -27669,9 +27721,10 @@
       });
     },
     _keyshift: function (e) {
+      if (this._settings.readonly) return;
       var code = e.which || e.keyCode,
-          c = this._settings,
-          value = this.getValue();
+          c = this._settings;
+      var value = this.getValue();
 
       if (code > 32 && code < 41) {
         if (code === 36) value = c.min;else if (code === 35) value = c.max === Infinity ? 1000000 : c.max;else if (code === 33) this.next(c.step, "user");else if (code === 34) this.prev(c.step, "user");else value = value + (code === 37 || code === 40 ? -1 : 1);
@@ -28724,30 +28777,36 @@
         elements: controls
       };
       var rows = [editorToolbar, editField];
+      var config = this.config;
 
-      if (this.config.labelPosition === "top") {
+      if (config.labelPosition == "top") {
         editorToolbar.elements = controls.concat([{
           view: "label",
-          label: this.config.label,
+          label: config.label,
           align: "right"
         }, {
           width: 4
         }]);
         this.rows_setter(rows);
-      } else if (this.config.labelWidth) {
-        this.config.margin = 0;
-        this.cols_setter([{
-          template: this.config.label || " ",
-          css: "webix_richtext_inp_label" + (this.config.required ? " webix_required" : ""),
-          borderless: true,
-          width: this.config.labelWidth
-        }, {
-          rows: rows
-        }]);
-      } else this.rows_setter(rows);
+      } else {
+        config.labelWidth = config.label ? this._getLabelWidth(config.labelWidth, config.label) : 0;
+
+        if (config.labelWidth) {
+          config.margin = 0;
+          this.cols_setter([{
+            template: config.label,
+            css: "webix_richtext_inp_label" + (config.required ? " webix_required" : ""),
+            borderless: true,
+            width: config.labelWidth
+          }, {
+            rows: rows
+          }]);
+        } else this.rows_setter(rows);
+      }
     },
-    labelWidth_setter: function (value) {
-      return value ? Math.max(value, $active.dataPadding) : 0;
+    _getLabelWidth: function (width, label) {
+      if (width == "auto") width = getTextSize(label, "webix_inp_label").width;
+      return width ? Math.max(width, $active.dataPadding) : 0;
     },
     _getselection: function (config) {
       var top = this;
@@ -29551,7 +29610,7 @@
       var max = name === "hours" ? twelve ? 11 : 23 : 59;
       return {
         view: "text",
-        width: 46,
+        width: getTextSize("00").width + 2 * $active.dataPadding + 2 * $active.inputPadding,
         name: name,
         format: {
           parse: function (a) {
@@ -29668,10 +29727,11 @@
           if (master) {
             var node = master._getInputDiv ? master._getInputDiv() : master.getInputNode();
             node.setAttribute("aria-expanded", "true");
-          }
-        }
+          } // execute only if there is a master view
 
-        this._show_selection();
+
+          this._show_selection();
+        }
       });
       this.attachEvent("onHide", function () {
         if (this._settings.master) {
@@ -29882,7 +29942,7 @@
         return false;
       }
 
-      var contentEditable = trg.getAttribute("contentEditable") == "true";
+      var contentEditable = trg.getAttribute("contentEditable") == "true" || trg.getAttribute("contentEditable") == "";
       if (isUndefined(trg.value) && !contentEditable) return;
       this._last_delay = delay(function () {
         //focus moved to the different control, suggest is not necessary
@@ -31132,6 +31192,17 @@
       ctx.beginPath();
       ctx.arc(x0, y0, innerRadius, 0, Math.PI * 2, true);
       ctx.fill();
+
+      if (this._settings.donutInnerText) {
+        var values = this._getValues(data);
+
+        var totalValue = this._getTotalValue(values);
+
+        var padding = $active.dataPadding;
+        var width = innerRadius * 2 - padding * 2;
+        var centerText = this.canvases[0].renderText(x0 - innerRadius + padding, y0 - innerRadius + padding, "<div class=\"webix_donut_center_text\">".concat(this._settings.donutInnerText(data, totalValue), "</div>"), "webix_donut_center_text_box", width);
+        centerText.style.height = centerText.style.lineHeight = width + "px";
+      }
     }
   };
 
@@ -33941,6 +34012,7 @@
     lineColor_setter: template,
     borderColor_setter: template,
     pieInnerText_setter: template,
+    donutInnerText_setter: template,
     gradient_setter: function (config) {
       if (typeof config != "function" && config && config === true) config = "light";
       return config;
@@ -37853,6 +37925,8 @@
       this.defaults.titleHeight = $active.sidebarTitleHeight;
     },
     $init: function (config) {
+      this._fullWidth = isUndefined(config.width) ? this.defaults.width : config.width;
+      this._settings.width = config.width = config.collapsed ? config.collapsedWidth || this.defaults.collapsedWidth : this._fullWidth;
       this.$view.className += " webix_sidebar";
       this.$ready.push(this._initSidebar);
       this.$ready.push(this._initContextMenu);
@@ -37867,7 +37941,6 @@
     on_context: {},
     on_mouse_move: {},
     _initSidebar: function () {
-      this._fullWidth = this.config.width;
       this.attachEvent("onBeforeOpen", function (id) {
         if (!this.config.multipleOpen) {
           var open = this.getOpenItems();
@@ -37906,7 +37979,6 @@
       this.attachEvent("onMouseOut", function () {
         if (this.config.collapsed) this.getPopup().masterId = null;
       });
-      if (this.config.collapsed) this.collapse();
     },
     _showPopup: function (id, node) {
       if (this.config.collapsed) {
@@ -38157,8 +38229,12 @@
         removeCss(this.$view, "webix_sidebar_expanded");
       }
 
-      this.define("width", width);
-      this.resize();
+      if (!isUndefined(width) && width !== this.config.width) {
+        //skip first rendering
+        this.define("width", width);
+        this.resize();
+      }
+
       return value;
     },
     getState: function () {
@@ -40388,7 +40464,7 @@
           handler.call(this, column.id, column);
         }
       } else {
-        var columns = this._columns;
+        var columns = [].concat(this._columns);
 
         for (var _i = 0; _i < columns.length; _i++) {
           var _column = columns[_i];
@@ -40698,12 +40774,12 @@
 
         this._fixSplit(hindex, span, 1, true);
 
-        if (horder.length === cols.length) this._clear_hidden_state();
         this.callEvent("onAfterColumnShow", [id]);
       }
 
       if (column.header) this._fixColspansHidden(column, mode !== false ? 0 : 1, "header");
       if (column.footer) this._fixColspansHidden(column, mode !== false ? 0 : 1, "footer");
+      if (horder.length === cols.length) this._clear_hidden_state();
       if (!silent) this._refresh_columns();
     },
     showColumn: function (id, opts, silent) {
@@ -42141,8 +42217,8 @@
       }
     },
     _prepare_single_column: function (col) {
-      if (!col.id) col.id = "i" + uid();else if (isUndefined(col.header)) col.header = col.id;
       this._columns_pull[col.id] = col;
+      if (isUndefined(col.header)) col.header = col.id;
       var format = col.cssFormat;
       if (format) col.cssFormat = toFunctor(format, this.$scope);
       col.width = this._correctColumnWidth(col.width || this._settings.columnWidth, col);

@@ -75,6 +75,9 @@
 	}
 }
 .webix_slider_alt{
+	&.webix_slider_vertical .webix_slider_box .webix_slider_handle{
+		#image > .sliderVer;
+	}
 	.webix_slider_box{
 		.webix_slider_left{
 			border: 1px solid #e1e1e1;
@@ -88,7 +91,7 @@
 			height:14px;
 			top:(@inputHeight - 14)/2;
 			border-radius: 2px;
-			#image > .slider;
+			#image > .sliderHor;
 			background-position: 3px center;
 			&:focus{
 				border-color:@mainColor;
@@ -125,7 +128,6 @@
 	    height: 11px;
 	    width:14px;
 	    left:5px;
-	    background-position:4px center;
 	}
 }
 

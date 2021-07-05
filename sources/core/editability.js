@@ -361,17 +361,17 @@ const EditAbility ={
 		return 0;
 	},
 	validateEditor:function(id){
-		var result = true;
+		let result = true;
 		if (this._settings.rules){
-			var editor = this.getEditor(id);
-			var key = editor.column||this._settings.editValue||"value";
-			var rule = this._settings.rules[key];
-			var all = this._settings.rules.$all;
+			const editor = this.getEditor(id);
+			const key = editor.column||this._settings.editValue||"value";
+			const rule = this._settings.rules[key];
+			const all = this._settings.rules.$all;
+			const input = editor.getInputNode();
 
-			if (rule || all){
-				var obj = this.data.getItem(editor.row||editor.id);
-				var value = editor.getValue();
-				var input = editor.getInputNode();
+			if ((rule || all) && !input._viewobj){ //only for html inputs
+				const obj = this.data.getItem(editor.row||editor.id);
+				const value = editor.getValue();
 
 				if (rule)
 					result = rule.call(this, value, obj, key);

@@ -15,11 +15,8 @@ const Modality = {
 				/*	with below code we will have the same zIndex for modal layer as for the previous 
 					abs positioned element, but because of attaching order modal layer will be on top anyway
 				*/
-				const index = zIndex(this._settings.zIndex);
-
-				//set topmost modal layer
-				this._previous_modality = state._modality;
-				state._modality = index;
+				const index = this._modality = zIndex(this._settings.zIndex);
+				state._modality.push(index);
 
 				this._modal_cover.style.zIndex = index-1;
 				this._viewobj.style.zIndex = index;
@@ -33,10 +30,10 @@ const Modality = {
 				remove(this._modal_cover);
 				this._modal_cover = null;
 
-				//restore topmost modal layer
-				state._modality = this._previous_modality;
+				const modality = state._modality;
+				modality.splice(modality.indexOf(this._modality), 1);
 
-				if (!state._modality)
+				if (!modality.length)
 					document.body.style.overflow = "";
 			}
 		}

@@ -13,10 +13,10 @@ const api = {
 	name:"counter",
 	defaults:{
 		template:function(config, common){
-			var value = config.value;
+			const value = config.value;
 
-			var id = "x"+uid();
-			var html = "<div role='spinbutton' aria-label='"+template.escape(config.label)+"' aria-valuemin='"+config.min+"' aria-valuemax='"+config.max+"' aria-valuenow='"+config.value+"' class='webix_el_group' style='width:"+common._get_input_width(config)+"px'>";
+			const id = "x"+uid();
+			let html = "<div role='spinbutton' aria-label='"+template.escape(config.label)+"' aria-valuemin='"+config.min+"' aria-valuemax='"+config.max+"' aria-valuenow='"+config.value+"' class='webix_el_group' style='width:"+common._get_input_width(config)+"px'>";
 			html +=  "<button type='button' class='webix_inp_counter_prev' tabindex='-1' aria-label='"+i18n.aria.decreaseValue+"'>-</button>";
 			html += common._baseInputHTML("input")+" id='"+id+"' type='text' class='webix_inp_counter_value' aria-live='assertive'"+" value='"+value+"'></input>";
 			html += "<button type='button' class='webix_inp_counter_next' tabindex='-1' aria-label='"+i18n.aria.increaseValue+"'>+</button></div>";
@@ -31,7 +31,11 @@ const api = {
 		_event(this.$view, "keydown", this._keyshift, {bind:this});
 	},
 	_keyshift:function(e){
-		var code = e.which || e.keyCode, c = this._settings, value = this.getValue();
+		if(this._settings.readonly)
+			return;
+
+		const code = e.which || e.keyCode, c = this._settings;
+		let value = this.getValue();
 
 		if(code>32 && code <41){
 			if(code === 36) value = c.min;

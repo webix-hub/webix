@@ -2,7 +2,7 @@ import {protoUI, ui, $$} from "../ui/core";
 import {$active} from "../webix/skin";
 import {isUndefined, isArray, extend, uid} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
-import {setSelectionRange} from "../webix/html";
+import {setSelectionRange, getTextSize} from "../webix/html";
 import {assert} from "../webix/debug";
 import template from "../webix/template";
 
@@ -64,9 +64,8 @@ const api = {
 		this._labelTopHeight = $active.labelTopHeight;
 	},
 	$init:function(config){
-		if (config.labelPosition == "top")
-			if (isUndefined(config.height) && this.defaults.height)  // textarea
-				config.height = this.defaults.height + (config.label?this._labelTopHeight:0);
+		if (config.labelPosition == "top" && isUndefined(config.height) && this.defaults.height) // textarea
+			config.height = this.defaults.height + (config.label?this._labelTopHeight:0);
 
 		// used in clear_setter
 		if (!isUndefined(config.icon))
@@ -109,12 +108,12 @@ const api = {
 	},
 	relatedView_setter:function(value){
 		this.attachEvent("onChange", function(){
-			var value = this.getValue();
-			var mode = this._settings.relatedAction;
-			var viewid = this._settings.relatedView;
-			var view = $$(viewid);
+			const value = this.getValue();
+			const mode = this._settings.relatedAction;
+			const viewid = this._settings.relatedView;
+			let view = $$(viewid);
 			if (!view){
-				var top = this.getTopParentView();
+				const top = this.getTopParentView();
 				if (top && top.$$)
 					view = top.$$(viewid);
 			}
@@ -139,14 +138,14 @@ const api = {
 		return value;
 	},
 	validate:function(){
-		var rule = this._settings.validate;
+		let rule = this._settings.validate;
 		if (!rule && this._settings.required)
 			rule = rules.isNotEmpty;
 
-		var form =this.getFormView();
-		var name = this._settings.name;
-		var value = this.getValue();
-		var data = {}; data[name] = value;
+		const form =this.getFormView();
+		const name = this._settings.name;
+		const value = this.getValue();
+		const data = {}; data[name] = value;
 
 		assert(form, "Validation works only for fields in the form");
 		assert(name, "Validation works only for fields with name");
@@ -161,20 +160,20 @@ const api = {
 		return value;
 	},
 	_getInvalidText: function(){
-		var text = this._settings.invalidMessage;
+		const text = this._settings.invalidMessage;
 		if(typeof text == "function"){
 			text.call(this);
 		}
 		return text;
 	},
 	setBottomText: function(text, height){
-		var config = this._settings;
+		const config = this._settings;
 		if (typeof text != "undefined"){
 			if (config.bottomLabel == text) return;
 			config.bottomLabel = text;
 		}
 
-		var message = (config.invalid ? config.invalidMessage : "" ) || config.bottomLabel;
+		const message = (config.invalid ? config.invalidMessage : "" ) || config.bottomLabel;
 		if (!message && !config.bottomPadding)
 			config.inputHeight = 0;
 		if (message && !config.bottomPadding){
@@ -194,8 +193,8 @@ const api = {
 			this.render();
 	},
 	$getSize: function(){
-		var sizes = base.api.$getSize.apply(this,arguments);
-		var heightInc = this.config.bottomPadding;
+		const sizes = base.api.$getSize.apply(this,arguments);
+		const heightInc = this.config.bottomPadding;
 		if(heightInc){
 			sizes[2] += heightInc;
 			sizes[3] += heightInc;
@@ -203,40 +202,43 @@ const api = {
 		return sizes;
 	},
 	$setSize:function(x,y){
-		var config = this._settings;
+		const config = this._settings;
 
 		if(base.api.$setSize.call(this,x,y)){
 			if (!x || !y) return;
 
 			if (config.labelPosition == "top"){
+				config.labelWidth = 0;
 				// textarea
 				if (!config.inputHeight)
 					this._inputHeight = this._content_height - (config.label?this._labelTopHeight:0) - (this.config.bottomPadding||0);
-				config.labelWidth = 0;
-			} else if (config.bottomPadding){
-				config.inputHeight = this._content_height - this.config.bottomPadding;
+			} else {
+				if(config.label)
+					config.labelWidth = this._getLabelWidth(config.labelWidth, config.label);
+				if (config.bottomPadding)
+					config.inputHeight = this._content_height - this.config.bottomPadding;
 			}
 			this.render();
 		}
 	},
 	_get_input_width: function(config){
-		var width = (this._input_width||0)-(config.label?config.labelWidth:0) - this._inputSpacing - (config.iconWidth || 0);
+		const width = (this._input_width||0) - (config.label?config.labelWidth:0) - this._inputSpacing - (config.iconWidth || 0);
 
 		//prevent js error in IE
 		return (width < 0)?0:width;
 	},
 	_render_div_block:function(obj, common){
-		var id = "x"+uid();
-		var width = common._get_input_width(obj);
-		var inputAlign = obj.inputAlign || "left";
-		var height = obj.aheight - 2*$active.inputPadding - 2*$active.borderWidth;
-		var rightPadding = obj.clear === true ? "padding-right:51px;" : "";
-		var text = (obj.text||obj.value||this._get_div_placeholder(obj));
-		var html = "<div class='webix_inp_static' role='combobox' aria-label='"+template.escape(obj.label)+"' tabindex='0'"+(obj.readonly?" aria-readonly='true'":"")+(obj.invalid?"aria-invalid='true'":"")+" onclick='' style='line-height:"+height+"px;width:"+width+"px;text-align:"+inputAlign+";"+rightPadding+"'>"+text+"</div>";
+		const id = "x"+uid();
+		const width = common._get_input_width(obj);
+		const inputAlign = obj.inputAlign || "left";
+		const height = obj.aheight - 2*$active.inputPadding - 2*$active.borderWidth;
+		const rightPadding = obj.clear === true ? "padding-right:51px;" : "";
+		const text = (obj.text||obj.value||this._get_div_placeholder(obj));
+		const html = "<div class='webix_inp_static' role='combobox' aria-label='"+template.escape(obj.label)+"' tabindex='0'"+(obj.readonly?" aria-readonly='true'":"")+(obj.invalid?"aria-invalid='true'":"")+" onclick='' style='line-height:"+height+"px;width:"+width+"px;text-align:"+inputAlign+";"+rightPadding+"'>"+text+"</div>";
 		return common.$renderInput(obj, html, id);
 	},
 	_baseInputHTML:function(tag){
-		var html = "<"+tag+(this._settings.placeholder?" placeholder='"+template.escape(this._settings.placeholder)+"' ":" ");
+		let html = "<"+tag+(this._settings.placeholder?" placeholder='"+template.escape(this._settings.placeholder)+"' ":" ");
 		if (this._settings.readonly)
 			html += "readonly='true' aria-readonly=''";
 		if(this._settings.required)
@@ -244,9 +246,9 @@ const api = {
 		if(this._settings.invalid)
 			html += "aria-invalid='true'";
 
-		var attrs = this._settings.attributes;
+		const attrs = this._settings.attributes;
 		if (attrs)
-			for(var prop in attrs)
+			for(const prop in attrs)
 				html += prop+"='"+attrs[prop]+"' ";
 		return html;
 	},
@@ -270,9 +272,9 @@ const api = {
 		return top ? this._labelTopHeight-this._settings.inputPadding : (this._settings.aheight - 2*this._settings.inputPadding);
 	},
 	$renderInput: function(config, div_start, id) {
-		var inputAlign = (config.inputAlign||"left");
-		var top = (config.labelPosition == "top");
-		var inputWidth = this._get_input_width(config);
+		const inputAlign = (config.inputAlign||"left");
+		const top = (config.labelPosition == "top");
+		const inputWidth = this._get_input_width(config);
 
 		id = id||uid();
 
@@ -296,7 +298,7 @@ const api = {
 		}
 		html += this.$renderIcon ? this.$renderIcon(config) : "";
 
-		var result = "";
+		let result = "";
 		//label position, top or left
 		if (top)
 			result = label+"<div class='webix_el_box' style='width:"+config.awidth+"px; height:"+config.aheight+"px'>"+html+"</div>";
@@ -305,9 +307,9 @@ const api = {
 
 
 		//bottom message width
-		var padding = config.awidth-inputWidth-$active.inputPadding*2;
+		const padding = config.awidth-inputWidth-$active.inputPadding*2;
 		//bottom message text
-		var message = (config.invalid ? config.invalidMessage : "") || config.bottomLabel;
+		const message = (config.invalid ? config.invalidMessage : "") || config.bottomLabel;
 		if (message)
 			result +=  "<div class='webix_inp_bottom_label'"+(config.invalid?"role='alert' aria-relevant='all'":"")+" style='width:"+(inputWidth||config.awidth)+"px;margin-left:"+Math.max(padding,$active.inputPadding)+"px;'>"+message+"</div>";
 
@@ -320,8 +322,10 @@ const api = {
 		label:"",
 		labelWidth:80
 	},
-	labelWidth_setter:function(value){
-		return value ? Math.max(value, $active.dataPadding) : 0;
+	_getLabelWidth: function(width, label){
+		if(width == "auto")
+			width = getTextSize(label, "webix_inp_label").width;
+		return width ? Math.max(width, $active.dataPadding) : 0;
 	},
 	type_setter:function(value){ return value; },
 	_set_inner_size:false,

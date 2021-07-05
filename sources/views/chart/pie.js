@@ -341,18 +341,36 @@ const Pie = {
 		if(!data.length)
 			return;
 		this._renderPie(ctx,data,point0,point1,1,map,sIndex);
-		var config = this._settings;
-		var coord = this._getPieParameters(point0,point1);
-		var pieRadius = (config.radius?config.radius:coord.radius);
+		const config = this._settings;
+		const coord = this._getPieParameters(point0,point1);
+		const pieRadius = (config.radius?config.radius:coord.radius);
 		if (pieRadius <= 0)
 			return;
-		var innerRadius = ((config.innerRadius&&(config.innerRadius<pieRadius))?config.innerRadius:pieRadius/3);
-		var x0 = (config.x?config.x:coord.x);
-		var y0 = (config.y?config.y:coord.y);
+		const innerRadius = ((config.innerRadius&&(config.innerRadius<pieRadius))?config.innerRadius:pieRadius/3);
+		const x0 = (config.x?config.x:coord.x);
+		const y0 = (config.y?config.y:coord.y);
 		ctx.fillStyle = $active.backColor;
 		ctx.beginPath();
 		ctx.arc(x0,y0,innerRadius,0,Math.PI*2,true);
 		ctx.fill();
+
+		if(this._settings.donutInnerText){
+			const values = this._getValues(data);
+			const totalValue = this._getTotalValue(values);
+
+			const padding = $active.dataPadding;
+			const width = innerRadius*2-padding*2;
+
+			const centerText = this.canvases[0].renderText(
+				x0-innerRadius+padding,
+				y0-innerRadius+padding,
+				`<div class="webix_donut_center_text">${this._settings.donutInnerText(data, totalValue)}</div>`,
+				"webix_donut_center_text_box",
+				width
+			);
+
+			centerText.style.height = centerText.style.lineHeight = width+"px";
+		}
 	}
 };
 

@@ -1395,6 +1395,13 @@ button,
 .webix_wresize_cursor {
   cursor: w-resize;
 }
+/* donut center text */
+.webix_donut_center_text {
+  display: inline-block;
+  line-height: normal;
+  white-space: normal;
+  vertical-align: middle;
+}
 .webix_dt_editor {
   position: absolute;
   z-index: 2;
@@ -1891,7 +1898,7 @@ button,
 .webix_dtable_span.webix_selected:focus {
   background: #edeff5;
 }
-.webix_hcell span.webix_input_icon {
+.webix_hcell .webix_input_icon {
   background-color: #DADEE0;
 }
 .webix_area_selection_layer {
@@ -5285,6 +5292,10 @@ legend.webix_forminput_label_top {
   display: block;
   position: relative;
 }
+.webix_slider_alt.webix_slider_vertical .webix_slider_box .webix_slider_handle {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAFAQMAAABCXz8WAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAZQTFRFAAAAAAAApWe5zwAAAAJ0Uk5TNgD/j1xNAAAADklEQVR4nGNgYPjPAMYACgAB/xSLTywAAAAASUVORK5CYII=");
+  background-repeat: no-repeat;
+}
 .webix_slider_alt .webix_slider_box .webix_slider_left {
   border: 1px solid #e1e1e1;
 }
@@ -5360,7 +5371,6 @@ legend.webix_forminput_label_top {
   height: 11px;
   width: 14px;
   left: 5px;
-  background-position: 4px center;
 }
 .webix_slider_title {
   text-align: center;

@@ -205,7 +205,7 @@ const Mixin = {
 			}
 		}
 		else{
-			const columns = this._columns;
+			const columns = [].concat(this._columns);
 			for (let i = 0; i < columns.length; i++){
 				const column = columns[i];
 				handler.call(this, column.id, column);

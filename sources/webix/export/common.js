@@ -41,7 +41,7 @@ export function getExportScheme(view, options){
 
 	scheme.heights = {};
 
-	if(options.hidden){
+	if(options.hidden || options.hide){
 		scheme.hiddenCols = {};
 		scheme.hiddenRows = {};
 	}
@@ -139,6 +139,11 @@ export function getExportScheme(view, options){
 				type: column.exportType || "",
 				format:column.exportFormat || ""
 			});
+			if(column.hidden){
+				if(!scheme.hiddenCols)
+					scheme.hiddenCols = {};
+				scheme.hiddenCols[column.id] = 1;
+			}
 		}
 
 		if(typeof record.header === "string") record.header = [{text:record.header}];
@@ -229,6 +234,12 @@ export function getExportData(view, options, scheme){
 
 	view.data.each(function(item, index){
 		if(!options.filter || options.filter(item)){
+			const reallyHidden = options.hidden && view.data._filter_order && view.getIndexById(item.id) == -1;
+			if((options.hide && options.hide(item)) || reallyHidden){
+				const header = (options.docHeader?2:0)+(options.header===false?0:scheme[0].header.length);
+				scheme.hiddenRows[header+index] = 1;
+			}
+
 			if(this.data._scheme_export){
 				item = view.data._scheme_export(item);
 			}
@@ -272,11 +283,6 @@ export function getExportData(view, options, scheme){
 			if(mode =="excel" && view._columns && options.heights !== false &&
 			((item.$height && item.$height !== $active.rowHeight) || options.heights == "all")
 			) scheme.heights[data.length] = item.$height || this.config.rowHeight;
-
-			if(scheme.hiddenRows && view.data._filter_order && view.getIndexById(item.id) == -1){
-				const header = (options.docHeader?2:0)+(options.header===false?0:scheme[0].header.length);
-				scheme.hiddenRows[header+index] = 1;
-			}
 
 			data.push(line);
 		}
