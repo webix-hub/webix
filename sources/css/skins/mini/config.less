@@ -294,18 +294,19 @@
 	.webix_label_right{
 		color:@darkBarFontColor;
 	}
+
 	// disabled controls
 	@disabledColor: rgba(0,0,0,0.1);
 	@disabledFontColor: rgba(255,255,255,0.4);
 	@arrowDisablesButtonBgColor: #5b6977;
 	.inputDisabled(){
 		color: @disabledFontColor;
-		background: @disabledColor;
+		background-color: @disabledColor;
 		border-color: transparent;
 	}
 	.buttonDisabled(){
 		color: @disabledFontColor;
-		background: darken(@disabledColor,2%);
+		background-color: @disabledColor;
 		text-shadow: none;
 	}
 	.webix_view.webix_control{
@@ -346,6 +347,9 @@
 		}
 		.webix_segment_0, .webix_segment_1, .webix_segment_N, .webix_item_tab{
 			.buttonDisabled;
+		}
+		.webix_segment_0.webix_selected, .webix_segment_1.webix_selected, .webix_segment_N.webix_selected{
+			background-color: rgba(0,0,0,0.15);
 		}
 	}
 	.webix_disabled_top_label{
@@ -2085,19 +2089,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	&.webix_sidemenu_left, &.webix_sidemenu_right, &.webix_sidemenu_top, &.webix_sidemenu_bottom{
 		border: none;
 		box-shadow: @smallShadow;
-	}
-}
-
-//organogram
-.webix_organogram{
-	.webix_organogram_item{
-		background: @accentBg;
-		border-color: @inputBorderColor;
-		#border > .radius(@skin_input_radius);
-		&.webix_selected{
-			border-color: @baseColor;
-			background: tint(@baseColor, 90%);
-		}
 	}
 }
 

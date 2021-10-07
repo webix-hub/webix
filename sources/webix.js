@@ -119,7 +119,6 @@ import "./views/barcode";
 import "./views/bulletgraph";
 import "./views/geochart";
 import "./views/googlemap";
-import "./views/organogram";
 import "./views/chart";
 import "./views/rangechart";
 

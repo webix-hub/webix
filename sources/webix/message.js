@@ -53,14 +53,12 @@ function modal_key(e){
 		for(let i = count - 1; i >= 0; i--){
 			const box = modalbox.pull[ order[i] ];
 
+			if(box._box != source && box._box.contains(source) && code == 32) // ignore space inside input
+				return;
+
 			if(box.container && box.container.contains(source)){
-				const insideModalbox = box._box != source && box._box.contains(source);
-				if(code == 32 && insideModalbox) // ignore space inside input
-					return;
-				else{
-					activeBox = box;
-					break;
-				}
+				activeBox = box;
+				break;
 			}
 		}
 
@@ -102,7 +100,7 @@ function modality(mode, container){
 
 	//trigger visibility only if necessary
 	if((mode && node.modality === 1) || node.modality === 0){
-		cover = cover || Array.from( node.querySelectorAll(".webix_modal_cover") ).find(el => el.parentNode == node);
+		cover = cover || Array.prototype.slice.call(node.querySelectorAll(".webix_modal_cover")).filter(el => el.parentNode == node)[0];
 
 		if(cover){
 			if(!node.modality){

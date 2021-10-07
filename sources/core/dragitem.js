@@ -225,10 +225,7 @@ const DragItem ={
 			return target;
 		}
 		
-		if (context.to){
-			return true;
-		}else
-			return false;
+		return !!context.to;
 	},
 	_add_css:function(source, css){
 		for (let i=0; i<source.length; i++)
@@ -244,7 +241,7 @@ const DragItem ={
 		return "";
 	},
 	_set_drop_area:function(target, t){
-		let node = this.getItemNode(target);
+		const node = this.getItemNode(target);
 		if (node){
 			node.parentNode.insertBefore(DragControl._dropHTML[0], node);
 		} else t.children[0].appendChild(DragControl._dropHTML[0]);

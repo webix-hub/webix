@@ -53,7 +53,6 @@ const skin = {
 	accordionType: "accordion",
 
 	optionHeight: 24,
-	organogramLineColor: "#CCD7E6",
 	timelineColor:"#1CA1C1",
 
 	backColor:"#ffffff",

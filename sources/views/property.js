@@ -38,11 +38,14 @@ const api = {
 		editable:true
 	},
 	on_render:{
+		password:function(value){
+			return !value && value !== 0 ? "" : "&bull;".repeat(value.toString().length);
+		},
 		checkbox:function(value){
-			return  "<input type='checkbox' class='webix_property_check' "+(value?"checked":"")+">";
+			return "<input type='checkbox' class='webix_property_check' "+(value?"checked":"")+">";
 		},
 		color:function(value){
-			return  "<div class=\"webix_property_col_val\"><div class='webix_property_col_ind' style=\"background-color:"+(value||"#FFFFFF")+";\"></div><span>" +value+"</span></div>";
+			return "<div class='webix_property_col_ind' style='background-color:"+(value||"#FFFFFF")+";'></div>" + value;
 		}
 	},
 	on_edit:{
@@ -51,9 +54,9 @@ const api = {
 	_id:/*@attr*/"webix_f_id",
 	on_click:{
 		webix_property_check:function(ev){
-			var id = this.locate(ev);
-			this.getItem(id).value = !this.getItem(id).value;
-			this.callEvent("onCheck",[id, this.getItem(id).value]);
+			const id = this.locate(ev);
+			const item = this.getItem(id);
+			this.callEvent("onCheck", [id, item.value = !item.value]);
 			return false;
 		}
 	},
@@ -124,12 +127,9 @@ const api = {
 		return null;
 	},
 	updateItem:function(key, data){
-		data = data || {};
-
-		var line = this.getItem(key);
+		const line = this.getItem(key);
 		if (line)
-			extend(line, data, true);
-
+			extend(line, data||{}, true);
 		this.refresh();
 	},
 	_cellPosition:function(id){
@@ -191,7 +191,7 @@ const api = {
 	$getSize:function(dx,dy){
 		if (this._settings.autoheight){
 			var count = this._settings.elements.length;
-			this._settings.height = Math.max(this.type.height * count,this._settings.minHeight||0);
+			this._settings.height = Math.max(this.type.height*count, this._settings.minHeight||0);
 		}
 		return base.api.$getSize.call(this, dx, dy);
 	},
@@ -211,11 +211,11 @@ const api = {
 					var render = this.on_render[data.type],
 						content;
 					var post = "<div class='webix_property_label' style='width:"+this._settings.nameWidth+"px'>"+data.label+"</div><div class='webix_property_value' style='width:"+this._data_width+"px'>";
-					if(data.collection || data.options){
+					if (data.collection || data.options){
 						content = data.template(data);
-					}else if(data.format)
+					} else if(data.format){
 						content = data.format(data.value);
-					else
+					} else
 						content = data.value;
 					if (render)
 						content = render.call(this, data.value, data);

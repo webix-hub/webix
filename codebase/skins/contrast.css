@@ -914,6 +914,24 @@ button,
   pointer-events: none;
   cursor: default;
 }
+.webix_dt_editor.webix_password_editor {
+  overflow: hidden;
+}
+.webix_password_editor input {
+  padding-right: 26px;
+}
+.webix_password_editor .webix_icon {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  margin-top: -9px;
+  font-size: 18px;
+  cursor: pointer;
+  color: #cccccc;
+}
+.webix_password_editor .webix_icon:hover {
+  color: #b300b3;
+}
 .webix_column,
 .webix_hcolumn {
   position: absolute;
@@ -1938,7 +1956,7 @@ button,
 .webix_property_label,
 .webix_property_value {
   height: 28px;
-  line-height: 27px;
+  line-height: 28px;
   padding-left: 10px;
   float: left;
   border-bottom: 1px solid #4d4d4d;
@@ -1962,23 +1980,15 @@ button,
 .webix_property_label_line .webix_el_label .webix_el_box {
   font-size: 18px;
 }
-.webix_property_col_val {
-  width: 100%;
-  height: 100%;
-  line-height: inherit;
-  -moz-user-select: text;
-  -webkit-user-select: text;
-  user-select: text;
-}
 .webix_property_col_ind {
   float: right;
+  cursor: pointer;
+  margin: 4px 8px 0 0;
   border: 1px solid #818181;
   background: #ffffff;
   border-radius: 3px;
   width: 16px;
   height: 16px;
-  cursor: pointer;
-  margin: 4px 8px 0 0;
 }
 .webix_property_value {
   text-overflow: ellipsis;
@@ -3355,14 +3365,20 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
 .webix_segment_N.webix_disabled:focus,
 .webix_segment_0.webix_disabled:active,
 .webix_segment_1.webix_disabled:active,
-.webix_segment_N.webix_disabled:active,
+.webix_segment_N.webix_disabled:active {
+  box-shadow: none;
+  background-color: #797979;
+}
 .webix_segment_0.webix_disabled.webix_selected,
 .webix_segment_1.webix_disabled.webix_selected,
 .webix_segment_N.webix_disabled.webix_selected,
 .webix_segment_0.webix_disabled.webix_selected:hover,
 .webix_segment_1.webix_disabled.webix_selected:hover,
-.webix_segment_N.webix_disabled.webix_selected:hover {
-  background-color: #797979;
+.webix_segment_N.webix_disabled.webix_selected:hover,
+.webix_segment_0.webix_disabled.webix_selected:focus,
+.webix_segment_1.webix_disabled.webix_selected:focus,
+.webix_segment_N.webix_disabled.webix_selected:focus {
+  background-color: #626262;
 }
 .webix_inp_static {
   border: 1px solid #818181;
@@ -3566,6 +3582,11 @@ textarea.webix_invalid {
   background: #747474;
   border: 1px solid #747474;
   text-shadow: none;
+}
+.webix_view.webix_control .webix_disabled_box .webix_segment_0.webix_selected,
+.webix_view.webix_control .webix_disabled_box .webix_segment_1.webix_selected,
+.webix_view.webix_control .webix_disabled_box .webix_segment_N.webix_selected {
+  background-color: #626262;
 }
 .webix_view.webix_control .webix_disabled_box .webix_slider_left {
   background-color: #bfbfbf;
@@ -4518,39 +4539,6 @@ legend.webix_forminput_label_top {
 .webix_bullet_scale {
   font-size: 12px;
   font-weight: bold;
-}
-.webix_organogram canvas {
-  position: absolute;
-}
-.webix_organogram_item {
-  position: absolute;
-  z-index: 1;
-  text-align: center;
-  border-radius: 4px;
-  background-color: #e3f2fd;
-  border: 1px solid #bbdefb;
-  padding: 7px 7px 10px 7px;
-  box-sizing: border-box;
-}
-.webix_organogram_item.webix_selected {
-  background-color: #1F884C;
-  border-color: #1F884C;
-}
-.webix_organogram_list {
-  border-radius: 4px;
-  position: absolute;
-  z-index: 1;
-  height: auto;
-  border: 1px solid #dddddd;
-  box-sizing: border-box;
-}
-.webix_organogram_list .webix_organogram_list_item {
-  border: none;
-  text-align: left;
-  position: static;
-  padding: 5px;
-  border-radius: 0px;
-  box-sizing: border-box;
 }
 .webix_timeline .webix_scroll_cont {
   padding-top: 28px;
@@ -5623,11 +5611,6 @@ body.webix_print {
 .webix_drop_area,
 .webix_column > .webix_drag_over.webix_cell {
   background-color: #535353;
-}
-.webix_organogram_item {
-  background-color: #575757;
-  color: #fff;
-  border: 1px solid #a3a3a3;
 }
 .webix_view button,
 .webix_view input[type=button] {

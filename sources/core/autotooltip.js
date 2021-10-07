@@ -22,7 +22,8 @@ const AutoTooltip = {
 
 			this._init_tooltip_once();
 			return value;
-		}
+		} else if (this._settings.tooltip)
+			return { template:"" };
 	},
 	_init_tooltip_once:function(){
 		TooltipControl.addTooltip(this);

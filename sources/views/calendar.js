@@ -925,7 +925,6 @@ const api = {
 	_selectDate: function(date, add, config){
 		if(this.callEvent("onBeforeDateSelect", [date])){
 			this.selectDate(date, true, add, config);
-			this.callEvent("onDateSelect", [date]);       // should be deleted in a future version
 			this.callEvent("onAfterDateSelect", [date]);
 		}
 	},

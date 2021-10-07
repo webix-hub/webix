@@ -62,7 +62,7 @@ const api = {
 				{
 					view: "popup",
 					autofocus: false,
-					width: obj.popupWidth || 200,
+					width: 200,
 				},
 				obj.tabbarPopup || {}
 			);
@@ -73,8 +73,8 @@ const api = {
 					borderless: true,
 					select: true,
 					autoheight: true,
-					yCount: obj.yCount || 7,
-					template: template(obj.popupTemplate || "#value#"),
+					yCount: 7,
+					template: template("#value#"),
 				},
 				obj.tabbarPopup ? obj.tabbarPopup.body || {} : {},
 				true

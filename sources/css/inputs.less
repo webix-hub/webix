@@ -213,8 +213,12 @@ body:not(:-moz-handler-blocked) .webix_el_select select{
 	background-color: @disabledColor;
 	border-color: transparent;
 	cursor: not-allowed;
-	&:hover, &:focus, &:active, &.webix_selected, &.webix_selected:hover{
+	&:hover, &:focus, &:active{
+		box-shadow: none;
 		background-color: @disabledColor;
+	}
+	&.webix_selected, &.webix_selected:hover, &.webix_selected:focus{
+		background-color: darken(@disabledColor, 9);
 	}
 }
 
@@ -393,8 +397,11 @@ body:not(:-moz-handler-blocked) .webix_el_select select{
 	.webix_inp_counter_prev, .webix_inp_counter_next, .webix_segment_0, .webix_segment_1, .webix_segment_N{
 		.buttonDisabled;
 	}
+	.webix_segment_0.webix_selected, .webix_segment_1.webix_selected, .webix_segment_N.webix_selected{
+		background-color: darken(@disabledColor, 9);
+	}
 	.webix_slider_left {
-		background-color:@disabledFontColor;
+		background-color: @disabledFontColor;
 	}
 }
 .webix_disabled_top_label{

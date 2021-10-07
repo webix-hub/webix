@@ -182,7 +182,7 @@ const api = {
 			name: name,
 			format: {
 				parse: a => {
-					if (a == 12 && name === "hours") a = "00";
+					if (a == 12 && name === "hours" && twelve) a = "00";
 					return (a.length > 1) ? a.replace(/^0/, "") : a || 0;
 				},
 				edit: a => {

@@ -19,15 +19,10 @@ const api = {
 			delete config.autowidth;
 		}
 
+		this._init_mouse_events();
 		this.data.attachEvent("onStoreUpdated", bind(function(){
 			this._hide_sub_menu();
 		},this));
-		this.attachEvent("onMouseMove", this._mouse_move_menu);
-		this.attachEvent("onMouseOut",function(e){
-			if (this._menu_was_activated() && this._settings.openAction == "click") return;
-			if (!this._child_menu_active && e.relatedTarget)
-				this._hide_sub_menu();
-		});
 		this.attachEvent("onItemClick", function(id, e, trg){
 			const item = this.getItem(id);
 			if (item){
@@ -80,6 +75,18 @@ const api = {
 
 		//component can create new view
 		this._destroy_with_me = [];
+	},
+	_init_mouse_events:function(){
+		this.attachEvent("onMouseMove", function(id, e, target){
+			if (!this._menu_was_activated())
+				return;
+			this._mouse_move_activation(id, target);
+		});
+		this.attachEvent("onMouseOut", function(e){
+			if (this._menu_was_activated() && this._settings.openAction == "click") return;
+			if (!this._child_menu_active && (!e.relatedTarget || !this.$view.contains(e.relatedTarget)))
+				this._hide_sub_menu();
+		});
 	},
 	sizeToContent:function(){
 		if (this._settings.layout == "y"){
@@ -172,12 +179,6 @@ const api = {
 			sub = $$(data.submenu);
 		}
 		return sub;
-	},
-	_mouse_move_menu:function(id, e, target){
-		if (!this._menu_was_activated())
-			return;
-
-		this._mouse_move_activation(id, target);
 	},
 	_menu_was_activated:function(){
 		if (env.touch) return false;

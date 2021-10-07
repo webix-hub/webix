@@ -48,7 +48,7 @@ const DataState = {
 		return settings;
 	},
 	setState:function(obj){
-		var columns = this.config.columns;
+		const columns = this.config.columns;
 		if(!obj) return;
 
 		this.markSorting();
@@ -64,7 +64,7 @@ const DataState = {
 		}
 
 		if (obj.hidden){
-			var hihash = {};
+			const hihash = {};
 			for (let i=0; i<obj.hidden.length; i++){
 				hihash[obj.hidden[i]] = true;
 				if(!this._hidden_column_order.length)
@@ -73,7 +73,7 @@ const DataState = {
 
 			if(this._hidden_column_order.length){
 				for (let i=0; i<this._hidden_column_order.length; i++){
-					var hikey = this._hidden_column_order[i];
+					const hikey = this._hidden_column_order[i];
 					if (!!hihash[hikey] == !this._hidden_column_hash[hikey])
 						this.hideColumn(hikey, {}, false, !!hihash[hikey]);
 				}
@@ -81,7 +81,7 @@ const DataState = {
 		}
 
 		if (obj.ids){
-			var reorder = false;
+			let reorder = false;
 			for (let i=0; i<columns.length; i++)
 				if (columns[i].id != obj.ids[i])
 					reorder = true;
@@ -93,9 +93,9 @@ const DataState = {
 		}
 
 		if (obj.size){
-			var cols_n = Math.min(obj.size.length, columns.length);
-			for(let i = 0; i < cols_n; i++){
-				var col = columns[i];
+			const cols_n = Math.min(obj.size.length, columns.length);
+			for (let i = 0; i < cols_n; i++){
+				const col = columns[i];
 				if(col && obj.size[i] > 0 && col.width != obj.size[i]){
 					delete col.fillspace;
 					delete col.adjust;
@@ -106,10 +106,11 @@ const DataState = {
 		
 		this.unblockEvent();
 
-		var silent = !(this._settings.leftSplit || this._settings.rightSplit);
+		const silent = !(this._settings.leftSplit || this._settings.rightSplit);
 		this._updateColsSizeSettings(silent);
 		this.callEvent("onStructureUpdate", []);
 
+		const server = this._skip_server_op = { };
 		if (obj.sort){
 			let sort = obj.sort, multi = true;
 			if (!isArray(sort)){
@@ -117,8 +118,10 @@ const DataState = {
 			}
 			for (let i=0; i<sort.length; i++){
 				const col = this.getColumnConfig(sort[i].id);
-				if (col)
+				if (col) {
 					this._sort(col.id, sort[i].dir, col.sort, multi);
+					if (col.sort == "server") server.sort = true;
+				}
 			}
 		}
 
@@ -129,13 +132,12 @@ const DataState = {
 
 			//apply defined filters
 			for (let key in obj.filter) {
-				let value = obj.filter[key];
-				if (!value) continue;
+				const value = obj.filter[key];
+				const f = this._filter_elements[key];
+				if (!value || !f) continue;
 
-				if (!this._filter_elements[key]) continue;
-				let f = this._filter_elements[key];
 				f[2].setValue(f[0], value);
-				var contentid = f[1].contentId;
+				let contentid = f[1].contentId;
 				if (contentid)
 					this._active_headers[contentid].value = value;
 			}
@@ -153,6 +155,16 @@ const DataState = {
 			this.filterByAll();
 		}
 
+		// apply server filter\sort once
+		delete this._skip_server_op;
+		if (server.sort || server.filter)
+			this.loadNext(0, 0, 0, 0, true, true).then(() => {
+				if (server.sort)
+					this._on_after_sort(server.$params);
+				if (server.filter)
+					this._on_after_filter();
+			});
+
 		if (obj.select && this.select){
 			let select = obj.select;
 			this.unselect();
@@ -161,7 +173,7 @@ const DataState = {
 					this._select(select[i], true);
 		}
 
-		if(obj.scroll)
+		if (obj.scroll)
 			this.scrollTo(obj.scroll.x, obj.scroll.y);
 	}
 };

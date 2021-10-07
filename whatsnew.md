@@ -1,5 +1,27 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
+Version 9.0.0 (October 2021)
+===============================
+
+### Major features
+
+- New Pivot widget
+- Updates for Diagram Editor:
+	- ability to change links in UI
+	- ability to rotate shapes in UI
+	- ability to adjust items to their content
+	- ability to preserve ratio of items during resize
+	- ability to define new non-svg shapes and create shapes based on built-in templates
+- Gantt:
+	- separate calendars for resources
+	- loading UTC dates
+- Spreadsheet:
+	- Excel export supports stub cells
+	- a much wider range of supported math methods
+	- increased column count limit
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_9_0.html)
+
 Version 8.4 (July 2021)
 ==============================
 
@@ -7,11 +29,13 @@ Version 8.4 (July 2021)
 
 - Diagram Editor
 - Chat: video calls
-- Gantt: optomize performance on task reordering
+- Gantt: optimize performance on task reordering
 - Spreadsheet: wide set of rules for conditional formatting
 - Chart: ability to add text inside Donut charts
 - Form: autowidth for labels within all form controls
 - Export to Excel: ability to hide arbitrary rows or columns
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_8_4.html)
 
 Version 8.3 (April 2021)
 ==============================
@@ -27,6 +51,8 @@ Version 8.3 (April 2021)
 	- Chart usability: legend settings and labels
 	- Currency symbol to custom format window
 	- Export to Excel with hidden rows and columns
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_8_3.html)
 
 Version 8.2 (March 2021)
 ==============================
@@ -48,6 +74,8 @@ Version 8.2 (March 2021)
 - Form and Controls: ability to differentiate between API and user changes
 - Tabbar: ability to fine-tune the popup in detail
 
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_8_2.html)
+
 Version 8.1 (December 2020)
 ==============================
 
@@ -55,6 +83,8 @@ Version 8.1 (December 2020)
 
 - New Report Manager widget
 - Updates for Gantt widget
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_8_1.html)
 
 Version 8.0 (October 2020)
 ==============================

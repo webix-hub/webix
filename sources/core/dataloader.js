@@ -33,24 +33,21 @@ const DataLoader =proto({
 		this.data.feed = this._feed;
 		this.data.owner = config.id;
 	},
-	_feed:function(from,count,callback,defer){
+	_feed:function(from, count, callback, defer, clear){
 		//allow only single request at same time
 		if (this._load_count){
 			defer = promise.defer();
-			this._load_count=[from,count,callback,defer];	//save last ignored request
+			this._load_count = [from,count,callback,defer,clear];	//save last ignored request
 			return defer;
-		}
-		else
-			this._load_count=true;
+		} else
+			this._load_count = true;
 		this._feed_last.from = from;
 		this._feed_last.count = count;
-		return this._feed_common.call(this, from, count, callback, false, false, defer);
+		return this._feed_common.call(this, from, count, callback, defer, false, clear);
 	},
-	_feed_common:function(from, count, callback, url, details, defer){
-		var state = null;
-		url = url || this.data.url;
-
-		if (from<0) from = 0;
+	_feed_common:function(from, count, callback, defer, details, clear){
+		let url = this.data.url;
+		if (from < 0) from = 0;
 
 		if(!details)
 			details = { start: from, count:count };
@@ -58,9 +55,7 @@ const DataLoader =proto({
 		if(this.count())
 			details["continue"] = "true";
 
-		if (this.getState)
-			state = this.getState();
-
+		const state = this.getState ? this.getState() : null;
 		// proxy
 		if (url && typeof url != "string"){
 			if (state){
@@ -69,7 +64,7 @@ const DataLoader =proto({
 				if (state.filter)
 					details.filter = state.filter;
 			}
-			return this.load(url, 0, details).then(
+			return this.load(url, 0, details, clear).then(
 				data => this._feed_on_load(data, callback, defer),
 				() => this._feed_callback()
 			);
@@ -98,7 +93,7 @@ const DataLoader =proto({
 			url += params.join("&");
 			if (this._feed_last.url !== url){
 				this._feed_last.url = url;
-				return this.load(url).then(
+				return this.load(url, 0, null, clear).then(
 					data => this._feed_on_load(data, callback, defer),
 					() => this._feed_callback()
 				);
@@ -135,7 +130,7 @@ const DataLoader =proto({
 		return ajax;
 	},
 	//load next set of data rows
-	loadNext:function(count, start, callback, url, now){
+	loadNext:function(count, start, callback, url, now, clear){
 		var config = this._settings;
 		if (config.datathrottle && !now){
 			if (this._throttle_request)
@@ -143,7 +138,7 @@ const DataLoader =proto({
 
 			let defer = promise.defer();
 			this._throttle_request = delay(function(){
-				defer.resolve(this.loadNext(count, start, callback, url, true));
+				defer.resolve(this.loadNext(count, start, callback, url, true, clear));
 			},this, 0, config.datathrottle);
 			return defer;
 		}
@@ -152,9 +147,9 @@ const DataLoader =proto({
 		if (!count)
 			count = config.datafetch || this.count();
 
-		this.data.url = this.data.url || url;
+		this.data.url = url || this.data.url;
 		if (this.callEvent("onDataRequest", [start,count,callback,url]) && this.data.url)
-			return this.data.feed.call(this, start, count, callback);
+			return this.data.feed.call(this, start, count, callback, false, clear);
 		return promise.reject();
 	},
 	_maybe_loading_already:function(count, from){
@@ -241,8 +236,7 @@ const DataLoader =proto({
 
 					result.then(
 						data => {
-							this.clearAll();
-							this._onLoad(data);
+							this._onLoad(data, true);
 							this.data.callEvent("onAfterFilter", []);
 						},
 						x => this._onLoadError(x)

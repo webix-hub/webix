@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.8.4.0
+ * webix UI v.9.0.0
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -2313,11 +2313,10 @@
       return true;
     },
     //loads data from external URL
-    load: function (url, call) {
+    load: function (url, call, details, clear) {
       var _this = this;
 
-      var type,
-          details = arguments[2] || null;
+      var type;
 
       if (typeof call == "string") {
         //second parameter can be a loading type or callback
@@ -2326,10 +2325,10 @@
         call = arguments[2];
       }
 
-      var d = this._fetch(url, type, details);
+      var d = this._fetch(url, type, details || null);
 
       if (d && d.then) return d.then(function (data) {
-        _this._onLoad(data);
+        _this._onLoad(data, clear);
 
         if (call) ajax.$callback(_this, call, "", data, -1);
         return data;
@@ -2378,13 +2377,13 @@
       return result;
     },
     //loads data from object
-    parse: function (data, type) {
+    parse: function (data, type, clear) {
       if (data && typeof data.then == "function") {
         var generation = this._data_generation; // component destroyed, or clearAll was issued
 
         return data.then(bind(function (data) {
           if (this.$destructed || generation && this._data_generation !== generation) return Deferred.reject();
-          this.parse(data, type);
+          this.parse(data, type, clear);
         }, this));
       } //loading data from other component
 
@@ -2392,7 +2391,7 @@
       if (data && data.sync && this.sync) this._syncData(data);else if (!this.callEvent("onBeforeLoad", [])) return Deferred.reject();else {
         if (type || !this.data.driver) this.data.driver = DataDriver[type || "json"];
 
-        this._onLoad(data);
+        this._onLoad(data, clear);
       }
       return Deferred.resolve();
     },
@@ -2410,11 +2409,19 @@
       parsed = record ? driver.getDetails(record) : {};
       if (this.setValues) this.setValues(parsed, false, "auto");else this.data = parsed;
     },
-    _onLoadContinue: function (data) {
+    _onLoadContinue: function (data, clear) {
       if (data) {
-        if (!this.$onLoad || !this.$onLoad(data, this.data.driver)) {
-          if (this.data && this.data._parse) this.data._parse(data); //datastore
-          else this._parse(data);
+        if (!this.$onLoad || !this.$onLoad(data, this.data.driver, clear)) {
+          if (this.data && this.data._parse) {
+            if (clear) this.data.clearAll(true);
+
+            this.data._parse(data); //datastore
+
+          } else {
+            if (clear) this.clearAll(true);
+
+            this._parse(data);
+          }
         }
       } else this._onLoadError(data); //data loaded, view rendered, call onready handler
 
@@ -2424,7 +2431,7 @@
       this.waitData.resolve();
     },
     //default after loading callback
-    _onLoad: function (data) {
+    _onLoad: function (data, clear) {
       var _this3 = this;
 
       // webix loading object or uploaded file structure
@@ -2434,8 +2441,8 @@
 
       data = this.data.driver.toObject(data);
       if (data && data.then) data.then(function (data) {
-        return _this3._onLoadContinue(data);
-      });else this._onLoadContinue(data);
+        return _this3._onLoadContinue(data, clear);
+      });else this._onLoadContinue(data, clear);
     },
     _onLoadError: function (xhttp) {
       if (xhttp !== silentErrorMarker) {
@@ -2843,7 +2850,7 @@
         this.scrollTo(x, y);
         this.callEvent("onAfterAutoScroll", []);
         var scroll = this.getScrollState();
-        return scroll[mode] === (mode === "x" ? x : y);
+        return Math.abs((mode === "x" ? x : y) - scroll[mode]) < 1;
       }
 
       return false;
@@ -3615,15 +3622,12 @@
 
       for (var i = count - 1; i >= 0; i--) {
         var box = modalbox.pull[order[i]];
+        if (box._box != source && box._box.contains(source) && code == 32) // ignore space inside input
+          return;
 
         if (box.container && box.container.contains(source)) {
-          var insideModalbox = box._box != source && box._box.contains(source);
-
-          if (code == 32 && insideModalbox) // ignore space inside input
-            return;else {
-            activeBox = box;
-            break;
-          }
+          activeBox = box;
+          break;
         }
       }
 
@@ -3660,9 +3664,9 @@
 
 
     if (mode && node.modality === 1 || node.modality === 0) {
-      cover = cover || Array.from(node.querySelectorAll(".webix_modal_cover")).find(function (el) {
+      cover = cover || Array.prototype.slice.call(node.querySelectorAll(".webix_modal_cover")).filter(function (el) {
         return el.parentNode == node;
-      });
+      })[0];
 
       if (cover) {
         if (!node.modality) {
@@ -5344,6 +5348,12 @@
   */
 
   var SingleRender = exports.proto({
+    $init: function () {
+      this.type = clone(this.type);
+    },
+    customize: function (obj) {
+      type(this, obj);
+    },
     template_setter: function (value) {
       this.type.template = template(value);
     },
@@ -5351,9 +5361,6 @@
     _toHTML: function (obj) {
       var type$$1 = this.type;
       return (type$$1.templateStart ? type$$1.templateStart(obj, type$$1) : "") + type$$1.template(obj, type$$1) + (type$$1.templateEnd ? type$$1.templateEnd(obj, type$$1) : "");
-    },
-    customize: function (obj) {
-      type(this, obj);
     }
   }, AtomRender);
 
@@ -5475,7 +5482,9 @@
         this._init_tooltip_once();
 
         return value;
-      }
+      } else if (this._settings.tooltip) return {
+        template: ""
+      };
     },
     _init_tooltip_once: function () {
       TooltipControl.addTooltip(this);
@@ -5985,7 +5994,6 @@
     padding: 0,
     accordionType: "accordion",
     optionHeight: 32,
-    organogramLineColor: "#CCD7E6",
     timelineColor: "#1CA1C1",
     backColor: "#ffffff",
     //colorboard
@@ -6059,7 +6067,6 @@
     padding: 0,
     accordionType: "accordion",
     optionHeight: 24,
-    organogramLineColor: "#CCD7E6",
     timelineColor: "#1CA1C1",
     backColor: "#ffffff",
     //colorboard
@@ -10087,31 +10094,30 @@
       this.data.feed = this._feed;
       this.data.owner = config.id;
     },
-    _feed: function (from, count, callback, defer) {
+    _feed: function (from, count, callback, defer, clear) {
       //allow only single request at same time
       if (this._load_count) {
         defer = Deferred.defer();
-        this._load_count = [from, count, callback, defer]; //save last ignored request
+        this._load_count = [from, count, callback, defer, clear]; //save last ignored request
 
         return defer;
       } else this._load_count = true;
 
       this._feed_last.from = from;
       this._feed_last.count = count;
-      return this._feed_common.call(this, from, count, callback, false, false, defer);
+      return this._feed_common.call(this, from, count, callback, defer, false, clear);
     },
-    _feed_common: function (from, count, callback, url, details, defer) {
+    _feed_common: function (from, count, callback, defer, details, clear) {
       var _this = this;
 
-      var state = null;
-      url = url || this.data.url;
+      var url = this.data.url;
       if (from < 0) from = 0;
       if (!details) details = {
         start: from,
         count: count
       };
       if (this.count()) details["continue"] = "true";
-      if (this.getState) state = this.getState(); // proxy
+      var state = this.getState ? this.getState() : null; // proxy
 
       if (url && typeof url != "string") {
         if (state) {
@@ -10119,7 +10125,7 @@
           if (state.filter) details.filter = state.filter;
         }
 
-        return this.load(url, 0, details).then(function (data) {
+        return this.load(url, 0, details, clear).then(function (data) {
           return _this._feed_on_load(data, callback, defer);
         }, function () {
           return _this._feed_callback();
@@ -10154,7 +10160,7 @@
 
         if (this._feed_last.url !== url) {
           this._feed_last.url = url;
-          return this.load(url).then(function (data) {
+          return this.load(url, 0, null, clear).then(function (data) {
             return _this._feed_on_load(data, callback, defer);
           }, function () {
             return _this._feed_callback();
@@ -10190,22 +10196,22 @@
       return ajax$$1;
     },
     //load next set of data rows
-    loadNext: function (count, start, callback, url, now) {
+    loadNext: function (count, start, callback, url, now, clear) {
       var config = this._settings;
 
       if (config.datathrottle && !now) {
         if (this._throttle_request) window.clearTimeout(this._throttle_request);
         var defer = Deferred.defer();
         this._throttle_request = delay(function () {
-          defer.resolve(this.loadNext(count, start, callback, url, true));
+          defer.resolve(this.loadNext(count, start, callback, url, true, clear));
         }, this, 0, config.datathrottle);
         return defer;
       }
 
       if (!start && start !== 0) start = this.count();
       if (!count) count = config.datafetch || this.count();
-      this.data.url = this.data.url || url;
-      if (this.callEvent("onDataRequest", [start, count, callback, url]) && this.data.url) return this.data.feed.call(this, start, count, callback);
+      this.data.url = url || this.data.url;
+      if (this.callEvent("onDataRequest", [start, count, callback, url]) && this.data.url) return this.data.feed.call(this, start, count, callback, false, clear);
       return Deferred.reject();
     },
     _maybe_loading_already: function (count, from) {
@@ -10282,9 +10288,7 @@
           if (result) {
             if (!result.then) result = Deferred.resolve(result);
             result.then(function (data) {
-              _this4.clearAll();
-
-              _this4._onLoad(data);
+              _this4._onLoad(data, true);
 
               _this4.data.callEvent("onAfterFilter", []);
             }, function (x) {
@@ -10376,6 +10380,8 @@
       return settings;
     },
     setState: function (obj) {
+      var _this2 = this;
+
       var columns = this.config.columns;
       if (!obj) return;
       this.markSorting();
@@ -10442,6 +10448,7 @@
       this._updateColsSizeSettings(silent);
 
       this.callEvent("onStructureUpdate", []);
+      var server = this._skip_server_op = {};
 
       if (obj.sort) {
         var sort = obj.sort,
@@ -10455,7 +10462,11 @@
         for (var _i5 = 0; _i5 < sort.length; _i5++) {
           var _col = this.getColumnConfig(sort[_i5].id);
 
-          if (_col) this._sort(_col.id, sort[_i5].dir, _col.sort, multi);
+          if (_col) {
+            this._sort(_col.id, sort[_i5].dir, _col.sort, multi);
+
+            if (_col.sort == "server") server.sort = true;
+          }
         }
       }
 
@@ -10468,9 +10479,8 @@
 
         for (var key in obj.filter) {
           var value = obj.filter[key];
-          if (!value) continue;
-          if (!this._filter_elements[key]) continue;
           var f = this._filter_elements[key];
+          if (!value || !f) continue;
           f[2].setValue(f[0], value);
           var contentid = f[1].contentId;
           if (contentid) this._active_headers[contentid].value = value;
@@ -10488,7 +10498,14 @@
 
         this.filterByAll = temp;
         this.filterByAll();
-      }
+      } // apply server filter\sort once
+
+
+      delete this._skip_server_op;
+      if (server.sort || server.filter) this.loadNext(0, 0, 0, 0, true, true).then(function () {
+        if (server.sort) _this2._on_after_sort(server.$params);
+        if (server.filter) _this2._on_after_filter();
+      });
 
       if (obj.select && this.select) {
         var select = obj.select;
@@ -10728,9 +10745,7 @@
         return target;
       }
 
-      if (context.to) {
-        return true;
-      } else return false;
+      return !!context.to;
     },
     _add_css: function (source, css) {
       for (var i = 0; i < source.length; i++) {
@@ -10829,7 +10844,7 @@
     },
     $dragOut: function (s, ot, nt) {
       if (ot != nt) {
-        remove(DragControl._dropHTML);
+        if (this._remove_drop_area) this._remove_drop_area();else remove(DragControl._dropHTML);
         this._marked_item_id = DragControl._dropHTML = null;
       }
 
@@ -11309,7 +11324,7 @@
       return this.getInputNode().getValue(this._is_string ? i18n.parseFormatStr : "") || "";
     },
     popupInit: function (popup) {
-      popup.getChildViews()[0].attachEvent("onDateSelect", function (value) {
+      popup.getChildViews()[0].attachEvent("onAfterDateSelect", function (value) {
         callEvent("onEditEnd", [value]);
       });
     }
@@ -11421,9 +11436,27 @@
   }, editors.popup);
   editors.password = exports.extend({
     render: function () {
-      return create("div", {
-        "class": "webix_dt_editor"
-      }, "<input type='password' aria-label='" + getLabel(this.config) + "'>");
+      var _this = this;
+
+      var node = create("div", {
+        "class": "webix_dt_editor webix_password_editor"
+      }, "<input type='password' aria-label='" + getLabel(this.config) + "'><span class='webix_icon wxi-eye'></span>");
+      var icon = node.querySelector(".webix_icon");
+
+      _event(icon, "click", function () {
+        _this.toggleInput();
+
+        _this.getInputNode(_this.node).focus();
+      });
+
+      return node;
+    },
+    toggleInput: function () {
+      var input = this.getInputNode(this.node);
+      var isPassword = input.getAttribute("type") === "password";
+      input.setAttribute("type", isPassword ? "text" : "password");
+      var icon = input.nextSibling;
+      icon.className = "webix_icon wxi-eye".concat(isPassword ? "-slash" : "");
     }
   }, editors.text);
   editors.$popup = {
@@ -15214,18 +15247,18 @@
 
       this._feed_common = this._feed_commonA;
     },
-    _feed_commonA: function (from, count, callback, url, details, defer) {
+    _feed_commonA: function (from, count, callback, defer, details, clear) {
       // branch loading
       details = count === 0 ? {
         parent: encodeURIComponent(from)
       } : null;
-      return DataLoader.prototype._feed_common.call(this, from, count, callback, url, details, defer);
+      return DataLoader.prototype._feed_common.call(this, from, count, callback, defer, details, clear);
     },
     //load next set of data rows
     loadBranch: function (id, callback, url) {
       id = id || 0;
       this.data.url = url || this.data.url;
-      if (this.callEvent("onDataRequest", [id, callback, this.data.url]) && this.data.url) return this.data.feed.call(this, id, 0, callback, url);
+      if (this.callEvent("onDataRequest", [id, callback, this.data.url]) && this.data.url) return this.data.feed.call(this, id, 0, callback);
       return Deferred.reject();
     },
     _sync_hierarchy: function (id, data, mode) {
@@ -17070,7 +17103,18 @@
         }
       }
 
-      if (type != "paint") {
+      var isDrag,
+          source,
+          marked = this._marked_item_id;
+
+      if (DragControl.active && type != "drag-end") {
+        var context = DragControl.getContext();
+        isDrag = this._init_drop_area && context.from === this; //move and order modes
+
+        source = isDrag && _to_array(copy(context.source || []));
+      }
+
+      if (type != "paint" || isDrag) {
         //repaint all
         this._htmlmap = {};
         parent.innerHTML = "";
@@ -17084,13 +17128,16 @@
         var top = Math.floor(scroll.y / this.type.height) - 2;
         var bottom = Math.ceil((scroll.y + box.height) / this.type.height) + 2;
         top = Math.max(0, top);
-        bottom = Math.min(this.data.count() - 1, bottom);
+        bottom = Math.min(count - 1, bottom + (isDrag ? source.length - 1 : 0));
         var html = [];
 
         for (var i = top; i <= bottom; i++) {
           var sid = this.data.order[i];
 
-          if (!this._htmlmap[sid]) {
+          if (isDrag && source.find(sid) !== -1) {
+            if (sid == marked) marked = this.data.order[i + 1];
+            continue;
+          } else if (!this._htmlmap[sid]) {
             var item = this.data.getItem(sid);
 
             if (!item) {
@@ -17104,17 +17151,28 @@
 
             html.push(this._toHTML(item));
           } else {
-            html.push("<div></div>");
+            html.push("<div webix_skip=\"true\" ".concat(this._id, "=\"").concat(sid, "\"></div>"));
           }
         }
 
         this._html.innerHTML = html.join("");
+
+        if (this._init_drop_area && type == "drag-in") {
+          // can be external
+          var node = this._html.querySelector("[".concat(this._id, "=\"").concat(marked, "\"]"));
+
+          if (node) {
+            this._html.insertBefore(DragControl._dropHTML[0], node);
+          } else this._html.appendChild(DragControl._dropHTML[0]);
+        }
+
         parent.style.position = "relative";
         parent.style.height = count * this.type.height + "px";
         var kids = this._html.childNodes;
 
         for (var _i = kids.length - 1; _i >= 0; _i--) {
           var child = kids[_i];
+          if (child.getAttribute("webix_skip")) continue;
           var cid = child.getAttribute(this._id);
 
           if (cid) {
@@ -17139,10 +17197,26 @@
       var count = Math.max(conf.count, this._settings.datafetch || this._settings.loadahead || 0);
       if (this._maybe_loading_already(conf.count, conf.start)) return;
       this.loadNext(count, conf.start);
+    },
+    _set_drop_area: function () {
+      this.render(null, null, "drag-in");
+    },
+    _remove_drop_area: function () {
+      remove(DragControl._dropHTML);
+      this.render(null, null, "drag-out");
+    },
+    $dragDestroy: function () {
+      if (this._init_drop_area) {
+        var context = DragControl._drag_context;
+        if (isArray(context.source)) this._remove_css(context.source, "webix_invisible");
+        this.render(null, null, "drag-end");
+      }
+
+      remove(DragControl._html);
     }
   };
 
-  var version$1 = "8.4.0";
+  var version$1 = "9.0.0";
   var name$1 = "core";
 
   var errorMessage = "non-existing view for export";
@@ -18029,7 +18103,7 @@
         } // set type based on cell's value
 
 
-        if (cell.v instanceof Date) {
+        if (options.stubCells && !stringValue) cell.t = "z";else if (cell.v instanceof Date) {
           cell.t = cell.t || "n";
           cell.z = cell.z || XLSX.SSF[table][14];
           cell.v = excelDate(cell.v);
@@ -18047,7 +18121,6 @@
             cell.t = "s";
           }
         }
-
         ws[cell_ref] = cell;
       }
     }
@@ -24048,11 +24121,14 @@
       editable: true
     },
     on_render: {
+      password: function (value) {
+        return !value && value !== 0 ? "" : "&bull;".repeat(value.toString().length);
+      },
       checkbox: function (value) {
         return "<input type='checkbox' class='webix_property_check' " + (value ? "checked" : "") + ">";
       },
       color: function (value) {
-        return "<div class=\"webix_property_col_val\"><div class='webix_property_col_ind' style=\"background-color:" + (value || "#FFFFFF") + ";\"></div><span>" + value + "</span></div>";
+        return "<div class='webix_property_col_ind' style='background-color:" + (value || "#FFFFFF") + ";'></div>" + value;
       }
     },
     on_edit: {
@@ -24064,8 +24140,8 @@
     on_click: {
       webix_property_check: function (ev) {
         var id = this.locate(ev);
-        this.getItem(id).value = !this.getItem(id).value;
-        this.callEvent("onCheck", [id, this.getItem(id).value]);
+        var item = this.getItem(id);
+        this.callEvent("onCheck", [id, item.value = !item.value]);
         return false;
       }
     },
@@ -24132,9 +24208,8 @@
       return null;
     },
     updateItem: function (key, data) {
-      data = data || {};
       var line = this.getItem(key);
-      if (line) exports.extend(line, data, true);
+      if (line) exports.extend(line, data || {}, true);
       this.refresh();
     },
     _cellPosition: function (id) {
@@ -24220,7 +24295,9 @@
 
           if (data.collection || data.options) {
             content = data.template(data);
-          } else if (data.format) content = data.format(data.value);else content = data.value;
+          } else if (data.format) {
+            content = data.format(data.value);
+          } else content = data.value;
 
           if (render) content = render.call(this, data.value, data);
           html[i] = pre + post + content + "</div></div>";
@@ -25091,8 +25168,6 @@
     _selectDate: function (date, add, config) {
       if (this.callEvent("onBeforeDateSelect", [date])) {
         this.selectDate(date, true, add, config);
-        this.callEvent("onDateSelect", [date]); // should be deleted in a future version
-
         this.callEvent("onAfterDateSelect", [date]);
       }
     },
@@ -28510,15 +28585,15 @@
         var popupConfig = exports.extend({
           view: "popup",
           autofocus: false,
-          width: obj.popupWidth || 200
+          width: 200
         }, obj.tabbarPopup || {});
         var body = exports.extend({
           view: "list",
           borderless: true,
           select: true,
           autoheight: true,
-          yCount: obj.yCount || 7,
-          template: template(obj.popupTemplate || "#value#")
+          yCount: 7,
+          template: template("#value#")
         }, obj.tabbarPopup ? obj.tabbarPopup.body || {} : {}, true);
         body.css = "webix_tab_list ".concat(body.css || "");
         popupConfig.body = body;
@@ -29614,7 +29689,7 @@
         name: name,
         format: {
           parse: function (a) {
-            if (a == 12 && name === "hours") a = "00";
+            if (a == 12 && name === "hours" && twelve) a = "00";
             return a.length > 1 ? a.replace(/^0/, "") : a || 0;
           },
           edit: function (a) {
@@ -30780,13 +30855,6 @@
     }
   };
   var view$_ = exports.protoUI(api$_, DataLoader, EventSystem, base$1.view);
-
-  exports.protoUI({
-    name: "organogram",
-    defaults: {
-      template: "GPL version doesn't support organogram <br> You need Webix PRO"
-    }
-  }, template$1.view);
 
   var Pie$1 = {
     $render_pie: function (ctx, data, x, y, sIndex, map) {
@@ -37355,14 +37423,11 @@
         delete config.autowidth;
       }
 
+      this._init_mouse_events();
+
       this.data.attachEvent("onStoreUpdated", bind(function () {
         this._hide_sub_menu();
       }, this));
-      this.attachEvent("onMouseMove", this._mouse_move_menu);
-      this.attachEvent("onMouseOut", function (e) {
-        if (this._menu_was_activated() && this._settings.openAction == "click") return;
-        if (!this._child_menu_active && e.relatedTarget) this._hide_sub_menu();
-      });
       this.attachEvent("onItemClick", function (id, e, trg) {
         var item = this.getItem(id);
 
@@ -37408,6 +37473,17 @@
 
 
       this._destroy_with_me = [];
+    },
+    _init_mouse_events: function () {
+      this.attachEvent("onMouseMove", function (id, e, target) {
+        if (!this._menu_was_activated()) return;
+
+        this._mouse_move_activation(id, target);
+      });
+      this.attachEvent("onMouseOut", function (e) {
+        if (this._menu_was_activated() && this._settings.openAction == "click") return;
+        if (!this._child_menu_active && (!e.relatedTarget || !this.$view.contains(e.relatedTarget))) this._hide_sub_menu();
+      });
     },
     sizeToContent: function () {
       if (this._settings.layout == "y") {
@@ -37505,11 +37581,6 @@
       }
 
       return sub;
-    },
-    _mouse_move_menu: function (id, e, target) {
-      if (!this._menu_was_activated()) return;
-
-      this._mouse_move_activation(id, target);
     },
     _menu_was_activated: function () {
       if (env.touch) return false;
@@ -37641,14 +37712,6 @@
     $init: function () {
       this._body_cell = clone(this._dummy_cell_interface);
       this._body_cell._view = this;
-      this.attachEvent("onMouseOut", function (e) {
-        if (this.getTopMenu()._settings.openAction == "click") return;
-        if (!this._child_menu_active && !this._show_on_mouse_out && e.relatedTarget) this.hide();
-      }); //inform parent that focus is still in menu
-
-      this.attachEvent("onMouseMoving", function () {
-        if (this._parent_menu) $$(this._parent_menu)._child_menu_active = true;
-      });
       this.attachEvent("onBeforeShow", function () {
         if (this.getTopMenu()._autowidth_submenu && this.sizeToContent && !this.isVisible()) this.sizeToContent();
       });
@@ -37659,6 +37722,21 @@
       menu.api.$skin.call(this);
       popup.api.$skin.call(this);
       this.type.height = $active.menuHeight;
+    },
+    _init_mouse_events: function () {
+      this.attachEvent("onMouseMove", function (id, e, target) {
+        if (!this._menu_was_activated()) return;
+
+        this._mouse_move_activation(id, target);
+      });
+      this.attachEvent("onMouseOut", function (e) {
+        if (this.getTopMenu()._settings.openAction == "click") return;
+        if (!this._child_menu_active && !this._show_on_mouse_out && e.relatedTarget && !this.$view.contains(e.relatedTarget)) this.hide();
+      }); //inform parent that focus is still in menu
+
+      this.attachEvent("onMouseMoving", function () {
+        if (this._parent_menu) $$(this._parent_menu)._child_menu_active = true;
+      });
     },
     _dummy_cell_interface: {
       $getSize: function (dx, dy) {
@@ -38488,47 +38566,60 @@
 
   var Mixin = {
     filterByAll: function () {
+      var _this2 = this;
+
       //we need to use dynamic function creating
       var server = false;
       this.data.silent(function () {
+        var _this = this;
+
         this.filter();
         var first = false;
 
-        for (var key in this._filter_elements) {
+        var _loop = function (key) {
           assert(key, "empty column id for column with filtering");
-          if (!this.isColumnVisible(key)) continue;
-          var record = this._filter_elements[key];
+          if (!_this.isColumnVisible(key)) return "continue";
+          var record = _this._filter_elements[key];
           var originvalue = record[2].getValue(record[0]); //saving last filter value, for usage in getState
 
           var inputvalue = originvalue;
-          if (record[1].prepare) inputvalue = record[1].prepare.call(record[2], inputvalue, record[1], this); //preserve original value
+          if (record[1].prepare) inputvalue = record[1].prepare.call(record[2], inputvalue, record[1], _this); //preserve original value
 
           record[1].value = originvalue;
           var compare = record[1].compare;
-          if (!this.callEvent("onBeforeFilter", [key, inputvalue, record[1]])) continue;
+          if (!_this.callEvent("onBeforeFilter", [key, inputvalue, record[1]])) return "continue";
 
           if (record[2].$server || server) {
             //if one of filters is server side, do not run any client side filters
             server = true;
           } else {
-            if (inputvalue === "") continue;
+            if (inputvalue === "") return "continue";
 
             if (compare) {
-              compare = this._multi_compare(key, compare);
-              this.filter(bind(function (obj, value) {
+              compare = _this._multi_compare(key, compare);
+
+              _this.filter(bind(function (obj, value) {
                 if (!obj) return false;
                 return compare(obj[key], value, obj);
-              }, this), inputvalue, first);
-            } else this.filter(key, inputvalue, first);
+              }, _this), inputvalue, first);
+            } else _this.filter(key, inputvalue, first);
 
             first = true;
           }
-        }
+        };
 
-        if (server) this._runServerFilter();
+        for (var key in this._filter_elements) {
+          var _ret = _loop(key);
+
+          if (_ret === "continue") continue;
+        }
       }, this);
 
-      if (!server) {
+      if (server) {
+        if (!this._skip_server_op) this.loadNext(0, 0, 0, 0, true, true).then(function () {
+          return _this2._on_after_filter();
+        });else this._skip_server_op.filter = true;
+      } else {
         this.refresh();
         this.callEvent("onAfterFilter", []);
       }
@@ -38603,18 +38694,9 @@
 
       return values;
     },
-    _runServerFilter: function () {
-      var _this = this;
-
-      this.loadNext(0, 0, 0, 0, 1).then(function (data) {
-        if (_this.editStop) _this.editStop();
-
-        _this.clearAll(true);
-
-        _this.parse(data);
-
-        _this.callEvent("onAfterFilter", []);
-      });
+    _on_after_filter: function () {
+      if (this.editStop) this.editStop();
+      this.callEvent("onAfterFilter", []);
     }
   };
 
@@ -38627,6 +38709,12 @@
 
         this.config.experimental = true;
         this.attachEvent("onMouseMoving", function (e) {
+          // do not show hover while dragging
+          if (DragControl.active) {
+            if (_this._last_hover) _this._last_hover = _this.removeRowCss(_this._last_hover, _this._settings.hover);
+            return;
+          }
+
           var pos = _this.locate(e); // when we click inner html element, edge calls mousemove with incorrect e.target
 
 
@@ -40637,8 +40725,8 @@
       }
     },
     _getInitialSpans: function (cols, elements) {
-      for (var h = 0; h < elements.length; h++) {
-        var line = elements[h];
+      for (var i = 0; i < elements.length; i++) {
+        var line = elements[i];
         if (line && line.colspan && !line.$colspan) line.$colspan = line.colspan;
       }
     },
@@ -40708,10 +40796,7 @@
           var header = cols[index].header;
 
           for (var i = 0; i < header.length; i++) {
-            if (header[i]) {
-              header[i].$groupSpan = header[i].colspan || 1;
-              span = Math.max(span, header[i].$groupSpan);
-            }
+            if (header[i]) span = Math.max(span, header[i].colspan || 1);
           }
         }
 
@@ -40750,8 +40835,7 @@
 
           for (var _i4 = 0; _i4 < _header.length; _i4++) {
             if (_header[_i4]) {
-              _header[_i4].colspan = _header[_i4].$groupSpan || _header[_i4].colspan;
-              delete _header[_i4].$groupSpan;
+              _header[_i4].colspan = _header[_i4].$colspan || _header[_i4].colspan;
               span = Math.max(span, _header[_i4].colspan || 1);
             }
           }
@@ -40892,9 +40976,10 @@
 
       this.render();
     },
-    showColumnBatch: function (batch, mode) {
+    showColumnBatch: function (batch, mode, silent) {
       var preserve = typeof mode != "undefined";
       mode = mode !== false;
+      var sub = [];
       this.eachColumn(function (id, col) {
         if (col.batch) {
           var hidden = this._hidden_column_hash[col.id];
@@ -40905,9 +40990,21 @@
             spans: true
           }, true, mode);
         }
-      }, true);
 
-      this._refresh_columns();
+        if (preserve && mode) {
+          var header = col.header;
+
+          for (var i = 0; i < header.length; i++) {
+            if (header[i] && header[i].batch && header[i].closed) sub.push(header[i].batch);
+          }
+        }
+      }, true); // hide closed batches
+
+      for (var i = 0; i < sub.length; i++) {
+        if (sub[i] != batch) this.showColumnBatch(sub[i], false, true);
+      }
+
+      if (!silent) this._refresh_columns();
     }
   };
 
@@ -41220,7 +41317,7 @@
 
         var column = this._settings.columns[colindex];
 
-        if (column.attached && column.node) {
+        if (column && column.attached && column.node) {
           if (row === "$webix-drop") return DragControl._dropHTML[colindex];
           var nodeIndex = rowindex < this._settings.topSplit || this._settings.prerender ? rowindex : rowindex - minRow;
           var nodes = column.node.childNodes;
@@ -41724,9 +41821,10 @@
     },
     _getExportStyles: function (options) {
       var type = options.export_mode;
-      var columns = this.config.columns,
-          styles = [];
-      this._style_hash = this._style_hash || {};
+      var columns = this.config.columns;
+      var styles = [];
+      if (!this._style_hash) this._style_hash = {};
+      if (!this._style_hash[type]) this._style_hash[type] = {};
       if (options.docHeader && type == "excel") styles = [{
         0: this._getExportDocStyle(options.docHeader.css)
       }, {
@@ -41787,8 +41885,8 @@
       return styles;
     },
     _getExportHStyles: function (options, group, styles, type) {
-      var columns = this.config.columns,
-          hs = []; //spans
+      var columns = this.config.columns;
+      var hs = []; //spans
 
       for (var h = 0; h < columns[0][group].length; h++) {
         var hrow = {};
@@ -41828,7 +41926,7 @@
       return styles["border-".concat(type, "-width")] == "0px" ? null : color.rgbToHex(styles["border-".concat(type, "-color")]) || defaultColor;
     },
     _getExportCellStyle: function (node, name, type) {
-      if (this._style_hash[name]) return this._style_hash[name];else {
+      if (this._style_hash[type][name]) return this._style_hash[type][name];else {
         var cellStyle = this._getRules(node);
 
         var bg = color.rgbToHex(cellStyle["background-color"]) || "FFFFFF";
@@ -41844,7 +41942,7 @@
           borderTopColor: this._getBorderColor(cellStyle, bg, "top")
         };
         var rules = type == "pdf" ? common : this._getExcelCellRules(cellStyle, node, common);
-        this._style_hash[name] = rules;
+        this._style_hash[type][name] = rules;
         return rules;
       }
     },
@@ -42145,14 +42243,14 @@
 
         if (!this._dtable_fully_ready) this._apply_headers();
 
+        if (this._content_width) {
+          if (fast_mode && (mode == "paint" || mode == "update") && id) this._repaint_single_row(id);else this._check_rendered_cols(true, true);
+        }
+
         if (!id || mode != "update") {
           this._dtable_height = this._get_total_height();
 
           this._set_split_sizes_y();
-        }
-
-        if (this._content_width) {
-          if (fast_mode && (mode == "paint" || mode == "update") && id) this._repaint_single_row(id);else this._check_rendered_cols(true, true);
         } //don't depend on hidden rows/rolumns
 
 
@@ -42460,26 +42558,33 @@
         return _base;
       }
     },
+    _render_empty_hcell: function (height, css) {
+      return "<div class='".concat(css, "' style='height:").concat(height, "px;'></div>");
+    },
     _render_subheader: function (start, end, width, name, heights) {
       if (start == end) return "";
-      var html = "";
       var spans = "";
+      var html = "<div style=\"background:inherit;width:".concat(width, "px;\">");
       var count = this._columns[0][name].length;
       var left = 0;
 
       for (var i = start; i < end; i++) {
-        var _width = this._columns[i].width;
         var top = 0;
-        var abs = i == start ? "position:static;" : "position:absolute; top:".concat(top, "px; left:").concat(left, "px;");
+        var _width = this._columns[i].width;
+        var abs = i == start ? "position:static;" : "position:absolute;top:".concat(top, "px;left:").concat(left, "px;");
         html += "<div class=\"webix_hcolumn\" style=\"".concat(abs, "width:").concat(_width, "px;overflow:hidden;\">");
 
         for (var j = 0; j < count; j++) {
-          var isSpan = false;
           var header = this._columns[i][name][j];
           var cell_height = heights[j];
+          var hcss = "webix_hcell";
+          if (this._columns[i].$selected) hcss += " webix_sel_hcell";
+          if (i == start) hcss += " webix_first";
+          if (i == end - 1) hcss += " webix_last";
+          if (j == count - 1) hcss += " webix_last_row";
 
           if (!header) {
-            html += "<div class='webix_hcell' style='border-bottom-color:transparent;border-right-color:transparent;height:".concat(cell_height + 1, "px;'></div>");
+            html += this._render_empty_hcell(cell_height + 1, hcss);
             top += cell_height + 1;
             continue;
           }
@@ -42495,51 +42600,47 @@
             this._has_active_headers = true;
           }
 
+          if (header.css) // apply unique css after content initialization
+            hcss += " " + header.css;
           var cell = "<div " +
           /*@attr*/
           "row" + "='" + j + "'" +
           /*@attr*/
           "column" + "='" + (header.colspan ? header.colspan - 1 + i : i) + "'";
-          var hcss = "webix_hcell";
-          if (header.css) hcss += " " + header.css;
-          if (this._columns[i].$selected) hcss += " webix_sel_hcell";
-          if (i == start) hcss += " webix_first";
-          var column_pos = i + (header.colspan ? header.colspan - 1 : 0);
-          if (column_pos >= end - 1) hcss += " webix_last";
-          if (header.rowspan && j + header.rowspan === count || j === count - 1) hcss += " webix_last_row";
           var sheight = "";
           if (header.contentId) cell += " " +
           /*@attr*/
           "active_id" + "='" + header.contentId + "'";
+          var isSpan = false;
           var cheight = cell_height;
 
-          if (header.colspan || header.rowspan) {
+          if (header.colspan && header.colspan > 1 || header.rowspan && header.rowspan > 1) {
             var cwidth = this._summ_right(this._columns, i, header.colspan) || _width;
 
             cheight = this._summ_next(heights, j, header.rowspan);
             if (cheight <= 0) cheight = cell_height;
+            html += this._render_empty_hcell(cell_height + 1, hcss);
+            if (header.colspan && i + header.colspan >= end) hcss += " webix_last";
+            if (header.rowspan && j + header.rowspan >= count) hcss += " webix_last_row";
             hcss += " webix_span";
-            sheight = " colspan='".concat(header.colspan || 1, "' style='position:absolute; top:").concat(top, "px; left:").concat(left, "px; line-height:").concat(cheight + 1, "px; width:").concat(cwidth, "px; height:").concat(cheight + 1, "px;'");
-            html += "<div class='webix_hcell' style='border-bottom-color:transparent;border-right-color:transparent;height:".concat(cell_height + 1, "px;'></div>");
             isSpan = true;
-          } else {
-            if (cell_height != this._settings.headerRowHeight) sheight = " style='line-height:".concat(cell_height + 1, "px; height:").concat(cell_height + 1, "px;'");
-          }
+            sheight = " colspan='".concat(header.colspan || 1, "' rowspan='").concat(header.rowspan || 1, "' style='position:absolute;top:").concat(top, "px;left:").concat(left, "px;line-height:").concat(cheight + 1, "px;width:").concat(cwidth, "px;height:").concat(cheight + 1, "px;'");
+          } else if (cell_height != this._settings.headerRowHeight) sheight = " style='line-height:".concat(cell_height + 1, "px;height:").concat(cell_height + 1, "px;'");
 
-          if (hcss) cell += " class=\"" + hcss + "\"";
-          top += cell_height + 1;
+          cell += " class=\"" + hcss + "\"";
           cell += " " + sheight + ">";
           var text = header.text === "" ? "&nbsp;" : header.text;
-          if (header.rotate) text = "<div class='webix_rotate' style='width:" + (cheight - 10) + "px; transform-origin:center " + (cheight - 15) / 2 + "px;-webkit-transform-origin:center " + (cheight - 15) / 2 + "px;'>" + text + "</div>";
+          if (header.rotate) text = "<div class='webix_rotate' style='width:" + (cheight - 10) + "px;transform-origin:center " + (cheight - 15) / 2 + "px;-webkit-transform-origin:center " + (cheight - 15) / 2 + "px;'>" + text + "</div>";
           cell += text + "</div>";
           if (isSpan) spans += cell;else html += cell;
+          top += cell_height + 1;
         }
 
         left += _width;
         html += "</div>";
       }
 
-      return html + spans;
+      return html + spans + "</div>";
     },
     _summ_next: function (heights, start, i) {
       var summ = -1;
@@ -42585,7 +42686,7 @@
 
           if (row_ind < state[0] + 1) {
             //scroll top - show row at top of screen
-            summ = Math.max(0, summ) - (this._top_split_height || 0);
+            summ = Math.max(0, summ) - this._get_top_split_height();
           } else if (summ + itemHeight > dataHeight) {
             //scroll bottom - show row at bottom of screen
             summ += itemHeight - dataHeight; //because of row rounding we need to scroll some extra
@@ -42814,7 +42915,7 @@
       this._create_scrolls = function () {};
     },
     columnId: function (index$$1) {
-      return this._columns[index$$1].id;
+      return this._columns[index$$1] && this._columns[index$$1].id;
     },
     getColumnIndex: function (id) {
       for (var i = 0; i < this._columns.length; i++) {
@@ -43023,7 +43124,7 @@
       var top;
       if (index$$1 < this._settings.topSplit) top = this._getHeightByIndexSumm(0, index$$1);else {
         var first = this._render_scroll_top || 0;
-        top = this._getHeightByIndexSumm(first, index$$1) + (this._render_scroll_shift || 0) + (index$$1 >= first ? this._top_split_height || 0 : 0);
+        top = this._getHeightByIndexSumm(first, index$$1) + (this._render_scroll_shift || 0) + (index$$1 >= first ? this._get_top_split_height() : 0);
       }
       return {
         parent: parent,
@@ -43032,6 +43133,9 @@
         width: width,
         height: height
       };
+    },
+    _get_top_split_height: function () {
+      return this._settings.topSplit ? this._getHeightByIndexSumm(0, this._settings.topSplit) : 0;
     },
     _get_total_height: function () {
       var pager = this._settings.pager;
@@ -43161,7 +43265,7 @@
       var xdef = xind > 0 && t ? -(this._getHeightByIndex(xind - 1) + t) : 0;
       var xend = xind;
       if (t) xind--;
-      t += (this._dtable_offset_height || this._content_height) - (this._top_split_height || 0);
+      t += (this._dtable_offset_height || this._content_height) - this._get_top_split_height();
 
       if (rowHeight) {
         var _dep = Math.ceil(t / rowHeight);
@@ -43648,7 +43752,6 @@
 
       this._y_scroll.define("scrollHeight", wanted_height);
 
-      this._top_split_height = this._settings.topSplit ? this._getHeightByIndexSumm(0, this._settings.topSplit) : 0;
       this._dtable_offset_height = Math.max(0, this._content_height - this._scrollSizeX - this._header_height - this._footer_height);
 
       for (var i = 0; i < 3; i++) {
@@ -43885,18 +43988,14 @@
       this._last_sorted[col.id] = config;
 
       if (type$$1 == "server") {
-        var parameters = [col.id, direction, type$$1];
-        if (this._last_order.length > 1) parameters = [this._last_order.map(function (id) {
+        var params = [col.id, direction, type$$1];
+        if (this._last_order.length > 1) params = [this._last_order.map(function (id) {
           return _this2._last_sorted[id];
         })];
-        this.callEvent("onBeforeSort", parameters);
-        this.loadNext(0, 0, 0, 0, 1).then(function (data) {
-          _this2.clearAll(true);
-
-          _this2.parse(data);
-
-          _this2.callEvent("onAfterSort", parameters);
-        });
+        this.callEvent("onBeforeSort", params);
+        if (!this._skip_server_op) this.loadNext(0, 0, 0, 0, true, true).then(function () {
+          return _this2._on_after_sort(params);
+        });else this._skip_server_op.$params = params; // save last parameters
       } else {
         if (type$$1 == "text") {
           var new_id = "$text_" + col.id;
@@ -43913,6 +44012,9 @@
       }
 
       this.markSorting(col.id, config.dir, preserve);
+    },
+    _on_after_sort: function (params) {
+      this.callEvent("onAfterSort", params);
     },
     _mouseEventCall: function (css_call, e, id, trg) {
       var functor, i, res;

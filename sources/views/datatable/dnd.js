@@ -128,33 +128,33 @@ const Mixin = {
 	},
 	getItemNode:function(id){
 		if (id && !id.header){
-			var row = id.row || id;
-			var rowindex = (typeof id.rind === "number") ? id.rind : this.getIndexById(row);
-			var state = this._get_y_range();
-			var minRow = state[0]-this._settings.topSplit;
+			const row = id.row || id;
+			const rowindex = (typeof id.rind === "number") ? id.rind : this.getIndexById(row);
+			const state = this._get_y_range();
+			const minRow = state[0]-this._settings.topSplit;
 			//row not visible
 			if (rowindex < minRow && rowindex > state[1]) return;
 
 			//get visible column
-			var x_range = this._get_x_range();
-			var colindex = this._settings.leftSplit ? 0 : x_range[0];
-			var specific = (typeof id.cind === "number");
+			const x_range = this._get_x_range();
+			let colindex = this._settings.leftSplit ? 0 : x_range[0];
+			const specific = (typeof id.cind === "number");
 			if (id.column || specific){
 				colindex = specific ? id.cind : this.getColumnIndex(id.column);
 				//column not visible
-				if (colindex < this._rightSplit && colindex >= this._settings.leftSplit && ( colindex<x_range[0] || colindex > x_range[1]))
+				if (colindex < this._rightSplit && colindex >= this._settings.leftSplit && (colindex<x_range[0] || colindex > x_range[1]))
 					return;
 			}
 
-			var column = this._settings.columns[colindex];
+			const column = this._settings.columns[colindex];
 
-			if (column.attached && column.node){
+			if (column && column.attached && column.node){
 				if (row === "$webix-drop")
 					return DragControl._dropHTML[colindex];
 
 				let nodeIndex = (rowindex<this._settings.topSplit || this._settings.prerender)?rowindex:(rowindex-minRow);
-				let nodes = column.node.childNodes;
-				let length = Math.min(nodes.length, nodeIndex+1);
+				const nodes = column.node.childNodes;
+				const length = Math.min(nodes.length, nodeIndex+1);
 
 				for (let i=0; i<length; i++)
 					if (nodes[i].className === "webix_drop_area")

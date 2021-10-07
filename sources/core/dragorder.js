@@ -91,7 +91,8 @@ const DragOrder ={
 	},
 	$dragOut:function(s,ot,nt){
 		if (ot != nt){
-			remove(DragControl._dropHTML);
+			if (this._remove_drop_area) this._remove_drop_area();
+			else remove(DragControl._dropHTML);
 			this._marked_item_id = DragControl._dropHTML = null;
 		}
 		return DragItem.$dragOut.apply(this, arguments);

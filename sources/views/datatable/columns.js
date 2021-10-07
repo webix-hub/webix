@@ -13,9 +13,8 @@ const Mixin = {
 		this._hidden_split = [0,0,0];
 	},
 	_hideInitialColumns:function(){
-		var cols = this._columns;
-
-		for(let i=0; i<cols.length; i++){
+		const cols = this._columns;
+		for (let i=0; i<cols.length; i++){
 			if(cols[i].header) this._getInitialSpans(cols, cols[i].header);
 			if(cols[i].footer) this._getInitialSpans(cols, cols[i].footer);
 		}
@@ -29,9 +28,9 @@ const Mixin = {
 		}
 	},
 	_getInitialSpans:function(cols, elements){
-		for(var h = 0; h<elements.length;h++){
-			var line = elements[h];
-			if(line && line.colspan && !line.$colspan)
+		for (let i=0; i<elements.length; i++){
+			const line = elements[i];
+			if (line && line.colspan && !line.$colspan)
 				line.$colspan = line.colspan;
 		}
 	},
@@ -91,13 +90,11 @@ const Mixin = {
 
 			this._init_horder(horder, cols);
 			
-			if(opts.spans){
-				var header = cols[index].header;
-				for(let i = 0; i<header.length; i++){
-					if(header[i]){
-						header[i].$groupSpan = header[i].colspan || 1;
-						span = Math.max(span, header[i].$groupSpan);
-					}
+			if (opts.spans){
+				const header = cols[index].header;
+				for (let i=0; i<header.length; i++){
+					if (header[i])
+						span = Math.max(span, (header[i].colspan || 1));
 				}
 			}
 			this._fixSplit(index, span, -1);
@@ -134,8 +131,7 @@ const Mixin = {
 				let header = column.header;
 				for(let i = 0; i<header.length; i++){
 					if(header[i]){
-						header[i].colspan = header[i].$groupSpan || header[i].colspan;
-						delete header[i].$groupSpan;
+						header[i].colspan = header[i].$colspan || header[i].colspan;
 						span = Math.max(span, (header[i].colspan || 1));
 					}
 				}
@@ -275,13 +271,14 @@ const Mixin = {
 		this._apply_headers();
 		this.render();
 	},
-	showColumnBatch:function(batch, mode){
-		var preserve = typeof mode != "undefined";
+	showColumnBatch:function(batch, mode, silent){
+		const preserve = typeof mode != "undefined";
 		mode = mode !== false;
 
+		const sub = [];
 		this.eachColumn(function(id, col){
-			if(col.batch){
-				var hidden = this._hidden_column_hash[col.id];
+			if (col.batch){
+				let hidden = this._hidden_column_hash[col.id];
 				if (!mode) hidden = !hidden;
 
 				if(col.batch == batch && hidden)
@@ -289,9 +286,21 @@ const Mixin = {
 				else if(!preserve && col.batch!=batch && !hidden)
 					this.hideColumn(col.id, { spans:true }, true, mode);
 			}
+
+			if (preserve && mode){
+				const header = col.header;
+				for (let i=0; i<header.length; i++)
+					if (header[i] && header[i].batch && header[i].closed)
+						sub.push(header[i].batch);
+			}
 		}, true);
 
-		this._refresh_columns();
+		// hide closed batches
+		for (let i=0; i<sub.length; i++)
+			if (sub[i] != batch) this.showColumnBatch(sub[i], false, true);
+
+		if (!silent)
+			this._refresh_columns();
 	}
 };
 

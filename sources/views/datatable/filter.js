@@ -5,25 +5,26 @@ import {assert} from "../../webix/debug";
 const Mixin = {
 	filterByAll:function(){
 		//we need to use dynamic function creating
-		var server = false;
+		let server = false;
 		this.data.silent(function(){
 			this.filter();
-			var first = false;
-			for (var key in this._filter_elements){
+
+			let first = false;
+			for (let key in this._filter_elements){
 				assert(key, "empty column id for column with filtering");
 				if (!this.isColumnVisible(key)) continue;
 
-				var record = this._filter_elements[key];
-				var originvalue = record[2].getValue(record[0]);
+				const record = this._filter_elements[key];
+				const originvalue = record[2].getValue(record[0]);
 
 				//saving last filter value, for usage in getState
-				var inputvalue = originvalue;
+				let inputvalue = originvalue;
 				if (record[1].prepare)
 					inputvalue = record[1].prepare.call(record[2], inputvalue, record[1], this);
 
 				//preserve original value
 				record[1].value = originvalue;
-				var compare = record[1].compare;
+				let compare = record[1].compare;
 
 				if (!this.callEvent("onBeforeFilter",[key, inputvalue, record[1]])) continue;
 				if (record[2].$server || server){ //if one of filters is server side, do not run any client side filters
@@ -37,20 +38,19 @@ const Mixin = {
 							if (!obj) return false;
 							return compare(obj[key], value, obj);
 						},this), inputvalue, first);
-					}
-					else
+					} else
 						this.filter(key, inputvalue, first);
 
 					first = true;
 				}
 			}
-
-			if (server)
-				this._runServerFilter();
-
 		}, this);
 
-		if (!server){
+		if (server){
+			if (!this._skip_server_op)
+				this.loadNext(0, 0, 0, 0, true, true).then(() => this._on_after_filter());
+			else this._skip_server_op.filter = true;
+		} else {
 			this.refresh();
 			this.callEvent("onAfterFilter",[]);
 		}
@@ -129,13 +129,9 @@ const Mixin = {
 		}
 		return values;
 	},
-	_runServerFilter: function(){
-		this.loadNext(0, 0, 0, 0, 1).then((data) => {
-			if (this.editStop)this.editStop();
-			this.clearAll(true);
-			this.parse(data);
-			this.callEvent("onAfterFilter",[]);
-		});
+	_on_after_filter:function(){
+		if (this.editStop) this.editStop();
+		this.callEvent("onAfterFilter",[]);
 	}
 };
 

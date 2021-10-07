@@ -127,9 +127,10 @@ function getExcelData(data, scheme, spans, styles, options) {
 				if(column.type && !cell.t) cell.t = (types[column.type] || "");
 				if(column.format && !cell.z) cell.z = column.format;
 			}
-
 			// set type based on cell's value
-			if(cell.v instanceof Date){
+			if(options.stubCells && !stringValue)
+				cell.t = "z";
+			else if(cell.v instanceof Date){
 				cell.t = cell.t || "n";
 				cell.z = cell.z || XLSX.SSF[table][14];
 				cell.v = excelDate(cell.v);

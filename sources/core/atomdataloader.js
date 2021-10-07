@@ -41,19 +41,18 @@ const AtomDataLoader={
 		return true;
 	},
 	//loads data from external URL
-	load:function(url,call){
-		var type, details = (arguments[2] || null);
-
+	load:function(url,call,details,clear){
+		let type;
 		if (typeof call == "string"){	//second parameter can be a loading type or callback
 			//we are not using setDriver as data may be a non-datastore here
 			type = call;
 			call = arguments[2];
 		}
 
-		const d = this._fetch(url, type, details);
+		const d = this._fetch(url, type, details||null);
 		if (d && d.then)
 			return d.then(data => {
-				this._onLoad(data);
+				this._onLoad(data, clear);
 				if (call)
 					ajax.$callback(this, call, "", data, -1);
 				return data;
@@ -104,14 +103,14 @@ const AtomDataLoader={
 		return result;
 	},
 	//loads data from object
-	parse:function(data,type){
+	parse:function(data,type,clear){
 		if (data && typeof data.then == "function"){
 			const generation = this._data_generation;
 			// component destroyed, or clearAll was issued
 			return data.then(bind(function(data){ 
 				if (this.$destructed || (generation && this._data_generation !== generation))
 					return promise.reject();
-				this.parse(data, type); 
+				this.parse(data, type, clear); 
 			}, this));
 		}
 
@@ -123,7 +122,7 @@ const AtomDataLoader={
 		else {
 			if(type || !this.data.driver)
 				this.data.driver = DataDriver[type||"json"];
-			this._onLoad(data);
+			this._onLoad(data, clear);
 		}
 
 		return promise.resolve();
@@ -149,16 +148,18 @@ const AtomDataLoader={
 		else
 			this.data = parsed;
 	},
-	_onLoadContinue:function(data){
+	_onLoadContinue:function(data, clear){
 		if (data){
-			if(!this.$onLoad || !this.$onLoad(data, this.data.driver)){
-				if(this.data && this.data._parse)
+			if (!this.$onLoad || !this.$onLoad(data, this.data.driver, clear)){
+				if (this.data && this.data._parse) {
+					if (clear) this.data.clearAll(true);
 					this.data._parse(data); //datastore
-				else
+				} else {
+					if (clear) this.clearAll(true);
 					this._parse(data);
+				}
 			}
-		}
-		else
+		} else
 			this._onLoadError(data);
 
 		//data loaded, view rendered, call onready handler
@@ -169,7 +170,7 @@ const AtomDataLoader={
 		this.waitData.resolve();
 	},
 	//default after loading callback
-	_onLoad:function(data){
+	_onLoad:function(data, clear){
 		// webix loading object or uploaded file structure
 		if (data && typeof data.text === "function" && !data.name){
 			data = data.text();
@@ -177,9 +178,9 @@ const AtomDataLoader={
 
 		data = this.data.driver.toObject(data);
 		if(data && data.then)
-			data.then(data => this._onLoadContinue(data));
+			data.then(data => this._onLoadContinue(data, clear));
 		else
-			this._onLoadContinue(data);
+			this._onLoadContinue(data, clear);
 	},
 	_onLoadError:function(xhttp){
 		if (xhttp !== silentErrorMarker){

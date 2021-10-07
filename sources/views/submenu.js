@@ -13,18 +13,6 @@ const api = {
 		this._body_cell = clone(this._dummy_cell_interface);
 		this._body_cell._view = this;
 
-		this.attachEvent("onMouseOut",function(e){
-			if (this.getTopMenu()._settings.openAction == "click") 
-				return;
-			if (!this._child_menu_active && !this._show_on_mouse_out && e.relatedTarget)
-				this.hide();
-		});
-
-		//inform parent that focus is still in menu
-		this.attachEvent("onMouseMoving",function(){
-			if (this._parent_menu)
-				$$(this._parent_menu)._child_menu_active = true;
-		});
 		this.attachEvent("onBeforeShow", function(){
 			if (this.getTopMenu()._autowidth_submenu && this.sizeToContent && !this.isVisible())
 				this.sizeToContent();
@@ -37,6 +25,25 @@ const api = {
 		popup.api.$skin.call(this);
 
 		this.type.height = $active.menuHeight;
+	},
+	_init_mouse_events:function(){
+		this.attachEvent("onMouseMove", function(id, e, target){
+			if (!this._menu_was_activated())
+				return;
+			this._mouse_move_activation(id, target);
+		});
+		this.attachEvent("onMouseOut",function(e){
+			if (this.getTopMenu()._settings.openAction == "click") 
+				return;
+			if (!this._child_menu_active && !this._show_on_mouse_out
+				&& e.relatedTarget && !this.$view.contains(e.relatedTarget))
+				this.hide();
+		});
+		//inform parent that focus is still in menu
+		this.attachEvent("onMouseMoving",function(){
+			if (this._parent_menu)
+				$$(this._parent_menu)._child_menu_active = true;
+		});
 	},
 	_dummy_cell_interface : {
 		$getSize:function(dx, dy){

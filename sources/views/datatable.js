@@ -275,16 +275,16 @@ const api = {
 			if (!this._dtable_fully_ready)
 				this._apply_headers();
 
-			if (!id || mode!="update"){
-				this._dtable_height = this._get_total_height();
-				this._set_split_sizes_y();
-			}
-
 			if (this._content_width){
 				if (fast_mode && (mode == "paint" || mode == "update") && id)
 					this._repaint_single_row(id);
 				else
 					this._check_rendered_cols(true, true);
+			}
+
+			if (!id || mode!="update"){
+				this._dtable_height = this._get_total_height();
+				this._set_split_sizes_y();
 			}
 
 			//don't depend on hidden rows/rolumns
@@ -573,25 +573,35 @@ const api = {
 			return base;
 		}
 	},
+	_render_empty_hcell:function(height, css){
+		return `<div class='${css}' style='height:${height}px;'></div>`;
+	},
 	_render_subheader:function(start, end, width, name, heights){
 		if (start == end) return "";
 
-		var html = "";
-		var spans = "";
-		var count = this._columns[0][name].length;
+		let spans = "";
+		let html = `<div style="background:inherit;width:${width}px;">`;
+		const count = this._columns[0][name].length;
+
 		let left = 0;
 		for (let i = start; i < end; i++){
-			const width = this._columns[i].width;
 			let top = 0;
-			const abs = i == start ? "position:static;" : `position:absolute; top:${top}px; left:${left}px;`;
+			const width = this._columns[i].width;
+			const abs = i == start ? "position:static;" : `position:absolute;top:${top}px;left:${left}px;`;
 			html += `<div class="webix_hcolumn" style="${abs}width:${width}px;overflow:hidden;">`;
-			for (var j = 0; j < count; j++){
-				let isSpan = false;
-				var header = this._columns[i][name][j];
-				var cell_height = heights[j];
+			for (let j = 0; j < count; j++){
+				const header = this._columns[i][name][j];
+				const cell_height = heights[j];
+
+				let hcss = "webix_hcell";
+				if (this._columns[i].$selected) hcss += " webix_sel_hcell";
+				if (i == start) hcss += " webix_first";
+				if (i == end-1) hcss += " webix_last";
+				if (j == count-1) hcss += " webix_last_row";
+
 				if (!header){
-					html += `<div class='webix_hcell' style='border-bottom-color:transparent;border-right-color:transparent;height:${cell_height+1}px;'></div>`;
-					top+=cell_height+1;
+					html += this._render_empty_hcell(cell_height+1, hcss);
+					top += cell_height+1;
 					continue;
 				}
 
@@ -608,62 +618,49 @@ const api = {
 					this._has_active_headers = true;
 				}
 
+				if (header.css)		// apply unique css after content initialization
+					hcss += " " + header.css;
+
 				let cell = "<div "+/*@attr*/"row"+"='"+j+"'"+/*@attr*/"column"+"='"+(header.colspan?(header.colspan-1+i):i)+"'";
 
-				var hcss = "webix_hcell";
-				if (header.css)
-					hcss += " " + header.css;
-				if (this._columns[i].$selected)
-					hcss += " webix_sel_hcell";
-
-				if (i==start)
-					hcss+=" webix_first";
-				var column_pos = i + (header.colspan?header.colspan-1:0);
-
-				if (column_pos>=end-1)
-					hcss+=" webix_last";
-				if ((header.rowspan && j+header.rowspan === count) || j === count-1)
-					hcss+=" webix_last_row";
-
-				var sheight="";
+				let sheight = "";
 				if (header.contentId)
-					cell+=" "+/*@attr*/"active_id"+"='"+header.contentId+"'";
+					cell += " "+/*@attr*/"active_id"+"='"+header.contentId+"'";
 
+				let isSpan = false;
 				let cheight = cell_height;
-				if (header.colspan || header.rowspan){
+				if ((header.colspan && header.colspan>1) || (header.rowspan && header.rowspan>1)){
 					const cwidth = this._summ_right(this._columns, i, header.colspan) || width;
 					cheight = this._summ_next(heights, j, header.rowspan);
 					if (cheight <= 0) cheight = cell_height;
-					hcss += " webix_span";
-					sheight = ` colspan='${header.colspan||1}' style='position:absolute; top:${top}px; left:${left}px; line-height:${cheight+1}px; width:${cwidth}px; height:${cheight+1}px;'`;
-					html += `<div class='webix_hcell' style='border-bottom-color:transparent;border-right-color:transparent;height:${cell_height+1}px;'></div>`;
-					isSpan = true;
-				} else {
-					if (cell_height != this._settings.headerRowHeight)
-						sheight =` style='line-height:${cell_height+1}px; height:${cell_height+1}px;'`;
+					html += this._render_empty_hcell(cell_height+1, hcss);
+
+					if (header.colspan && i+header.colspan >= end) hcss += " webix_last";
+					if (header.rowspan && j+header.rowspan >= count) hcss += " webix_last_row";
+					hcss += " webix_span"; isSpan = true;
+					sheight = ` colspan='${header.colspan||1}' rowspan='${header.rowspan||1}' style='position:absolute;top:${top}px;left:${left}px;line-height:${cheight+1}px;width:${cwidth}px;height:${cheight+1}px;'`;
 				}
+				else if (cell_height != this._settings.headerRowHeight)
+					sheight =` style='line-height:${cell_height+1}px;height:${cell_height+1}px;'`;
 
-				if (hcss)
-					cell+=" class=\""+hcss+"\"";
+				cell += " class=\""+hcss+"\"";
+				cell += " "+sheight+">";
 
-				top+=cell_height+1;
-				cell+=" "+sheight+">";
-
-				var text = (header.text===""?"&nbsp;":header.text);
+				let text = (header.text === "") ? "&nbsp;" : header.text;
 				if (header.rotate)
-					text = "<div class='webix_rotate' style='width:"+(cheight-10)+"px; transform-origin:center "+(cheight-15)/2+"px;-webkit-transform-origin:center "+(cheight-15)/2+"px;'>"+text+"</div>";
+					text = "<div class='webix_rotate' style='width:"+(cheight-10)+"px;transform-origin:center "+(cheight-15)/2+"px;-webkit-transform-origin:center "+(cheight-15)/2+"px;'>"+text+"</div>";
 
 				cell += text + "</div>";
-				if (isSpan)
-					spans += cell;
-				else
-					html += cell;
+				if (isSpan) spans += cell;
+				else html += cell;
+
+				top += cell_height+1;
 			}
 			left += width;
 			html += "</div>";
 		}
 
-		return html+spans;
+		return html + spans + "</div>";
 	},
 	_summ_next: function(heights, start, i){
 		var summ = -1;
@@ -703,7 +700,7 @@ const api = {
 				const itemHeight = this._getHeightByIndex(row_ind);
 				if (row_ind < state[0]+1){
 					//scroll top - show row at top of screen
-					summ = Math.max(0, summ) - (this._top_split_height||0);
+					summ = Math.max(0, summ) - this._get_top_split_height();
 				} else if(summ + itemHeight > dataHeight) {
 					//scroll bottom - show row at bottom of screen
 					summ += itemHeight - dataHeight;
@@ -938,7 +935,7 @@ const api = {
 		this._create_scrolls = function(){};
 	},
 	columnId:function(index){
-		return this._columns[index].id;
+		return this._columns[index] && this._columns[index].id;
 	},
 	getColumnIndex:function(id){
 		for (var i = 0; i < this._columns.length; i++)
@@ -1126,10 +1123,13 @@ const api = {
 			top = this._getHeightByIndexSumm(0, index);
 		else {
 			const first = this._render_scroll_top||0;
-			top = this._getHeightByIndexSumm(first, index) + (this._render_scroll_shift||0) + (index >= first ? (this._top_split_height||0) : 0);
+			top = this._getHeightByIndexSumm(first, index) + (this._render_scroll_shift||0) + (index >= first ? this._get_top_split_height() : 0);
 		}
 
 		return { parent, top, left, width, height };
+	},
+	_get_top_split_height:function(){
+		return this._settings.topSplit ? this._getHeightByIndexSumm(0, this._settings.topSplit) : 0;
 	},
 	_get_total_height:function(){
 		var pager  = this._settings.pager;
@@ -1268,7 +1268,7 @@ const api = {
 		var xend = xind;
 		if (t) xind--;
 
-		t+=(this._dtable_offset_height||this._content_height) - (this._top_split_height||0);
+		t+=(this._dtable_offset_height||this._content_height) - this._get_top_split_height();
 
 		if (rowHeight){
 			let dep = Math.ceil(t/rowHeight);
@@ -1745,7 +1745,6 @@ const api = {
 		this._y_scroll.sizeTo(this._content_height, this._header_height, this._footer_height);
 		this._y_scroll.define("scrollHeight", wanted_height);
 
-		this._top_split_height = this._settings.topSplit ? this._getHeightByIndexSumm(0, this._settings.topSplit) : 0;
 		this._dtable_offset_height =  Math.max(0,this._content_height-this._scrollSizeX-this._header_height-this._footer_height);
 		for (var i = 0; i < 3; i++){
 
@@ -1972,19 +1971,17 @@ const api = {
 		this._last_sorted[col.id] = config;
 
 		if (type == "server"){
-			let parameters = [col.id, direction, type];
+			let params = [col.id, direction, type];
 			if (this._last_order.length > 1)
-				parameters = [ this._last_order.map(id => this._last_sorted[id]) ];
+				params = [ this._last_order.map(id => this._last_sorted[id]) ];
 
-			this.callEvent("onBeforeSort", parameters);
-			this.loadNext(0, 0, 0, 0, 1).then((data) => {
-				this.clearAll(true);
-				this.parse(data);
-				this.callEvent("onAfterSort", parameters);
-			});
+			this.callEvent("onBeforeSort", params);
+			if (!this._skip_server_op)
+				this.loadNext(0, 0, 0, 0, true, true).then(() => this._on_after_sort(params));
+			else this._skip_server_op.$params = params;			// save last parameters
 		} else {
 			if (type == "text"){
-				let new_id = "$text_" + col.id;
+				const new_id = "$text_" + col.id;
 				this.data.each(function(obj){ obj[new_id] = this.getText(obj.id, col.id); }, this);
 				config.as = "string"; config.by = new_id;
 			}
@@ -1994,8 +1991,10 @@ const api = {
 			else
 				this.data.sort( config );
 		}
-
 		this.markSorting(col.id, config.dir, preserve);
+	},
+	_on_after_sort:function(params){
+		this.callEvent("onAfterSort", params);
 	},
 	_mouseEventCall: function( css_call, e, id, trg ) {
 		var functor, i, res;

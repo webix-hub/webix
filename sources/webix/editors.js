@@ -46,7 +46,7 @@ function create_suggest(config){
 }
 
 function getLabel(config){
-	var text = config.header && config.header[0]?config.header[0].text:config.editValue || config.label;
+	const text = (config.header && config.header[0]) ? config.header[0].text : config.editValue||config.label;
 	return (text || "").toString().replace(/<[^>]*>/g, "");
 }
 
@@ -282,7 +282,7 @@ editors.date = extend({
 		return this.getInputNode().getValue(this._is_string?i18n.parseFormatStr:"")||"";
 	},
 	popupInit:function(popup){
-		popup.getChildViews()[0].attachEvent("onDateSelect", function(value){
+		popup.getChildViews()[0].attachEvent("onAfterDateSelect", function(value){
 			callEvent("onEditEnd",[value]);
 		});
 	}
@@ -399,9 +399,24 @@ editors.richselect = extend({
 
 editors.password = extend({
 	render:function(){
-		return create("div", {
-			"class":"webix_dt_editor"
-		}, "<input type='password' aria-label='"+getLabel(this.config)+"'>");
+		const node = create("div", {
+			"class":"webix_dt_editor webix_password_editor"
+		}, "<input type='password' aria-label='"+getLabel(this.config)+"'><span class='webix_icon wxi-eye'></span>");
+
+		const icon = node.querySelector(".webix_icon");
+		_event(icon, "click", () => {
+			this.toggleInput();
+			this.getInputNode(this.node).focus();
+		});
+		return node;
+	},
+	toggleInput:function(){
+		const input = this.getInputNode(this.node);
+		const isPassword = input.getAttribute("type") === "password";
+		input.setAttribute("type", isPassword ? "text" : "password");
+
+		const icon = input.nextSibling;
+		icon.className = `webix_icon wxi-eye${isPassword ? "-slash" : ""}`;
 	}
 }, editors.text);
 

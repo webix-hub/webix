@@ -12,7 +12,7 @@
 }
 .webix_property_label, .webix_property_value{
 	height: @propertyItemHeight;
-	line-height: @propertyItemHeight - 1;
+	line-height: @propertyItemHeight;
 	padding-left: @dataPadding;
 	float:left;
 	border-bottom: 1px solid @dataBorderColor;
@@ -29,22 +29,15 @@
 	line-height: @propertyItemHeight;
 }
 
-.webix_property_col_val{
-	width:100%;
-	height: 100%;
-	line-height: inherit;
-	#box > .select;
-}
-
 .webix_property_col_ind{
 	float: right;
+	cursor: pointer;
+	margin: (@propertyItemHeight - 20)/2 8px 0 0;
 	border: 1px solid @borderColor;
 	background: #ffffff;
 	border-radius: 3px;
 	width: 16px;
 	height: 16px;
-	cursor: pointer;
-	margin: (@propertyItemHeight - 20)/2 8px 0 0;
 }
 
 .webix_property_value {
