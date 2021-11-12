@@ -1,5 +1,16 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
+Version 9.1.0 (November 2021)
+===============================
+
+### Major features
+
+- Chat: the ability to send files
+- Spreadsheet: new math methods
+- the ability to customize the document footer for export to PDF
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_9_1.html)
+
 Version 9.0.0 (October 2021)
 ===============================
 

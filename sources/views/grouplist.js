@@ -7,7 +7,7 @@ import RenderStack from "../core/renderstack";
 import type from "../webix/type";
 
 import {protoUI} from "../ui/core";
-import {extend, bind, copy, _to_array, clone} from "../webix/helpers";
+import {extend, bind, copy, clone, _to_array, _power_array} from "../webix/helpers";
 import promise from "../thirdparty/promiz";
 import animate from "../webix/animate";
 import template from "../webix/template";
@@ -39,48 +39,50 @@ const api = {
 	},	
 	on_click:{
 		webix_list_item:function(e,id){
-			if (this._animation_promise) {
+			if (this._animation_promise)
 				return false;
-			}
 
-			for (var i=0; i < this._nested_chain.length; i++){
-				if (this._nested_chain[i] == id){ //one level up
-					for (var j=i; j < this._nested_chain.length; j++) {
-						this.data.getItem(this._nested_chain[j]).$template="";
-					}
-					if (!i){ //top level
-						this._nested_cursor = this.data.branch[0];
-						this._nested_chain = [];
-					} else {
-						this._nested_cursor= this.data.branch[this._nested_chain[i-1]];
-						this._nested_chain.splice(i);
-					}
-					this._is_level_down = false;
-					return this.render();
-				}
-			}
-
-			var obj = this.getItem(id);
-			if (obj.$count){	//one level down
-				this._is_level_down = true;
-				this._nested_chain.push(id);
-				obj.$template = "Back";
-				this._nested_cursor = this.data.branch[obj.id];
-				return this.render();
-			} else {
-				if (this._settings.select){
-					this._no_animation = true;
-					if (this._settings.select=="multiselect" || this._settings.multiselect)
-						this.select(id, false, ((this._settings.multiselect == "touch") || e.ctrlKey || e.metaKey), e.shiftKey); 	//multiselection
-					else
-						this.select(id);
-					this._no_animation = false;
-				}		
+			// important: check _level_up() first
+			if (this._level_up(id) || this._level_down(id)) return this.render();
+			else if (this._settings.select){
+				this._no_animation = true;
+				if (this._settings.select=="multiselect" || this._settings.multiselect)
+					this.select(id, false, ((this._settings.multiselect == "touch") || e.ctrlKey || e.metaKey), e.shiftKey); 	//multiselection
+				else
+					this.select(id);
+				this._no_animation = false;
 			}
 		}
 	},
+	_level_up:function(id){
+		for (let i=0; i<this._nested_chain.length; i++){
+			if (this._nested_chain[i] == id){
+				for (let j=i; j<this._nested_chain.length; j++)
+					this.data.getItem(this._nested_chain[j]).$template = "";
+
+				if (!i){ //top level
+					this._nested_cursor = this.data.branch[0];
+					this._nested_chain = [];
+				} else {
+					this._nested_cursor = this.data.branch[this._nested_chain[i-1]];
+					this._nested_chain.splice(i);
+				}
+				this._is_level_down = false;
+				return true;
+			}
+		}
+	},
+	_level_down:function(id){
+		const obj = this.getItem(id);
+		if (obj.$count && _power_array.find.call(this._nested_chain, id) === -1){
+			obj.$template = "Back";
+			this._nested_cursor = this.data.branch[obj.id];
+			this._nested_chain.push(id);
+			return this._is_level_down = true;
+		}
+	},
 	getOpenState:function(){
-		return {parents:this._nested_chain,branch:this._nested_cursor};
+		return { parents:this._nested_chain, branch:this._nested_cursor };
 	},
 	render:function(id,data,type){
 		var i, lastChain;
@@ -211,31 +213,31 @@ const api = {
 		}
 	},
 	showItem:function(id){
-		var obj, parent;
-		if(id){
-			obj = this.getItem(id);
-			parent = obj.$parent;
-			
-			if (obj.$count)
-				parent = obj.id;
+		const index = this.data.getIndexById(id);
+		if (index === -1){
+			let parent = 0;
+			if (id){
+				const obj = this.getItem(id);
+				parent = obj.$count ? obj.id : obj.$parent;
+			}
+			this._nested_cursor = this.data.branch[parent];
+			this._nested_chain = [];
+
+			//build _nested_chain
+			while(parent){
+				this.getItem(parent).$template = "Back";
+				this._nested_chain.unshift(parent);
+				parent = this.getItem(parent).$parent;
+			}
+
+			//render
+			this._no_animation = true;
+			this.render();
+			this._no_animation = false;
 		}
-		this._nested_cursor = this.data.branch[parent||0];
-		this._nested_chain=[];
-				
-		//build _nested_chain
-		while(parent){
-			this.getItem(parent).$template = "Back";
-			this._nested_chain.unshift(parent);
-			parent = this.getItem(parent).$parent;
-		} 
-		
-		//render
-		this._no_animation = true;
-		this.render();
-		this._no_animation = false;
-		
+
 		//scroll if necessary
-		RenderStack.showItem.call(this,id);
+		RenderStack.showItem.call(this, id);
 	}
 };
 

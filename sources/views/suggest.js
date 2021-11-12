@@ -405,7 +405,7 @@ const api = {
 			master = $$(this._settings.master);
 
 		if (master && master._editable && master._settings.editable)
-			master._applyChanges();
+			master._applyChanges("user");
 		else if (visible){
 			if (list.count){
 				value = list.getSelectedId(false, true);

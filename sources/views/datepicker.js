@@ -230,8 +230,9 @@ const api = {
 			if(timeMode && value != ""){
 				value.setHours(time.getHours());
 				value.setMinutes(time.getMinutes());
-			}
-			else
+				value.setSeconds(time.getSeconds());
+				value.setMilliseconds(time.getMilliseconds());
+			} else
 				value = time;
 		}
 

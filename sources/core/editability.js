@@ -162,7 +162,7 @@ const EditAbility ={
 			if (area)
 				_event(area, "click", this._reset_active_editor);
 			if (node)
-				_event(node, "change", this._on_editor_change, { bind:{ view:this, id:id }});
+				_event(node, "input", this._on_editor_change, { bind:{ view:this, id:id }});
 			if (show !== false)
 				type.focus();
 

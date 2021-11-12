@@ -1,9 +1,8 @@
 import Number from "../core/number";
 
-import env from "../webix/env";
 import patterns from "../webix/patterns";
 
-import {preventEvent, getSelectionRange, setSelectionRange} from "../webix/html";
+import {getSelectionRange, setSelectionRange} from "../webix/html";
 import {bind, isUndefined} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 
@@ -33,8 +32,8 @@ const TextPattern = {
 					return;
 				}
 
-				preventEvent(e);
 				this._on_key_pressed(e, code);
+				return false;
 			});
 
 			this.attachEvent("onAfterRender", this._after_render);
@@ -84,35 +83,24 @@ const TextPattern = {
 		}, this);
 	},
 	_after_render:function(){
-		var ev =  env.isIE8?"propertychange":"input";
-		
-		if (!this._custom_format) 
-			_event(this.getInputNode(), ev, function(){
-				var stamp =  (new Date()).valueOf();
-				//dark ie8 magic
-				var width = this.$view.offsetWidth; //eslint-disable-line
-				if(!this._property_stamp || stamp-this._property_stamp>100){
-					this._property_stamp = stamp;
-					this.$setValue(this.getText());
-				}
+		if (!this._custom_format)
+			// ctrl+v handler
+			_event(this.getInputNode(), "input", function(){
+				this.$setValue(this.getText());
 			}, {bind:this});
 
-		_event(this.getInputNode(), "blur", function(){
-			this._applyChanges();
-		}, {bind:this});
+		_event(this.getInputNode(), "blur", () => this._applyChanges("user"));
 	},
 	_patternScheme:function(pattern){
 		var mask = pattern.mask, scheme = {}, chars = "", count = 0;
 		
-		for(var i = 0; i<mask.length; i++){
-			if(mask[i] === "#"){
+		for (let i = 0; i<mask.length; i++)
+			if (mask[i] === "#"){
 				scheme[i] = count; count++;
-			}
-			else{
+			} else {
 				scheme[i] = false;
 				if(chars.indexOf(mask[i]) === -1) chars+="\\"+mask[i];
 			}
-		}
 		this._pattern_allows = pattern.allow;
 		this._pattern_chars = new RegExp("["+chars+"]", "g");
 		this._pattern_scheme = scheme;
@@ -125,13 +113,12 @@ const TextPattern = {
 		var pos = getSelectionRange(node);
 		var chr = "";
 
-		if(code == 8 || code == 46){
+		if (code == 8 || code == 46){
 			if(pos.start == pos.end){
 				if(code == 8) pos.start--;
 				else pos.end++;
 			}
-		}
-		else{
+		} else {
 			chr = String.fromCharCode(code);
 			const isCapsLock = e.getModifierState("CapsLock");
 			if (!e.shiftKey && !isCapsLock || e.shiftKey && isCapsLock) chr = chr.toLowerCase();

@@ -1290,7 +1290,7 @@ const api = {
 		var item = this.getItem(id);
 		var rowindex = this.getIndexById(id);
 
-		var state = this._get_y_range();
+		var state = this._get_y_range(this._settings.prerender === true);
 		var freeze = this._settings.topSplit;
 		var freezeCss = "";
 

@@ -303,18 +303,18 @@ function addPDFTable(view, doc){
 
 function addPDFHeader(doc, options){
 	//doc footer
-	if(options.docFooter !== false){
-		let ft = doc.footer();
-		ft.text({
+	if (options.docFooter !== false){
+		options.docFooter = extend(options.docFooter||{}, {
 			color: 0x666666, textAlign:"center"
-		}).append((i18n.dataExport.page||"Page")).pageNumber().append("  "+(i18n.dataExport.of || "of")+"  ").pageCount();
+		});
+		doc.footer().text(options.docFooter).append((i18n.dataExport.page||"Page")).pageNumber().append("  "+(i18n.dataExport.of||"of")+"  ").pageCount();
 	}
 
 	const horder = { text:0, image:1};
 
 	//doc header, configurable
-	if(options.docHeader){
-		if(typeof options.docHeader == "string") options.docHeader = {text:options.docHeader};
+	if (options.docHeader){
+		if (typeof options.docHeader == "string") options.docHeader = { text:options.docHeader };
 		extend(options.docHeader, {
 			color: 0x666666, textAlign:"right", order:0
 		});
@@ -329,7 +329,7 @@ function addPDFHeader(doc, options){
 		horder.image = options.docHeaderImage.order;
 	}
 
-	if(options.docHeader && horder.image > horder.text)
+	if (options.docHeader && horder.image > horder.text)
 		doc.header({paddingBottom:10}).text(options.docHeader.text, options.docHeader);
 
 	if (options.docHeaderImage){
@@ -346,8 +346,7 @@ function addPDFHeader(doc, options){
 			defer.resolve(doc.render());
 		});
 		return defer;
-	}
-	else
+	} else
 		return promise.resolve(doc.render());
 }
 

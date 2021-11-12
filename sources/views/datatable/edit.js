@@ -245,17 +245,17 @@ const Mixin = {
 	},
 
 	_find_cell_next:function(start, check, direction){
-		var row = this.getIndexById(start.row);
-		var column = this.getColumnIndex(start.column);
-		var order = this.data.order;
-		var cols = this._columns;
+		const row = this.getIndexById(start.row);
+		let column = this.getColumnIndex(start.column);
+		const order = this.data.order;
+		const cols = this._columns;
 
 		if (direction){
-
 			for (let i=row; i<order.length; i++){
 				for (let j=column+1; j<cols.length; j++){
-					let id = { row:order[i], column:cols[j].id};
-					if (check.call(this, id) && (!this._checkCellMerge || !this._checkCellMerge(start,id))){
+					const id = { row:order[i], column:cols[j].id };
+					if (check.call(this, id) && (!this._checkCellMerge || !this._checkCellMerge(start, id))){
+						id.toString = this._id_to_string;
 						return id;
 					}
 				}
@@ -264,9 +264,11 @@ const Mixin = {
 		} else {
 			for (let i=row; i>=0; i--){
 				for (let j=column-1; j>=0; j--){
-					let id = { row:order[i], column:cols[j].id};
-					if (check.call(this, id))
+					const id = { row:order[i], column:cols[j].id };
+					if (check.call(this, id)){
+						id.toString = this._id_to_string;
 						return id;
+					}
 				}
 				column = cols.length;
 			}

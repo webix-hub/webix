@@ -31,7 +31,7 @@ const Mixin = {
 
 					this._last_hover = row;
 					if (this._last_hover)
-						this.addRowCss( this._last_hover, this._settings.hover );
+						this.addRowCss(this._last_hover, this._settings.hover);
 				}
 			});
 

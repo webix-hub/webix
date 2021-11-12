@@ -154,8 +154,13 @@ const api = {
 		const oldvalue = this._settings.value;
 
 		if (this.$compareValue(oldvalue, value)){
-			if (this._rendered_input && value != this.$getValue())
-				this.$setValue(value);
+			//controls with post formating, we need to repaint value
+			if(this._rendered_input && this._pattern){
+				value = this._pattern(value);
+				const input = this.getInputNode();
+				if(input && !isUndefined(input.value) && input.value != value)
+					this.$setValue(value);
+			}
 			return;
 		}
 
@@ -186,7 +191,7 @@ const api = {
 	getValue:function(){
 		//if button was rendered - returning actual value
 		//otherwise - returning last set value
-		var value = this._rendered_input? this.$getValue() : this._settings.value;
+		var value = this._rendered_input ? this.$getValue() : this._settings.value;
 		return (typeof value == "undefined") ? "" : value;
 	},
 	$getValue:function(){

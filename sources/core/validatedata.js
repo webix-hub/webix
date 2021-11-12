@@ -123,8 +123,7 @@ const ValidateData = {
 			if(this.callEvent("onValidationSuccess",[key, obj]) && this._clear_invalid)
 				this._clear_invalid(key);
 			return true;
-		}
-		else {
+		} else {
 			if(this.callEvent("onValidationError",[key, obj]) && this._mark_invalid)
 				this._mark_invalid(key);
 		}

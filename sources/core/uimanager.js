@@ -18,8 +18,6 @@ const UIManager = {
 	_view: null,
 	_hotkeys: {},
 	_focus_time:0,
-	_tab_time:0,
-	_mouse_time:0,
 	_controls: {
 		"esc": "escape",
 		"up": "arrowup",
@@ -47,9 +45,6 @@ const UIManager = {
 		// attaching events here
 		event(document, "keydown", this._keypress, { bind:this });
 		event(document.body, "click", this._focus_click, { capture:true, bind:this });
-		event(document.body, "mousedown", function(){
-			this._mouse_time = new Date();
-		}, { bind:this });
 		event(document.body, "focus", this._focus_tab, { capture:true, bind:this });
 
 		state.destructors.push({obj:this});
@@ -180,9 +175,12 @@ const UIManager = {
 	},
 	_keypress: function(e) {
 		let code = e.which || e.keyCode;
+
+		// processing or not found
+		if (code == 229 || code == 0) return;
+
 		// numpad keys
-		if(code>95 && code< 106)
-			code -= 48;
+		if (code > 95 && code < 106) code -= 48;
 
 		const view = this.getFocus();
 		if (view && view.callEvent) {
@@ -228,7 +226,6 @@ const UIManager = {
 	},
 	_tab_logic:function(view, e){
 		var mode = !e.shiftKey;
-		UIManager._tab_time = new Date();
 		if (view && view._custom_tab_handler && !view._custom_tab_handler(mode, e))
 			return false;
 

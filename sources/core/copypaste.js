@@ -38,7 +38,7 @@ const CopyPaste = {
 	},
 	_sel_to_clip: function() {
 		delay(() => { //wait until editor is closed
-			if (!this.getEditor || !this.getEditor()){
+			if (!this.$destructed && (!this.getEditor || !this.getEditor())){
 				const sel = this.getSelectedId(true);
 				const data = [];
 				for(let i = 0; i < sel.length; i++){
@@ -62,8 +62,8 @@ const CopyPaste = {
 		},
 		// change value of each selected item
 		modify: function(text) {
-			var sel = this.getSelectedId(true);
-			for (var i = 0; i < sel.length; i++) {
+			const sel = this.getSelectedId(true);
+			for (let i = 0; i < sel.length; i++) {
 				if(isUndefined(text[i]))
 					return;
 				this.getItem(sel[i]).value = text[i];

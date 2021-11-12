@@ -1,6 +1,7 @@
 /*basis*/
 .webix_tree{
 	.webix_scroll_cont > .webix_tree_leaves{
+		display: inline-block;
 		padding: 8px;
 	}
 }
@@ -25,11 +26,10 @@
 }
 
 .webix_tree_checkbox{
-	margin:1px 0 0;
+	margin: 0px;
     padding: 0px;
-	float:left;
-	vertical-align: middle;
-	height:100%;
+	vertical-align: top;
+	height: 100%;
 	width: 13px;
 }
 .webix_indeterminate{
@@ -57,13 +57,14 @@
 }
 
 .webix_tree_close, .webix_tree_open, .webix_tree_none, .webix_tree_folder, .webix_tree_file, .webix_tree_folder_open{
-	float:left;
-	width:20px;
-    height:100%;
-	cursor:pointer;
+	display: inline-block;
+	vertical-align: top;
+	width: 20px;
+    height: 100%;
+	cursor: pointer;
 
-	margin:0px 0px 0px 0px;
-	background-repeat:no-repeat;
+	margin: 0;
+	background-repeat: no-repeat;
 }
 
 @treeIconTopOffset: (@treeItemHeight - 18)/2;
@@ -71,7 +72,6 @@
 @treeIconTopOffset2: (@treeItemHeight - 18)/2;
 .webix_tree_close, .webix_tree_open, .webix_tree_none{
 	background-position: center center;
-	//background-color: @backColor;
 }
 //treetable
 .webix_cell{
@@ -88,6 +88,7 @@
 }
 
 .webix_tree_leaves .webix_tree_leaves{
+	display: block;
 	margin-left:20px;
 }
 .webixLineTree .webix_tree_leaves{

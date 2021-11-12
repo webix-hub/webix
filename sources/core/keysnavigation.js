@@ -45,50 +45,55 @@ const KeysNavigation = {
 		};
 	},
 	moveSelection:function(mode, details, focus){
-		var config = this._settings;
-		if(config.disabled) return;
-		//get existing selection
-		var selected = this.getSelectedId(true);
-		var x_layout = (this.count && (config.layout =="x" || config.xCount > 1));
+		const config = this._settings;
+		if (config.disabled) return;
 
-		if((mode == "right" || mode == "left") && this._parent_menu){
-			var parent = $$(this._parent_menu);
-
+		if ((mode == "right" || mode == "left") && this._parent_menu){
+			const parent = $$(this._parent_menu);
 			parent._hide_sub_menu(true);
-			if(parent.config.layout === "x")
+			if (parent.config.layout === "x")
 				parent.moveSelection(mode);
 			else
 				UIManager.setFocus(parent);
 			return;
 		}
 
+		//get existing selection
+		let selected = this.getSelectedId(true);
+		const x_layout = (this.count && (config.layout =="x" || config.xCount > 1));
+
+		let prev = true;
 		if (!selected.length && this.count()){
 			if (mode == "down" || (mode == "right" && x_layout)) mode = "top";
 			else if (mode == "up" || (mode == "left" && x_layout)) mode = "bottom";
 			else return;
 			selected = [this.getFirstId()];
+			prev = false;
 		}
 
 		if (selected.length == 1){  //if we have a selection
 			selected = selected[0];
-			var prev = selected;
+			prev = (prev === true) ? selected : null;
 
-			if (mode == "left" && this.close)
-				return this.close(selected);
-			if (mode == "right" && this.open)
-				return this.open(selected);
+			if (mode == "left"){
+				if (this.close) return this.close(selected);	//tree
+				if (this._level_up && this._level_up(selected)) return this.render();	//grouplist
+			} else if (mode == "right"){
+				if (this.open) return this.open(selected);
+				if (this._level_down && this._level_down(selected)) return this.render();
+			}
 
-			else if (mode == "top") {
+			if (mode == "top") {
 				selected = this.getFirstId();
 			} else if (mode == "bottom") {
 				selected = this.getLastId();
 			} else if (mode == "up" || mode == "left" || mode == "pgup") {
-				let index = this.getIndexById(selected);
-				let step = mode == "pgup" ? 10 : 1;
+				const index = this.getIndexById(selected);
+				const step = mode == "pgup" ? 10 : 1;
 				selected = this.getIdByIndex(Math.max(0, index-step));
 			} else if (mode == "down" || mode == "right" || mode == "pgdown") {
-				let index = this.getIndexById(selected);
-				let step = mode == "pgdown" ? 10 : 1;
+				const index = this.getIndexById(selected);
+				const step = mode == "pgdown" ? 10 : 1;
 				selected = this.getIdByIndex(Math.min(this.count()-1, index+step));
 			} else {
 				assert(false, "Not supported selection moving mode");
@@ -96,18 +101,20 @@ const KeysNavigation = {
 			}
 
 			const dir = (mode == "up" || mode == "left" || mode == "pgdown" || mode == "bottom")?-1:1;
-			if(this._skip_item)
+			if (this._skip_item) {
 				selected = this._skip_item(selected, prev, dir);
+				if (!selected) return;
+			}
 
 			this.showItem(selected);
 			this.select(selected);
 
-			if(this.getSubMenu && this.getSubMenu(selected))
+			if (this.getSubMenu && this.getSubMenu(selected))
 				this._mouse_move_activation(selected, this.getItemNode(selected));
 
-			if(!this.config.clipboard && focus !== false){
-				var node = this.getItemNode(selected);
-				if(node) node.focus();
+			if (!config.clipboard && focus !== false){
+				const node = this.getItemNode(selected);
+				if (node) node.focus();
 			}
 		}
 		return false;

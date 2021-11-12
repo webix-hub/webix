@@ -36,7 +36,10 @@ const api = {
 			// locate can return null in case of drag
 			if (value){
 				const oldvalue = this._settings.value;
-				value = this.setValue(value, "user");
+				this.setValue(value, "user");
+
+				//value can be changed via setValue
+				value = this._settings.value;
 
 				this.callEvent("onItemClick", [value, e]);
 				if (value != oldvalue)
@@ -106,7 +109,6 @@ const api = {
 			this.$setValue(value);
 			this.callEvent("onChange", [value, oldvalue, config]);
 		}
-		return value;
 	},
 	$setValue:function(value){
 		if(this.isVisible(this._settings.id)){

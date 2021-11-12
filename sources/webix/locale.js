@@ -9,7 +9,7 @@ import template from "./template";
 
 
 function extend(base,source){
-	for (var method in source){
+	for (let method in source){
 		if(typeof(source[method]) == "object" && !isArray(source[method])){
 			if(!base[method]){
 				base[method] = {};
@@ -27,14 +27,16 @@ i18n.setLocale = function(locale){
 	if (typeof locale == "string")
 		locale = i18n.locales[locale];
 	if (locale){
+		const origin = copy(en);
 		locale.priceSettings  = copy(locale.priceSettings || locale);
-		extend(i18n, locale);
+		extend(origin, locale);
+		extend(i18n, origin);
 		delete i18n.calendar.monthShort_hash;
 		delete i18n.calendar.monthFull_hash;
 	}
-	for( var i=0; i<helpers.length; i++){
-		var key = helpers[i];
-		var utc = i18n[key+"UTC"];
+	for( let i=0; i<helpers.length; i++){
+		const key = helpers[i];
+		const utc = i18n[key+"UTC"];
 		i18n[key+"Str"] = wDate.dateToStr(i18n[key], utc);
 		i18n[key+"Date"] = wDate.strToDate(i18n[key], utc);
 	}

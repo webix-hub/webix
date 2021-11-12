@@ -1825,6 +1825,7 @@ button,
 }
 /*basis*/
 .webix_tree .webix_scroll_cont > .webix_tree_leaves {
+  display: inline-block;
   padding: 8px;
 }
 .webix_tree_item {
@@ -1849,10 +1850,9 @@ button,
   background-color: #ffeeee;
 }
 .webix_tree_checkbox {
-  margin: 1px 0 0;
+  margin: 0px;
   padding: 0px;
-  float: left;
-  vertical-align: middle;
+  vertical-align: top;
   height: 100%;
   width: 13px;
 }
@@ -1887,11 +1887,12 @@ button,
 .webix_tree_folder,
 .webix_tree_file,
 .webix_tree_folder_open {
-  float: left;
+  display: inline-block;
+  vertical-align: top;
   width: 20px;
   height: 100%;
   cursor: pointer;
-  margin: 0px 0px 0px 0px;
+  margin: 0;
   background-repeat: no-repeat;
 }
 .webix_tree_close,
@@ -1915,6 +1916,7 @@ button,
   margin: 0px 2px;
 }
 .webix_tree_leaves .webix_tree_leaves {
+  display: block;
   margin-left: 20px;
 }
 .webixLineTree .webix_tree_leaves {
@@ -5348,6 +5350,7 @@ legend.webix_forminput_label_top {
   line-height: 44px;
 }
 .webix_sidebar .webix_scroll_cont > .webix_tree_leaves {
+  display: block;
   padding: 0;
 }
 .webix_sidebar .webix_tree_leaves .webix_tree_leaves {

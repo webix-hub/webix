@@ -263,7 +263,10 @@ function _createBox(config, ok, cancel, hasInput){
 	//necessary for IE only
 	box.onkeydown = modal_key;
 
-	box.focus();
+	if(hasInput)
+		box.querySelector(".webix_popup_input input").focus();
+	else
+		box.focus();
 
 	if (!config.id)
 		config.id = _uid("modalbox");

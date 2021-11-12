@@ -153,23 +153,24 @@ const Values = {
 		}
 	},
 	_mark_invalid:function(id){
-		var input = this.elements[id];
-		if (id && input){
-			this._clear_invalid(id,true);
-			addCss(input._viewobj, "webix_invalid");
+		const input = this.elements[id];
+		if (input && !input._settings.invalid){
+			addCss(input._viewobj, "webix_invalid", true);
 			input._settings.invalid = true;
-			var message = input._settings.invalidMessage;
-			if(typeof message === "string" && input.setBottomText)
+
+			const message = input._settings.invalidMessage;
+			if (typeof message === "string" && input.setBottomText)
 				input.setBottomText();
 		}
 	},
-	_clear_invalid:function(id,silent){
-		var input = this.elements[id];
-		if(id && input && input.$view && input._settings.invalid){
+	_clear_invalid:function(id){
+		const input = this.elements[id];
+		if (input && input._settings.invalid){
 			removeCss(input._viewobj, "webix_invalid");
 			input._settings.invalid = false;
-			var message = input._settings.invalidMessage;
-			if(typeof message === "string" && !silent && input.setBottomText)
+
+			const message = input._settings.invalidMessage;
+			if (typeof message === "string" && input.setBottomText)
 				input.setBottomText();
 		}
 	}

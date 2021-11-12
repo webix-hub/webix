@@ -2,7 +2,7 @@ import {protoUI, ui, $$} from "../ui/core";
 import {$active} from "../webix/skin";
 import {isUndefined, isArray, extend, uid} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
-import {setSelectionRange, getTextSize} from "../webix/html";
+import {getSelectionRange, setSelectionRange, getTextSize} from "../webix/html";
 import {assert} from "../webix/debug";
 import template from "../webix/template";
 
@@ -22,7 +22,7 @@ const api = {
 			//attach onChange handler only for controls which do not manage blur on their own
 			//for example - combo
 			if (!this._onBlur)
-				_event(node, "change", this._applyChanges, {bind:this});
+				_event(node, "change", () => this._applyChanges("user"));
 			if (c.suggest)
 				$$(c.suggest).linkInput(this);
 			if (c.clear && !this.addSection){
@@ -35,12 +35,9 @@ const api = {
 			}
 		}
 	},
-	_applyChanges: function(){
+	_applyChanges: function(с){
 		const value = this.getValue();
-		const res = this.setValue(value, "user");
-		//controls with post formating, we need to repaint value
-		if (this._custom_format && res === false )
-			this.$setValue(value);
+		this.setValue(value, с);
 	},
 	_toggleClearIcon:function(value){
 		const c = this._settings;
@@ -168,14 +165,23 @@ const api = {
 	},
 	setBottomText: function(text, height){
 		const config = this._settings;
-		if (typeof text != "undefined"){
+		if (!isUndefined(text)){
 			if (config.bottomLabel == text) return;
 			config.bottomLabel = text;
 		}
 
-		const message = (config.invalid ? config.invalidMessage : "" ) || config.bottomLabel;
+		let sel;
+		const input = this.getInputNode();
+		if (input && !isUndefined(input.value)){
+			if (input == document.activeElement) sel = getSelectionRange(input);
+			// save input value before rendering
+			this._applyChanges("auto");
+		}
+
+		const message = (config.invalid ? config.invalidMessage : "") || config.bottomLabel;
 		if (!message && !config.bottomPadding)
 			config.inputHeight = 0;
+
 		if (message && !config.bottomPadding){
 			this._restorePadding = 1;
 			config.bottomPadding = config.bottomPadding || height || 18;	
@@ -185,12 +191,14 @@ const api = {
 		} else if (!message && this._restorePadding){
 			config.bottomPadding = this._restorePadding = 0;
 			//textarea
-			if (!config.height)
-				this.render();
+			if (!config.height) this.render();
 			this.adjust();
 			this.resize();
 		} else
 			this.render();
+
+		if (sel)
+			setSelectionRange(this.getInputNode(), sel.start, sel.end);
 	},
 	$getSize: function(){
 		const sizes = base.api.$getSize.apply(this,arguments);
@@ -363,7 +371,8 @@ const api = {
 					return $$(value)._settings.id;
 
 				value = { body: { url:value , dataFeed:value }};
-			} else if(value.getItem)
+			}
+			else if (value.getItem)
 				value = { body: { data:value }};
 			else if (isArray(value))
 				value = { body: { data: this._check_options(value) }};
@@ -374,6 +383,8 @@ const api = {
 
 			const view = ui(value);
 			this._destroy_with_me.push(view);
+
+			this.$ready.push(() => view._settings.master = this._settings.id);
 			return view._settings.id;
 		}
 		return false;

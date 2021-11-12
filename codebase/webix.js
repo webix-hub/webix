@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.9.0.0
+ * webix UI v.9.1.0
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -3811,7 +3811,7 @@
     box.style.left = x + "px"; //necessary for IE only
 
     box.onkeydown = modal_key;
-    box.focus();
+    if (hasInput) box.querySelector(".webix_popup_input input").focus();else box.focus();
     if (!config.id) config.id = _uid("modalbox");else if (modalbox.pull[config.id]) {
       modalbox.hide(config.id);
     }
@@ -4141,8 +4141,6 @@
     _view: null,
     _hotkeys: {},
     _focus_time: 0,
-    _tab_time: 0,
-    _mouse_time: 0,
     _controls: {
       "esc": "escape",
       "up": "arrowup",
@@ -4173,11 +4171,6 @@
       });
       event$1(document.body, "click", this._focus_click, {
         capture: true,
-        bind: this
-      });
-      event$1(document.body, "mousedown", function () {
-        this._mouse_time = new Date();
-      }, {
         bind: this
       });
       event$1(document.body, "focus", this._focus_tab, {
@@ -4304,7 +4297,9 @@
       if (this && this.callEvent) this.callEvent("onTimedKeyPress", []);
     },
     _keypress: function (e) {
-      var code = e.which || e.keyCode; // numpad keys
+      var code = e.which || e.keyCode; // processing or not found
+
+      if (code == 229 || code == 0) return; // numpad keys
 
       if (code > 95 && code < 106) code -= 48;
       var view = this.getFocus();
@@ -4350,7 +4345,6 @@
     },
     _tab_logic: function (view, e) {
       var mode = !e.shiftKey;
-      UIManager._tab_time = new Date();
       if (view && view._custom_tab_handler && !view._custom_tab_handler(mode, e)) return false;
 
       if (view && view._in_edit_mode) {
@@ -8270,7 +8264,7 @@
 
       delay(function () {
         //wait until editor is closed
-        if (!_this.getEditor || !_this.getEditor()) {
+        if (!_this.$destructed && (!_this.getEditor || !_this.getEditor())) {
           var sel = _this.getSelectedId(true);
 
           var data = [];
@@ -11638,7 +11632,7 @@
         if (type.config.liveEdit) this._live_edits_handler = this.attachEvent("onKeyPress", this._handle_live_edits);
         var area = type.getPopup ? type.getPopup(node)._viewobj : node;
         if (area) _event(area, "click", this._reset_active_editor);
-        if (node) _event(node, "change", this._on_editor_change, {
+        if (node) _event(node, "input", this._on_editor_change, {
           bind: {
             view: this,
             id: id
@@ -12694,10 +12688,7 @@
     },
     moveSelection: function (mode, details, focus) {
       var config = this._settings;
-      if (config.disabled) return; //get existing selection
-
-      var selected = this.getSelectedId(true);
-      var x_layout = this.count && (config.layout == "x" || config.xCount > 1);
+      if (config.disabled) return;
 
       if ((mode == "right" || mode == "left") && this._parent_menu) {
         var parent = $$(this._parent_menu);
@@ -12706,19 +12697,34 @@
 
         if (parent.config.layout === "x") parent.moveSelection(mode);else UIManager.setFocus(parent);
         return;
-      }
+      } //get existing selection
+
+
+      var selected = this.getSelectedId(true);
+      var x_layout = this.count && (config.layout == "x" || config.xCount > 1);
+      var prev = true;
 
       if (!selected.length && this.count()) {
         if (mode == "down" || mode == "right" && x_layout) mode = "top";else if (mode == "up" || mode == "left" && x_layout) mode = "bottom";else return;
         selected = [this.getFirstId()];
+        prev = false;
       }
 
       if (selected.length == 1) {
         //if we have a selection
         selected = selected[0];
-        var prev = selected;
-        if (mode == "left" && this.close) return this.close(selected);
-        if (mode == "right" && this.open) return this.open(selected);else if (mode == "top") {
+        prev = prev === true ? selected : null;
+
+        if (mode == "left") {
+          if (this.close) return this.close(selected); //tree
+
+          if (this._level_up && this._level_up(selected)) return this.render(); //grouplist
+        } else if (mode == "right") {
+          if (this.open) return this.open(selected);
+          if (this._level_down && this._level_down(selected)) return this.render();
+        }
+
+        if (mode == "top") {
           selected = this.getFirstId();
         } else if (mode == "bottom") {
           selected = this.getLastId();
@@ -12736,13 +12742,19 @@
           assert(false, "Not supported selection moving mode");
           return;
         }
+
         var dir = mode == "up" || mode == "left" || mode == "pgdown" || mode == "bottom" ? -1 : 1;
-        if (this._skip_item) selected = this._skip_item(selected, prev, dir);
+
+        if (this._skip_item) {
+          selected = this._skip_item(selected, prev, dir);
+          if (!selected) return;
+        }
+
         this.showItem(selected);
         this.select(selected);
         if (this.getSubMenu && this.getSubMenu(selected)) this._mouse_move_activation(selected, this.getItemNode(selected));
 
-        if (!this.config.clipboard && focus !== false) {
+        if (!config.clipboard && focus !== false) {
           var node = this.getItemNode(selected);
           if (node) node.focus();
         }
@@ -15050,7 +15062,7 @@
 
       delay(function () {
         //wait until editor is closed
-        if (!_this.getEditor || !_this.getEditor()) {
+        if (!_this.$destructed && (!_this.getEditor || !_this.getEditor())) {
           var data = _this._get_sel_text();
 
           clipbuffer.set(data);
@@ -16746,23 +16758,21 @@
     _mark_invalid: function (id) {
       var input = this.elements[id];
 
-      if (id && input) {
-        this._clear_invalid(id, true);
-
-        addCss(input._viewobj, "webix_invalid");
+      if (input && !input._settings.invalid) {
+        addCss(input._viewobj, "webix_invalid", true);
         input._settings.invalid = true;
         var message = input._settings.invalidMessage;
         if (typeof message === "string" && input.setBottomText) input.setBottomText();
       }
     },
-    _clear_invalid: function (id, silent) {
+    _clear_invalid: function (id) {
       var input = this.elements[id];
 
-      if (id && input && input.$view && input._settings.invalid) {
+      if (input && input._settings.invalid) {
         removeCss(input._viewobj, "webix_invalid");
         input._settings.invalid = false;
         var message = input._settings.invalidMessage;
-        if (typeof message === "string" && !silent && input.setBottomText) input.setBottomText();
+        if (typeof message === "string" && input.setBottomText) input.setBottomText();
       }
     }
   };
@@ -17216,7 +17226,7 @@
     }
   };
 
-  var version$1 = "9.0.0";
+  var version$1 = "9.1.0";
   var name$1 = "core";
 
   var errorMessage = "non-existing view for export";
@@ -17873,11 +17883,11 @@
   function addPDFHeader(doc, options) {
     //doc footer
     if (options.docFooter !== false) {
-      var ft = doc.footer();
-      ft.text({
+      options.docFooter = exports.extend(options.docFooter || {}, {
         color: 0x666666,
         textAlign: "center"
-      }).append(i18n.dataExport.page || "Page").pageNumber().append("  " + (i18n.dataExport.of || "of") + "  ").pageCount();
+      });
+      doc.footer().text(options.docFooter).append(i18n.dataExport.page || "Page").pageNumber().append("  " + (i18n.dataExport.of || "of") + "  ").pageCount();
     }
 
     var horder = {
@@ -18936,8 +18946,10 @@
     if (typeof locale == "string") locale = i18n.locales[locale];
 
     if (locale) {
+      var origin = copy(en);
       locale.priceSettings = copy(locale.priceSettings || locale);
-      extend(i18n, locale);
+      extend(origin, locale);
+      extend(i18n, origin);
       delete i18n.calendar.monthShort_hash;
       delete i18n.calendar.monthFull_hash;
     }
@@ -24348,7 +24360,9 @@
       return wDate.dateToStr(format);
     },
     date_setter: function (date) {
-      return this._string_to_date(date);
+      date = wDate.copy(this._string_to_date(date));
+      date.setDate(1);
+      return date;
     },
     maxDate_setter: function (date) {
       return this._string_to_date(date);
@@ -24373,24 +24387,26 @@
       return time;
     },
     _ariaFocus: function () {
-      var ev = "focus" + (env.isIE ? "in" : "");
+      var _this = this;
 
       if (!env.touch) {
-        _event(this.$view, ev, bind(function (e) {
-          var t = e.target.className;
-          var css = t.indexOf("webix_cal_day") !== -1 ? "webix_cal_day" : t.indexOf("webix_cal_block") !== -1 ? "webix_cal_block" : "";
+        _event(this.$view, "mousedown", function () {
+          _this._mouse_time = new Date();
+        });
 
-          if (new Date() - UIManager._tab_time > 300 && new Date() - UIManager._mouse_time > 100 && css) {
-            var prev = e.relatedTarget;
+        _event(this.$view, "focus", function (e) {
+          // in daterange
+          if (_this._settings.master) return;
+          var prev = e.relatedTarget;
+          var css = e.target.className.indexOf("webix_cal_day") !== -1;
 
-            if (prev && !isUndefined(prev.className)) {
-              var date = css == "webix_cal_day" ? this._locate_day(e.target) : this._locate_date(e.target);
+          if (prev && new Date() - _this._mouse_time > 100 && css && _this.$view.contains(prev)) {
+            var day = _this._locate_day(e.target);
 
-              this._moveSelection(date);
-            }
+            if (!_this._selectedDay(day)) _this._moveSelection(day);
           }
-        }, this), {
-          capture: !env.isIE
+        }, {
+          capture: true
         });
       }
     },
@@ -24409,6 +24425,15 @@
       this._ariaFocus();
 
       this.attachEvent("onKeyPress", this._onKeyPress);
+    },
+    _onKeyPress: function (code, e) {
+      var target = e.target,
+          role = target.getAttribute("role");
+
+      if ((code === 13 || code === 32) && (role == "button" || role == "log") && !this._settings.disabled) {
+        triggerEvent(target, "MouseEvents", "click");
+        preventEvent(e);
+      }
     },
     minuteStep_setter: function (value) {
       return Math.max(Math.min(value, 60), this.defaults.minuteStep);
@@ -24452,11 +24477,17 @@
     _moveSelection: function (date, mode, focus) {
       var css = this._zoom_logic[this._zoom_level]._keyshift(date, mode, this);
 
-      if (focus !== false) {
-        var sel = this._viewobj.querySelector("." + css + "[tabindex='0']");
+      if (focus !== false) this._restore_focus(css);
+    },
+    _restore_focus: function (css, ind) {
+      var sel;
 
-        if (sel) sel.focus();
-      }
+      if (ind) {
+        sel = this._viewobj.querySelector(".webix_cal_body");
+        sel = sel.childNodes[ind.rind].childNodes[ind.cind + (this._settings.weekNumber ? 1 : 0)];
+      } else sel = this._viewobj.querySelector("." + css + "[tabindex='0']");
+
+      if (sel) sel.focus();
     },
     _getDateBoundaries: function (date, reset) {
       // addition information about rendering event:
@@ -24567,17 +24598,17 @@
       var html = "";
 
       if (s.monthHeader) {
-        html += "<div class='webix_cal_month' style='margin:0 " + cpad + "'><span aria-live='assertive' aria-atomic='true' class='webix_cal_month_name" + (!s.monthSelect || !s.navigation ? " webix_readonly'" : "' role='button' tabindex='0'") + ">" + s.calendarHeader(date) + "</span>";
+        html += "<div class='webix_cal_month' style='margin:0 " + cpad + "'><span role='log' aria-live='assertive' aria-atomic='true' class='webix_cal_month_name" + (!s.monthSelect || !s.navigation ? " webix_readonly'" : "' role='button' tabindex='0'") + ">" + s.calendarHeader(date) + "</span>";
         if (s.navigation) html += "<div role='button' tabindex='0' aria-label='" + i18n.aria.navMonth[0] + "' class='webix_cal_prev_button'></div><div role='button' tabindex='0' aria-label='" + i18n.aria.navMonth[1] + "' class='webix_cal_next_button'></div>";
         html += "</div>";
       }
 
       if (s.weekHeader) html += "<div class='webix_cal_header' style='margin:0 " + cpad + "' aria-hidden='true'>" + this._week_template(width) + "</div>";
-      html += "<div class='webix_cal_body' style='margin:0 " + cpad + "'>" + this._body_template(width, height, bounds, sizes[2]) + "</div>";
+      html += "<div class='webix_cal_body' role='grid' style='margin:0 " + cpad + "'>" + this._body_template(width, height, bounds, sizes[2]) + "</div>";
 
-      if (this._settings.timepicker || this._icons) {
+      if (s.timepicker || this._icons) {
         html += "<div class='webix_cal_footer' style='margin:0 " + cpad + "'>";
-        if (this._settings.timepicker) html += this._timepicker_template(date);
+        if (s.timepicker) html += this._timepicker_template(date);
         if (this._icons) html += this._icons_template();
         html += "</div>";
       }
@@ -24585,8 +24616,8 @@
       this._contentobj.innerHTML = html;
       this._contentobj.firstChild.style.marginTop = cpad;
 
-      if (this._settings.type == "time") {
-        var time = this._settings.date;
+      if (s.type == "time") {
+        var time = s.date;
 
         if (time) {
           if (typeof time == "string") {
@@ -24598,9 +24629,9 @@
         }
 
         this._changeZoomLevel(-1, date);
-      } else if (this._settings.type == "month") {
+      } else if (s.type == "month") {
         this._changeZoomLevel(1, date);
-      } else if (this._settings.type == "year") {
+      } else if (s.type == "year") {
         this._changeZoomLevel(2, date);
       }
 
@@ -24685,13 +24716,14 @@
     },
     _body_template: function (widths, heights, bounds, sqSize) {
       var s = this._settings;
-      var html = "";
-      var day = wDate.datePart(wDate.copy(bounds._start));
       var start = s.weekNumber ? 1 : 0;
+      var day = wDate.datePart(wDate.copy(bounds._start));
       var weekNumber = wDate.getISOWeek(wDate.add(day, 2, "day", true));
+      var html = "",
+          focusable;
 
       for (var y = 0; y < heights.length; y++) {
-        html += "<div class='webix_cal_row' style='height:" + heights[y] + "px;line-height:" + heights[y] + "px'>";
+        html += "<div class='webix_cal_row' role='row' style='height:" + heights[y] + "px;line-height:" + heights[y] + "px'>";
 
         if (start) {
           // recalculate week number for the first week of a year
@@ -24700,57 +24732,56 @@
         }
 
         for (var x = start; x < widths.length; x++) {
-          var css = this._day_css(day, bounds);
-
-          var d = this._settings.dayTemplate.call(this, day);
-
           var sel = this._selectedDay(day);
 
-          var alabel = "";
+          var css = this._day_css(day, bounds);
 
-          var isOutside = day.getMonth() != bounds._month;
+          var d = s.dayTemplate.call(this, day);
+          var alabel = "";
 
           if (_typeof(d) == "object") {
             alabel = d.aria || alabel;
             d = d.text;
           } else alabel = wDate.dateToStr(i18n.aria.dateFormat)(day);
 
-          html += "<div day='" + x + "' role='gridcell' " + (isOutside ? "aria-hidden='true'" : "") + " aria-label='" + alabel + "' tabindex='" + (sel && !isOutside ? "0" : "-1") + "' aria-selected='" + (sel && !isOutside ? "true" : "false") + "' class='" + css + "' style='text-align:center; width:" + widths[x] + "px'><span aria-hidden='true' class='webix_cal_day_inner' style='display:inline-block; " + this._getCalSizesString(sqSize, sqSize) + "'>" + d + "</span></div>";
-          day = wDate.add(day, 1, "day");
+          var isOutside = day.getMonth() != bounds._month;
 
-          if (day.getHours()) {
-            day = wDate.datePart(day);
-          }
+          var tabindex = sel && !isOutside ? "0" : "-1";
+          if (day.getDate() == 1 && !isOutside) tabindex = "$webix_tabindex";
+          if (tabindex == "0") focusable = true;
+          html += "<div day='" + x + "' role='gridcell' " + (isOutside ? "aria-hidden='true'" : "") + " aria-label='" + alabel + "' tabindex='" + tabindex + "' aria-selected='" + (sel && !isOutside ? "true" : "false") + "' class='" + css + "' style='text-align:center; width:" + widths[x] + "px'><span aria-hidden='true' class='webix_cal_day_inner' style='display:inline-block; " + this._getCalSizesString(sqSize, sqSize) + "'>" + d + "</span></div>";
+          day = wDate.add(day, 1, "day");
+          if (day.getHours()) day = wDate.datePart(day);
         }
 
         html += "</div>";
         weekNumber++;
       }
 
-      return html;
+      return html.replace("$webix_tabindex", focusable || s.master ? "-1" : "0");
     },
     _changeDate: function (dir, step) {
-      var now = this._settings.date;
-
       if (!step) {
         step = this._zoom_logic[this._zoom_level]._changeStep;
       }
 
-      if (!this._zoom_level) {
-        now = wDate.copy(now);
-        now.setDate(1);
-      }
-
+      var now = this._settings.date;
       var next = wDate.add(now, dir * step, "month", true);
 
-      this._changeDateInternal(now, next);
+      this._changeDateInternal(now, next, dir);
     },
-    _changeDateInternal: function (now, next) {
+    _changeDateInternal: function (now, next, dir) {
       if (this.callEvent("onBeforeMonthChange", [now, next])) {
         if (this._zoom_level) {
           this._update_zoom_level(next);
         } else {
           this.showCalendar(next);
+
+          if (this._settings.monthHeader && this._settings.navigation) {
+            var css = "webix_cal_" + (dir > 0 ? "next" : "prev") + "_button";
+
+            this._restore_focus(css);
+          }
         }
 
         this.callEvent("onAfterMonthChange", [next, now]);
@@ -24836,8 +24867,6 @@
             if (mode === "up" && date.getHours() === 0) inc = 23;
             newdate = this._findActive(wDate.add(date, inc, "hour"), mode, calendar);
           } else if (mode === false) newdate = this._findActive(date, mode, calendar);
-
-          calendar.selectDate(newdate, false, false, "user");
 
           if (newdate) {
             calendar._update_zoom_level(newdate);
@@ -25036,7 +25065,7 @@
 
         this._correctBlockedTime();
 
-        html += "<div class='webix_hours'>";
+        html += "<div role='grid' class='webix_hours'><div role='row'>";
         selected = config.date.getHours();
         temp = wDate.copy(config.date);
 
@@ -25058,8 +25087,8 @@
           html += "<div aria-label='" + wDate.dateToStr(i18n.aria.hourFormat)(temp) + "' role='gridcell'" + " tabindex='" + (selected == i ? "0" : "-1") + "' aria-selected='" + (selected == i ? "true" : "false") + "' class='webix_cal_block" + css + "' data-value='" + i + "' style='" + this._getCalSizesString(width, height) + (i % 4 === 0 && !enLocale ? "clear:both;" : "") + "'><span style='display:inline-block; " + this._getCalSizesString(sqSize, sqSize) + "'>" + wDate.toFixed(enLocale ? !i || i == 12 ? 12 : i % 12 : i) + "</span></div>";
         }
 
-        html += "</div>";
-        html += "<div class='webix_minutes'>";
+        html += "</div></div>";
+        html += "<div role='grid' class='webix_minutes'><div role='row'>";
         selected = config.date.getMinutes();
         temp = wDate.copy(config.date);
 
@@ -25074,7 +25103,7 @@
           html += "<div aria-label='" + wDate.dateToStr(i18n.aria.minuteFormat)(temp) + "' role='gridcell' tabindex='" + (selected == i ? "0" : "-1") + "' aria-selected='" + (selected == i ? "true" : "false") + "' class='webix_cal_block webix_cal_block_min" + css + "' data-value='" + i + "' style='" + this._getCalSizesString(width, height) + (i / config.minuteStep % 2 === 0 ? "clear:both;" : "") + "'><span style='display:inline-block; " + this._getCalSizesString(sqSize, sqSize) + "'>" + wDate.toFixed(i) + "</span></div>";
         }
 
-        html += "</div>";
+        html += "</div></div>";
         html += "</div>";
         html += "<div class='webix_time_footer' style='margin:0 " + cpad + "'>" + this._timeButtonsTemplate() + "</div>";
         this._contentobj.innerHTML = html;
@@ -25084,11 +25113,13 @@
         //reset header
         if (config.monthHeader) {
           var header = sections[0].childNodes;
-          var labels = i18n.aria["nav" + (this._zoom_level == 1 ? "Year" : "Decade")];
-          header[0].innerHTML = zlogic._getTitle(config.date, this);
-          header[0].blur();
+
+          var title = zlogic._getTitle(config.date, this);
+
+          if (header[0].innerHTML != title) header[0].innerHTML = title;
 
           if (config.navigation) {
+            var labels = i18n.aria["nav" + (this._zoom_level == 1 ? "Year" : "Decade")];
             header[1].setAttribute("aria-label", labels[0]);
             header[2].setAttribute("aria-label", labels[1]);
           }
@@ -25116,7 +25147,7 @@
           if (index$$1 === 1) sections[index$$1].style.marginTop = cpad;
         }
 
-        sections[index$$1].innerHTML = html;
+        sections[index$$1].innerHTML = "<div role='row'>" + html + "</div>";
 
         if (type != "year" && type != "month") {
           if (!sections[index$$1 + 1]) this._contentobj.innerHTML += "<div class='webix_time_footer' style='margin:0 " + cpad + "'>" + this._timeButtonsTemplate() + "</div>";else sections[index$$1 + 1].innerHTML = this._timeButtonsTemplate();
@@ -25171,9 +25202,13 @@
         this.callEvent("onAfterDateSelect", [date]);
       }
     },
-    _locate_day: function (target) {
+    _locate_day: function (target, ind) {
       var cind = index(target) - (this._settings.weekNumber ? 1 : 0);
       var rind = index(target.parentNode);
+      if (ind) return {
+        cind: cind,
+        rind: rind
+      };
       var date = wDate.add(this._getDateBoundaries()._start, cind + rind * 7, "day", true);
 
       if (this._settings.timepicker) {
@@ -25209,9 +25244,12 @@
       webix_cal_day: function (e, id, target) {
         var date = this._locate_day(target);
 
+        var ind = this._settings.multiselect ? this._locate_day(target, true) : null;
         var add = this._settings.multiselect === "touch" || e.ctrlKey || e.metaKey;
 
         this._selectDate(date, add, "user");
+
+        this._restore_focus("webix_cal_day", ind);
       },
       webix_cal_time: function () {
         if (this._zoom_logic[this._zoom_level - 1]) {
@@ -25249,6 +25287,11 @@
           var next = this._locate_date(trg);
 
           this._update_zoom_level(next);
+
+          var css = "webix_cal_block";
+          if (trg.className.indexOf("webix_cal_block_min") !== -1) css = "webix_cal_block_min";
+
+          this._restore_focus(css);
         } else {
           if (trg.className.indexOf("webix_cal_day_disabled") == -1) this._mode_selected(trg, "user");
         }
@@ -25283,8 +25326,7 @@
       }
     },
     showCalendar: function (date) {
-      date = this._string_to_date(date);
-      this._settings.date = date;
+      this.define("date", date);
       this.render();
       this.resize();
     },
@@ -25365,7 +25407,9 @@
 
         if (value) {
           var oldvalue = this._settings.value;
-          value = this.setValue(value, "user");
+          this.setValue(value, "user"); //value can be changed via setValue
+
+          value = this._settings.value;
           this.callEvent("onItemClick", [value, e]);
           if (value != oldvalue) this.callEvent("onSelect", [value]);
         }
@@ -25426,8 +25470,6 @@
         this.$setValue(value);
         this.callEvent("onChange", [value, oldvalue, config]);
       }
-
-      return value;
     },
     $setValue: function (value) {
       if (this.isVisible(this._settings.id)) {
@@ -26176,7 +26218,13 @@
       var oldvalue = this._settings.value;
 
       if (this.$compareValue(oldvalue, value)) {
-        if (this._rendered_input && value != this.$getValue()) this.$setValue(value);
+        //controls with post formating, we need to repaint value
+        if (this._rendered_input && this._pattern) {
+          value = this._pattern(value);
+          var input = this.getInputNode();
+          if (input && !isUndefined(input.value) && input.value != value) this.$setValue(value);
+        }
+
         return;
       }
 
@@ -26488,9 +26536,9 @@
             return;
           }
 
-          preventEvent(e);
-
           this._on_key_pressed(e, code);
+
+          return false;
         });
         this.attachEvent("onAfterRender", this._after_render);
 
@@ -26549,24 +26597,17 @@
       }, this);
     },
     _after_render: function () {
-      var ev = env.isIE8 ? "propertychange" : "input";
-      if (!this._custom_format) _event(this.getInputNode(), ev, function () {
-        var stamp = new Date().valueOf(); //dark ie8 magic
+      var _this = this;
 
-        var width = this.$view.offsetWidth; //eslint-disable-line
-
-        if (!this._property_stamp || stamp - this._property_stamp > 100) {
-          this._property_stamp = stamp;
+      if (!this._custom_format) // ctrl+v handler
+        _event(this.getInputNode(), "input", function () {
           this.$setValue(this.getText());
-        }
-      }, {
-        bind: this
-      });
+        }, {
+          bind: this
+        });
 
       _event(this.getInputNode(), "blur", function () {
-        this._applyChanges();
-      }, {
-        bind: this
+        return _this._applyChanges("user");
       });
     },
     _patternScheme: function (pattern) {
@@ -26702,8 +26743,8 @@
         var node = this.getInputNode(); //attach onChange handler only for controls which do not manage blur on their own
         //for example - combo
 
-        if (!this._onBlur) _event(node, "change", this._applyChanges, {
-          bind: this
+        if (!this._onBlur) _event(node, "change", function () {
+          return _this._applyChanges("user");
         });
         if (c.suggest) $$(c.suggest).linkInput(this);
 
@@ -26718,11 +26759,9 @@
         }
       }
     },
-    _applyChanges: function () {
+    _applyChanges: function (с) {
       var value = this.getValue();
-      var res = this.setValue(value, "user"); //controls with post formating, we need to repaint value
-
-      if (this._custom_format && res === false) this.$setValue(value);
+      this.setValue(value, с);
     },
     _toggleClearIcon: function (value) {
       var c = this._settings;
@@ -26838,9 +26877,18 @@
     setBottomText: function (text, height) {
       var config = this._settings;
 
-      if (typeof text != "undefined") {
+      if (!isUndefined(text)) {
         if (config.bottomLabel == text) return;
         config.bottomLabel = text;
+      }
+
+      var sel;
+      var input = this.getInputNode();
+
+      if (input && !isUndefined(input.value)) {
+        if (input == document.activeElement) sel = getSelectionRange(input); // save input value before rendering
+
+        this._applyChanges("auto");
       }
 
       var message = (config.invalid ? config.invalidMessage : "") || config.bottomLabel;
@@ -26859,6 +26907,8 @@
         this.adjust();
         this.resize();
       } else this.render();
+
+      if (sel) setSelectionRange(this.getInputNode(), sel.start, sel.end);
     },
     $getSize: function () {
       var sizes = base$1.api.$getSize.apply(this, arguments);
@@ -27009,6 +27059,8 @@
       } else this.setValue(v, details && details.config);
     },
     suggest_setter: function (value) {
+      var _this2 = this;
+
       if (value) {
         assert(value !== true, "suggest options can't be set as true, data need to be provided instead");
 
@@ -27039,6 +27091,9 @@
 
         this._destroy_with_me.push(_view);
 
+        this.$ready.push(function () {
+          return _view._settings.master = _this2._settings.id;
+        });
         return _view._settings.id;
       }
 
@@ -27524,6 +27579,8 @@
           if (timeMode && value != "") {
             value.setHours(time.getHours());
             value.setMinutes(time.getMinutes());
+            value.setSeconds(time.getSeconds());
+            value.setMilliseconds(time.getMilliseconds());
           } else value = time;
         } //return string from getValue
 
@@ -27740,7 +27797,7 @@
       var value = this.getValue();
       this.$setValue(isUndefined(value) ? "" : value);
     },
-    _applyChanges: function () {
+    _applyChanges: function (c) {
       var input = this.getInputNode(),
           value = "",
           suggest = this.getPopup();
@@ -27750,7 +27807,7 @@
         if (suggest.getItemText(value) != this.getText()) value = suggest.getSuggestion() || value;
       }
 
-      if (value != this._settings.value) this.setValue(value, "user");else this.$setValue(value);
+      if (value != this._settings.value) this.setValue(value, c);else this.$setValue(value);
     },
     defaults: {
       template: function (config, common) {
@@ -30096,7 +30153,7 @@
       var value;
       var master;
       if (this._settings.master) master = $$(this._settings.master);
-      if (master && master._editable && master._settings.editable) master._applyChanges();else if (visible) {
+      if (master && master._editable && master._settings.editable) master._applyChanges("user");else if (visible) {
         if (list.count) {
           value = list.getSelectedId(false, true);
           if (list.count() == 1 && list.getFirstId() != value) value = list.getFirstId();
@@ -35049,51 +35106,48 @@
     },
     on_click: {
       webix_list_item: function (e, id) {
-        if (this._animation_promise) {
-          return false;
+        if (this._animation_promise) return false; // important: check _level_up() first
+
+        if (this._level_up(id) || this._level_down(id)) return this.render();else if (this._settings.select) {
+          this._no_animation = true;
+          if (this._settings.select == "multiselect" || this._settings.multiselect) this.select(id, false, this._settings.multiselect == "touch" || e.ctrlKey || e.metaKey, e.shiftKey); //multiselection
+          else this.select(id);
+          this._no_animation = false;
         }
-
-        for (var i = 0; i < this._nested_chain.length; i++) {
-          if (this._nested_chain[i] == id) {
-            //one level up
-            for (var j = i; j < this._nested_chain.length; j++) {
-              this.data.getItem(this._nested_chain[j]).$template = "";
-            }
-
-            if (!i) {
-              //top level
-              this._nested_cursor = this.data.branch[0];
-              this._nested_chain = [];
-            } else {
-              this._nested_cursor = this.data.branch[this._nested_chain[i - 1]];
-
-              this._nested_chain.splice(i);
-            }
-
-            this._is_level_down = false;
-            return this.render();
+      }
+    },
+    _level_up: function (id) {
+      for (var i = 0; i < this._nested_chain.length; i++) {
+        if (this._nested_chain[i] == id) {
+          for (var j = i; j < this._nested_chain.length; j++) {
+            this.data.getItem(this._nested_chain[j]).$template = "";
           }
-        }
 
-        var obj = this.getItem(id);
+          if (!i) {
+            //top level
+            this._nested_cursor = this.data.branch[0];
+            this._nested_chain = [];
+          } else {
+            this._nested_cursor = this.data.branch[this._nested_chain[i - 1]];
 
-        if (obj.$count) {
-          //one level down
-          this._is_level_down = true;
-
-          this._nested_chain.push(id);
-
-          obj.$template = "Back";
-          this._nested_cursor = this.data.branch[obj.id];
-          return this.render();
-        } else {
-          if (this._settings.select) {
-            this._no_animation = true;
-            if (this._settings.select == "multiselect" || this._settings.multiselect) this.select(id, false, this._settings.multiselect == "touch" || e.ctrlKey || e.metaKey, e.shiftKey); //multiselection
-            else this.select(id);
-            this._no_animation = false;
+            this._nested_chain.splice(i);
           }
+
+          this._is_level_down = false;
+          return true;
         }
+      }
+    },
+    _level_down: function (id) {
+      var obj = this.getItem(id);
+
+      if (obj.$count && _power_array.find.call(this._nested_chain, id) === -1) {
+        obj.$template = "Back";
+        this._nested_cursor = this.data.branch[obj.id];
+
+        this._nested_chain.push(id);
+
+        return this._is_level_down = true;
       }
     },
     getOpenState: function () {
@@ -35222,29 +35276,33 @@
       }
     },
     showItem: function (id) {
-      var obj, parent;
+      var index = this.data.getIndexById(id);
 
-      if (id) {
-        obj = this.getItem(id);
-        parent = obj.$parent;
-        if (obj.$count) parent = obj.id;
-      }
+      if (index === -1) {
+        var parent = 0;
 
-      this._nested_cursor = this.data.branch[parent || 0];
-      this._nested_chain = []; //build _nested_chain
+        if (id) {
+          var obj = this.getItem(id);
+          parent = obj.$count ? obj.id : obj.$parent;
+        }
 
-      while (parent) {
-        this.getItem(parent).$template = "Back";
+        this._nested_cursor = this.data.branch[parent];
+        this._nested_chain = []; //build _nested_chain
 
-        this._nested_chain.unshift(parent);
+        while (parent) {
+          this.getItem(parent).$template = "Back";
 
-        parent = this.getItem(parent).$parent;
-      } //render
+          this._nested_chain.unshift(parent);
+
+          parent = this.getItem(parent).$parent;
+        } //render
 
 
-      this._no_animation = true;
-      this.render();
-      this._no_animation = false; //scroll if necessary
+        this._no_animation = true;
+        this.render();
+        this._no_animation = false;
+      } //scroll if necessary
+
 
       RenderStack.showItem.call(this, id);
     }
@@ -35714,7 +35772,7 @@
       aria: function (obj, common, marks) {
         return "role=\"treeitem\"" + (marks && marks.webix_selected ? " aria-selected=\"true\" tabindex=\"0\"" : " tabindex=\"-1\"") + (obj.$count ? "aria-expanded=\"" + (obj.open ? "true" : "false") + "\"" : "") + "aria-level=\"" + obj.$level + "\"";
       },
-      templateCommon: template("{common.icon()} {common.folder()} <span>#value#</span>"),
+      templateCommon: template("{common.icon()}{common.folder()}<span>#value#</span>"),
       templateStart: template("<div " +
       /*@attr*/
       "webix_tm_id" + "=\"#id#\" class=\"{common.classname()}\" {common.aria()}>"),
@@ -40607,6 +40665,7 @@
             };
 
             if (check.call(this, id) && (!this._checkCellMerge || !this._checkCellMerge(start, id))) {
+              id.toString = this._id_to_string;
               return id;
             }
           }
@@ -40620,7 +40679,11 @@
               row: order[_i2],
               column: cols[_j].id
             };
-            if (check.call(this, _id)) return _id;
+
+            if (check.call(this, _id)) {
+              _id.toString = this._id_to_string;
+              return _id;
+            }
           }
 
           column = cols.length;
@@ -43286,7 +43349,7 @@
       var item = this.getItem(id);
       var rowindex = this.getIndexById(id);
 
-      var state = this._get_y_range();
+      var state = this._get_y_range(this._settings.prerender === true);
 
       var freeze = this._settings.topSplit;
       var freezeCss = "";

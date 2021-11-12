@@ -34,36 +34,36 @@ const TablePaste = {
 	templateCopy_setter: template,
 	_sel_to_clip: function() {
 		delay(() => { //wait until editor is closed
-			if (!this.getEditor || !this.getEditor()){
-				var data = this._get_sel_text();
+			if (!this.$destructed && (!this.getEditor || !this.getEditor())){
+				const data = this._get_sel_text();
 				clipbuffer.set(data);
 				UIManager.setFocus(this);
 			}
 		});
 	},
 	_get_sel_text: function() {
-		var data = [];
-		var filter = this._settings.templateCopy;
+		const data = [];
+		const filter = this._settings.templateCopy;
 		this.mapSelection(function(value, row, col, row_ind) {
 			if (!data[row_ind]) data[row_ind] = [];
-			var newvalue = filter ? filter(value, row, col) : value;
+			const newvalue = filter ? filter(value, row, col) : value;
 			data[row_ind].push(newvalue);
 			return value;
 		});
-		var value = data.length === 1 && data[0].length === 1 ? data[0][0] : csv.stringify(data, this._settings.delimiter);
+		const value = data.length === 1 && data[0].length === 1 ? data[0][0] : csv.stringify(data, this._settings.delimiter);
 		return value;
 	},
 
 	_clip_to_sel: function(text) {
 		if (!isUndefined(this._paste[this._settings.clipboard])) {
-			var data = csv.parse(text, this._settings.delimiter);
+			const data = csv.parse(text, this._settings.delimiter);
 			this._paste[this._settings.clipboard].call(this, data);
 		}
 	},
 
 	_paste: {
 		block: function(data) {
-			var leftTop = this.mapSelection(null);
+			const leftTop = this.mapSelection(null);
 			if (!leftTop) return;
 
 			// filling cells with data

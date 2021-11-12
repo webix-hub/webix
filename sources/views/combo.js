@@ -13,7 +13,7 @@ const api = {
 		var value = this.getValue();
 		this.$setValue(isUndefined(value)?"":value);
 	},
-	_applyChanges:function(){
+	_applyChanges:function(c){
 		var input = this.getInputNode(),
 			value = "",
 			suggest =  this.getPopup();
@@ -24,7 +24,7 @@ const api = {
 				value = suggest.getSuggestion()||value;
 		}
 		if (value != this._settings.value)
-			this.setValue(value, "user");
+			this.setValue(value, c);
 		else
 			this.$setValue(value);
 	},

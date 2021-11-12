@@ -1,13 +1,12 @@
-import {index} from "../webix/html";
+import {index, triggerEvent, preventEvent} from "../webix/html";
 import {protoUI, $$} from "../ui/core";
 import {$active} from "../webix/skin";
 import env from "../webix/env";
-import {bind, isUndefined, extend, copy, toFunctor, isArray} from "../webix/helpers";
+import {extend, copy, toFunctor, isArray} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 import template from "../webix/template";
 
 import i18n from "../webix/i18n";
-import UIManager from "../core/uimanager";
 import MouseEvents from "../core/mouseevents";
 import EventSystem from "../core/eventsystem";
 import base from "../views/view";
@@ -48,7 +47,9 @@ const api = {
 		return DateHelper.dateToStr(format);
 	},
 	date_setter:function(date){
-		return this._string_to_date(date);
+		date = DateHelper.copy( this._string_to_date(date) );
+		date.setDate(1);
+		return date;
 	},
 	maxDate_setter:function(date){
 		return this._string_to_date(date);
@@ -73,23 +74,21 @@ const api = {
 		return time;
 	},
 	_ariaFocus:function(){
-		var ev = "focus"+(env.isIE?"in":"");
-		
-		if(!env.touch){
-			_event(this.$view, ev, bind(function(e){
-				var t = e.target.className;
-				var css = t.indexOf("webix_cal_day")!==-1 ? "webix_cal_day" : (t.indexOf("webix_cal_block")!==-1?"webix_cal_block":"");
+		if (!env.touch){
+			_event(this.$view, "mousedown", () => {
+				this._mouse_time = new Date();
+			});
+			_event(this.$view, "focus", e => {
+				// in daterange
+				if (this._settings.master) return;
 
-				if(new Date() - UIManager._tab_time > 300 && new Date() - UIManager._mouse_time >100 && css){
-					var prev = e.relatedTarget;
-					if(prev && !isUndefined(prev.className)){
-						var date = (css=="webix_cal_day")?
-							this._locate_day(e.target):
-							this._locate_date(e.target);
-						this._moveSelection(date);
-					}
+				const prev = e.relatedTarget;
+				const css = e.target.className.indexOf("webix_cal_day") !== -1;
+				if (prev && (new Date() - this._mouse_time > 100) && css && this.$view.contains(prev)){
+					const day = this._locate_day(e.target);
+					if (!this._selectedDay(day)) this._moveSelection(day);
 				}
-			}, this), {capture:!env.isIE});
+			}, { capture: true });
 		}
 	},
 	$init: function() {
@@ -105,6 +104,13 @@ const api = {
 		//navigation and aria
 		this._ariaFocus();
 		this.attachEvent("onKeyPress", this._onKeyPress);
+	},
+	_onKeyPress:function(code, e){
+		const target = e.target, role = target.getAttribute("role");
+		if((code === 13 || code === 32) && (role == "button" || role == "log") && !this._settings.disabled){
+			triggerEvent(target, "MouseEvents", "click");
+			preventEvent(e);
+		}
 	},
 	minuteStep_setter(value){
 		return Math.max( Math.min(value, 60), this.defaults.minuteStep );
@@ -136,21 +142,26 @@ const api = {
 		return base.api.$getSize.call(this, dx,dy);
 	},
 	moveSelection:function(mode, details, focus){
-		if(this.config.master) return; //in daterange
+		if (this.config.master) return; //in daterange
 		var start = this.getSelectedDate();
 		if (this.config.multiselect)
 			start = start[0];
 		var date = DateHelper.copy(start || this.getVisibleDate());
 		this._moveSelection(date, mode, focus);
-		
 	},
 	_moveSelection:function(date, mode, focus){
-		var css = this._zoom_logic[this._zoom_level]._keyshift(date, mode, this);
-		
-		if(focus !==false){
-			var sel = this._viewobj.querySelector("."+css+"[tabindex='0']");
-			if(sel) sel.focus();
-		}
+		const css = this._zoom_logic[this._zoom_level]._keyshift(date, mode, this);
+		if (focus !== false)
+			this._restore_focus(css);
+	},
+	_restore_focus:function(css, ind){
+		let sel;
+		if (ind) {
+			sel = this._viewobj.querySelector(".webix_cal_body");
+			sel = sel.childNodes[ind.rind].childNodes[ind.cind + (this._settings.weekNumber?1:0)];
+		} else
+			sel = this._viewobj.querySelector("."+css+"[tabindex='0']");
+		if (sel) sel.focus();
 	},
 	_getDateBoundaries: function(date, reset) {
 		// addition information about rendering event:
@@ -274,7 +285,7 @@ const api = {
 
 		var html = "";
 		if (s.monthHeader){
-			html += "<div class='webix_cal_month' style='margin:0 "+cpad+"'><span aria-live='assertive' aria-atomic='true' class='webix_cal_month_name"+((!s.monthSelect || !s.navigation)?" webix_readonly'":"' role='button' tabindex='0'")+">"+s.calendarHeader(date)+"</span>";
+			html += "<div class='webix_cal_month' style='margin:0 "+cpad+"'><span role='log' aria-live='assertive' aria-atomic='true' class='webix_cal_month_name"+((!s.monthSelect || !s.navigation)?" webix_readonly'":"' role='button' tabindex='0'")+">"+s.calendarHeader(date)+"</span>";
 			if (s.navigation)
 				html += "<div role='button' tabindex='0' aria-label='"+i18n.aria.navMonth[0]+"' class='webix_cal_prev_button'></div><div role='button' tabindex='0' aria-label='"+i18n.aria.navMonth[1]+"' class='webix_cal_next_button'></div>";
 			html += "</div>";
@@ -282,11 +293,11 @@ const api = {
 
 		if(s.weekHeader)
 			html += "<div class='webix_cal_header' style='margin:0 "+cpad+"' aria-hidden='true'>"+this._week_template(width)+"</div>";
-		html += "<div class='webix_cal_body' style='margin:0 "+cpad+"'>"+this._body_template(width, height, bounds, sizes[2])+"</div>";
+		html += "<div class='webix_cal_body' role='grid' style='margin:0 "+cpad+"'>"+this._body_template(width, height, bounds, sizes[2])+"</div>";
 
-		if (this._settings.timepicker || this._icons){
+		if (s.timepicker || this._icons){
 			html += "<div class='webix_cal_footer' style='margin:0 "+cpad+"'>";
-			if(this._settings.timepicker)
+			if(s.timepicker)
 				html += this._timepicker_template(date);
 
 			if(this._icons)
@@ -297,8 +308,8 @@ const api = {
 		this._contentobj.innerHTML = html;
 		this._contentobj.firstChild.style.marginTop = cpad;
 
-		if(this._settings.type == "time"){
-			var time = this._settings.date;
+		if(s.type == "time"){
+			var time = s.date;
 			if(time){
 				if(typeof(time) == "string"){
 					date = i18n.parseTimeFormatDate(time);
@@ -310,10 +321,10 @@ const api = {
 			}
 			this._changeZoomLevel(-1,date);
 		}
-		else if(this._settings.type == "month"){
+		else if(s.type == "month"){
 			this._changeZoomLevel(1,date);
 		}
-		else if(this._settings.type == "year"){
+		else if(s.type == "year"){
 			this._changeZoomLevel(2,date);
 		}
 
@@ -395,14 +406,14 @@ const api = {
 		return css;
 	},
 	_body_template: function(widths, heights, bounds, sqSize){
-		var s = this._settings;
-		var html = "";
-		var day = DateHelper.datePart(DateHelper.copy(bounds._start));
-		var start = s.weekNumber?1:0;
-		var weekNumber = DateHelper.getISOWeek(DateHelper.add(day,2,"day", true));
+		const s = this._settings;
+		const start = s.weekNumber ? 1 : 0;
+		let day = DateHelper.datePart(DateHelper.copy(bounds._start));
+		let weekNumber = DateHelper.getISOWeek(DateHelper.add(day, 2, "day", true));
 
-		for (var y=0; y<heights.length; y++){
-			html += "<div class='webix_cal_row' style='height:"+heights[y]+"px;line-height:"+heights[y]+"px'>";
+		let html = "", focusable;
+		for (let y=0; y<heights.length; y++){
+			html += "<div class='webix_cal_row' role='row' style='height:"+heights[y]+"px;line-height:"+heights[y]+"px'>";
 
 			if (start){
 				// recalculate week number for the first week of a year
@@ -411,52 +422,54 @@ const api = {
 				html += "<div class='webix_cal_week_num' aria-hidden='true' style='width:"+widths[0]+"px'>"+weekNumber+"</div>";
 			}
 
-			for (var x=start; x<widths.length; x++){
-				var css = this._day_css(day, bounds);
-				var d = this._settings.dayTemplate.call(this,day);
-				var sel = this._selectedDay(day);
-				var alabel = "";
-				var isOutside = day.getMonth() != bounds._month;
+			for (let x=start; x<widths.length; x++){
+				const sel = this._selectedDay(day);
+				const css = this._day_css(day, bounds);
+				let d = s.dayTemplate.call(this, day);
 
-				if(typeof d == "object"){
+				let alabel = "";
+				if (typeof d == "object"){
 					alabel = d.aria || alabel;
 					d = d.text;
-				}
-				else
+				} else
 					alabel = DateHelper.dateToStr(i18n.aria.dateFormat)(day);
 
+				const isOutside = day.getMonth() != bounds._month;
+				let tabindex = sel && !isOutside ? "0" : "-1";
+				if (day.getDate() == 1 && !isOutside) tabindex = "$webix_tabindex";
+				if (tabindex == "0") focusable = true;
+
 				html += "<div day='"+x+"' role='gridcell' "+(isOutside?"aria-hidden='true'":"")+" aria-label='"+alabel+
-					"' tabindex='"+(sel && !isOutside?"0":"-1")+"' aria-selected='"+(sel && !isOutside?"true":"false")+"' class='"+css+"' style='text-align:center; width:"+widths[x]+
+					"' tabindex='"+tabindex+"' aria-selected='"+(sel && !isOutside?"true":"false")+"' class='"+css+"' style='text-align:center; width:"+widths[x]+
 					"px'><span aria-hidden='true' class='webix_cal_day_inner' style='display:inline-block; "+this._getCalSizesString(sqSize,sqSize)+"'>"+d+"</span></div>";
 				day = DateHelper.add(day, 1, "day");
 
-				if(day.getHours()){
+				if (day.getHours())
 					day = DateHelper.datePart(day);
-				}
 			}
 
 			html += "</div>";
 			weekNumber++;
 		}
-		return html;
+		return html.replace("$webix_tabindex", (focusable || s.master) ? "-1" : "0");
 	},
 	_changeDate:function(dir, step){
-		var now = this._settings.date;
 		if(!step) { step = this._zoom_logic[this._zoom_level]._changeStep; }
-		if(!this._zoom_level){
-			now = DateHelper.copy(now);
-			now.setDate(1);
-		}
-		var next = DateHelper.add(now, dir*step, "month", true);
-		this._changeDateInternal(now, next);
+
+		const now = this._settings.date;
+		const next = DateHelper.add(now, dir*step, "month", true);
+		this._changeDateInternal(now, next, dir);
 	},
-	_changeDateInternal:function(now, next){
+	_changeDateInternal:function(now, next, dir){
 		if(this.callEvent("onBeforeMonthChange", [now, next])){
 			if (this._zoom_level){
 				this._update_zoom_level(next);
-			}
-			else{
+			} else {
 				this.showCalendar(next);
+				if (this._settings.monthHeader && this._settings.navigation){
+					const css = "webix_cal_"+(dir>0?"next":"prev")+"_button";
+					this._restore_focus(css);
+				}
 			}
 			this.callEvent("onAfterMonthChange", [next, now]);
 		}
@@ -546,8 +559,6 @@ const api = {
 				}
 				else if(mode === false)
 					newdate = this._findActive(date, mode, calendar);
-
-				calendar.selectDate(newdate, false, false, "user");
 
 				if(newdate){
 					calendar._update_zoom_level(newdate);
@@ -741,10 +752,7 @@ const api = {
 		if (date){
 			config.date = date;
 		}
-
 		type = config.type;
-
-
 
 		//store width and height of draw area
 		if (!this._zoom_size){
@@ -776,7 +784,7 @@ const api = {
 			// check and change blocked selected time
 			this._correctBlockedTime();
 
-			html += "<div class='webix_hours'>";
+			html += "<div role='grid' class='webix_hours'><div role='row'>";
 			selected = config.date.getHours();
 			temp = DateHelper.copy(config.date);
 
@@ -802,9 +810,9 @@ const api = {
 					"' class='webix_cal_block"+css+"' data-value='"+i+"' style='"+this._getCalSizesString(width,height)+(i%4===0&&!enLocale?"clear:both;":"")+
 					"'><span style='display:inline-block; "+this._getCalSizesString(sqSize,sqSize)+"'>"+DateHelper.toFixed(enLocale?(!i||i==12?12:i%12):i)+"</span></div>";
 			}
-			html += "</div>";
+			html += "</div></div>";
 
-			html += "<div class='webix_minutes'>";
+			html += "<div role='grid' class='webix_minutes'><div role='row'>";
 			selected = config.date.getMinutes();
 			temp = DateHelper.copy(config.date);
 
@@ -824,7 +832,7 @@ const api = {
 					this._getCalSizesString(width,height)+((i/config.minuteStep)%2===0?"clear:both;":"")+"'><span style='display:inline-block; "+
 					this._getCalSizesString(sqSize,sqSize)+"'>"+DateHelper.toFixed(i)+"</span></div>";
 			}
-			html += "</div>";
+			html += "</div></div>";
 
 			html += "</div>";
 			html += "<div class='webix_time_footer' style='margin:0 "+cpad+"'>"+this._timeButtonsTemplate()+"</div>";
@@ -832,14 +840,15 @@ const api = {
 			this._contentobj.firstChild.style.marginTop = cpad;
 		} else {
 			//years and months
-			
+
 			//reset header
 			if (config.monthHeader){
-				var header = sections[0].childNodes;
-				var labels = i18n.aria["nav"+(this._zoom_level==1?"Year":"Decade")];
-				header[0].innerHTML = zlogic._getTitle(config.date, this);
-				header[0].blur();
+				const header = sections[0].childNodes;
+				const title = zlogic._getTitle(config.date, this);
+				if (header[0].innerHTML != title) header[0].innerHTML = title;
+
 				if (config.navigation){
+					const labels = i18n.aria["nav"+(this._zoom_level==1?"Year":"Decade")];
 					header[1].setAttribute("aria-label", labels[0]);
 					header[2].setAttribute("aria-label", labels[1]);
 				}
@@ -869,7 +878,7 @@ const api = {
 				sections[index-1].style.display = "none";
 				if (index === 1) sections[index].style.marginTop = cpad;
 			}
-			sections[index].innerHTML = html;
+			sections[index].innerHTML = "<div role='row'>" + html + "</div>";
 			if (type != "year" && type != "month"){
 				if(!sections[index+1])
 					this._contentobj.innerHTML += "<div class='webix_time_footer' style='margin:0 "+cpad+"'>"+this._timeButtonsTemplate()+"</div>";
@@ -928,10 +937,12 @@ const api = {
 			this.callEvent("onAfterDateSelect", [date]);
 		}
 	},
-	_locate_day:function(target){
-		var cind = index(target) - (this._settings.weekNumber?1:0);
-		var rind = index(target.parentNode);
-		var date = DateHelper.add(this._getDateBoundaries()._start, cind + rind*7, "day", true);
+	_locate_day:function(target, ind){
+		const cind = index(target) - (this._settings.weekNumber?1:0);
+		const rind = index(target.parentNode);
+		if (ind) return { cind, rind };
+
+		const date = DateHelper.add(this._getDateBoundaries()._start, cind + rind*7, "day", true);
 		if (this._settings.timepicker){
 			date.setHours(this._settings.date.getHours());
 			date.setMinutes(this._settings.date.getMinutes());
@@ -963,9 +974,13 @@ const api = {
 				return false;
 		},
 		webix_cal_day: function(e, id, target){
-			var date = this._locate_day(target);
-			var add = this._settings.multiselect === "touch"  || (e.ctrlKey || e.metaKey);
+			const date = this._locate_day(target);
+			const ind = this._settings.multiselect ? this._locate_day(target, true) : null;
+
+			const add = this._settings.multiselect === "touch"  || (e.ctrlKey || e.metaKey);
 			this._selectDate(date, add, "user");
+
+			this._restore_focus("webix_cal_day", ind);
 		},
 		webix_cal_time:function(){
 			if(this._zoom_logic[this._zoom_level-1]){
@@ -996,14 +1011,19 @@ const api = {
 			this._changeZoomLevel(zoom);
 		},
 		webix_cal_block:function(e, id, trg){
-			if(this._zoom_in){
-				if(trg.className.indexOf("webix_cal_day_disabled")!==-1)
+			if (this._zoom_in){
+				if (trg.className.indexOf("webix_cal_day_disabled") !== -1)
 					return false;
-				var next = this._locate_date(trg);
+
+				const next = this._locate_date(trg);
 				this._update_zoom_level(next);
-			}
-			else{
-				if(trg.className.indexOf("webix_cal_day_disabled")==-1)
+
+				let css = "webix_cal_block";
+				if (trg.className.indexOf("webix_cal_block_min") !== -1)
+					css = "webix_cal_block_min";
+				this._restore_focus(css);
+			} else {
+				if (trg.className.indexOf("webix_cal_day_disabled") == -1)
 					this._mode_selected(trg, "user");
 			}
 		}
@@ -1044,8 +1064,7 @@ const api = {
 		}
 	},
 	showCalendar: function(date) {
-		date = this._string_to_date(date);
-		this._settings.date = date;
+		this.define("date", date);
 		this.render();
 		this.resize();
 	},

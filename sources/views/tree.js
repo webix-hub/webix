@@ -147,7 +147,7 @@ const api = {
 			return "role=\"treeitem\""+(marks && marks.webix_selected?" aria-selected=\"true\" tabindex=\"0\"":" tabindex=\"-1\"")+
 				(obj.$count?("aria-expanded=\""+(obj.open?"true":"false")+"\""):"")+"aria-level=\""+obj.$level+"\"";
 		},
-		templateCommon:template("{common.icon()} {common.folder()} <span>#value#</span>"),
+		templateCommon:template("{common.icon()}{common.folder()}<span>#value#</span>"),
 		templateStart:template("<div "+/*@attr*/"webix_tm_id"+"=\"#id#\" class=\"{common.classname()}\" {common.aria()}>"),
 		templateEnd:template("</div>"),
 		templateCopy: template("#value#")
