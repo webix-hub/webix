@@ -150,13 +150,11 @@ const api = {
 	_execCommandOnElement:function(commandName) {
 		let sel, selText;
 
-		if (window.getSelection) {
-			sel = window.getSelection();
-			selText = sel.toString().length;
+		sel = window.getSelection();
+		selText = sel.toString().length;
 
-			const input = this.getInputNode();
-			if (!input.contains(sel.anchorNode) || !input.contains(sel.focusNode)) return;
-		} else return; //ie8
+		const input = this.getInputNode();
+		if (!input.contains(sel.anchorNode) || !input.contains(sel.focusNode)) return;
 
 		if(selText > 0) {
 			for (let i = 0; i < sel.rangeCount; ++i) {

@@ -248,6 +248,7 @@ const api = {
 		if (input.getInputNode){
 			node = input.getInputNode();
 			node.webix_master_id = input._settings.id;
+			input.attachEvent("onInputResize",bind(this._resetPosition, this));
 		} else
 			node = toNode(input);
 
@@ -274,7 +275,6 @@ const api = {
 		if (this._last_delay)
 			this._last_delay = clearTimeout(this._last_delay);
 
-		e = (e||event);
 		var list = this.getList();
 		var trg = e.target;
 		if((trg == document.body && !this.isVisible()) || trg.className =="webix_clipbuffer")
@@ -283,7 +283,7 @@ const api = {
 		this._last_input_target = trg;
 		this._settings.master = trg.webix_master_id;
 
-		var code = e.keyCode;
+		var code = e.which || e.keyCode;
 		//shift and ctrl
 		if (code == 16 || code == 17) return;
 
@@ -441,7 +441,7 @@ const api = {
 	 **/
 	_navigate: function(e) {
 		var list = this.getList();
-		var code = e.keyCode;
+		var code = e.which || e.keyCode;
 		var data;
 
 		if( list.moveSelection && code < 41 && code > 32 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
@@ -507,6 +507,13 @@ const api = {
 		} else {
 			list.unselect();
 			list.showItem(list.getFirstId());
+		}
+	},
+	_resetPosition: function(){
+		if(!this._settings.hidden && this._settings.master){
+			var master = $$(this._settings.master);
+			if(master)
+				this.show(master.$view);
 		}
 	}
 };

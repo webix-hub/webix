@@ -1,7 +1,6 @@
 import {protoUI, ui, $$} from "../ui/core";
 import {copy, extend, bind} from "../webix/helpers";
 import {_each} from "../ui/helpers";
-import animate from "../webix/animate";
 import {assert} from "../webix/debug";
 import {attachEvent, detachEvent} from "../webix/customevents";
 
@@ -160,9 +159,9 @@ const api = {
 			this._renderPanel();
 	},
 	scrollTo:function(x,y){
-		if (Touch && animate.isSupported() && this._settings.animate)
+		if (Touch && this._settings.animate)
 			Touch._set_matrix(this._contentobj, x,y, this._settings.scrollSpeed||"100ms");
-		else{
+		else {
 			this._contentobj.style.marginLeft = x+"px";
 			this._contentobj.style.marginTop =  y+"px";
 		}

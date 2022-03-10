@@ -6,6 +6,7 @@ import {$active} from "../webix/skin";
 import template from "../webix/template";
 
 import text from "./text";
+import textarea from "./textarea";
 
 const api = {
 	name:"texthighlight",
@@ -18,7 +19,7 @@ const api = {
 			let html = `<div class="webix_text_highlight" style="width:${width}px;"><div class="webix_text_highlight_value"`;
 
 			// iOS adds 3px of (unremovable) padding to the left and right of a textarea
-			if(obj.type == "textarea" && env.mobile && env.isSafari)
+			if(obj.type == "textarea" && env.isIOS)
 				html += ` style="margin-left:${$active.dataPadding + 3}px; margin-right:${$active.dataPadding + 3}px;"`;
 
 			html += "></div></div>";
@@ -128,5 +129,5 @@ const api = {
 	}
 };
 
-const view = protoUI(api, text.view);
+const view = protoUI(api, textarea.autoheight, text.view);
 export default {api, view};

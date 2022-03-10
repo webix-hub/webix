@@ -50,7 +50,7 @@ const api = {
 		this._addElementHotKey(key, function(view,ev){
 			if(control.isVisible()){
 				var elem = control.$view.firstChild;
-				triggerEvent(elem, "MouseEvents", "click");
+				triggerEvent(elem, "MouseEvent", "click");
 				preventEvent(ev);
 			}
 		});

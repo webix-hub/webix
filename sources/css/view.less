@@ -16,9 +16,6 @@
 }
 .webix_view.webix_form{
 	background-color: @backColor;
-	/*.webix_view{
-		background-color: @backColor;
-	}*/
 }
 
 // disables tap highlighting in iOS7 browsers
@@ -64,7 +61,6 @@ body{
 	top: 0; left: 0;
 	background-color: #ddd;
 	opacity: 0.4;
-	filter:progid:DXImageTransform.Microsoft.Alpha(opacity=40);
 	z-index:92;
 	cursor: not-allowed;
 }
@@ -75,8 +71,7 @@ body{
 
 body.webix_full_screen{
 	margin:0; padding:0;
-	overflow:hidden; 
-	//#box > .noselect;
+	overflow:hidden;
 }
 
 body.webix_noselect{
@@ -123,7 +118,6 @@ body.webix_noselect{
 	text-transform: uppercase;
 
 	line-height:@barHeight;
-	.section;
 }
 .webix_section > .webix_template{
 	padding:0px 8px;
@@ -131,22 +125,18 @@ body.webix_noselect{
 	background-color: @backColor;
 	display: inline;
 	position: relative;
-	.sectionInner;
 }
 .webix_layout_space > .webix_section > .webix_template{
 	padding:0px 8px;
 	background-color: @spaceLayoutColor;
-	.sectionLayoutInner;
 }
 .webix_layout_wide > .webix_section > .webix_template{
 	padding:0px 8px;
 	background-color: @wideLayoutColor;
-	.sectionLayoutInner;
 }
 .webix_layout_line > .webix_section > .webix_template,.webix_layout_clean > .webix_section > .webix_template {
 	padding:0px 8px;
 	background-color: @backColor;
-	.sectionLayoutInner;
 }
 .webix_common_header(){
 	.layoutBarBG;
@@ -182,7 +172,7 @@ x\:ui{
 	flex-wrap: wrap;
 	flex-direction: row;
 	overflow: hidden;
-	box-sizing: border-box;
+	#box > .sizing;
 }
 .webix_flexlayout > div{
 	display: block !important;

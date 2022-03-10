@@ -172,15 +172,20 @@ const Mixin = {
 		var control; //will be defined below
 		if (value == "order"){
 			control = {
-				$drag:bind(function(s,e){
-					if(!this._isDraggable(e) || this._rs_process) return false;
+				$drag:bind(function(s,e,pointer){
+					if (!this._isDraggable(e) || this._rs_process) return false;
+
 					var id = this.locate(e);
 					if (!id || !this.callEvent("onBeforeColumnDrag", [id.column, e])) return false;
-					DragControl._drag_context = { from:control, start:id, custom:"column_dnd" };
 
+					DragControl._drag_context = { from:control, start:id, custom:"column_dnd" };
 					var column = this.getColumnConfig(id.column);
 
-					this._relative_column_drag = posRelative(e);
+					if (pointer === "touch") {
+						const hnode = this.getHeaderNode(id.column, id.rind);
+						this._relative_column_drag = { x: getPos(e).x - offset(hnode).x };
+					} else
+						this._relative_column_drag = posRelative(e);
 					this._limit_column_drag = column.width;
 
 					this._auto_scroll_force = true;
@@ -190,11 +195,10 @@ const Mixin = {
 					var context = DragControl.getContext();
 					var box = offset(this.$view);
 					node.style.display = "none";
+
 					var html = document.elementFromPoint(pos.x, box.y + (this._settings.headerRowHeight/2));
-
-					var id = (html?this.locate(html):null);
-
-					var start = DragControl.getContext().start.column;
+					var id = html ? this.locate(html) : null;
+					var start = context.start.column;
 
 					if (id && id.column != start && (!this._column_dnd_temp_block || id.column != this._last_sort_dnd_node )){
 						//ignore normal dnd , and dnd from other components

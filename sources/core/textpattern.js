@@ -66,7 +66,7 @@ const TextPattern = {
 		}
 	},
 	pattern_setter:function(value){
-		var pattern = patterns[value] || value;
+		let pattern = patterns[value] || value;
 
 		if (typeof pattern == "string") pattern = { mask: pattern };
 		pattern.allow = pattern.allow || /[A-Za-z0-9]/g;
@@ -76,31 +76,36 @@ const TextPattern = {
 	},
 	_init_validation:function(){
 		this.config.validate = this.config.validate || bind(function(){
-			var value = this.getText();
-			var raw = value.replace(this._pattern_chars, "");
-			var matches = (value.toString().match(this._pattern_allows) || []).join("");
+			const value = this.getText();
+			const raw = value.replace(this._pattern_chars, "");
+			const matches = (value.toString().match(this._pattern_allows) || []).join("");
 			return (matches.length == raw.length && value.length == this._settings.pattern.mask.length);
 		}, this);
 	},
 	_after_render:function(){
-		if (!this._custom_format)
-			// ctrl+v handler
+		if (!this._custom_format) 
 			_event(this.getInputNode(), "input", function(){
-				this.$setValue(this.getText());
+				const stamp = (new Date()).valueOf();
+				if(!this._property_stamp || stamp-this._property_stamp>100){
+					this._property_stamp = stamp;
+					this.$setValue(this.getText());
+				}
 			}, {bind:this});
 
 		_event(this.getInputNode(), "blur", () => this._applyChanges("user"));
 	},
 	_patternScheme:function(pattern){
-		var mask = pattern.mask, scheme = {}, chars = "", count = 0;
+		let mask = pattern.mask, scheme = {}, chars = "", count = 0;
 		
-		for (let i = 0; i<mask.length; i++)
-			if (mask[i] === "#"){
+		for(let i = 0; i<mask.length; i++){
+			if(mask[i] === "#"){
 				scheme[i] = count; count++;
 			} else {
 				scheme[i] = false;
 				if(chars.indexOf(mask[i]) === -1) chars+="\\"+mask[i];
 			}
+		}
+
 		this._pattern_allows = pattern.allow;
 		this._pattern_chars = new RegExp("["+chars+"]", "g");
 		this._pattern_scheme = scheme;
@@ -108,10 +113,10 @@ const TextPattern = {
 		this._init_validation();
 	},
 	_on_key_pressed:function(e, code){
-		var node = this.getInputNode();
-		var value = node.value;
-		var pos = getSelectionRange(node);
-		var chr = "";
+		const node = this.getInputNode();
+		let value = node.value;
+		let pos = getSelectionRange(node);
+		let chr = "";
 
 		if (code == 8 || code == 46){
 			if(pos.start == pos.end){
@@ -138,13 +143,13 @@ const TextPattern = {
 			pos = this._fixCaretPos(pos, code);
 		}
 		else if(len-1 == pos && code !==8 && code !==46){
-			var rest = this._settings.pattern.mask.indexOf("#", pos);
+			const rest = this._settings.pattern.mask.indexOf("#", pos);
 			if(rest>0) pos += rest;
 		}
 		return pos;
 	},
 	_fixCaretPos:function(pos, code){
-		var prev = pos-(code !== 46)*1;
+		const prev = pos-(code !== 46)*1;
 
 		if(this._pattern_scheme[prev] === false){
 			pos = pos+(code ==8 ? -1: 1);
@@ -159,14 +164,14 @@ const TextPattern = {
 			return this._custom_format.parse(value);
 
 		value = value || value === 0 ? value : "";
-		var matches = value.toString().match(this._pattern_allows) || [];
+		const matches = value.toString().match(this._pattern_allows) || [];
 		return matches.join("").replace(this._pattern_chars, "");
 	},
 	_matchPattern:function(value){
 		if (this._custom_format)
 			return this._custom_format.edit(this._custom_format.parse(value));
 
-		var raw = this._getRawValue(value),
+		let raw = this._getRawValue(value),
 			pattern = this._settings.pattern.mask,
 			mask = this._settings.pattern.mask,
 			scheme = this._pattern_scheme,
@@ -175,13 +180,13 @@ const TextPattern = {
 			rawIndex = 0,
 			rawLength = 0;
 
-		for(var i in scheme){
+		for(let i in scheme){
 			if(scheme[i]!==false){
 				if(!end){
 					index = i*1;
 					rawIndex = scheme[i];
-					var rchar = raw[rawIndex]||"";
-					var next = raw[rawIndex+1];
+					const rchar = raw[rawIndex]||"";
+					const next = raw[rawIndex+1];
 
 					pattern = (rchar?pattern.substr(0, index):"") + rchar +(rchar && next?pattern.substr(index + 1):"");
 					if(!next) end = true;
@@ -191,12 +196,12 @@ const TextPattern = {
 		}
 
 		//finalize value with subsequent mask chars 
-		var icode = this._input_code;
+		const icode = this._input_code;
 		if((icode && icode !== 8) || (!icode && rawLength-1 === rawIndex && pattern.length < mask.length)){
 			if(raw){
-				var nind = index+1;
+				const nind = index+1;
 				if(mask.charAt(nind)!=="#" && pattern.length < mask.length){
-					var lind = mask.indexOf("#", nind);
+					let lind = mask.indexOf("#", nind);
 					if(lind<0) lind = mask.length;
 					pattern += mask.substr(nind, lind-nind);
 				}

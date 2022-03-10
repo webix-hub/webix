@@ -153,7 +153,7 @@ const MapCollection = {
 		if (column){
 			delete column.options;
 			column.collection = options;
-			column.template = column.template || this._bind_template(options, column.id, column.optionslist);
+			column.template = column.template || this._bind_template(column.optionslist);
 			let id = options.data.attachEvent("onStoreUpdated", () => {
 				this.refresh();
 				if(this.refreshFilter)
@@ -164,25 +164,23 @@ const MapCollection = {
 			});
 		}
 	},
-	_bind_template:function(options, columnId, multi){
-		columnId = this.getColumnConfig ? columnId : "value";
+	_bind_template:function(multi){
 		if (multi) {
-			let separator = typeof multi=="string" ? multi : ",";
-			return function(obj){
-				let value = obj[columnId];
+			const separator = typeof multi === "string" ? multi : ",";
+			return function(obj, common, value, column){
 				if (!value) return "";
 
-				let ids = value.toString().split(separator);
+				const ids = value.toString().split(separator);
 				for (let i = 0; i < ids.length; i++){
-					let data = options.data.pull[ids[i]];
+					const data = column.collection.data.pull[ids[i]];
 					ids[i] = data ? (data.value  || "") : "";
 				}
 				
 				return ids.join(", ");
 			};
 		} else {
-			return function(obj){
-				let data = options.data.pull[ obj[columnId] ];
+			return function(obj, common, value, column){
+				const data = column.collection.data.pull[value];
 				if (data && (data.value || data.value === 0))
 					return data.value;
 				return "";

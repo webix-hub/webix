@@ -1,8 +1,8 @@
 import {_getClassName, locate} from "../webix/html";
 import UIManager from "../core/uimanager";
 import {extend, delay, toFunctor} from "../webix/helpers";
-import env from "../webix/env";
 import {_event} from "../webix/htmlevents";
+import env from "../webix/env";
 
 
 const MouseEvents={
@@ -10,7 +10,7 @@ const MouseEvents={
 		config = config || {};
 
 		this._clickstamp = 0;
-		this._dbl_sensetive = 300;
+		this._dbl_sensetive = env.touch ? 500 : 300;
 		this._item_clicked = null;
 
 		this._mouse_action_extend(config.onClick, "on_click");
@@ -19,13 +19,11 @@ const MouseEvents={
 		this._mouse_action_extend(config.onMouseMove, "on_mouse_move");
 
 		//attach dom events if related collection is defined
-		if (this.on_click){
-			_event(this._contentobj,"click",this._onClick,{bind:this});
-			if (env.isIE8 && this.on_dblclick)
-				_event(this._contentobj, "dblclick", this._onDblClick, {bind:this});
-		}
+		if (this.on_click)
+			_event(this._contentobj, "click", this._onClick, {bind:this});
+
 		if (this.on_context)
-			_event(this._contentobj,"contextmenu",this._onContext,{bind:this});
+			_event(this._contentobj, "contextmenu", this._onContext, {bind:this});
 
 		if (this.on_mouse_move)
 			this._enable_mouse_move();
@@ -35,7 +33,7 @@ const MouseEvents={
 		if (!this._mouse_move_enabled){
 			this.on_mouse_move = this.on_mouse_move || {};
 			_event(this._contentobj,"mousemove",this._onMouse,{bind:this});
-			_event(this._contentobj,(env.isIE?"mouseleave":"mouseout"),this._onMouse,{bind:this});
+			_event(this._contentobj,"mouseout",this._onMouse,{bind:this});
 			this._mouse_move_enabled = 1;
 			this.attachEvent("onDestruct", function(){
 				if (this._mouse_move_timer)
@@ -47,8 +45,8 @@ const MouseEvents={
 
 	_mouse_action_extend:function(config, key){
 		if (config){
-			var now = this[key];
-			var step = now ? extend({}, now) : {};
+			const now = this[key];
+			const step = now ? extend({}, now) : {};
 			this[key] = extend(step, config);
 		}
 	},
@@ -60,22 +58,21 @@ const MouseEvents={
 
 		UIManager._focus_action(this);
 
-		if(this.on_dblclick){
-			// emulates double click
-			var stamp = (new Date()).valueOf();
-
-			if (stamp - this._clickstamp <= this._dbl_sensetive && this.locate){
-				var item = this.locate(e);
-				if (""+item == ""+this._item_clicked) {
-					this._clickstamp = 0;
-					return this._onDblClick(e);
-				}
+		if(this.on_dblclick && this.locate){
+			if(this._clickHandler && this._item_clicked+"" == this.locate(e)+""){
+				clearTimeout(this._clickHandler);
+				this._clickHandler = null;
+				return this._onDblClick(e);
 			}
-			this._clickstamp = stamp;
+
+			this._item_clicked = this.locate(e);
+			this._clickHandler = delay(()=> {
+				this._clickHandler = null;
+				return this._mouseEvent(e, this.on_single_click, "ItemSingleClick");
+			}, null, [e], this._dbl_sensetive);
 		}
 
-		var result = this._mouseEvent(e,this.on_click,"ItemClick");
-		return result;
+		return this._mouseEvent(e, this.on_click, "ItemClick");
 	},
 	//inner ondblclick object handler
 	_onDblClick: function(e) {
@@ -117,34 +114,23 @@ const MouseEvents={
 	},
 	//inner mouseout object handler
 	_onMouseOut: function(e) {
-		this.callEvent("onMouseOut",[e||event]);
+		this.callEvent("onMouseOut",[e]);
 	},
 	//common logic for click and dbl-click processing
-	_mouseEvent:function(e,hash,name, pair){
-		e=e||event;
-
+	_mouseEvent:function(e, hash, name, pair){
 		if (e.processed || !this._viewobj) return;
 		e.processed = true;
 
-		var trg=e.target;
+		let trg = e.target;
 
-		//IE8 can't modify event object
-		//so we need to stop event bubbling to prevent double processing
-		if (env.isIE8){
-			var vid = this._settings.id;
-			var wid = trg.w_view;
-
-			if (!wid) trg.w_view = vid; else if (wid !== vid) return;
-		}
-
-		var css = "";
-		var id = null;
-		var found = false;
+		let css = "";
+		let id = null;
+		let found = false;
 		//loop through all parents
 		//we need to check for this._viewobj as some handler can destroy the view
 		while (trg && trg.parentNode && this._viewobj && trg != this._viewobj.parentNode){
-			if (!found && trg.getAttribute){													//if element with ID mark is not detected yet
-				id = trg.getAttribute(this._id);							//check id of current one
+			if (!found && trg.getAttribute){ //if element with ID mark is not detected yet
+				id = trg.getAttribute(this._id); //check id of current one
 				if (id){
 					// prevent clicking on disabled items
 					if (trg.getAttribute("webix_disabled")){
@@ -162,22 +148,23 @@ const MouseEvents={
 					found = true;
 				}
 			}
+
 			css=_getClassName(trg);
-			if (css){		//check if pre-defined reaction for element's css name exists
+			//check if pre-defined reaction for element's css name exists
+			if (hash && css){
 				css = css.toString().split(" ");
-				for (var i=0; i<css.length; i++){
+				for (let i = 0; i < css.length; i++){
 					if (hash[css[i]]){
-						var functor = toFunctor(hash[css[i]], this.$scope);
-						var res =  functor.call(this,e,id||locate(e, this._id),trg);
+						const functor = toFunctor(hash[css[i]], this.$scope);
+						const res =  functor.call(this,e,id||locate(e, this._id),trg);
 						if(res === false)
 							return found;
 					}
 				}
 			}
-			trg=trg.parentNode;
+			trg = trg.parentNode;
 		}
-			
-		return found;	//returns true if item was located and event was triggered
+		return found; //returns true if item was located and event was triggered
 	}
 };
 

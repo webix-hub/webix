@@ -5,7 +5,6 @@ import {copy, extend, isArray, isUndefined} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 
 import type from "../webix/type";
-import env from "../webix/env";
 import tree from "../views/tree";
 import TreeAPI from "../core/treeapi";
 
@@ -60,9 +59,10 @@ const api = {
 		});
 		this.attachEvent("onItemClick", function(id, ev, node){
 			const popup = this.getPopup();
-			if(popup && !popup.config.hidden)
+			if (popup && !popup.config.hidden)
 				ev.showpopup = popup.config.id;
-			if(env.touch)
+
+			if (ev.pointerType && ev.pointerType !== "mouse")
 				this._showPopup(id, node);
 		});
 		this.attachEvent("onBeforeSelect", function(id){
@@ -259,9 +259,9 @@ const api = {
 		this._destroy_with_me = [popup];
 		config.popupId = popup.config.id;
 
-		_event(document.body,"mousemove", function(e){
-			var trg = e.target;
-			if(!popup.config.hidden && !popup.$view.contains(trg) && !this.$view.firstChild.contains(trg) && !popup.queryView({view:"menu"})._open_sub_menu){
+		_event(document.body, "pointermove", function(e){
+			const trg = e.target;
+			if (!popup.config.hidden && !popup.$view.contains(trg) && !this.$view.firstChild.contains(trg) && !popup.queryView({view:"menu"})._open_sub_menu){
 				popup.hide();
 			}
 		}, {bind:this});

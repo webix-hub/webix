@@ -24,15 +24,14 @@
 	margin: 0 2px;
 	width: @navItemWidth - @navItemBorderWidth*2;
 	cursor: pointer;
-	#border > .radius(50%);
+	border-radius: 50%;
 	#box >.noselect;
 
 	// anti bootstrap
-	box-sizing: content-box;
+	#box > .sizing(content-box);
 }
 .webix_nav_inactive{
 	border: @navItemBorderWidth solid rgba(0, 0, 0, 0.15);
-	filter:alpha(opacity=60);
 	opacity: 0.6;
 	background: @navItemColor;
 }

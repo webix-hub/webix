@@ -26,41 +26,29 @@ export function event(node,event,handler,context){
 	
 	var id = context.id || uid();
 
-	if(context.bind)
-		handler=bind(handler,context.bind);
+	if (context.bind)
+		handler = bind(handler,context.bind);
 
 	var info = [node,event,handler,context.capture];
 	if (!context.inner)
-		_events[id]=info;	//store event info, for detaching
+		_events[id] = info;	//store event info, for detaching
 
 	var capture = !!context.capture;
-	if(!isUndefined(context.passive) && env.passiveEventListeners)//blockable touch events
+	if (!isUndefined(context.passive) && env.passiveEventListeners)//blockable touch events
 		capture = { passive:context.passive, capture:capture };
 		
-	//use IE's of FF's way of event's attaching
-	if (node.addEventListener)
-		node.addEventListener(event, handler, capture);
-	else if (node.attachEvent)
-		node.attachEvent("on"+event, info[2] = function(){
-			return handler.apply(node, arguments);	//IE8 fix
-		});
+	node.addEventListener(event, handler, capture);
 
 	return id;	//return id of newly created event, can be used in eventRemove
 }
 
 //remove previously attached event
 export function eventRemove(id){
-	
 	if (!id) return;
 	assert(_events[id],"Removing non-existing event");
-		
-	var ev = _events[id];
-	//browser specific event removing
-	if (ev[0].removeEventListener)
-		ev[0].removeEventListener(ev[1],ev[2],!!ev[3]);
-	else if (ev[0].detachEvent)
-		ev[0].detachEvent("on"+ev[1],ev[2]);
 
-		
+	const ev = _events[id];
+	ev[0].removeEventListener(ev[1], ev[2], !!ev[3]);
+
 	delete _events[id];	//delete all traces
 }

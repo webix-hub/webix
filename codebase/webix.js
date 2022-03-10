@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.9.1.0
+ * webix UI v.9.2.0
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -525,11 +525,10 @@
     return function () {
       return functor.apply(object, arguments);
     };
-  } //evaluate javascript code in the global scoope
+  } //evaluate javascript code in the global scope
 
   function exec(code) {
-    if (window.execScript) //special handling for IE
-      window.execScript(code);else window.eval(code);
+    return window.eval(code);
   }
   function wrap(code, wrap) {
     if (!code) return wrap;
@@ -580,7 +579,7 @@
     if (typeof str == "string") {
       var method = str.replace("()", "");
       if (scope && scope[method]) return scope[method];
-      return window[method] || window.eval(str);
+      return window[method] || exec(str);
     }
 
     return str;
@@ -588,7 +587,7 @@
   /*checks where an object is instance of Array*/
 
   function isArray(obj) {
-    return Array.isArray ? Array.isArray(obj) : Object.prototype.toString.call(obj) === "[object Array]";
+    return Array.isArray(obj);
   }
   function isDate(obj) {
     return obj instanceof Date;
@@ -1509,96 +1508,6 @@
     tag: "LI"
   };
 
-  var env = {};
-  env.cdn = "//cdn.webix.com";
-  env.codebase = "";
-  env.zIndexBase = 100;
-  env.scrollSize = 17;
-  env.strict = !!window.webix_strict;
-  env.https = document.location.protocol === "https:";
-  var agent = navigator.userAgent;
-  env.isMac = agent.indexOf("Mac") != -1;
-  if (agent.indexOf("Mobile") != -1 || agent.indexOf("Windows Phone") != -1) env.mobile = true;
-  if (env.mobile || agent.indexOf("iPad") != -1 || agent.indexOf("Android") != -1) env.touch = true;
-  if (!env.touch && navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1) env.touch = true;
-  if (agent.indexOf("Opera") != -1) env.isOpera = true;else {
-    //very rough detection, but it is enough for current goals
-    env.isIE = !!document.all || agent.indexOf("Trident") !== -1;
-
-    if (env.isIE) {
-      var version = parseFloat(navigator.appVersion.split("MSIE")[1]);
-      if (version == 8) env.isIE8 = true;
-    }
-
-    env.isEdge = agent.indexOf("Edge") != -1;
-    env.isFF = agent.indexOf("Firefox") != -1;
-    env.isWebKit = agent.indexOf("KHTML") != -1;
-    env.isSafari = env.isWebKit && env.isMac && agent.indexOf("Chrome") == -1; //maximum height/width for HTML elements in pixels (rough), bigger values will be ignored by browser
-
-    if (env.isIE || env.isEdge || env.isFF) env.maxHTMLElementSize = 10000000;
-    if (env.isSafari) env.maxHTMLElementSize = 100000000;
-  }
-
-  if (agent.toLowerCase().indexOf("android") != -1) {
-    env.isAndroid = true;
-
-    if (agent.toLowerCase().indexOf("trident") != -1) {
-      env.isAndroid = false;
-      env.isIEMobile = true;
-    }
-  }
-
-  env.transform = false;
-  env.transition = false;
-  var found_index = -1;
-  var js_list = ["", "webkit", "Moz", "O", "ms"];
-  var css_list = ["", "-webkit-", "-Moz-", "-o-", "-ms-"];
-  var d = document.createElement("DIV");
-
-  for (var j = 0; j < js_list.length; j++) {
-    var name = js_list[j] ? js_list[j] + "Transform" : "transform";
-
-    if (typeof d.style[name] != "undefined") {
-      found_index = j;
-      break;
-    }
-  }
-
-  if (found_index > -1) {
-    env.cssPrefix = css_list[found_index];
-    var jp = env.jsPrefix = js_list[found_index];
-    env.transform = jp ? jp + "Transform" : "transform";
-    env.transition = jp ? jp + "Transition" : "transition";
-    env.transitionDuration = jp ? jp + "TransitionDuration" : "transitionDuration";
-    d.style[env.transform] = "translate3d(0,0,0)";
-    env.translate = d.style[env.transform] ? "translate3d" : "translate";
-    env.transitionEnd = env.cssPrefix == "-Moz-" ? "transitionend" : jp ? jp + "TransitionEnd" : "transitionend";
-  }
-
-  env.pointerevents = !env.isIE || new RegExp("Trident/.*rv:11").exec(agent) !== null; //touch events that can be prevented
-
-  env.passiveEventListeners = false;
-
-  try {
-    var opts = Object.defineProperty({}, "passive", {
-      get: function () {
-        // eslint-disable-line
-        env.passiveEventListeners = true;
-      }
-    });
-    window.addEventListener("testPassive", null, opts);
-    window.removeEventListener("testPassive", null, opts);
-  } catch (e) {} // eslint-disable-line
-
-
-  env.svg = function () {
-    return document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1");
-  }();
-
-  env.svganimation = function () {
-    return document.implementation.hasFeature("https://www.w3.org/TR/SVG11/feature#SVG-animation", "1.1");
-  }();
-
   var _native_on_selectstart = 0;
   var _style_element = {};
   var _style_cache = {};
@@ -1650,10 +1559,8 @@
       document.getElementsByTagName("head")[0].appendChild(style);
       if (group) _style_element[group] = style;else _style_element["default"] = style;
     }
-    /*IE8*/
 
-
-    if (style.styleSheet) style.styleSheet.cssText += rule;else style.appendChild(document.createTextNode(rule));
+    style.appendChild(document.createTextNode(rule));
   }
   function removeStyle(group) {
     var box = _style_element[group || "default"];
@@ -1694,7 +1601,6 @@
   function locate(e, id) {
     var trg;
     if (e.tagName) trg = e;else {
-      e = e || event;
       trg = e.target;
     }
 
@@ -1712,94 +1618,68 @@
   } //returns position of html element on the page
 
   function offset(elem) {
-    if (elem.getBoundingClientRect) {
-      //HTML5 method
-      var box = elem.getBoundingClientRect();
-      var body = document.body;
-      var docElem = document.documentElement;
-      var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
-      var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
-      var clientTop = docElem.clientTop || body.clientTop || 0;
-      var clientLeft = docElem.clientLeft || body.clientLeft || 0;
-      var top = box.top + scrollTop - clientTop;
-      var left = box.left + scrollLeft - clientLeft;
-      return {
-        y: Math.round(top),
-        x: Math.round(left),
-        width: elem.offsetWidth,
-        height: elem.offsetHeight
-      };
-    } else {
-      //fallback to naive approach
-      var _top = 0,
-          _left = 0;
-
-      while (elem) {
-        _top = _top + parseInt(elem.offsetTop, 10);
-        _left = _left + parseInt(elem.offsetLeft, 10);
-        elem = elem.offsetParent;
-      }
-
-      return {
-        y: _top,
-        x: _left,
-        width: elem.offsetHeight,
-        height: elem.offsetWidth
-      };
-    }
+    var box = elem.getBoundingClientRect();
+    var body = document.body;
+    var docElem = document.documentElement;
+    var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
+    var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+    var clientTop = docElem.clientTop || body.clientTop || 0;
+    var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+    var top = box.top + scrollTop - clientTop;
+    var left = box.left + scrollLeft - clientLeft;
+    return {
+      y: Math.round(top),
+      x: Math.round(left),
+      width: elem.offsetWidth,
+      height: elem.offsetHeight
+    };
   } //returns relative position of event
 
   function posRelative(ev) {
-    ev = ev || event;
-    if (!isUndefined(ev.offsetX)) return {
+    return {
       x: ev.offsetX,
       y: ev.offsetY
-    }; //ie, webkit
-    else return {
-        x: ev.layerX,
-        y: ev.layerY
-      }; //firefox
+    };
   } //returns position of event
 
   function pos(ev) {
-    ev = ev || event;
-    if (ev.touches && ev.touches[0]) ev = ev.touches[0];
-    if (ev.pageX || ev.pageY) //FF, KHTML
+    if (!ev.type) // webix touch event
       return {
-        x: ev.pageX,
-        y: ev.pageY
-      }; //IE
-
-    var d = env.isIE && document.compatMode != "BackCompat" ? document.documentElement : document.body;
+        x: ev.x,
+        y: ev.y
+      };
+    if (ev.touches && ev.touches[0]) ev = ev.touches[0];
     return {
-      x: ev.clientX + d.scrollLeft - d.clientLeft,
-      y: ev.clientY + d.scrollTop - d.clientTop
+      x: ev.pageX,
+      y: ev.pageY
     };
   } //prevent event action
 
   function preventEvent(e) {
-    if (e && e.preventDefault) e.preventDefault();
-    if (e) e.returnValue = false;
+    e.preventDefault();
     return stopEvent(e);
   } //stop event bubbling
 
   function stopEvent(e) {
-    e = e || event;
-    if (e.stopPropagation) e.stopPropagation();
-    e.cancelBubble = true;
+    e.stopPropagation();
     return false;
   }
-  function triggerEvent(node, type, name) {
-    if (document.createEventObject) {
-      var ev = document.createEventObject();
-      if (node.fireEvent) node.fireEvent("on" + name, ev);
+  function triggerEvent(node, type, name, details) {
+    var event;
+
+    if (typeof window[type] === "function") {
+      details = exports.extend(details || {}, {
+        bubbles: true,
+        cancelable: true
+      });
+      event = new window[type](name, details);
     } else {
-      var _ev = document.createEvent(type);
-
-      _ev.initEvent(name, true, true);
-
-      if (node.dispatchEvent) node.dispatchEvent(_ev);
+      //IE 11 support
+      event = document.createEvent(type);
+      event.initEvent(name, true, true);
     }
+
+    node.dispatchEvent(event);
   } //add css class to the node
 
   function addCss(node, name, check) {
@@ -1816,15 +1696,14 @@
     d.style.cssText = "height:auto;visibility:hidden; position:absolute; top:0px; left:0px; overflow:hidden;" + (basewidth ? "width:" + basewidth + "px;" : "width:auto;white-space:nowrap;");
     document.body.appendChild(d);
     var all = _typeof(text) !== "object" ? [text] : text;
-    var width = 0;
-    var height = 0;
+    var width = 0,
+        height = 0;
 
     for (var i = 0; i < all.length; i++) {
-      d.innerHTML = all[i]; //we need to add 1 to offsetWidth/Height because these methods return value as an integer
-      //we can use ie9+ d.getBoundingClientRect().width
-
-      width = Math.max(width, d.offsetWidth + 1);
-      height = Math.max(height, d.offsetHeight + 1);
+      d.innerHTML = all[i];
+      var rect = d.getBoundingClientRect();
+      width = Math.max(width, Math.ceil(rect.width));
+      height = Math.max(height, Math.ceil(rect.height));
     }
 
     remove(d);
@@ -1868,35 +1747,13 @@
     start = start || 0;
     end = end || start;
     node.focus();
-    if (node.setSelectionRange) node.setSelectionRange(start, end);else {
-      //ie8
-      var textRange = node.createTextRange();
-      textRange.collapse(true);
-      textRange.moveEnd("character", end);
-      textRange.moveStart("character", start);
-      textRange.select();
-    }
+    node.setSelectionRange(start, end);
   }
   function getSelectionRange(node) {
-    if ("selectionStart" in node) return {
+    return {
       start: node.selectionStart || 0,
       end: node.selectionEnd || 0
-    };else {
-      //ie8
-      node.focus();
-      var selection = document.selection.createRange();
-      var bookmark = selection.getBookmark();
-      var textRange = node.createTextRange();
-      textRange.moveToBookmark(bookmark);
-      var length = textRange.text.length;
-      textRange.collapse(true);
-      textRange.moveStart("character", -node.value.length);
-      var start = textRange.text.length;
-      return {
-        start: start,
-        end: start + length
-      };
-    }
+    };
   }
   function addMeta(name, value) {
     document.getElementsByTagName("head").item(0).appendChild(create("meta", {
@@ -1904,6 +1761,34 @@
       content: value
     }));
   }
+
+  var html$1 = /*#__PURE__*/Object.freeze({
+    denySelect: denySelect,
+    allowSelect: allowSelect,
+    index: index,
+    createCss: createCss,
+    addStyle: addStyle,
+    removeStyle: removeStyle,
+    create: create,
+    getValue: getValue,
+    remove: remove,
+    insertBefore: insertBefore,
+    locate: locate,
+    offset: offset,
+    posRelative: posRelative,
+    pos: pos,
+    preventEvent: preventEvent,
+    stopEvent: stopEvent,
+    triggerEvent: triggerEvent,
+    addCss: addCss,
+    removeCss: removeCss,
+    getTextSize: getTextSize,
+    download: download,
+    _getClassName: _getClassName,
+    setSelectionRange: setSelectionRange,
+    getSelectionRange: getSelectionRange,
+    addMeta: addMeta
+  });
 
   var htmltable = {
     //convert json string to json object if necessary
@@ -1988,6 +1873,53 @@
       return hash;
     }
   };
+
+  var env = {};
+  env.cdn = "//cdn.webix.com";
+  env.codebase = "";
+  env.zIndexBase = 100;
+  env.scrollSize = 17;
+  env.strict = !!window.webix_strict;
+  env.https = document.location.protocol === "https:";
+  var agent = navigator.userAgent;
+  env.isMac = agent.indexOf("Mac") != -1;
+  if (/iPad|iPhone|iPod/.test(agent)) env.isIOS = true;
+  if (agent.indexOf("Android") != -1) env.isAndroid = true;
+  if (env.isIOS || env.isAndroid || agent.indexOf("Mobile") != -1 || agent.indexOf("Windows Phone") != -1) env.mobile = true;
+  if (env.mobile || navigator.maxTouchPoints > 1) env.touch = true;
+  env.fastClick = !env.touch; //very rough detection, but it is enough for current goals
+
+  if (agent.indexOf("Trident") !== -1) env.isIE = true;else if (agent.indexOf("Edge") !== -1) env.isEdge = true;else if (agent.indexOf("Firefox") !== -1) env.isFF = true;else if (agent.indexOf("Chrome") !== -1) env.isChromium = true;else if (agent.indexOf("Safari") !== -1) env.isSafari = true; //maximum height/width for HTML elements in pixels (rough), bigger values will be ignored by browser
+
+  if (env.isIE || env.isEdge || env.isFF) env.maxHTMLElementSize = 10000000;
+  if (env.isSafari) env.maxHTMLElementSize = 100000000;
+  env.transform = "transform";
+  env.transition = "transition";
+  env.transitionDuration = "transitionDuration";
+  env.translate = "translate3d";
+  env.transitionEnd = "transitionend"; //touch events that can be prevented
+
+  env.passiveEventListeners = false;
+
+  try {
+    var opts = Object.defineProperty({}, "passive", {
+      get: function () {
+        // eslint-disable-line
+        env.passiveEventListeners = true;
+      }
+    });
+    window.addEventListener("testPassive", null, opts);
+    window.removeEventListener("testPassive", null, opts);
+  } catch (e) {} // eslint-disable-line
+
+
+  env.svg = function () {
+    return document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1");
+  }();
+
+  env.svganimation = function () {
+    return document.implementation.hasFeature("https://www.w3.org/TR/SVG11/feature#SVG-animation", "1.1");
+  }();
 
   var _modules = {}; //hash of already loaded modules
   //loads module from external js file
@@ -2290,7 +2222,8 @@
   var silentErrorMarker = {};
   var AtomDataLoader = {
     $init: function (config) {
-      //prepare data store
+      this._data_generation = 0; //prepare data store
+
       this.data = {};
       this.waitData = Deferred.defer();
       if (config) this._settings.datatype = config.datatype || "json";
@@ -2360,12 +2293,12 @@
         result = Deferred.resolve(result);
       }
 
-      var gen = this._data_generation;
+      var gen = ++this._data_generation;
 
       if (result && result.then) {
         return result.then(function (data) {
           // component destroyed, or clearAll was issued
-          if (_this2.$destructed || gen && _this2._data_generation !== gen) // by returning rejection we are preventing the further executing chain
+          if (_this2.$destructed || _this2._data_generation !== gen) // by returning rejection we are preventing the further executing chain
             // if user have used list.load(data).then(do_something)
             // the do_something will not be executed
             // the error handler may be triggered though
@@ -2378,13 +2311,16 @@
     },
     //loads data from object
     parse: function (data, type, clear) {
-      if (data && typeof data.then == "function") {
-        var generation = this._data_generation; // component destroyed, or clearAll was issued
+      var _this3 = this;
 
-        return data.then(bind(function (data) {
-          if (this.$destructed || generation && this._data_generation !== generation) return Deferred.reject();
-          this.parse(data, type, clear);
-        }, this));
+      if (data && typeof data.then == "function") {
+        var gen = ++this._data_generation; // component destroyed, or clearAll was issued
+
+        return data.then(function (data) {
+          if (_this3.$destructed || _this3._data_generation !== gen) return Deferred.reject();
+
+          _this3.parse(data, type, clear);
+        });
       } //loading data from other component
 
 
@@ -2432,7 +2368,7 @@
     },
     //default after loading callback
     _onLoad: function (data, clear) {
-      var _this3 = this;
+      var _this4 = this;
 
       // webix loading object or uploaded file structure
       if (data && typeof data.text === "function" && !data.name) {
@@ -2441,7 +2377,7 @@
 
       data = this.data.driver.toObject(data);
       if (data && data.then) data.then(function (data) {
-        return _this3._onLoadContinue(data, clear);
+        return _this4._onLoadContinue(data, clear);
       });else this._onLoadContinue(data, clear);
     },
     _onLoadError: function (xhttp) {
@@ -2885,20 +2821,16 @@
       capture = {
         passive: context.passive,
         capture: capture
-      }; //use IE's of FF's way of event's attaching
-
-    if (node.addEventListener) node.addEventListener(event, handler, capture);else if (node.attachEvent) node.attachEvent("on" + event, info[2] = function () {
-      return handler.apply(node, arguments); //IE8 fix
-    });
+      };
+    node.addEventListener(event, handler, capture);
     return id; //return id of newly created event, can be used in eventRemove
   } //remove previously attached event
 
   function eventRemove(id) {
     if (!id) return;
     assert(_events[id], "Removing non-existing event");
-    var ev = _events[id]; //browser specific event removing
-
-    if (ev[0].removeEventListener) ev[0].removeEventListener(ev[1], ev[2], !!ev[3]);else if (ev[0].detachEvent) ev[0].detachEvent("on" + ev[1], ev[2]);
+    var ev = _events[id];
+    ev[0].removeEventListener(ev[1], ev[2], !!ev[3]);
     delete _events[id]; //delete all traces
   }
 
@@ -3277,7 +3209,7 @@
 
       var popup = element._settings.popup;
 
-      if (popup && !element._settings.readonly) {
+      if (popup && !element._settings.readonly && !e.longtouch_drag) {
         if (_typeof(popup) == "object" && !popup.name) {
           popup = element._settings.popup = ui(popup)._settings.id;
 
@@ -3344,11 +3276,11 @@
       if (!this._tooltip) {
         this._tooltip = new ui.tooltip({});
         this._tooltip._css_name = "webix_tooltip webix_global_tooltip";
-        this._webix_tooltip_mm = event$1(document, "mousemove", this._move_tooltip, {
-          bind: this
+        this._webix_tooltip_mm = event$1(document, "pointermove", function (e) {
+          return _this._move_tooltip(e);
         });
-        this._webix_tooltip_ml = event$1(document, "mouseleave", this._hide_tooltip, {
-          bind: this
+        this._webix_tooltip_ml = event$1(document, "pointerleave", function () {
+          return _this._hide_tooltip();
         });
         this._drag_event = attachEvent("onDragMode", function () {
           return _this._hide_tooltip();
@@ -3362,6 +3294,7 @@
       return this._tooltip;
     },
     _move_tooltip: function (e) {
+      if (e.pointerType !== "mouse") return;
       var c = {};
       var node = e.target;
 
@@ -3562,7 +3495,7 @@
   if (document.readyState == "complete") handler();else event$1(window, "load", handler);
   ready(function () {
     event$1(document.body, "click", function (e) {
-      callEvent("onClick", [e || window.event]);
+      callEvent("onClick", [e]);
     });
   });
 
@@ -3615,7 +3548,6 @@
     var source = e.target;
 
     if (count > 0 && message.keyboard) {
-      e = e || window.event;
       var code = e.which || e.keyCode;
       if (code != 13 && code != 32 && code != 27) return;
       var activeBox;
@@ -3709,6 +3641,7 @@
       if (text) t.hide(text.id);
       text = null;
     };
+
     if (t.position == "bottom" && t.area.firstChild) t.area.insertBefore(message, t.area.firstChild);else t.area.appendChild(message);
     if (text.expire > 0) t.timers[text.id] = window.setTimeout(function () {
       t.hide(text.id);
@@ -3768,7 +3701,6 @@
     }
 
     box.onclick = function (e) {
-      e = e || window.event;
       var source = e.target;
       if (!source.className) source = source.parentNode;
 
@@ -4239,7 +4171,11 @@
       if (view) {
         if (this.canFocus(view)) {
           // keep form focus
-          if (this._view && this._view.getFormView() == view && this._view.focus) this._view.focus();else this.setFocus(view);
+          if (this._view && this._view.getFormView() == view && this._view.focus) this._view.focus();else {
+            //radio view with scroll: focus changes onClick event target into radiogroup, so we need call onClick before it happens
+            if (e.target.type == "radio" || e.target.getAttribute("role") == "radio") callEvent("onClick", [e]);
+            this.setFocus(view);
+          }
         } //remove focus from an unreachable view
         else if (view.$view.contains(e.target)) e.target.blur();
       } else this.setFocus(null);
@@ -4991,20 +4927,15 @@
       if (typeof search === "string") search = {
         view: search
       };
+      if (_typeof(search) === "object") confirm = function (test) {
+        var config = test.config;
 
-      if (_typeof(search) === "object") {
-        //IE8 compatibility
-        confirm = function (test) {
-          var config = test.config;
+        for (var key in search) {
+          if (config[key] != search[key]) return false;
+        }
 
-          for (var key in search) {
-            if (config[key] != search[key]) return false;
-          }
-
-          return true;
-        };
-      } else confirm = search;
-
+        return true;
+      };else confirm = search;
       if (all === "self" && confirm(this)) return this;
       var results = all === "all" ? [] : false;
       var direction = all === "parent" ? this._queryGoUp : this._queryGoDown;
@@ -5220,7 +5151,7 @@
           role = target.getAttribute("role");
 
       if ((code === 13 || code === 32) && (role == "button" || role == "tab") && !this._settings.disabled) {
-        triggerEvent(target, "MouseEvents", "click");
+        triggerEvent(target, "MouseEvent", "click");
         preventEvent(e);
       }
     },
@@ -5740,10 +5671,6 @@
     state._wait_animate = delay(animate, this, [node, animation], 10);
   };
 
-  animate.isSupported = function () {
-    return env.transform && env.transition && !env.isOpera;
-  };
-
   animate.formLine = function (next, current, animation) {
     var direction = animation.direction; //sometimes user can initiate animation multiple times ( fast clicking )
     //as result animation may be called against already removed from the dom node
@@ -5809,7 +5736,6 @@
       type: animation
     };
     animation = Settings._mergeSettings(animation, animate.defaults);
-    var prefix = env.cssPrefix;
     var settings = node._has_animation = animation;
     var skew_options, scale_type; //jshint -W086:true
 
@@ -5849,7 +5775,7 @@
     }
 
     var duration = settings.duration + "ms " + settings.timing + " " + settings.delay + "ms";
-    var css_general = prefix + "TransformStyle: preserve-3d;"; // general css rules
+    var css_general = "transformStyle: preserve-3d;"; // general css rules
 
     var css_transition = "";
     var css_transform = "";
@@ -5888,7 +5814,7 @@
         var y = settings.y + "px"; // translate(x, y) OR translate3d(x, y, 0)
 
         css_transform = env.translate + "(" + x + ", " + y + (env.translate == "translate3d" ? ", 0" : "") + ")";
-        css_transition = prefix + "transform " + duration;
+        css_transition = "transform " + duration;
         break;
 
       default:
@@ -6300,13 +6226,13 @@
 
   var Touch = {
     config: {
-      longTouchDelay: 1000,
+      longTouchDelay: 700,
       scrollDelay: 150,
       gravity: 500,
-      deltaStep: 30,
+      deltaStep: 10,
       speed: "0ms",
-      finish: 1500,
-      ellastic: true
+      finish: 1000,
+      elastic: true
     },
     limit: function (value) {
       Touch._limited = value !== false;
@@ -6320,13 +6246,13 @@
     $init: function () {
       Touch.$init = function () {};
 
-      event$1(document.body, mouse.down, Touch._touchstart, {
+      event$1(document.body, env.touch.down, Touch._touchstart, {
         passive: false
       });
-      event$1(document.body, mouse.move, Touch._touchmove, {
+      event$1(document.body, env.touch.move, Touch._touchmove, {
         passive: false
       });
-      event$1(document.body, mouse.up, Touch._touchend);
+      event$1(document, env.touch.up, Touch._touchend);
       event$1(document.body, "dragstart", function (e) {
         if (Touch._disabled || Touch._limited) return;
         return preventEvent(e);
@@ -6339,9 +6265,7 @@
     },
     _clear_artefacts: function () {
       Touch._start_context = Touch._current_context = Touch._prev_context = Touch._scroll_context = null;
-      Touch._scroll_mode = Touch._scroll_node = Touch._scroll_stat = Touch._long_touched = null; //remove(Touch._scroll);
-      //Touch._scroll = [null, null];
-
+      Touch._scroll_mode = Touch._scroll_node = Touch._scroll_stat = Touch._long_touched = null;
       Touch._delta = {
         _x_moment: 0,
         _y_moment: 0,
@@ -6376,7 +6300,7 @@
           var y = temp.f;
           var finish = Touch.config.finish;
 
-          var delta = Touch._get_delta(e, true);
+          var delta = Touch._get_delta(e);
 
           var view = $$(Touch._scroll_node);
           var gravity = view && view.$scroll ? view.$scroll.gravity : Touch.config.gravity;
@@ -6394,16 +6318,13 @@
               f: cny
             };
             view = $$(Touch._scroll_node);
-            if (view && view.adjustScroll) view.adjustScroll(result); //finish = Math.max(100,(Touch._fast_correction?100:finish));
-
-            finish = Math.max(100, finish);
+            if (view && view.adjustScroll) view.adjustScroll(result);
+            finish = Math.min(Touch.config.finish, Math.max(100, finish));
 
             if (x != result.e || y != result.f) {
               Touch._set_matrix(Touch._scroll_node, result.e, result.f, finish + "ms");
 
               if (Touch._scroll_master) Touch._scroll_master._sync_scroll(result.e, result.f, finish + "ms");
-
-              Touch._set_scroll(result.e, result.f, finish + "ms");
             } else {
               Touch._scroll_end();
             }
@@ -6423,7 +6344,7 @@
       Touch._translate_event("onTouchMove");
 
       if (Touch._scroll_mode) {
-        Touch._set_scroll_pos(delta);
+        Touch._set_scroll_pos();
       } else {
         Touch._axis_x = Touch._axis_check(delta._x, "x", Touch._axis_x);
         Touch._axis_y = Touch._axis_check(delta._y, "y", Touch._axis_y);
@@ -6441,10 +6362,13 @@
             }
           }
 
-          Touch._init_scroller(delta); //apply scrolling
+          Touch._init_scroller(); //apply scrolling
 
-        } else if (env.isMac) {
-          var _view = $$(Touch._start_context);
+        } else {
+          var state = Touch._is_scroll();
+
+          var _view = $$(state && state[0]); // support subviews
+
 
           if (_view && _view.$hasYScroll && _view.$hasYScroll() && e.cancelable) {
             return preventEvent(e);
@@ -6461,21 +6385,13 @@
 
       var prev = Touch._prev_context || Touch._start_context;
       var view = $$(Touch._scroll_node);
-      var ellastic = view && view.$scroll ? view.$scroll.ellastic : Touch.config.ellastic;
-      if (Touch._scroll[0]) temp.e = Touch._correct_minmax(temp.e - prev.x + Touch._current_context.x, ellastic, temp.e, Touch._scroll_stat.dx, Touch._scroll_stat.px);
-      if (Touch._scroll[1]) temp.f = Touch._correct_minmax(temp.f - prev.y + Touch._current_context.y, ellastic, temp.f, Touch._scroll_stat.dy, Touch._scroll_stat.py);
+      var elastic = view && view.$scroll ? view.$scroll.elastic : Touch.config.elastic;
+      if (Touch._scroll[0]) temp.e = Touch._correct_minmax(temp.e - prev.x + Touch._current_context.x, elastic, temp.e, Touch._scroll_stat.dx, Touch._scroll_stat.px);
+      if (Touch._scroll[1]) temp.f = Touch._correct_minmax(temp.f - prev.y + Touch._current_context.y, elastic, temp.f, Touch._scroll_stat.dy, Touch._scroll_stat.py);
 
       Touch._set_matrix(Touch._scroll_node, temp.e, temp.f, "0ms");
 
       if (Touch._scroll_master) Touch._scroll_master._sync_scroll(temp.e, temp.f, "0ms");
-
-      Touch._set_scroll(temp.e, temp.f, "0ms");
-    },
-    _set_scroll: function (dx, dy, speed) {
-      var edx = Touch._scroll_stat.px / Touch._scroll_stat.dx * -dx;
-      var edy = Touch._scroll_stat.py / Touch._scroll_stat.dy * -dy;
-      if (Touch._scroll[0]) Touch._set_matrix(Touch._scroll[0], edx, 0, speed);
-      if (Touch._scroll[1]) Touch._set_matrix(Touch._scroll[1], 0, edy, speed);
     },
     scrollTo: function (node, x, y, speed) {
       Touch._set_matrix(node, x, y, speed);
@@ -6503,9 +6419,7 @@
       };else {
         if (window.WebKitCSSMatrix)
           /* global WebKitCSSMatrix */
-          tmatrix = new WebKitCSSMatrix(matrix);else if (window.MSCSSMatrix)
-          /* global MSCSSMatrix */
-          tmatrix = new MSCSSMatrix(matrix);else {
+          tmatrix = new WebKitCSSMatrix(matrix);else {
           // matrix(1, 0, 0, 1, 0, 0) --> 1, 0, 0, 1, 0, 0
           var _tmatrix = matrix.replace(/(matrix\()(.*)(\))/gi, "$2"); // 1, 0, 0, 1, 0, 0 --> 1,0,0,1,0,0
 
@@ -6525,63 +6439,28 @@
     },
     _correct_minmax: function (value, allow, current, dx, px) {
       if (value === current) return value;
+      if (px > dx) return 0;
       var delta = Math.abs(value - current);
-      var sign = delta / (value - current); //	Touch._fast_correction = true;
-
+      var sign = delta / (value - current);
       if (value > 0) return allow ? current + sign * Math.sqrt(delta) : 0;
       var max = dx - px;
-      if (max + value < 0) return allow ? current - Math.sqrt(-(value - current)) : -max; //	Touch._fast_correction = false;
-
+      if (max + value < 0) return allow ? current + sign * Math.sqrt(delta) : -max;
       return value;
     },
     _init_scroll_node: function (node) {
       if (!node.scroll_enabled) {
         node.scroll_enabled = true;
         node.parentNode.style.position = "relative";
-        var prefix = env.cssPrefix;
-        node.style.cssText += prefix + "transition: " + prefix + "transform; " + prefix + "user-select:none; " + prefix + "transform-style:flat;";
+        node.style.cssText += "transition:transform; user-select:none; transform-style:flat;";
         node.addEventListener(env.transitionEnd, Touch._scroll_end, false);
       }
     },
     _init_scroller: function () {
-      if (Touch._scroll_mode.indexOf("x") != -1) Touch._scroll[0] = Touch._create_scroll("x", Touch._scroll_stat.dx, Touch._scroll_stat.px, "width");
-      if (Touch._scroll_mode.indexOf("y") != -1) Touch._scroll[1] = Touch._create_scroll("y", Touch._scroll_stat.dy, Touch._scroll_stat.py, "height");
+      if (Touch._scroll_mode.indexOf("x") !== -1) Touch._scroll[0] = true;
+      if (Touch._scroll_mode.indexOf("y") !== -1) Touch._scroll[1] = true;
+      if (Touch._scroll[0] || Touch._scroll[1]) Touch._scroll[2] = Touch._scroll_node;
 
       Touch._init_scroll_node(Touch._scroll_node);
-
-      window.setTimeout(function () {
-        Touch._set_scroll_pos();
-
-        if (Touch._scroll_stat && !Touch._scroll_stat.hidden) {
-          if (Touch._scroll[0]) Touch._scroll[0].style.visibility = "visible";
-          if (Touch._scroll[1]) Touch._scroll[1].style.visibility = "visible";
-        }
-      }, 0);
-    },
-    _create_scroll: function (mode, dy, py, dim) {
-      if (dy - py < 2) {
-        var matrix = Touch._get_matrix(Touch._scroll_node);
-
-        var e = mode == "y" ? matrix.e : 0;
-        var f = mode == "y" ? 0 : matrix.f;
-        if (!Touch._scroll_master) Touch._set_matrix(Touch._scroll_node, e, f, "0ms");
-        Touch._scroll_mode = Touch._scroll_mode.replace(mode, "");
-        return "";
-      }
-
-      var scroll = create("DIV", {
-        "class": "webix_scroll_" + mode
-      }, "");
-      scroll.style.visibility = "hidden";
-      scroll.style[dim] = Math.max(py * py / dy - 7, 10) + "px";
-
-      if (Touch._scroll_stat.left) {
-        if (mode === "x") scroll.style.left = Touch._scroll_stat.left + "px";else scroll.style.right = -Touch._scroll_stat.left + "px";
-      }
-
-      Touch._scroll_node.parentNode.appendChild(scroll);
-
-      return scroll;
     },
     _axis_check: function (value, mode, old) {
       if (value > Touch.config.deltaStep) {
@@ -6615,11 +6494,7 @@
         if (view.callEvent) view.callEvent("onAfterScroll", [result]);
       }
 
-      if (!Touch._scroll_mode) {
-        remove(Touch._scroll);
-        Touch._scroll = [null, null];
-      }
-
+      if (!Touch._scroll_mode) Touch._scroll = [null, null];
       Touch._active_transion = false;
     },
     _long_move: function () {
@@ -6627,27 +6502,22 @@
       Touch._was_not_moved = false;
     },
     _stop_old_scroll: function (e) {
-      if (Touch._scroll[0] || Touch._scroll[1]) {
+      if (Touch._scroll[2]) {
         Touch._stop_scroll(e, Touch._scroll[0] ? "x" : "y");
       } else return true;
     },
     _touchstart: function (e) {
-      var target = e.target;
       if (Touch._disabled) return;
       Touch._long_touched = null;
-      Touch._scroll_context = Touch._start_context = mouse.context(e); // in "limited" mode we should have possibility to use slider
-
-      var element = $$(e);
-
-      if (Touch._limited && !Touch._is_scroll() && !(element && element.$touchCapture)) {
-        Touch._scroll_context = null;
-      }
+      Touch._scroll_context = Touch._start_context = env.touch.context(e);
+      if (Touch._limited && !Touch._is_scroll()) Touch._scroll_context = null;
 
       Touch._translate_event("onTouchStart");
 
       if (Touch._stop_old_scroll(e)) Touch._long_touch_timer = window.setTimeout(Touch._long_touch, Touch.config.longTouchDelay);
+      var element = $$(e);
 
-      if (element && element.touchable && (!target.className || target.className.indexOf("webix_view") !== 0)) {
+      if (element && element.touchable && (!e.target.className || e.target.className.indexOf("webix_view") !== 0)) {
         Touch._css_button_remove = element.getNode(e);
         addCss(Touch._css_button_remove, "webix_touch");
       }
@@ -6658,33 +6528,31 @@
 
         Touch._translate_event("onLongTouch");
 
-        callEvent("onClick", [Touch._start_context]); //Touch._clear_artefacts();
+        callEvent("onClick", [Touch._start_context]);
       }
     },
     _stop_scroll: function (e, stop_mode) {
       Touch._locate(stop_mode);
 
-      var scroll = Touch._scroll[0] || Touch._scroll[1];
-
-      if (scroll) {
+      if (Touch._scroll[2]) {
         var view = Touch._get_event_view("onBeforeScroll", true);
 
         if (view) view.callEvent("onBeforeScroll", [Touch._start_context, Touch._current_context]);
-      }
 
-      if (scroll && (!Touch._scroll_node || scroll.parentNode != Touch._scroll_node.parentNode)) {
-        Touch._clear_artefacts();
+        if (!Touch._scroll_node || Touch._scroll_node.parentNode !== Touch._scroll[2].parentNode) {
+          Touch._clear_artefacts();
 
-        Touch._scroll_end();
+          Touch._scroll_end();
 
-        Touch._start_context = mouse.context(e);
+          Touch._start_context = env.touch.context(e);
+        }
       }
 
       Touch._touchmove(e);
     },
     _get_delta: function (e) {
       Touch._prev_context = Touch._current_context;
-      Touch._current_context = mouse.context(e);
+      Touch._current_context = env.touch.context(e);
       Touch._delta._x = Math.abs(Touch._start_context.x - Touch._current_context.x);
       Touch._delta._y = Math.abs(Touch._start_context.y - Touch._current_context.y);
 
@@ -6702,7 +6570,7 @@
       return Touch._delta;
     },
     _get_sizes: function (node) {
-      Touch._scroll_stat = {
+      return {
         dx: node.offsetWidth,
         dy: node.offsetHeight,
         px: node.parentNode.offsetWidth,
@@ -6711,7 +6579,6 @@
     },
     _is_scroll: function (locate_mode) {
       var node = Touch._start_context.target;
-      if (!env.touch && !env.transition && !env.transform) return null;
 
       while (node && node.tagName != "BODY") {
         if (node.getAttribute) {
@@ -6725,13 +6592,12 @@
       return null;
     },
     _locate: function (locate_mode) {
-      var state = this._is_scroll(locate_mode);
+      var state = Touch._is_scroll(locate_mode);
 
       if (state) {
         Touch._scroll_mode = state[1];
         Touch._scroll_node = state[0];
-
-        Touch._get_sizes(state[0]);
+        Touch._scroll_stat = Touch._get_sizes(state[0]);
       }
 
       return state;
@@ -6782,53 +6648,24 @@
     if (env.touch) {
       Touch.$init(); //not full screen mode
 
-      if (document.body.className.indexOf("webix_full_screen") == -1) Touch.limit(true);
-      if (env.isSafari) addStyle(".webix_view{ -webkit-overflow-scrolling: touch; }");
-      if (window.MSCSSMatrix) addStyle(".webix_view{ -ms-touch-action: none; }");
-    } else {
-      var id = event$1(document.body, "touchstart", function (ev) {
-        if (ev.touches.length && ev.touches[0].radiusX > 4) {
-          env.touch = true;
-          setMouse(mouse);
-          touchInit();
-
-          for (var key in ui.views) {
-            var view = ui.views[key];
-            if (view && view.$touch) view.$touch();
-          }
-        }
-
-        eventRemove(id);
-      }, {
-        capture: true
-      });
+      if (document.body.className.indexOf("webix_full_screen") === -1) Touch.limit(true);
+      if (env.isSafari && CSS.supports("-webkit-overflow-scrolling: touch")) addStyle(".webix_view{ -webkit-overflow-scrolling:touch; } .webix_scroll_cont{ transform:translateZ(0px); }");
     }
   }
 
-  function setMouse(mouse) {
-    mouse.down = "touchstart";
-    mouse.move = "touchmove";
-    mouse.up = "touchend";
-    mouse.context = Touch._get_context;
-  }
-
   ready(touchInit);
-  var mouse = env.mouse = {
+  env.mouse = {
     down: "mousedown",
-    up: "mouseup",
     move: "mousemove",
+    up: "mouseup",
     context: Touch._get_context_m
   };
-
-  if (window.navigator.pointerEnabled) {
-    mouse.down = "pointerdown";
-    mouse.move = "pointermove";
-    mouse.up = "pointerup";
-  } else if (window.navigator.msPointerEnabled) {
-    mouse.down = "MSPointerDown";
-    mouse.move = "MSPointerMove";
-    mouse.up = "MSPointerUp";
-  } else if (env.touch) setMouse(mouse);
+  env.touch = env.touch && {
+    down: "touchstart",
+    move: "touchmove",
+    up: "touchend",
+    context: Touch._get_context
+  };
 
   /*
   	Behavior:DND - low-level dnd handling
@@ -6892,19 +6729,16 @@
         this._drag_masters[index$$1] = null;
       }
     },
-    _createTouchDrag: function (e) {
+    _createTouchDrag: function (e, pointer) {
       var dragCtrl = DragControl;
 
       var master = this._getActiveDragMaster(); // for data items only
 
 
       if (master && master.$longTouchLimit) {
-        if (!dragCtrl._html && !dragCtrl.createDrag(e)) return;
+        if (!dragCtrl._html && !dragCtrl.createDrag(e, pointer)) return;
         e.longtouch_drag = true;
-        var pos$$1 = {
-          x: e.x,
-          y: e.y
-        };
+        var pos$$1 = pos(e);
         var customPos = dragCtrl.$dragPos(pos$$1, e);
         var ctx = dragCtrl._drag_context;
         dragCtrl._html.style.top = pos$$1.y + dragCtrl.top + (customPos || !ctx.y_offset ? 0 : ctx.y_offset) + "px";
@@ -6918,17 +6752,23 @@
     	@param ctrl 	options dnd master
     */
     addDrag: function (node, ctrl) {
+      var _this = this;
+
       node = toNode(node);
       node.webix_drag = this._getCtrl(ctrl);
 
-      _event(node, env.mouse.down, this._preStart, {
-        bind: node
+      _event(node, "dragstart", preventEvent);
+
+      _event(node, env.mouse.down, function (e) {
+        return _this._preStart(e, node, "mouse");
       });
 
-      _event(node, "dragstart", preventEvent);
+      if (env.touch) _event(node, env.touch.down, function (e) {
+        return _this._preStart(e, node, "touch");
+      });
     },
     //logic of drag - start, we are not creating drag immediately, instead of that we hears mouse moving
-    _preStart: function (e) {
+    _preStart: function (e, node, pointer) {
       if (DragControl._active) {
         //if we have nested drag areas, use the top one and ignore the inner one
         if (DragControl._saved_event == e) return;
@@ -6938,15 +6778,17 @@
         DragControl.destroyDrag(e);
       }
 
-      DragControl._active = this;
-      var evobj = env.mouse.context(e);
+      DragControl._active = node;
+      var evobj = env[pointer].context(e);
       DragControl._start_pos = evobj;
       DragControl._saved_event = e;
-      var passive = env.touch ? {
+      var passive = pointer === "touch" ? {
         passive: false
       } : null;
-      DragControl._webix_drag_mm = event$1(document.body, env.mouse.move, DragControl._startDrag, passive);
-      DragControl._webix_drag_mu = event$1(document, env.mouse.up, DragControl._preStartFalse); //need to run here, or will not work in IE
+      DragControl._webix_drag_mm = event$1(document.body, env[pointer].move, function (e) {
+        return DragControl._startDrag(e, pointer);
+      }, passive);
+      DragControl._webix_drag_mu = event$1(document, env[pointer].up, DragControl._preStartFalse); //need to run here, or will not work in IE
 
       addCss(document.body, "webix_noselect", 1);
     },
@@ -6957,37 +6799,47 @@
       DragControl._touch_animation = !e.cancelable;
     },
     //mouse was moved without button released - dnd started, update event handlers
-    _startDrag: function (e) {
+    _startDrag: function (e, pointer) {
       // check touch scroll animation
+      var touch = pointer === "touch";
       DragControl._touch_animation = !e.cancelable;
 
-      if (env.touch && DragControl._touch_animation) {
+      if (touch && DragControl._touch_animation) {
         DragControl._clean_dom_after_drag();
 
         return DragControl.destroyDrag(e);
       } //prevent unwanted dnd
 
 
-      var pos$$1 = env.mouse.context(e);
+      var pos$$1 = env[pointer].context(e);
 
       var master = DragControl._getActiveDragMaster(); // only long-touched elements can be dragged
 
 
-      var longTouchLimit = env.touch && master && master.$longTouchLimit && !Touch._long_touched;
+      var longTouchLimit = touch && master && master.$longTouchLimit && !Touch._long_touched;
       if (longTouchLimit || Math.abs(pos$$1.x - DragControl._start_pos.x) < 5 && Math.abs(pos$$1.y - DragControl._start_pos.y) < 5) return;
-      if (!DragControl._html && !DragControl.createDrag(DragControl._saved_event)) return DragControl._clean_dom_after_drag();
+      if (!DragControl._html && !DragControl.createDrag(DragControl._saved_event, pointer)) return DragControl._clean_dom_after_drag();
 
       DragControl._clean_dom_after_drag(true);
 
       DragControl.sendSignal("start"); //useless for now
 
-      var passive = env.touch ? {
-        passive: false
-      } : null;
-      DragControl._webix_drag_mm = event$1(document.body, env.mouse.move, DragControl._moveDrag, passive);
-      DragControl._webix_drag_mu = event$1(document, env.mouse.up, DragControl._stopDrag);
+      if (touch) {
+        // important: for touch events use e.target as EventTarget
+        DragControl._webix_drag_mm = event$1(e.target, env[pointer].move, function (e) {
+          return DragControl._moveDrag(e, pointer);
+        }, {
+          passive: false
+        });
+        DragControl._webix_drag_mu = event$1(e.target, env[pointer].up, DragControl._stopDrag);
+      } else {
+        DragControl._webix_drag_mm = event$1(document.body, env[pointer].move, function (e) {
+          return DragControl._moveDrag(e, pointer);
+        });
+        DragControl._webix_drag_mu = event$1(document, env[pointer].up, DragControl._stopDrag);
+      }
 
-      DragControl._moveDrag(e);
+      DragControl._moveDrag(e, pointer, true);
     },
     //mouse was released while dnd is active - process target
     _stopDrag: function (e) {
@@ -7010,7 +6862,7 @@
       if (!still_drag) removeCss(document.body, "webix_noselect");
     },
     //dnd is active and mouse position was changed
-    _moveDrag: function (e) {
+    _moveDrag: function (e, pointer, first) {
       var dragCtrl = DragControl;
       var pos$$1 = pos(e); //give possibility to customize drag position
 
@@ -7018,12 +6870,17 @@
 
       var ctx = dragCtrl._drag_context;
       dragCtrl._html.style.top = pos$$1.y + dragCtrl.top + (customPos || !ctx.y_offset ? 0 : ctx.y_offset) + "px";
-      dragCtrl._html.style.left = pos$$1.x + dragCtrl.left + (customPos || !ctx.x_offset ? 0 : ctx.x_offset) + "px";
-      var evobj = e;
+      dragCtrl._html.style.left = pos$$1.x + dragCtrl.left + (customPos || !ctx.x_offset ? 0 : ctx.x_offset) + "px"; // check landing at least once
+
+      if (first) dragCtrl._skip = false;
       if (dragCtrl._skip) dragCtrl._skip = false;else {
-        if (env.touch) {
-          var context = env.mouse.context(e);
-          var target = document.elementFromPoint(context.x, context.y);
+        var evobj = e;
+
+        if (pointer === "touch") {
+          var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
+          var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+          var context = env[pointer].context(e);
+          var target = document.elementFromPoint(context.x - scrollLeft, context.y - scrollTop);
           evobj = new Proxy(e, {
             get: function (obj, prop) {
               if (prop === "target") {
@@ -7089,15 +6946,14 @@
       return this._html;
     },
     //called when dnd is initiated, must create drag representation
-    createDrag: function (e) {
-      var dragCtl = DragControl;
-      var a = dragCtl._active;
-      dragCtl._drag_context = {};
+    createDrag: function (e, pointer) {
+      var a = DragControl._active;
+      DragControl._drag_context = {};
       var master = this._drag_masters[a.webix_drag];
       var drag_container; //if custom method is defined - use it
 
       if (master.$dragCreate) {
-        drag_container = master.$dragCreate(a, e);
+        drag_container = master.$dragCreate(a, e, pointer);
         if (!drag_container) return false;
 
         this._setDragOffset(e);
@@ -7105,18 +6961,18 @@
         drag_container.style.position = "absolute";
       } else {
         //overvise use default one
-        var text = dragCtl.$drag(a, e);
+        var text = DragControl.$drag(a, e, pointer);
 
-        dragCtl._setDragOffset(e);
+        DragControl._setDragOffset(e);
 
         if (!text) return false;
         drag_container = document.createElement("DIV");
         drag_container.innerHTML = text;
         drag_container.className = "webix_drag_zone";
         document.body.appendChild(drag_container);
-        var context = dragCtl._drag_context;
+        var context = DragControl._drag_context;
 
-        if (context.html && env.pointerevents) {
+        if (context.html) {
           context.x_offset = -Math.round(drag_container.offsetWidth * 0.5);
           context.y_offset = -Math.round(drag_container.offsetHeight * 0.75);
         }
@@ -7129,7 +6985,7 @@
 
 
       drag_container.style.zIndex = Math.max(drag_container.style.zIndex, zIndex());
-      DragControl._skipDropH = event$1(drag_container, env.mouse.move, DragControl._skip_mark);
+      DragControl._skipDropH = event$1(drag_container, env[pointer].move, DragControl._skip_mark);
       if (!DragControl._drag_context.from) DragControl._drag_context = {
         source: a,
         from: a
@@ -7145,9 +7001,9 @@
     destroyDrag: function (e) {
       var a = DragControl._active;
       var master = this._drag_masters[a.webix_drag];
+      if (DragControl._skipDropH) DragControl._skipDropH = eventRemove(DragControl._skipDropH);
 
       if (master && master.$dragDestroy) {
-        DragControl._skipDropH = eventRemove(DragControl._skipDropH);
         if (DragControl._html) master.$dragDestroy(a, DragControl._html, e);
       } else remove(DragControl._html);
 
@@ -7163,22 +7019,19 @@
     //relative position of drag marker to mouse cursor
     left: 0,
     _setDragOffset: function (e) {
-      var dragCtl = DragControl;
-      var pos$$1 = dragCtl._start_pos;
-      var ctx = dragCtl._drag_context;
+      var pos$$1 = DragControl._start_pos;
+      var ctx = DragControl._drag_context;
       if (typeof ctx.x_offset != "undefined" && typeof ctx.y_offset != "undefined") return null;
       ctx.x_offset = ctx.y_offset = 0;
 
-      if (env.pointerevents) {
-        var m = DragControl._getActiveDragMaster();
+      var m = DragControl._getActiveDragMaster();
 
-        if (m._getDragItemPos && m !== this) {
-          var itemPos = m._getDragItemPos(pos$$1, e);
+      if (m._getDragItemPos && m !== this) {
+        var itemPos = m._getDragItemPos(pos$$1, e);
 
-          if (itemPos) {
-            ctx.x_offset = itemPos.x - pos$$1.x;
-            ctx.y_offset = itemPos.y - pos$$1.y;
-          }
+        if (itemPos) {
+          ctx.x_offset = itemPos.x - pos$$1.x;
+          ctx.y_offset = itemPos.y - pos$$1.y;
         }
       }
     },
@@ -7212,15 +7065,15 @@
       t.appendChild(s);
     },
     //called when dnd just started
-    $drag: function (s, e) {
+    $drag: function (s, e, p) {
       var m = this._drag_masters[s.webix_drag];
-      if (m.$drag && m != this) return m.$drag(s, e);
+      if (m.$drag && m != this) return m.$drag(s, e, p);
       return "<div style='" + s.style.cssText + "'>" + s.innerHTML + "</div>";
     }
   }; //global touch-drag handler
 
   attachEvent("onLongTouch", function (ev) {
-    if (DragControl._active && !DragControl._touch_animation) DragControl._createTouchDrag(ev);
+    if (DragControl._active && !DragControl._touch_animation) DragControl._createTouchDrag(ev, "touch");
   });
 
   var Movable = {
@@ -7303,6 +7156,8 @@
       return value;
     },
     _renderResizeHandler: function () {
+      var _this = this;
+
       if (!this._rwHandle) {
         var rp = this._viewobj;
 
@@ -7319,8 +7174,12 @@
         });
         rp.appendChild(this._rwHandle);
 
-        _event(this._rwHandle, env.mouse.down, this._wrDown, {
-          bind: this
+        _event(this._rwHandle, env.mouse.down, function (e) {
+          return _this._wrDown(e, "mouse");
+        });
+
+        if (env.touch) _event(this._rwHandle, env.touch.down, function (e) {
+          return _this._wrDown(e, "touch");
         });
       }
     },
@@ -7339,19 +7198,24 @@
       this._resizeFrame.style.width = width + "px";
       this._resizeFrame.style.height = height + "px";
     },
-    _wrDown: function () {
+    _wrDown: function (e, pointer) {
+      var _this2 = this;
+
       if (this.config.resize) {
         addCss(document.body, "webix_noselect webix_resize_cursor");
         this._wsReady = offset(this._viewobj);
-        this._resizeHandlersMove = event$1(document.body, env.mouse.move, this._wrMove, {
-          bind: this
-        });
-        this._resizeHandlersUp = event$1(document.body, env.mouse.up, this._wrUp, {
-          bind: this
+        var passive = pointer === "touch" ? {
+          passive: false
+        } : null;
+        this._resizeHandlersMove = event$1(document.body, env[pointer].move, function (e) {
+          return _this2._wrMove(e, pointer);
+        }, passive);
+        this._resizeHandlersUp = event$1(document, env[pointer].up, function () {
+          return _this2._wrUp();
         });
       }
     },
-    _wrMove: function (e) {
+    _wrMove: function (e, pointer) {
       if (this._wsReady !== false) {
         var elPos = pos(e);
         var progress = {
@@ -7368,6 +7232,8 @@
         this._wsProgress = progress;
 
         this._showResizeFrame(progress.x, progress.y);
+
+        if (pointer === "touch") preventEvent(e);
       }
     },
     _wrUp: function () {
@@ -7621,7 +7487,7 @@
       this._hide_timer = 1;
       delay(function () {
         this._hide_timer = 0;
-      }, this, [], env.touch ? 400 : 100);
+      }, this, [], env.fastClick ? 100 : 400);
 
       this._render_hidden_views();
 
@@ -7849,7 +7715,7 @@
           this.setPosition(_state.left, _state.top);
         } else {
           if (this._settings.position == "top") {
-            if (animate.isSupported()) top = -1 * height;else top = 10;
+            top = -1 * height;
           } //popup inside a fixed win
 
 
@@ -8001,7 +7867,7 @@
       this._area = area;
     },
     _show_at_node: function (e) {
-      this._area = toNode(e || window$1.event);
+      this._area = toNode(e);
       return this._show_at(e);
     },
     _show_at_ui: function (id, e) {
@@ -8066,7 +7932,7 @@
 
       document.body.appendChild(this._area);
       event$1(document.body, "keydown", bind(function (e) {
-        var key = e.keyCode;
+        var key = e.which || e.keyCode;
         var ctrl = !!(e.ctrlKey || e.metaKey);
 
         if (key === 86 && ctrl) {
@@ -8233,7 +8099,6 @@
 
   var CopyPaste = {
     clipboard_setter: function (value) {
-      if (env.touch) return value;
       if (value === true || value === 1) value = "modify";
       this.attachEvent("onAfterSelect", this._sel_to_clip);
       this.attachEvent("onAfterEditStop", function (v, ed) {
@@ -10080,7 +9945,7 @@
       //prepare data store
       config = config || "";
       this._feed_last = {};
-      this._data_generation = 1;
+      this._data_generation = 0;
       this.data = new DataStore();
       this.data.attachEvent("onClearAll", bind(this._call_onclearall, this));
       this.data.attachEvent("onServerConfig", bind(this._call_on_config, this));
@@ -10573,7 +10438,7 @@
       context.target = id;
       context.to = to;
       if (this._auto_scroll_delay) this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
-      var fragile = this.addRowCss && env.touch && !this._settings.prerender;
+      var fragile = this._touch_scroll && !this._settings.prerender;
       if (this._settings.dragscroll !== false && !fragile) this._auto_scroll_delay = delay(function (pos$$1, id) {
         this._drag_pause(id);
 
@@ -10699,7 +10564,7 @@
         context.from = this;
 
         if (this.callEvent("onBeforeDrag", [context, e])) {
-          if (env.touch && this._touch_scroll == "touch") delay(function () {
+          if (Touch._start_context) delay(function () {
             Touch._start_context = null;
           }); //set drag representation
 
@@ -10861,6 +10726,7 @@
     $dragDestroy: function () {
       var context = DragControl._drag_context;
       if (isArray(context.source)) this._remove_css(context.source, "webix_invisible");
+      if (this._settings.dynamic) this.render(null, null, "drag-end");
       remove(DragControl._html);
     },
     _init_drop_area: function () {
@@ -11149,12 +11015,8 @@
       },
       setValue: function () {},
       focus: function () {
-        try {
-          //IE9
-          this.node.select();
-          this.node.focus();
-        } catch (e) {} //eslint-disable-line
-
+        this.node.focus();
+        this.node.select();
       },
       getInputNode: function () {},
       $inline: true
@@ -12716,7 +12578,7 @@
         prev = prev === true ? selected : null;
 
         if (mode == "left") {
-          if (this.close) return this.close(selected); //tree
+          if (this.close && !this._ignore_clicks) return this.close(selected); //tree (not window)
 
           if (this._level_up && this._level_up(selected)) return this.render(); //grouplist
         } else if (mode == "right") {
@@ -12971,7 +12833,7 @@
       if (column) {
         delete column.options;
         column.collection = options;
-        column.template = column.template || this._bind_template(options, column.id, column.optionslist);
+        column.template = column.template || this._bind_template(column.optionslist);
         var id = options.data.attachEvent("onStoreUpdated", function () {
           _this2.refresh();
 
@@ -12982,26 +12844,23 @@
         });
       }
     },
-    _bind_template: function (options, columnId, multi) {
-      columnId = this.getColumnConfig ? columnId : "value";
-
+    _bind_template: function (multi) {
       if (multi) {
-        var separator = typeof multi == "string" ? multi : ",";
-        return function (obj) {
-          var value = obj[columnId];
+        var separator = typeof multi === "string" ? multi : ",";
+        return function (obj, common, value, column) {
           if (!value) return "";
           var ids = value.toString().split(separator);
 
           for (var i = 0; i < ids.length; i++) {
-            var data = options.data.pull[ids[i]];
+            var data = column.collection.data.pull[ids[i]];
             ids[i] = data ? data.value || "" : "";
           }
 
           return ids.join(", ");
         };
       } else {
-        return function (obj) {
-          var data = options.data.pull[obj[columnId]];
+        return function (obj, common, value, column) {
+          var data = column.collection.data.pull[value];
           if (data && (data.value || data.value === 0)) return data.value;
           return "";
         };
@@ -13013,7 +12872,7 @@
     $init: function (config) {
       config = config || {};
       this._clickstamp = 0;
-      this._dbl_sensetive = 300;
+      this._dbl_sensetive = env.touch ? 500 : 300;
       this._item_clicked = null;
 
       this._mouse_action_extend(config.onClick, "on_click");
@@ -13025,16 +12884,9 @@
       this._mouse_action_extend(config.onMouseMove, "on_mouse_move"); //attach dom events if related collection is defined
 
 
-      if (this.on_click) {
-        _event(this._contentobj, "click", this._onClick, {
-          bind: this
-        });
-
-        if (env.isIE8 && this.on_dblclick) _event(this._contentobj, "dblclick", this._onDblClick, {
-          bind: this
-        });
-      }
-
+      if (this.on_click) _event(this._contentobj, "click", this._onClick, {
+        bind: this
+      });
       if (this.on_context) _event(this._contentobj, "contextmenu", this._onContext, {
         bind: this
       });
@@ -13048,7 +12900,7 @@
           bind: this
         });
 
-        _event(this._contentobj, env.isIE ? "mouseleave" : "mouseout", this._onMouse, {
+        _event(this._contentobj, "mouseout", this._onMouse, {
           bind: this
         });
 
@@ -13067,29 +12919,27 @@
     },
     //inner onclick object handler
     _onClick: function (e) {
+      var _this = this;
+
       if (!this.isEnabled()) return false;
 
       UIManager._focus_action(this);
 
-      if (this.on_dblclick) {
-        // emulates double click
-        var stamp = new Date().valueOf();
-
-        if (stamp - this._clickstamp <= this._dbl_sensetive && this.locate) {
-          var item = this.locate(e);
-
-          if ("" + item == "" + this._item_clicked) {
-            this._clickstamp = 0;
-            return this._onDblClick(e);
-          }
+      if (this.on_dblclick && this.locate) {
+        if (this._clickHandler && this._item_clicked + "" == this.locate(e) + "") {
+          clearTimeout(this._clickHandler);
+          this._clickHandler = null;
+          return this._onDblClick(e);
         }
 
-        this._clickstamp = stamp;
+        this._item_clicked = this.locate(e);
+        this._clickHandler = delay(function () {
+          _this._clickHandler = null;
+          return _this._mouseEvent(e, _this.on_single_click, "ItemSingleClick");
+        }, null, [e], this._dbl_sensetive);
       }
 
-      var result = this._mouseEvent(e, this.on_click, "ItemClick");
-
-      return result;
+      return this._mouseEvent(e, this.on_click, "ItemClick");
     },
     //inner ondblclick object handler
     _onDblClick: function (e) {
@@ -13125,22 +12975,13 @@
     },
     //inner mouseout object handler
     _onMouseOut: function (e) {
-      this.callEvent("onMouseOut", [e || event]);
+      this.callEvent("onMouseOut", [e]);
     },
     //common logic for click and dbl-click processing
     _mouseEvent: function (e, hash, name, pair) {
-      e = e || event;
       if (e.processed || !this._viewobj) return;
       e.processed = true;
-      var trg = e.target; //IE8 can't modify event object
-      //so we need to stop event bubbling to prevent double processing
-
-      if (env.isIE8) {
-        var vid = this._settings.id;
-        var wid = trg.w_view;
-        if (!wid) trg.w_view = vid;else if (wid !== vid) return;
-      }
-
+      var trg = e.target;
       var css = "";
       var id = null;
       var found = false; //loop through all parents
@@ -13171,10 +13012,9 @@
           }
         }
 
-        css = _getClassName(trg);
+        css = _getClassName(trg); //check if pre-defined reaction for element's css name exists
 
-        if (css) {
-          //check if pre-defined reaction for element's css name exists
+        if (hash && css) {
           css = css.toString().split(" ");
 
           for (var i = 0; i < css.length; i++) {
@@ -13490,7 +13330,7 @@
 
         this._viewobj.setAttribute("aria-busy", "true");
 
-        if (!Touch.$active || this._touch_scroll == "native") {
+        if (!this._touch_scroll) {
           if (this.getScrollState) {
             var scroll = this.getScrollState();
 
@@ -13514,50 +13354,26 @@
       if (!config) return;
 
       if (this._progress_animate) {
-        var position = config.position || 1; //check for css-transition support
+        var position = config.position || 1;
 
-        if (this._progress.style[env.transitionDuration] !== undefined || !config.delay) {
-          if (config.delay) {
-            // force reflow
-            width = this._viewobj.firstChild.offsetWidth;
-            this._progress.firstChild.style[env.transitionDuration] = config.delay + "ms";
-          } // animate to new value
+        if (config.delay) {
+          // force reflow
+          width = this._viewobj.firstChild.offsetWidth;
+          this._progress.firstChild.style[env.transitionDuration] = config.delay + "ms";
+        } // animate to new value
 
 
-          this._progress.firstChild.style.width = position * 100 + "%";
-        } else {
-          //if animation is not supported fallback to timeouts [IE9]
-          var count = 0,
-              start = 0,
-              step = position / config.delay * 30,
-              view = this;
-
-          if (this._progressTimer) {
-            //reset the existing progress
-            window.clearInterval(this._progressTimer);
-            start = this._progress.firstChild.offsetWidth / this._progress.offsetWidth * 100;
-          }
-
-          this._progressTimer = window.setInterval(function () {
-            if (count * 30 == config.delay) {
-              window.clearInterval(view._progressTimer);
-            } else {
-              if (view._progress && view._progress.firstChild) view._progress.firstChild.style.width = start + count * step * position * 100 + "%";
-              count++;
-            }
-          }, 30);
-        }
+        this._progress.firstChild.style.width = position * 100 + "%";
       }
 
       if (this._progress_hide) clearTimeout(this._progress_hide);
-      if (config.hide) this._progress_hide = delay(this.hideProgress, this, [1], config.delay); // necessary to prevent code optimization
+      if (config.hide) this._progress_hide = delay(this.hideProgress, this, [true], config.delay); // necessary to prevent code optimization
 
       return width;
     },
     hideProgress: function (now) {
       if (this._progress) {
         if (now || !this._progress_animate) {
-          if (this._progressTimer) window.clearInterval(this._progressTimer);
           remove(this._progress);
           this._progress = null;
 
@@ -13745,7 +13561,7 @@
       }, ""));
 
       this._dataobj = (this._dataobj || this._contentobj).firstChild;
-      if (this.callEvent && (!env.touch || this._touch_scroll == "native")) _event(this._viewobj, "scroll", function () {
+      if (this.callEvent && !this.$hasYScroll) _event(this._viewobj, "scroll", function () {
         delay(function () {
           this.callEvent("onAfterScroll", []);
         }, this);
@@ -13753,29 +13569,24 @@
         bind: this
       });
     },
-    _touch_scroll: "native",
     scroll_setter: function (value) {
       if (!value) return false;
       var auto = value === "auto";
       var marker = value == "x" ? "x" : value == "xy" ? "xy" : auto ? "xy" : "y";
+      if (env.$customScroll) temp$1.enable(this, marker);
+      var style = this._dataobj.parentNode.style;
 
-      if (env.$customScroll) {
-        temp$1.enable(this, marker);
+      if (auto && !env.$customScroll) {
+        style.overflowX = style.overflowY = "auto";
       } else {
-        var node = this._dataobj.parentNode.style;
+        if (marker.indexOf("x") !== -1) {
+          this._scroll_x = true;
+          style.overflowX = "scroll";
+        }
 
-        if (auto) {
-          node.overflowX = node.overflowY = "auto";
-        } else {
-          if (marker.indexOf("x") != -1) {
-            this._scroll_x = true;
-            node.overflowX = "scroll";
-          }
-
-          if (marker.indexOf("y") != -1) {
-            this._scroll_y = true;
-            node.overflowY = "scroll";
-          }
+        if (marker.indexOf("y") !== -1) {
+          this._scroll_y = true;
+          style.overflowY = "scroll";
         }
       }
 
@@ -13835,11 +13646,10 @@
     },
     _set_noselect: function () {
       if (this._settings.select == "multiselect" || this._settings.multiselect || this._settings.select == "area") _event(this.$view, "mousedown", function (e) {
-        var shiftKey = (e || window.event).shiftKey;
-
-        if (shiftKey) {
-          state._noselect_element = this;
-          addCss(this, "webix_noselect", 1);
+        if (e.shiftKey || env.isIE && e.ctrlKey) {
+          var node = env.isIE ? document.body : this;
+          state._noselect_element = node;
+          addCss(node, "webix_noselect", true);
         }
       });
     },
@@ -15038,7 +14848,6 @@
 
   var TablePaste = {
     clipboard_setter: function (value) {
-      if (env.touch) return value;
       if (value === true || value === 1) value = "block";
       clipbuffer.init();
       this.attachEvent("onSelectChange", this._sel_to_clip);
@@ -16065,7 +15874,7 @@
       if (branch) obj.$count = branch.length;
     },
     _sync_to_order: function (master) {
-      this.order = _to_array(); // send current order to prevent simultaneous use in synс mode
+      this.order = _to_array(); // send current order to prevent simultaneous use in sync mode
 
       this._sync_each_child(this.order, 0, master);
     },
@@ -17064,10 +16873,6 @@
         this.render(null, null, "paint");
       }, this));
     },
-    _sync_scroll: function (x, y, t) {
-      if (this._settings.footer) Touch._set_matrix(this._footer.childNodes[1].firstChild, x, 0, t);
-      this.callEvent("onSyncScroll", [x, y, t]);
-    },
     //return html container by its ID
     //can return undefined if container doesn't exists
     getItemNode: function (search_id) {
@@ -17214,20 +17019,11 @@
     _remove_drop_area: function () {
       remove(DragControl._dropHTML);
       this.render(null, null, "drag-out");
-    },
-    $dragDestroy: function () {
-      if (this._init_drop_area) {
-        var context = DragControl._drag_context;
-        if (isArray(context.source)) this._remove_css(context.source, "webix_invisible");
-        this.render(null, null, "drag-end");
-      }
-
-      remove(DragControl._html);
     }
   };
 
-  var version$1 = "9.1.0";
-  var name$1 = "core";
+  var version = "9.2.0";
+  var name = "core";
 
   var errorMessage = "non-existing view for export";
 
@@ -17588,7 +17384,9 @@
     assert(view, errorMessage);
     if (!view) return Deferred.reject(errorMessage);
     options.export_mode = "csv";
-    options.filterHTML = true;
+    exports.extend(options, {
+      filterHTML: true
+    });
     var scheme = getExportScheme(view, options);
     var result = getExportData(view, options, scheme);
     var data = getCsvData(result, scheme);
@@ -17608,8 +17406,10 @@
   var toPDF = function (id, options) {
     options = options || {};
     options.export_mode = "pdf";
-    options.fontName = options.fontName || "pt-sans.regular";
-    options.boldFontName = options.boldFontName || "pt-sans.bold";
+    exports.extend(options, {
+      fontName: "pt-sans.regular",
+      boldFontName: "pt-sans.bold"
+    });
     id = isArray(id) ? id : [id];
     var views = [];
 
@@ -18266,13 +18066,6 @@
 
   function editStop() {
     callEvent("onEditEnd", []);
-  }
-
-  if (env.isIE8) {
-    // Not really a polyfill, silence the esModule flag
-    Object.defineProperty = function (obj, key, data) {
-      obj[key] = data.value;
-    };
   }
 
   var en = {
@@ -19322,33 +19115,6 @@
   /*
   	Common helpers
   */
-  var html$1 = {
-    denySelect: denySelect,
-    allowSelect: allowSelect,
-    index: index,
-    createCss: createCss,
-    addStyle: addStyle,
-    removeStyle: removeStyle,
-    create: create,
-    getValue: getValue,
-    remove: remove,
-    insertBefore: insertBefore,
-    locate: locate,
-    offset: offset,
-    posRelative: posRelative,
-    pos: pos,
-    preventEvent: preventEvent,
-    stopEvent: stopEvent,
-    triggerEvent: triggerEvent,
-    addCss: addCss,
-    removeCss: removeCss,
-    getTextSize: getTextSize,
-    download: download,
-    _getClassName: _getClassName,
-    setSelectionRange: setSelectionRange,
-    getSelectionRange: getSelectionRange,
-    addMeta: addMeta
-  };
 
   var error_key = "__webix_remote_error";
 
@@ -19635,23 +19401,31 @@
     }
   }
 
-  function orientation() {
-    var new_orientation = !!(window.orientation % 180);
+  function get_orientation() {
+    var orientation = window.screen.orientation ? window.screen.orientation.angle : window.orientation;
+    return !!(orientation % 180);
+  }
+
+  function orientation_handler() {
+    var new_orientation = get_orientation();
     if (state.orientation === new_orientation) return;
     state.orientation = new_orientation;
     callEvent("onRotate", [new_orientation]);
   }
 
-  if (env.touch) {
-    state.orientation = !!((isUndefined(window.orientation) ? 90 : window.orientation) % 180);
-    event$1(window, "onorientationchange" in window ? "orientationchange" : "resize", orientation);
+  if (env.mobile) {
+    state.orientation = get_orientation();
+    event$1(window, "resize", orientation_handler);
   }
 
   function fullScreen() {
-    if (!env.touch) return;
-    addMeta("apple-mobile-web-app-capable", "yes");
+    if (!env.mobile) return;
     addMeta("viewport", "initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no");
-    if (!env.isMac) addStyle("body.webix_full_screen{ overflow-y: auto; }");
+    env.fastClick = true;
+    if (env.isMac) addMeta("apple-mobile-web-app-capable", "yes");else {
+      addMeta("mobile-web-app-capable", "yes");
+      addStyle("body.webix_full_screen{ overflow-y: auto; }");
+    }
 
     var fix = function () {
       var x = window.innerWidth;
@@ -19668,11 +19442,11 @@
 
     var onrotate = function () {
       state._freeze_resize = true;
-      delay(fix, null, [], 500);
+      delay(fix, null, [], 50);
     };
 
     attachEvent("onRotate", onrotate);
-    orientation();
+    orientation_handler();
     delay(onrotate);
   }
 
@@ -19923,11 +19697,9 @@
     }
   }, datafilter.numberFilter);
 
-  env.scrollSize = env.touch || env.$customScroll ? 0 : 17;
+  if (env.mobile || env.$customScroll) env.scrollSize = 0;
   ready(function () {
-    var size = _detectScrollSize();
-
-    env.scrollSize = env.touch ? 0 : size;
+    env.scrollSize = _detectScrollSize();
   });
 
   function _detectScrollSize() {
@@ -21808,11 +21580,10 @@
 
       this._body_cell.$setSize(cx, cy);
 
-      if (env.touch) {
-        var scroll = this.getScrollState();
-        var top = this._body_cell._content_height - this._content_height;
-        if (top < scroll.y) this.scrollTo(null, top);
-      }
+      var scroll = this.getScrollState();
+      var top = this._body_cell._content_height - this._content_height;
+      if (top < scroll.y) // correct scrolling if necessary
+        this.scrollTo(null, top);
 
       if (state._responsive_exception) {
         state._responsive_exception = false;
@@ -22401,11 +22172,6 @@
 
       if (this._viewobj.className.indexOf(" " + css) < 0) {
         addCss(this._viewobj, css);
-      } //fix collapsed columns in IE8
-
-
-      if (!env.transform) {
-        addCss(this._viewobj, "webix_ie", true);
       }
     },
     _getHeaderSize: function () {
@@ -22429,16 +22195,10 @@
             y -= this._getHeaderSize();
           } else if (this._settings.collapsed) {
             //-2 - borders
-            if (animate.isSupported()) {
-              this._headobj.style.width = y + "px";
-              this._headobj.style.height = x + 3 + "px";
-              var d = Math.floor(y / 2 - x / 2) + (x - this._settings.headerAltHeight) / 2;
-              this._headobj.style[env.transform] = "rotate(90deg) translate(" + d + "px, " + (d + 1) + "px)";
-            } else {
-              //IE8 fix
-              this._headobj.style.width = x + "px";
-              this._headobj.style.height = y + 3 + "px";
-            }
+            this._headobj.style.width = y + "px";
+            this._headobj.style.height = x + 3 + "px";
+            var d = Math.floor(y / 2 - x / 2) + (x - this._settings.headerAltHeight) / 2;
+            this._headobj.style[env.transform] = "rotate(90deg) translate(" + d + "px, " + (d + 1) + "px)";
           }
         }
 
@@ -22469,6 +22229,8 @@
       dir: "x"
     },
     $init: function (config) {
+      var _this = this;
+
       var dir = config.dir || "x";
       var node = toNode(config.container);
       var size = dir == "x" ? "width" : "height";
@@ -22476,9 +22238,7 @@
       this._key_property = dir == "x" ? "left" : "top";
       this._viewobj = create("DIV", {
         "class": "webix_resize_area webix_dir_" + dir
-      }); //[[COMPAT]] FF12 can produce 2 move events
-
-      _event(this._viewobj, env.mouse.down, stopEvent);
+      });
 
       if (margin) {
         if (dir == "x") margin = margin + " 0 " + margin;else margin = "0 " + margin + " 0 " + margin;
@@ -22501,9 +22261,21 @@
       this._moveev = event$1(node, env.mouse.move, this._onmove, {
         bind: this
       });
-      this._upev = event$1(document.body, env.mouse.up, this._onup, {
+      this._upev = event$1(document, env.mouse.up, this._onup, {
         bind: this
       });
+
+      if (env.touch) {
+        this._moveev_t = event$1(node, env.touch.move, function (e) {
+          return _this._onmove(e, "touch");
+        }, {
+          passive: false
+        });
+        this._upev_t = event$1(document, env.touch.up, this._onup, {
+          bind: this
+        });
+      }
+
       this._dragobj.style[this._key_property] = this._originobj.style[this._key_property] = config.start + "px";
       node.appendChild(this._viewobj);
       node.appendChild(this._dragobj);
@@ -22513,16 +22285,23 @@
       this.callEvent("onResizeEnd", [this._last_result]);
       eventRemove(this._moveev);
       eventRemove(this._upev);
+
+      if (env.touch) {
+        eventRemove(this._moveev_t);
+        eventRemove(this._upev_t);
+      }
+
       remove(this._viewobj);
       remove(this._dragobj);
       remove(this._originobj);
       this._viewobj = this._dragobj = this._originobj = null;
     },
-    _onmove: function (e) {
+    _onmove: function (e, pointer) {
       var eventPos = pos(e);
       this._last_result = (this._settings.dir == "x" ? eventPos.x : eventPos.y) + this._settings.start - this._settings.eventPos;
       this._dragobj.style[this._key_property] = this._last_result + "px";
       this.callEvent("onResize", [this._last_result]);
+      if (pointer === "touch") preventEvent(e);
     }
   };
   var view$d = exports.protoUI(api$d, EventSystem, Settings);
@@ -22534,13 +22313,19 @@
       height: 7
     },
     $init: function (config) {
+      var _this = this;
+
       assert(this.getParentView(), "Resizer can't be initialized outside a layout");
       this._viewobj.className += " webix_resizer";
 
       var space = this.getParentView()._margin;
 
-      _event(this._viewobj, env.mouse.down, this._rsDown, {
-        bind: this
+      _event(this._viewobj, env.mouse.down, function (e) {
+        return _this._rsDown(e, "mouse");
+      });
+
+      if (env.touch) _event(this._viewobj, env.touch.down, function (e) {
+        return _this._rsDown(e, "touch");
       });
 
       var dir = this._getResizeDir();
@@ -22568,14 +22353,13 @@
 
       this._viewobj.setAttribute("aria-grabbed", "false");
     },
-    _rsDown: function (e) {
-      var _this = this;
+    _rsDown: function (e, pointer) {
+      var _this2 = this;
 
       var cells = this._getResizerCells(); //some sibling can block resize
 
 
       if (cells && !this._settings.disabled) {
-        e = e || window.event;
         this._rs_started = true;
         this._rs_process = pos(e);
         this._rsLimit = [];
@@ -22590,9 +22374,9 @@
 
         this._rsStart(e, cells[0]);
 
-        var handler = event$1(document.body, env.mouse.up, function (e) {
+        var handler = event$1(document, env[pointer].up, function (e) {
           eventRemove(handler);
-          return _this._rsUp(e);
+          return _this2._rsUp(e);
         });
       }
     },
@@ -22602,7 +22386,6 @@
     },
     _rsStart: function (e, cell) {
       var dir, cellOffset, pos$$1, posParent, start;
-      e = e || window.event;
       dir = this._resizer_dir;
       /*layout position:relative to place absolutely positioned elements in it*/
 
@@ -23075,7 +22858,7 @@
       var next = this._cells[_next_cell];
       prev.$getSize(0, 0); //need to be moved in animate
 
-      if ((animation_options || typeof animation_options == "undefined") && animate.isSupported() && this._settings.animate) {
+      if ((animation_options || isUndefined(animation_options)) && this._settings.animate) {
         var aniset = exports.extend({}, this._settings.animate);
         if (this._settings.keepViews) aniset.keepViews = true;
         aniset.direction = this._getDirection(_next_cell, this._active_cell);
@@ -23102,7 +22885,7 @@
         animate(line, aniset);
         this._animation_promise = aniset.wait_animation = Deferred.defer();
       } else {
-        // browsers which don't support transform and transition, or animate:false in config
+        // animate:false in config
         if (this._settings.keepViews) {
           prev._viewobj.style.display = "none";
         } else {
@@ -23418,7 +23201,7 @@
       if (this._settings.navigation) this._renderPanel();
     },
     scrollTo: function (x, y) {
-      if (Touch && animate.isSupported() && this._settings.animate) Touch._set_matrix(this._contentobj, x, y, this._settings.scrollSpeed || "100ms");else {
+      if (Touch && this._settings.animate) Touch._set_matrix(this._contentobj, x, y, this._settings.scrollSpeed || "100ms");else {
         this._contentobj.style.marginLeft = x + "px";
         this._contentobj.style.marginTop = y + "px";
       }
@@ -23945,7 +23728,7 @@
           "class": "webix_inp_bottom_label",
           role: config.invalid ? "alert" : "",
           "aria-relevant": "all",
-          style: "position:absolute; bottom:0px; padding:2px 0; background: white; left:" + (this._inputSpacing / 2 + (config.label ? config.labelWidth : 0)) + "px; "
+          style: "position:absolute; bottom:0px; padding:2px 0; background:" + $active.backColor + "; left:" + (this._inputSpacing / 2 + (config.label ? config.labelWidth : 0)) + "px; "
         }, message);
 
         this._viewobj.appendChild(this._invalidMessage);
@@ -24306,7 +24089,7 @@
           var post = "<div class='webix_property_label' style='width:" + this._settings.nameWidth + "px'>" + data.label + "</div><div class='webix_property_value' style='width:" + this._data_width + "px'>";
 
           if (data.collection || data.options) {
-            content = data.template(data);
+            content = data.template(data, this.type, data.value, data);
           } else if (data.format) {
             content = data.format(data.value);
           } else content = data.value;
@@ -24331,7 +24114,7 @@
   var api$s = {
     name: "calendar",
     defaults: {
-      date: new Date(),
+      date: wDate.datePart(new Date()),
       //selected date, not selected by default
       navigation: true,
       monthSelect: true,
@@ -24365,10 +24148,10 @@
       return date;
     },
     maxDate_setter: function (date) {
-      return this._string_to_date(date);
+      return wDate.datePart(this._string_to_date(date));
     },
     minDate_setter: function (date) {
-      return this._string_to_date(date);
+      return wDate.datePart(this._string_to_date(date));
     },
     minTime_setter: function (time) {
       if (typeof time == "string") {
@@ -24389,26 +24172,24 @@
     _ariaFocus: function () {
       var _this = this;
 
-      if (!env.touch) {
-        _event(this.$view, "mousedown", function () {
-          _this._mouse_time = new Date();
-        });
+      _event(this.$view, "mousedown", function () {
+        _this._mouse_time = new Date();
+      });
 
-        _event(this.$view, "focus", function (e) {
-          // in daterange
-          if (_this._settings.master) return;
-          var prev = e.relatedTarget;
-          var css = e.target.className.indexOf("webix_cal_day") !== -1;
+      _event(this.$view, "focus", function (e) {
+        // in daterange
+        if (_this._settings.master) return;
+        var prev = e.relatedTarget;
+        var css = e.target.className.indexOf("webix_cal_day") !== -1;
 
-          if (prev && new Date() - _this._mouse_time > 100 && css && _this.$view.contains(prev)) {
-            var day = _this._locate_day(e.target);
+        if (prev && new Date() - _this._mouse_time > 100 && css && _this.$view.contains(prev)) {
+          var day = _this._locate_day(e.target);
 
-            if (!_this._selectedDay(day)) _this._moveSelection(day);
-          }
-        }, {
-          capture: true
-        });
-      }
+          if (!_this._selectedDay(day)) _this._moveSelection(day);
+        }
+      }, {
+        capture: true
+      });
     },
     $init: function () {
       this._viewobj.className += " webix_calendar";
@@ -24431,7 +24212,7 @@
           role = target.getAttribute("role");
 
       if ((code === 13 || code === 32) && (role == "button" || role == "log") && !this._settings.disabled) {
-        triggerEvent(target, "MouseEvents", "click");
+        triggerEvent(target, "MouseEvent", "click");
         preventEvent(e);
       }
     },
@@ -24468,8 +24249,7 @@
     moveSelection: function (mode, details, focus) {
       if (this.config.master) return; //in daterange
 
-      var start = this.getSelectedDate();
-      if (this.config.multiselect) start = start[0];
+      var start = this.getSelectedDate(true);
       var date = wDate.copy(start || this.getVisibleDate());
 
       this._moveSelection(date, mode, focus);
@@ -24586,7 +24366,7 @@
       if (!this.isVisible(s.id)) return;
       this._current_time = wDate.datePart(new Date());
       this.callEvent("onBeforeRender", []);
-      var date = this._settings.date;
+      var date = this.getVisibleDate();
 
       var bounds = this._getDateBoundaries(date, true);
 
@@ -24617,17 +24397,6 @@
       this._contentobj.firstChild.style.marginTop = cpad;
 
       if (s.type == "time") {
-        var time = s.date;
-
-        if (time) {
-          if (typeof time == "string") {
-            date = i18n.parseTimeFormatDate(time);
-          } else if (isArray(time)) {
-            date.setHours(time[0]);
-            date.setMinutes(time[1]);
-          }
-        }
-
         this._changeZoomLevel(-1, date);
       } else if (s.type == "month") {
         this._changeZoomLevel(1, date);
@@ -24896,13 +24665,17 @@
       },
       "1": {
         //months
-        _isBlocked: function (i, calendar) {
-          var blocked = false,
-              min = calendar._settings.minDate,
-              max = calendar._settings.maxDate,
-              year = calendar._settings.date.getFullYear();
+        _isBlocked: function (i) {
+          var date = this.getVisibleDate();
+          date.setMonth(i);
 
-          if (min) {
+          var blocked = this._settings.blockDates && this._settings.blockDates.call(this, date);
+
+          var min = this._settings.minDate,
+              max = this._settings.maxDate,
+              year = this._settings.date.getFullYear();
+
+          if (min && !blocked) {
             var minYear = min.getFullYear();
             blocked = year < minYear || year == minYear && min.getMonth() > i;
           }
@@ -24956,11 +24729,16 @@
       },
       "2": {
         //years
-        _isBlocked: function (i, calendar) {
-          i += calendar._zoom_start_date;
-          var min = calendar._settings.minDate;
-          var max = calendar._settings.maxDate;
-          if (min && min.getFullYear() > i || max && max.getFullYear() < i) return true;
+        _isBlocked: function (i) {
+          i += this._zoom_start_date;
+          var date = this.getVisibleDate();
+          date.setFullYear(i);
+
+          var blocked = this._settings.blockDates && this._settings.blockDates.call(this, date);
+
+          var min = this._settings.minDate;
+          var max = this._settings.maxDate;
+          if (blocked || min && min.getFullYear() > i || max && max.getFullYear() < i) return true;
           return false;
         },
         _correctDate: function (date, calendar) {
@@ -25036,11 +24814,7 @@
       index$$1 = 2 - (config.weekHeader ? 0 : 1) - (config.monthHeader ? 0 : 1);
       zlogic = this._zoom_logic[this._zoom_level];
       sections = this._contentobj.childNodes;
-
-      if (date) {
-        config.date = date;
-      }
-
+      if (date) this.define("date", date);
       type = config.type; //store width and height of draw area
 
       if (!this._zoom_size) {
@@ -25129,14 +24903,14 @@
         height = Math.floor(this._reserve_box_height / 3);
         width = Math.floor(this._reserve_box_width / 4);
         sqSize = Math.min(height, width);
-        if (this._checkDate(config.date)) selected = this._zoom_level == 1 ? config.date.getMonth() : config.date.getFullYear();
+        selected = this._zoom_level === 1 ? config.date.getMonth() : config.date.getFullYear() - this._zoom_start_date;
 
         for (i = 0; i < 12; i++) {
-          css = selected == (this._zoom_level == 1 ? i : zlogic._getContent(i, this)) ? " webix_selected" : "";
+          css = "";
 
-          if (zlogic._isBlocked(i, this)) {
-            css += " webix_cal_day_disabled";
-          }
+          if (zlogic._isBlocked.call(this, i)) {
+            css = " webix_cal_day_disabled";
+          } else if (selected == i) css = " webix_selected";
 
           var format = i18n.aria[(this._zoom_level == 1 ? "month" : "year") + "Format"];
           html += "<div role='gridcell' aria-label='" + wDate.dateToStr(format)(config.date) + "' tabindex='" + (css.indexOf("selected") !== -1 ? "0" : "-1") + "' aria-selected='" + (css.indexOf("selected") !== -1 ? "true" : "false") + "' class='webix_cal_block" + css + "' data-value='" + i + "' style='" + this._getCalSizesString(width, height) + "'><span style='display:inline-block; " + this._getCalSizesString(sqSize, sqSize) + "'>" + zlogic._getContent(i, this) + "</span></div>";
@@ -25179,7 +24953,7 @@
       }
     },
     _correctDate: function (date) {
-      if (!this._checkDate(date) && this._zoom_logic[this._zoom_level]._correctDate) date = this._zoom_logic[this._zoom_level]._correctDate(date, this);
+      if (this._zoom_logic[this._zoom_level]._correctDate && !this._checkDate(date)) date = this._zoom_logic[this._zoom_level]._correctDate(date, this);
       return date;
     },
     _mode_selected: function (target, config) {
@@ -25221,8 +24995,7 @@
     _locate_date: function (target) {
       var value = target.getAttribute("data-value") * 1;
       var level = target.className.indexOf("webix_cal_block_min") != -1 ? this._zoom_level - 1 : this._zoom_level;
-      var now = this._settings.date;
-      var next = wDate.copy(now);
+      var next = this.getVisibleDate();
 
       this._zoom_logic[level]._setContent(next, value, this);
 
@@ -25266,7 +25039,18 @@
         $$(this._settings.master)._time_mode = "end";
       },
       webix_cal_done: function () {
-        var date = wDate.copy(this._settings.date);
+        var date = this.getVisibleDate();
+
+        if (this._zoom_in) {
+          var start = this.getSelectedDate(true);
+
+          if (start) {
+            start.setHours(date.getHours());
+            start.setMinutes(date.getMinutes());
+            date = start;
+          }
+        }
+
         date = this._correctDate(date);
 
         this._selectDate(date, false, "user");
@@ -25298,9 +25082,7 @@
       }
     },
     _string_to_date: function (date, format) {
-      if (!date) {
-        return wDate.datePart(new Date());
-      }
+      if (!date) return wDate.datePart(new Date());
 
       if (typeof date == "string") {
         if (format) date = wDate.strToDate(format)(date);else date = i18n.parseFormatDate(date);
@@ -25313,7 +25095,7 @@
 
       var minDate = this._settings.minDate;
       var maxDate = this._settings.maxDate;
-      var outOfRange = date < minDate || date > maxDate;
+      var outOfRange = minDate && date < minDate || maxDate && date >= wDate.add(maxDate, 1, "day", true);
       return !blockedDate && !outOfRange;
     },
     _findActive: function (date, mode) {
@@ -25333,14 +25115,16 @@
     _selectedDay: function (day) {
       return day && this._selected_days[day.valueOf()];
     },
-    getSelectedDate: function () {
+    getSelectedDate: function (first) {
       var result = [];
+      var keys = Object.keys(this._selected_days);
+      var length = first ? Math.min(1, keys.length) : keys.length;
 
-      for (var key in this._selected_days) {
-        result.push(wDate.copy(this._selected_days[key]));
+      for (var i = 0; i < length; i++) {
+        result.push(wDate.copy(this._selected_days[keys[i]]));
       }
 
-      return this.config.multiselect ? result : result[0] || null;
+      return this.config.multiselect && !first ? result : result[0] || null;
     },
     getVisibleDate: function () {
       return wDate.copy(this._settings.date);
@@ -25753,14 +25537,6 @@
 
       this._hValue = this._sValue = this._vValue = 0;
 
-      if (env.touch) {
-        this.attachEvent("onTouchStart", function (e, ctx) {
-          var css = e.target.className;
-          var parent = e.target.parentNode.className;
-          if (css == "webix_color_block" || parent == "webix_color_block") _this._handle_dnd(ctx || e);else if (css.indexOf("webix_color_line") == 0) _this._handle_dnd(ctx || e, true);
-        });
-      }
-
       _event(this.$view, "keydown", function (e) {
         return _this._handle_move_keyboard(e);
       });
@@ -25768,13 +25544,21 @@
       this.attachEvent("onAfterRender", function () {
         var _this2 = this;
 
-        if (!env.touch) {
-          _event(this._colorBlock, "mousedown", function (e) {
-            return _this2._handle_dnd(e);
+        _event(this._colorBlock, env.mouse.down, function (e) {
+          return _this2._handle_dnd(e, "mouse");
+        });
+
+        _event(this._colorLine, env.mouse.down, function (e) {
+          return _this2._handle_dnd(e, "mouse", true);
+        });
+
+        if (env.touch) {
+          _event(this._colorBlock, env.touch.down, function (e) {
+            return _this2._handle_dnd(e, "touch");
           });
 
-          _event(this._colorLine, "mousedown", function (e) {
-            return _this2._handle_dnd(e, true);
+          _event(this._colorLine, env.touch.down, function (e) {
+            return _this2._handle_dnd(e, "touch", true);
           });
         }
 
@@ -25789,7 +25573,6 @@
       this.attachEvent("onDestruct", function () {
         this._colorCircle = this._colorLineCircle = this._colorBlock = null;
         this._colorLine = this._colorOutText = this._colorOutBlock = this._offset = null;
-        if (this._handle_drag_events) this._detach_drag_events();
       });
     },
     $skin: function () {
@@ -25866,10 +25649,7 @@
     },
     // dragging to set value
     _move_block: function (e) {
-      var pos$$1 = env.touch ? {
-        x: e.x,
-        y: e.y
-      } : pos(e);
+      var pos$$1 = pos(e);
       var x = pos$$1.x - this._offset.x;
       var y = pos$$1.y - this._offset.y;
       x = Math.max(Math.min(x, this._offset.width), 0);
@@ -25886,10 +25666,7 @@
       this._setOutColors();
     },
     _move_line: function (e) {
-      var pos$$1 = env.touch ? {
-        x: e.x,
-        y: e.y
-      } : pos(e);
+      var pos$$1 = pos(e);
       var x = pos$$1.x - this._offset.x;
       x = Math.max(Math.min(x, this._offset.width), 0);
       this._colorLineCircle.style.left = x + "px";
@@ -25900,7 +25677,7 @@
 
       this._setBlockColors();
     },
-    _handle_dnd: function (e, line) {
+    _handle_dnd: function (e, pointer, line) {
       var _this3 = this;
 
       this._offset = offset(this._colorBlock);
@@ -25915,39 +25692,25 @@
         this._move_block(e);
       }
 
-      if (env.touch) {
-        this._handle_drag_events = [this.attachEvent("onTouchMove", function (e, ctx) {
-          return _this3._handle_move_process(ctx || e, line);
-        }), this.attachEvent("onTouchEnd", function () {
-          return _this3._handle_move_stop(line);
-        })];
-      } else {
-        this._handle_drag_events = [event$1(document.body, "mousemove", function (e) {
-          return _this3._handle_move_process(e, line);
-        }), event$1(window, "mouseup", function () {
-          return _this3._handle_move_stop(line);
-        })];
-      }
-
+      var passive = pointer === "touch" ? {
+        passive: false
+      } : null;
+      this._handle_drag_events = [event$1(document.body, env[pointer].move, function (e) {
+        return _this3._handle_move_process(e, pointer, line);
+      }, passive), event$1(document, env[pointer].up, function () {
+        return _this3._handle_move_stop(line);
+      })];
       addCss(document.body, "webix_noselect");
     },
-    _handle_move_process: function (e, line) {
+    _handle_move_process: function (e, pointer, line) {
       if (line) this._move_line(e);else this._move_block(e);
-    },
-    _detach_drag_events: function () {
-      if (env.touch) {
-        this.detachEvent(this._handle_drag_events[0]);
-        this.detachEvent(this._handle_drag_events[1]);
-      } else {
-        eventRemove(this._handle_drag_events[0]);
-        eventRemove(this._handle_drag_events[1]);
-      }
-
-      this._handle_drag_events = null;
+      if (pointer === "touch") preventEvent(e);
     },
     _handle_move_stop: function (line) {
-      this._detach_drag_events();
-
+      //detach event handlers
+      eventRemove(this._handle_drag_events[0]);
+      eventRemove(this._handle_drag_events[1]);
+      this._handle_drag_events = null;
       this.setValue(this._current_value, "user");
 
       if (line) {
@@ -25969,7 +25732,7 @@
       return Math.min(Math.max(val + inc, 0), 359);
     },
     _handle_move_keyboard: function (e) {
-      var code = e.keyCode;
+      var code = e.which || e.keyCode;
 
       if (code > 32 && code < 41) {
         var match = /webix_color_(\w*)circle/.exec(e.target.className);
@@ -26098,7 +25861,7 @@
       this._addElementHotKey(key, function (view, ev) {
         if (control.isVisible()) {
           var elem = control.$view.firstChild;
-          triggerEvent(elem, "MouseEvents", "click");
+          triggerEvent(elem, "MouseEvent", "click");
           preventEvent(ev);
         }
       });
@@ -26599,12 +26362,16 @@
     _after_render: function () {
       var _this = this;
 
-      if (!this._custom_format) // ctrl+v handler
-        _event(this.getInputNode(), "input", function () {
+      if (!this._custom_format) _event(this.getInputNode(), "input", function () {
+        var stamp = new Date().valueOf();
+
+        if (!this._property_stamp || stamp - this._property_stamp > 100) {
+          this._property_stamp = stamp;
           this.$setValue(this.getText());
-        }, {
-          bind: this
-        });
+        }
+      }, {
+        bind: this
+      });
 
       _event(this.getInputNode(), "blur", function () {
         return _this._applyChanges("user");
@@ -26743,7 +26510,7 @@
         var node = this.getInputNode(); //attach onChange handler only for controls which do not manage blur on their own
         //for example - combo
 
-        if (!this._onBlur) _event(node, "change", function () {
+        if (!this.$onBlur) _event(node, "change", function () {
           return _this._applyChanges("user");
         });
         if (c.suggest) $$(c.suggest).linkInput(this);
@@ -26759,9 +26526,9 @@
         }
       }
     },
-    _applyChanges: function (с) {
+    _applyChanges: function (c) {
       var value = this.getValue();
-      this.setValue(value, с);
+      this.setValue(value, c);
     },
     _toggleClearIcon: function (value) {
       var c = this._settings;
@@ -26787,8 +26554,8 @@
         config.height = this.defaults.height + (config.label ? this._labelTopHeight : 0); // used in clear_setter
 
       if (!isUndefined(config.icon)) this._settings.icon = config.icon;
-      if (this._onBlur) this.attachEvent("onBlur", function () {
-        if (this._rendered_input) this._onBlur();
+      if (this.$onBlur) this.attachEvent("onBlur", function () {
+        if (this._rendered_input) this.$onBlur();
       });
       this.attachEvent("onAfterRender", this._init_onchange);
       this.attachEvent("onDestruct", function () {
@@ -27423,7 +27190,7 @@
       timeIcon: "wxi-clock",
       separator: ", "
     },
-    _onBlur: function () {
+    $onBlur: function () {
       var text$$1 = this.getText();
       if (this._settings.text == text$$1) return;
       var value = this._settings.editable ? this.getValue() : this.getPopup().getValue();
@@ -27688,14 +27455,26 @@
       popupWidth: 200,
       icon: "wxi-menu-down"
     },
-    _onBlur: function () {
+    $onBlur: function () {
       var text$$1 = this.getText();
       if (this._settings.text == text$$1 || isUndefined(this._settings.text) && !text$$1) return;
       var suggest = this.getPopup(); //handle clicks on suggest items
 
       if (suggest.$view.contains(document.activeElement)) return;
+      var newValues = this.config.newValues;
       var nodeValue = this.getInputNode().value;
-      var value = suggest.getSuggestion(nodeValue);
+      var list = this.getList();
+      var value;
+
+      if (newValues) {
+        value = list.find(function (obj) {
+          return suggest.getItemText(obj.id) == nodeValue;
+        }, true);
+        if (value) value = value.id;else if (nodeValue) value = list.add({
+          value: nodeValue
+        });
+      } else value = suggest.getSuggestion(nodeValue);
+
       var oldvalue = this.getValue(); //non-empty value that differs from old value and matches filtering rule
 
       if (value && value != oldvalue && !(nodeValue === "" && suggest.getItemText(value) !== "")) this.setValue(value, "user");else if (nodeValue === "") this.setValue("", "user");else if (this._revertValue) this._revertValue();
@@ -27778,8 +27557,10 @@
       return this._settings.value || "";
     },
     _ignoreLabelClick: function (ev) {
-      this.focus();
-      preventEvent(ev);
+      if (ev.type) {
+        this.focus();
+        preventEvent(ev);
+      }
     }
   };
   var view$D = exports.protoUI(api$D, text.view);
@@ -27792,6 +27573,15 @@
     name: "combo",
     getInputNode: function () {
       return this._dataobj.getElementsByTagName("input")[0];
+    },
+    _init_onchange: function () {
+      var _this = this;
+
+      _event(this.getInputNode(), "keydown", function (e) {
+        if (e.keyCode == 13) richselect.api._onBlur.apply(_this, []);
+      });
+
+      richselect.api._init_onchange.apply(this, arguments);
     },
     _revertValue: function () {
       var value = this.getValue();
@@ -28026,6 +27816,83 @@
     view: view$I
   };
 
+  var autoheight = {
+    $init: function () {
+      this.$ready.push(function () {
+        var _this = this;
+
+        if (this._settings.autoheight) {
+          addCss(this.$view, "webix_noscroll");
+          if (!this._settings.maxHeight) this._settings.maxHeight = 100;
+
+          _event(this.$view, "input", function () {
+            _this._sizeToContent(true);
+          }, {
+            capture: true
+          });
+
+          this.attachEvent("onAfterRender", function () {
+            _this._sizeToContent();
+          });
+        }
+      });
+    },
+    _sizeToContent: function (focus) {
+      var _this2 = this;
+
+      if (this._skipSizing) return this._skipSizing = false;
+      var txt = this.getInputNode();
+
+      var height = this._getTextHeight(txt.value, txt.offsetWidth);
+
+      var padding = 2 * $active.inputPadding + 2 * $active.borderWidth;
+      height = Math.max(height + padding, this._settings.minHeight);
+
+      if (height > this._settings.maxHeight) {
+        removeCss(this.$view, "webix_noscroll");
+        height = this._settings.maxHeight;
+      } else addCss(this.$view, "webix_noscroll", true);
+
+      var topView = this.getTopParentView();
+      clearTimeout(topView._template_resize_timer);
+      topView._template_resize_timer = delay(function () {
+        if (_this2.config.height != height) {
+          _this2.config.height = height;
+          var caretPos = txt.selectionEnd;
+          _this2._skipSizing = true;
+          var value = text.api.getValue.call(_this2);
+
+          _this2.resize();
+
+          _this2.callEvent("onInputResize", []);
+
+          if (focus) {
+            txt = _this2.getInputNode(); // needed to restore "\n" value after resize
+
+            text.api.$setValue.call(_this2, value);
+            txt.setSelectionRange(caretPos, caretPos);
+            txt.focus();
+          }
+        }
+      });
+    },
+    _getTextHeight: function (value, width) {
+      var d = create("textarea", {
+        "class": "webix_textarea_measure",
+        rows: "1"
+      }, "");
+      d.style.cssText = "height:auto;visibility:hidden; position:absolute; top:0px; left:0px; width:" + width + "px;";
+      document.body.appendChild(d);
+      d.value = value;
+      var height = d.scrollHeight;
+      remove(d);
+      return height;
+    },
+    $setValue: function (value) {
+      text.api.$setValue.call(this, value);
+      if (this._settings.autoheight) this._sizeToContent();
+    }
+  };
   var api$J = {
     name: "textarea",
     defaults: {
@@ -28054,7 +27921,12 @@
       return this._dataobj.getElementsByTagName("textarea")[0];
     }
   };
-  var view$J = exports.protoUI(api$J, text.view);
+  var view$J = exports.protoUI(api$J, autoheight, text.view);
+  var textarea = {
+    api: api$J,
+    view: view$J,
+    autoheight: autoheight
+  };
 
   var api$K = {
     name: "toggle",
@@ -28260,7 +28132,6 @@
 
   var api$M = {
     name: "slider",
-    $touchCapture: true,
     defaults: {
       min: 0,
       max: 100,
@@ -28376,7 +28247,15 @@
       return this._safeValue(value);
     },
     $init: function (config) {
-      if (env.touch) this.attachEvent("onTouchStart", bind(this._on_mouse_down_start, this));else _event(this._viewobj, "mousedown", bind(this._on_mouse_down_start, this));
+      var _this = this;
+
+      _event(this._viewobj, env.mouse.down, function (e) {
+        return _this._on_mouse_down_start(e, "mouse");
+      });
+
+      if (env.touch) _event(this._viewobj, env.touch.down, function (e) {
+        return _this._on_mouse_down_start(e, "touch");
+      });
 
       _event(this.$view, "keydown", bind(this._handle_move_keyboard, this));
 
@@ -28395,7 +28274,7 @@
       this._sliderBorder = $active.sliderBorder; //1px border
     },
     _handle_move_keyboard: function (e) {
-      var code = e.keyCode,
+      var code = e.which || e.keyCode,
           c = this._settings,
           value = c.value;
 
@@ -28433,49 +28312,30 @@
         }
       }
     },
-    _on_mouse_down_start: function (e) {
-      if (this._handle_drag_events) return;
+    _on_mouse_down_start: function (e, pointer) {
+      var _this2 = this;
+
       var trg = e.target;
-
-      if (this._mouse_down_process) {
-        this._mouse_down_process(e);
-      }
-
+      if (this._mouse_down_process) this._mouse_down_process(e);
       var value = this._settings.value;
       if (isArray(value)) value = copy(value);
-
-      if (trg.className.indexOf("webix_slider_handle") != -1) {
-        this._start_value = value;
-        return this._start_handle_dnd.apply(this, arguments);
-      } else if (trg.className.indexOf("webix_slider") != -1) {
-        this._start_value = value;
-        this._settings.value = this._get_value_from_event.apply(this, arguments);
-
-        this._start_handle_dnd(e);
-      }
-    },
-    _start_handle_dnd: function () {
-      if (env.touch) {
-        this._handle_drag_events = [this.attachEvent("onTouchMove", bind(this._handle_move_process, this)), this.attachEvent("onTouchEnd", bind(this._handle_move_stop, this))];
-      } else this._handle_drag_events = [event$1(document.body, "mousemove", bind(this._handle_move_process, this)), event$1(window, "mouseup", bind(this._handle_move_stop, this))];
-
+      this._start_value = value;
+      if (trg.className.indexOf("webix_slider") !== -1) this._settings.value = this._get_value_from_event(e);
+      var passive = pointer === "touch" ? {
+        passive: false
+      } : null;
+      this._handle_drag_events = [event$1(document.body, env[pointer].move, function (e) {
+        return _this2._handle_move_process(e, pointer);
+      }, passive), event$1(document, env[pointer].up, function () {
+        return _this2._handle_move_stop();
+      })];
       addCss(document.body, "webix_noselect");
     },
     _handle_move_stop: function () {
       //detach event handlers
-      if (this._handle_drag_events) {
-        if (env.touch) {
-          this.detachEvent(this._handle_drag_events[0]);
-          this.detachEvent(this._handle_drag_events[1]);
-        } else {
-          eventRemove(this._handle_drag_events[0]);
-          eventRemove(this._handle_drag_events[1]);
-        }
-
-        this._handle_drag_events = null;
-      }
-
-      removeCss(document.body, "webix_noselect");
+      eventRemove(this._handle_drag_events[0]);
+      eventRemove(this._handle_drag_events[1]);
+      this._handle_drag_events = null;
       var value = this._settings.value;
       if (isArray(value)) value = copy(value);
       this._settings.value = this._start_value;
@@ -28484,17 +28344,17 @@
       this._get_slider_handle(this._activeIndex).focus();
 
       this._activeIndex = -1;
+      removeCss(document.body, "webix_noselect");
     },
-    _handle_move_process: function () {
-      this._settings.value = this._get_value_from_event.apply(this, arguments);
+    _handle_move_process: function (e, pointer) {
+      this._settings.value = this._get_value_from_event(e);
       this.refresh();
       this.callEvent("onSliderDrag", []);
+      if (pointer === "touch") preventEvent(e);
     },
-    _get_value_from_event: function (event, touchContext) {
-      // this method takes 2 arguments in case of touch env
-      var pos$$1 = 0;
+    _get_value_from_event: function (e) {
       var ax = this._settings.vertical ? "y" : "x";
-      if (env.touch) pos$$1 = touchContext ? touchContext[ax] : event[ax];else pos$$1 = pos(event)[ax];
+      var pos$$1 = pos(e)[ax];
       return this._get_value_from_pos(pos$$1);
     },
     _get_value_from_pos: function (pos$$1) {
@@ -28977,14 +28837,10 @@
     },
     _execCommandOnElement: function (commandName) {
       var sel, selText;
-
-      if (window.getSelection) {
-        sel = window.getSelection();
-        selText = sel.toString().length;
-        var input = this.getInputNode();
-        if (!input.contains(sel.anchorNode) || !input.contains(sel.focusNode)) return;
-      } else return; //ie8
-
+      sel = window.getSelection();
+      selText = sel.toString().length;
+      var input = this.getInputNode();
+      if (!input.contains(sel.anchorNode) || !input.contains(sel.focusNode)) return;
 
       if (selText > 0) {
         for (var i = 0; i < sel.rangeCount; ++i) {
@@ -29077,11 +28933,16 @@
     _listClassName: "webix_list",
     _itemClassName: "webix_list_item",
     $init: function (config) {
+      var _this = this;
+
       addCss(this._viewobj, this._listClassName + ((config.layout || this.defaults.layout) == "x" ? "-x" : ""));
       this.data.provideApi(this, true);
-      this._auto_resize = bind(this._auto_resize, this);
-      this.data.attachEvent("onStoreUpdated", this._auto_resize);
-      this.data.attachEvent("onSyncApply", this._auto_resize);
+      this.data.attachEvent("onStoreUpdated", function (id, obj, mode) {
+        if (!id || mode === "add" || mode === "delete") _this._auto_resize();
+      });
+      this.data.attachEvent("onSyncApply", function () {
+        return _this._auto_resize();
+      });
 
       this._viewobj.setAttribute("role", "listbox");
     },
@@ -29482,7 +29343,7 @@
 
         var html = "<div class=\"webix_text_highlight\" style=\"width:".concat(width, "px;\"><div class=\"webix_text_highlight_value\""); // iOS adds 3px of (unremovable) padding to the left and right of a textarea
 
-        if (obj.type == "textarea" && env.mobile && env.isSafari) html += " style=\"margin-left:".concat($active.dataPadding + 3, "px; margin-right:").concat($active.dataPadding + 3, "px;\"");
+        if (obj.type == "textarea" && env.isIOS) html += " style=\"margin-left:".concat($active.dataPadding + 3, "px; margin-right:").concat($active.dataPadding + 3, "px;\"");
         html += "></div></div>";
 
         if (obj.type == "textarea") {
@@ -29592,7 +29453,7 @@
       }, this);
     }
   };
-  var view$T = exports.protoUI(api$T, text.view);
+  var view$T = exports.protoUI(api$T, textarea.autoheight, text.view);
 
   var api$U = {
     name: "timeboard",
@@ -30031,6 +29892,7 @@
       if (input.getInputNode) {
         node = input.getInputNode();
         node.webix_master_id = input._settings.id;
+        input.attachEvent("onInputResize", bind(this._resetPosition, this));
       } else node = toNode(input);
 
       _event(node, "keydown", function (e) {
@@ -30053,13 +29915,12 @@
     _suggestions: function (e) {
       //should be before tab and arrows handlers: IME can call keydown twice
       if (this._last_delay) this._last_delay = clearTimeout(this._last_delay);
-      e = e || event;
       var list = this.getList();
       var trg = e.target;
       if (trg == document.body && !this.isVisible() || trg.className == "webix_clipbuffer") return;
       this._last_input_target = trg;
       this._settings.master = trg.webix_master_id;
-      var code = e.keyCode; //shift and ctrl
+      var code = e.which || e.keyCode; //shift and ctrl
 
       if (code == 16 || code == 17) return; // tab - hide popup and do nothing
 
@@ -30182,7 +30043,7 @@
      **/
     _navigate: function (e) {
       var list = this.getList();
-      var code = e.keyCode;
+      var code = e.which || e.keyCode;
       var data;
 
       if (list.moveSelection && code < 41 && code > 32 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
@@ -30241,6 +30102,12 @@
       } else {
         list.unselect();
         list.showItem(list.getFirstId());
+      }
+    },
+    _resetPosition: function () {
+      if (!this._settings.hidden && this._settings.master) {
+        var master = $$(this._settings.master);
+        if (master) this.show(master.$view);
       }
     }
   };
@@ -34445,7 +34312,7 @@
     _setYAxisTitle: function (point0, point1) {
       var className = "webix_axis_title_y";
       var text = this.canvases["y"].renderTextAt("middle", false, 0, parseInt((point1.y - point0.y) / 2 + point0.y, 10), this._settings.yAxis.title, className);
-      if (text) text.style.left = (env.transform ? (text.offsetHeight - text.offsetWidth) / 2 : 0) + "px";
+      if (text) text.style.left = (text.offsetHeight - text.offsetWidth) / 2 + "px";
     },
     _calculateLogScale: function (nmin, nmax) {
       var startPower = Math.floor(this._log10(nmin));
@@ -35156,6 +35023,30 @@
         branch: this._nested_cursor
       };
     },
+    setOpenState: function (id) {
+      var parent = 0;
+
+      if (id) {
+        var obj = this.getItem(id);
+        parent = obj.$count ? obj.id : obj.$parent;
+      }
+
+      this._nested_cursor = this.data.branch[parent];
+      this._nested_chain = []; //build _nested_chain
+
+      while (parent) {
+        this.getItem(parent).$template = "Back";
+
+        this._nested_chain.unshift(parent);
+
+        parent = this.getItem(parent).$parent;
+      } //render
+
+
+      this._no_animation = true;
+      this.render();
+      this._no_animation = false;
+    },
     render: function (id, data, type$$1) {
       var _this = this,
           _arguments = arguments;
@@ -35197,7 +35088,7 @@
       this.data.order = _to_array([].concat(this._nested_chain).concat(this._nested_cursor));
 
       if (this.callEvent("onBeforeRender", [this.data])) {
-        if (this._no_animation || !this._dataobj.innerHTML || !(animate.isSupported() && this._settings.animate) || this._prev_nested_chain_length == this._nested_chain.length) {
+        if (this._no_animation || !this._dataobj.innerHTML || !this._settings.animate || this._prev_nested_chain_length == this._nested_chain.length) {
           // if dataobj is empty or animation is not supported
           // don't repaint invisible data
           if (id && type$$1 !== "delete" && this.data.getIndexById(id) === -1) return;
@@ -35277,32 +35168,7 @@
     },
     showItem: function (id) {
       var index = this.data.getIndexById(id);
-
-      if (index === -1) {
-        var parent = 0;
-
-        if (id) {
-          var obj = this.getItem(id);
-          parent = obj.$count ? obj.id : obj.$parent;
-        }
-
-        this._nested_cursor = this.data.branch[parent];
-        this._nested_chain = []; //build _nested_chain
-
-        while (parent) {
-          this.getItem(parent).$template = "Back";
-
-          this._nested_chain.unshift(parent);
-
-          parent = this.getItem(parent).$parent;
-        } //render
-
-
-        this._no_animation = true;
-        this.render();
-        this._no_animation = false;
-      } //scroll if necessary
-
+      if (index === -1) this.setOpenState(id); //scroll if necessary
 
       RenderStack.showItem.call(this, id);
     }
@@ -35787,7 +35653,7 @@
   };
   type(view$14, {
     name: "lineTree",
-    css: "webixLineTree",
+    css: "webix_line_tree",
     icon: function (obj, common) {
       var html = "";
       var open = "";
@@ -36311,12 +36177,27 @@
       return this._settings.height = this.type.height * Math.ceil(this.data.count() / Math.floor(width / this.type.width));
     },
     autoheight_setter: function (mode) {
+      var _this = this;
+
       if (mode) {
-        this.data.attachEvent("onStoreLoad", bind(this.resize, this));
+        this.data.attachEvent("onStoreLoad", function () {
+          return _this.resize();
+        });
+        this.data.attachEvent("onStoreUpdated", function (id, obj, mode) {
+          if (!id || mode === "add" || mode === "delete") _this._auto_resize();
+        });
+        this.data.attachEvent("onSyncApply", function () {
+          return _this._auto_resize();
+        });
         this._contentobj.style.overflowY = "hidden";
       }
 
       return mode;
+    },
+    _auto_resize: function () {
+      if (this._settings.autoheight) {
+        this.resize();
+      }
     },
     $getSize: function (dx, dy) {
       if (this._settings.xCount && this.type.width != "auto" && !this._autowidth) this._settings.width = this.type.width * this._settings.xCount + this._tilesPadding + (this._scroll_y ? env.scrollSize : 0);
@@ -36620,19 +36501,22 @@
     defaults: {
       sendAction: "click",
       mode: "comments",
-      highlight: true
+      highlight: true,
+      maxInputHeight: 84
     },
     $init: function (config) {
       this.$view.className += " webix_comments";
       this._destroy_with_me = [];
-      config.rows = [this._configList(config)];
+      config.rows = [this.$configList(config)];
       if (!config.moreButton) config.moreButton = template(i18n.comments.moreComments);
 
       if (!config.readonly) {
-        config.rows.push(this._configForm(config));
+        config.rows.push(this.$configForm(config));
 
         this._initMenu();
       }
+
+      if (env.mobile) config.keepButtonVisible = true;
 
       this._initUsers(config.users);
 
@@ -36672,7 +36556,7 @@
           if (view == _this._input) {
             _this.focus();
           } else if (view !== _this._sendButton && view !== _this._listMenu && (!_this._userList || view !== _this._userList.getList()) && (!e || (e.target.className || "").toString().indexOf("webix_comments_menu") === -1)) {
-            _this._changeTextarea();
+            _this._changeTextarea(false);
           }
         });
         this.attachEvent("onDestruct", function () {
@@ -36811,33 +36695,29 @@
 
       this.remove(id);
     },
-    _changeTextarea: function (increase) {
-      // this behaviour is only for desktop, otherwise we will never see the button on mobile
+    _changeTextarea: function (expand) {
       // prevent unnecessary operations
-      if (env.touch || !increase == !this._text_expanded) return;
-      var text$$1 = this._input;
+      if (expand === this._text_expanded) return;
+      var config = this._settings;
 
-      if (increase) {
+      if (expand) {
         this._sendButton.getParentView().show();
 
-        text$$1.define({
-          height: 84
+        this._input.define({
+          height: config.maxInputHeight
         });
-        this._text_expanded = true;
       } else {
-        if (UIManager.hasFocus(this._sendButton)) {
-          UIManager.setFocus(this._list);
-        }
+        if (UIManager.hasFocus(this._sendButton)) UIManager.setFocus(this._list);
+        if (!config.keepButtonVisible) this._sendButton.getParentView().hide();
 
-        this._sendButton.getParentView().hide();
-
-        text$$1.define({
-          height: this._inputHeight
+        this._input.define({
+          height: config.minInputHeight || this._inputHeight
         });
-        this._text_expanded = false;
       }
 
-      text$$1.resize();
+      this._input.resize();
+
+      this._text_expanded = expand;
     },
     focus: function () {
       var _this3 = this;
@@ -36898,7 +36778,7 @@
 
       this._destroy_with_me.push(this._listMenu);
     },
-    _configForm: function (config) {
+    $configForm: function (config) {
       var _this5 = this;
 
       var locale = i18n.comments;
@@ -36906,7 +36786,7 @@
         view: "textarea",
         localId: "textarea",
         css: "webix_comments_textarea",
-        height: this._inputHeight,
+        height: config.minInputHeight || this._inputHeight,
         name: "text",
         placeholder: locale["placeholder"],
         keyPressTimeout: 100,
@@ -36942,12 +36822,12 @@
         }, true);
       }
 
-      return {
+      var form = {
         view: "form",
         minHeight: 50,
         paddingX: 10,
         elements: [textarea, {
-          hidden: !env.touch,
+          hidden: !config.keepButtonVisible,
           cols: [{}, {
             view: "button",
             disabled: true,
@@ -36960,6 +36840,7 @@
           }]
         }]
       };
+      return form;
     },
     _highlightMention: function (text$$1, textarea) {
       var _this6 = this;
@@ -36978,7 +36859,7 @@
       }, true)) return text$$1;
       return "<span class=\"webix_comments_mention\">".concat(textarea ? text$$1 : "@" + name, "</span>");
     },
-    _configList: function (config) {
+    $configList: function (config) {
       var _this7 = this;
 
       var css = "webix_comments_";
@@ -37436,16 +37317,17 @@
       var d = create("DIV");
       d.style.cssText = "visibility:hidden;position:absolute;top:0px;left:0px;overflow:hidden;";
       document.body.appendChild(d);
-      var width = 0;
-      var height = 0;
+      var width = 0,
+          height = 0;
 
       for (var i = 0; i < c.length; i++) {
         d.className = "webix_measure_size " + c[i].css;
         d.style.width = c[i].width ? c[i].width + "px" : "auto";
         d.style.height = c[i].height ? c[i].height + "px" : "auto";
         d.innerHTML = c[i].text;
-        width = Math.max(width, d.offsetWidth + 1);
-        height = Math.max(height, d.offsetHeight + 1);
+        var rect = d.getBoundingClientRect();
+        width = Math.max(width, Math.ceil(rect.width));
+        height = Math.max(height, Math.ceil(rect.height));
       }
 
       remove(d);
@@ -37505,10 +37387,8 @@
 
             if (parent._hide_on_item_click) parent.hide();
           } else {
-            if (env.touch || this === parent && parent._settings.openAction == "click") {
-              this._mouse_move_activation(id, trg);
-            } //do not close popups when clicking on menu folder
-
+            var touch = e.pointerType && e.pointerType !== "mouse";
+            if (touch || this === parent && parent._settings.openAction == "click") this._mouse_move_activation(id, trg); //do not close popups when clicking on menu folder
 
             e.showpopup = parent._settings.id;
           }
@@ -37519,7 +37399,7 @@
           var sel = this.getSelectedId(),
               node;
           if (sel) node = this.getItemNode(sel);
-          if (node) triggerEvent(node, "MouseEvents", "click");
+          if (node) triggerEvent(node, "MouseEvent", "click");
         }
       });
       this.data.attachEvent("onClearAll", function () {
@@ -37641,7 +37521,6 @@
       return sub;
     },
     _menu_was_activated: function () {
-      if (env.touch) return false;
       var top = this.getTopMenu();
 
       if (top._settings.openAction == "click") {
@@ -37891,7 +37770,7 @@
       this._hide_timer = 1;
       delay(function () {
         this._hide_timer = 0;
-      }, this, [], env.touch ? 400 : 100);
+      }, this, [], env.fastClick ? 100 : 400);
 
       if (this.config.autofocus) {
         this._prev_focus = UIManager.getFocus();
@@ -37942,7 +37821,7 @@
       this._state = state$$1;
       this.$setSize(state$$1.width, state$$1.height);
 
-      if (typeof x == "undefined" && this._isAnimationSupported()) {
+      if (typeof x == "undefined" && this._settings.animate) {
         removeCss(this.$view, "webix_animate", true); // set initial state
 
         this._animate[this._settings.position].beforeShow.call(this, state$$1); // set apply animation css
@@ -37961,9 +37840,6 @@
       }
     },
     _state: {},
-    _isAnimationSupported: function () {
-      return animate.isSupported() && this._settings.animate && !(env.isIE && navigator.appVersion.indexOf("MSIE 9") != -1);
-    },
     hidden_setter: function (value) {
       if (value) this.hide();else this.show();
       return !!value;
@@ -38029,7 +37905,7 @@
       var maxWidth = document.documentElement.offsetWidth;
       var maxHeight = document.documentElement.offsetHeight;
 
-      if (this._isAnimationSupported() && maxWidth == this._state.maxWidth && maxHeight == this._state.maxHeight) {
+      if (this._settings.animate && maxWidth == this._state.maxWidth && maxHeight == this._state.maxHeight) {
         // call 'hide' animation handler
         this._animate[this._settings.position].hide.call(this, this._state); // hide popup
 
@@ -38091,7 +37967,7 @@
       this.attachEvent("onItemClick", function (id, ev, node) {
         var popup = this.getPopup();
         if (popup && !popup.config.hidden) ev.showpopup = popup.config.id;
-        if (env.touch) this._showPopup(id, node);
+        if (ev.pointerType && ev.pointerType !== "mouse") this._showPopup(id, node);
       });
       this.attachEvent("onBeforeSelect", function (id) {
         if (!this.getItem(id).$count) {
@@ -38291,7 +38167,7 @@
       this._destroy_with_me = [popup];
       config.popupId = popup.config.id;
 
-      _event(document.body, "mousemove", function (e) {
+      _event(document.body, "pointermove", function (e) {
         var trg = e.target;
 
         if (!popup.config.hidden && !popup.$view.contains(trg) && !this.$view.firstChild.contains(trg) && !popup.queryView({
@@ -38439,17 +38315,19 @@
       scroll: "x",
       scrollPos: 0,
       scrollSize: 18,
-      scrollVisible: 1,
+      scrollVisible: true,
       zoom: 1
     },
     $init: function (config) {
+      var _this = this;
+
       var dir = config.scroll || "x";
       var node = this._viewobj = toNode(config.container);
       node.className += " webix_vscroll_" + dir;
       node.innerHTML = "<div class='webix_vscroll_body'></div>";
 
-      _event(node, "scroll", this._onscroll, {
-        bind: this
+      _event(node, "scroll", function () {
+        return _this._onscroll_delay();
       });
 
       this._last_set_size = 0;
@@ -38460,6 +38338,7 @@
     reset: function () {
       this.config.scrollPos = 0;
       this._viewobj[this.config.scroll == "x" ? "scrollLeft" : "scrollTop"] = 0;
+      if (this._scroll_delay) clearTimeout(this._scroll_delay[0]);
     },
     _check_quantum: function (value) {
       if (value > 1500000) {
@@ -38483,10 +38362,7 @@
     },
     sizeTo: function (value, top, bottom) {
       value = value - (top || 0) - (bottom || 0);
-      var width = this._settings.scrollSize; //IEFix
-      //IE doesn't react on scroll-click if it has not at least 1 px of visible content
-
-      if (env.isIE && width) width += 1;
+      var width = this._settings.scrollSize;
 
       if (!width && this._settings.scrollVisible && !env.$customScroll) {
         this._viewobj.style.pointerEvents = "none";
@@ -38515,10 +38391,32 @@
       var max = Math.max(this.getSize() - this._last_set_size, 0);
       if (pos$$1 > max) this.scrollTo(max);
     },
-    scrollTo: function (value) {
-      if (value < 0) value = 0;
+    _sync: function (value, smooth) {
       var config = this._settings;
-      value = value / config.zoom; //safety check for negative values
+      value = Math.round(value / config.zoom); //safety check for negative values
+
+      if (value < 0) value = 0;
+
+      if (smooth && this._viewobj.scrollTo) {
+        var options = {
+          top: 0,
+          left: 0,
+          behavior: "smooth"
+        };
+        options[config.scroll == "x" ? "left" : "top"] = value;
+
+        this._viewobj.scrollTo(options);
+      } else {
+        this._viewobj[config.scroll == "x" ? "scrollLeft" : "scrollTop"] = value;
+      }
+
+      this._onscroll_delay(150);
+
+      this._settings.scrollPos = value || 0;
+    },
+    scrollTo: function (value) {
+      var config = this._settings;
+      value = Math.round(value / config.zoom); //safety check for negative values
 
       if (value < 0) value = 0; //apply new position
 
@@ -38530,9 +38428,19 @@
         return true;
       }
     },
-    _onscroll: function () {
-      var x = this._viewobj[this._settings.scroll == "x" ? "scrollLeft" : "scrollTop"];
-      if (Math.floor(x) != Math.floor(this._settings.scrollPos)) this._onscroll_inner(x, false);
+    _onscroll_delay: function (time) {
+      if (this._scroll_delay) {
+        time = time || this._scroll_delay[1];
+        clearTimeout(this._scroll_delay[0]);
+      }
+
+      this._scroll_delay = [delay(this._onscroll, this, [!!time], time), time];
+    },
+    _onscroll: function (sync) {
+      this._scroll_delay = null;
+      if (sync) return;
+      var v = Math.round(this._viewobj[this._settings.scroll == "x" ? "scrollLeft" : "scrollTop"]);
+      if (v != this._settings.scrollPos) this._onscroll_inner(v, false);
     },
     _onscroll_inner: function (value, api) {
       //size of scroll area
@@ -38553,49 +38461,6 @@
         bind: this,
         passive: false
       });
-
-      this._add_touch_events(area);
-    },
-    _add_touch_events: function (area) {
-      if (!env.touch && window.navigator.pointerEnabled) {
-        addCss(area, "webix_scroll_touch_ie", true);
-
-        _event(area, "pointerdown", function (e) {
-          if (e.pointerType == "touch" || e.pointerType == "pen") {
-            this._start_context = Touch._get_context_m(e);
-            this._start_scroll_pos = this.getScroll();
-          }
-        }, {
-          bind: this
-        });
-
-        event$1(document.body, "pointermove", function (e) {
-          var scroll;
-
-          if (this._start_context) {
-            this._current_context = Touch._get_context_m(e);
-
-            if (this._settings.scroll == "x") {
-              scroll = this._current_context.x - this._start_context.x;
-            } else if (this._settings.scroll == "y") {
-              scroll = this._current_context.y - this._start_context.y;
-            }
-
-            if (scroll && Math.abs(scroll) > 5) {
-              this.scrollTo(this._start_scroll_pos - scroll);
-            }
-          }
-        }, {
-          bind: this
-        });
-        event$1(window, "pointerup", function () {
-          if (this._start_context) {
-            this._start_context = this._current_context = null;
-          }
-        }, {
-          bind: this
-        });
-      }
     },
     _on_wheel: function (e) {
       var dir = 0;
@@ -38615,7 +38480,7 @@
 
 
       if (env.isSafari) this._scroll_trg = e.target;
-      if (dir) if (this.scrollTo(this.getScroll() + dir * this._settings.scrollStep)) return preventEvent(e);
+      if (dir && this.scrollTo(this.getScroll() + dir * this._settings.scrollStep)) return preventEvent(e);
     }
   };
   var view$1g = exports.protoUI(api$1g, EventSystem, Settings);
@@ -39353,15 +39218,16 @@
 
   var Mixin$2 = {
     blockselect_setter: function (value) {
+      var _this = this;
+
       if (value && this._block_sel_flag) {
-        if (env.touch) this.attachEvent("onLongTouch", this._bs_down);else _event(this._viewobj, env.mouse.down, this._bs_down, {
-          bind: this
+        _event(this._viewobj, env.mouse.down, function (e) {
+          return _this._bs_down(e, "mouse");
         });
 
-        _event(this._viewobj, env.mouse.move, this._bs_move, {
-          bind: this
+        if (env.touch) this.attachEvent("onLongTouch", function (e) {
+          return _this._bs_down(e, "touch");
         });
-
         this._block_sel_flag = this._bs_ready = this._bs_progress = false;
         this.attachEvent("onAfterScroll", this._update_block_selection); // auto scroll
 
@@ -39387,7 +39253,7 @@
 
       return false;
     },
-    _bs_down: function (e) {
+    _bs_down: function (e, pointer) {
       // do not listen to mousedown of subview on master
       if (this._settings.subview && this != $$(e.target)) return;
 
@@ -39395,20 +39261,32 @@
         //disable block selection when we have an active editor
         if (e.target && e.target.tagName == "INPUT" || this._rs_process) return;
         this._bs_position = offset(this._body);
-        var pos$$1 = env.touch ? e : pos(e);
+        var pos$$1 = pos(e);
         this._bs_ready = [pos$$1.x - this._bs_position.x, pos$$1.y - this._bs_position.y];
-        preventEvent(e);
 
-        this._bs_up_init();
+        this._bs_handler_init(e.target, pointer);
       }
     },
-    _bs_up_init: function () {
-      var _this = this;
+    _bs_handler_init: function (target, pointer) {
+      var _this2 = this;
 
-      var handler = event$1(document.body, env.mouse.up, function (e) {
-        eventRemove(handler);
-        return _this._bs_up(e);
-      });
+      if (pointer === "touch") {
+        this._bs_mm_handler = event$1(target, env[pointer].move, function (e) {
+          return _this2._bs_move(e, pointer);
+        }, {
+          passive: false
+        });
+        this._bs_mu_handler = event$1(target, env[pointer].up, function (e) {
+          return _this2._bs_up(e);
+        });
+      } else {
+        this._bs_mm_handler = event$1(this._viewobj, env[pointer].move, function (e) {
+          return _this2._bs_move(e, pointer);
+        });
+        this._bs_mu_handler = event$1(document, env[pointer].up, function (e) {
+          return _this2._bs_up(e);
+        });
+      }
     },
     _bs_up: function (e) {
       if (this._block_panel) {
@@ -39417,6 +39295,8 @@
         this._block_panel = remove(this._block_panel);
       }
 
+      this._bs_mm_handler = eventRemove(this._bs_mm_handler);
+      this._bs_mu_handler = eventRemove(this._bs_mu_handler);
       removeCss(document.body, "webix_noselect");
       this._bs_ready = this._bs_progress = false;
       if (this._auto_scroll_delay) this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
@@ -39488,7 +39368,7 @@
             endy = Math.max(startn.top + startn.height, endn.top + endn.height);
             if (this._settings.topSplit) starty += this._getTopSplitOffset(start);
             if (this._auto_scroll_delay) this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
-            if (e && (!env.touch || this._settings.prerender)) this._auto_scroll_delay = delay(this._auto_scroll, this, [pos(e)], 250);
+            if (e && (!this._touch_scroll || this._settings.prerender)) this._auto_scroll_delay = delay(this._auto_scroll, this, [pos(e)], 250);
           }
 
           var style = this._block_panel.style;
@@ -39508,12 +39388,12 @@
 
       this._body.appendChild(this._block_panel);
     },
-    _bs_move: function (e) {
+    _bs_move: function (e, pointer) {
       if (this._rs_progress) return;
 
       if (this._bs_ready !== false) {
         if (!this._bs_progress) addCss(document.body, "webix_noselect");
-        var pos$$1 = env.touch ? env.mouse.context(e) : pos(e);
+        var pos$$1 = pos(e);
         var progress = [pos$$1.x - this._bs_position.x, pos$$1.y - this._bs_position.y]; //prevent unnecessary block selection while dbl-clicking
 
         if (Math.abs(this._bs_ready[0] - progress[0]) < 5 && Math.abs(this._bs_ready[1] - progress[1]) < 5) return;
@@ -39522,7 +39402,7 @@
 
         this._bs_select(this.config.blockselect, false, e);
 
-        if (env.touch) preventEvent(e);
+        if (pointer === "touch") preventEvent(e);
       }
     },
     _locate_cell_xy: function (x, y) {
@@ -39802,18 +39682,19 @@
 
       Touch._init_scroll_node(this._body.childNodes[1].firstChild);
 
-      Touch._set_matrix(this._body.childNodes[1].firstChild, 0, 0, "0ms");
-
       this._sync_scroll(0, 0, "0ms");
     },
     $hasYScroll: function () {
       return this._dtable_height - this._dtable_offset_height > 2;
     },
     _touchNative: {
+      _touch_scroll: true,
       _scrollTo_touch: function (x, y) {
-        Touch._set_matrix(this._body.childNodes[1].firstChild, -x, -y, "0ms");
+        // limit scroll
+        var sizes = Touch._get_sizes(this._body.childNodes[1].firstChild);
 
-        this._sync_scroll(-x, -y, "0ms");
+        x = Math.max(0, Math.min(x, sizes.dx - sizes.px));
+        y = Math.max(0, Math.min(y, sizes.dy - sizes.py)); // no delay, important for autoscroll
 
         this.callEvent("onAfterScroll", [{
           e: -x,
@@ -39831,9 +39712,7 @@
       $init: function () {
         this.attachEvent("onBeforeScroll", function () {
           Touch._scroll_node = this._body.childNodes[1].firstChild;
-
-          Touch._get_sizes(Touch._scroll_node);
-
+          Touch._scroll_stat = Touch._get_sizes(Touch._scroll_node);
           Touch._scroll_master = this;
         });
         this.attachEvent("onTouchEnd", function () {
@@ -39844,22 +39723,13 @@
           if (!result) return;
           this._scrollLeft = -result.e;
           this._scrollTop = -result.f;
-          if (this._x_scroll) this._x_scroll._settings.scrollPos = this._scrollLeft;
-          if (this._y_scroll) this._y_scroll._settings.scrollPos = this._scrollTop;
-        });
-      },
-      _sync_scroll: function (x, y, t) {
-        Touch._set_matrix(this._body.childNodes[1].firstChild, x, y, t);
 
-        if (this._settings.leftSplit) Touch._set_matrix(this._body.childNodes[0].firstChild, 0, y, t);
-        if (this._settings.rightSplit) Touch._set_matrix(this._body.childNodes[2].firstChild, 0, y, t);
-        if (this._settings.header) Touch._set_matrix(this._header.childNodes[1].firstChild, x, 0, t);
-        if (this._settings.footer) Touch._set_matrix(this._footer.childNodes[1].firstChild, x, 0, t);
-        this.callEvent("onSyncScroll", [x, y, t]);
-      },
-      _sync_pos: function () {}
+          this._sync_scroll(result.e, result.f, "0ms");
+        });
+      }
     },
     _touch: {
+      _touch_scroll: true,
       _scrollTo_touch: function (x, y) {
         delay(function () {
           this.callEvent("onAfterScroll", [{
@@ -39877,38 +39747,27 @@
         this.attachEvent("onAfterColumnHide", function () {
           this._scrollTo_touch(0, 0);
         });
-        this.attachEvent("onBeforeScroll", function () {
-          var t = Touch;
-          t._scroll_node = this._body.childNodes[1].firstChild;
-
-          t._get_sizes(t._scroll_node);
-
-          t._scroll_stat.left = this._scrollLeft;
-          t._scroll_stat.hidden = this._x_scroll._settings.scrollVisible || this._y_scroll._settings.scrollVisible;
-          t._scroll_stat.dy = this._dtable_height;
-          t._scroll_master = this;
-        });
         this.attachEvent("onAfterRender", function () {
           if (this._x_scroll && this._settings.scrollX) this._x_scroll._fixSize();
           if (this._y_scroll && this._settings.scrollY) this._y_scroll._fixSize();
         });
+        this.attachEvent("onBeforeScroll", function () {
+          Touch._scroll_node = this._body.childNodes[1].firstChild;
+          Touch._scroll_stat = Touch._get_sizes(Touch._scroll_node);
+          Touch._scroll_stat.dy = this._dtable_height;
+          Touch._scroll_master = this;
+        });
+        this.attachEvent("onTouchEnd", function () {
+          Touch._scroll_master = null;
+        });
         this.attachEvent("onAfterScroll", function (result) {
           //onAfterScroll may be triggered by some non-touch related logic
           if (!result) return;
-          var isScrollX = this._scrollLeft != -result.e;
-          var isScrollY = this._scrollTop != -result.f;
-          Touch._scroll_master = null;
-          Touch._fix_f = null;
           this._scrollTop = 0;
-          this._scrollLeft = 0; //ipad can delay content rendering if 3d transformation applied
-          //switch back to 2d
+          this._scrollLeft = 0;
 
-          var temp = Touch.config.translate;
-          Touch.config.translate = "translate";
+          this._sync_scroll(0, 0, "0ms");
 
-          this._sync_scroll(this._x_scroll ? 0 : result.e, 0, 0);
-
-          Touch.config.translate = temp;
           this._scrollLeft = -result.e;
           this._scrollTop = -result.f;
 
@@ -39916,35 +39775,59 @@
 
           this.render();
 
-          if (isScrollX) {
-            if (this._x_scroll) this._x_scroll.scrollTo(this._scrollLeft);
-            this.callEvent("onScrollX", []);
-          }
+          if (this._x_scroll) {
+            this._x_scroll._settings.scrollPos = -1;
 
-          if (isScrollY) {
-            if (this._y_scroll) this._y_scroll.scrollTo(this._scrollTop);
+            this._x_scroll.scrollTo(this._scrollLeft);
+
             this.callEvent("onScrollY", []);
           }
 
-          return false;
+          if (this._y_scroll) {
+            this._y_scroll._settings.scrollPos = -1;
+
+            this._y_scroll.scrollTo(this._scrollTop);
+
+            this.callEvent("onScrollY", []);
+          }
         });
-      },
-      _sync_scroll: function (x, y, t) {
-        y += this._scrollTop;
-        x += this._scrollLeft;
-
-        Touch._set_matrix(this._body.childNodes[1].firstChild, x, y, t);
-
-        if (this._settings.leftSplit) Touch._set_matrix(this._body.childNodes[0].firstChild, 0, y, t);
-        if (this._settings.rightSplit) Touch._set_matrix(this._body.childNodes[2].firstChild, 0, y, t);
-        if (this._settings.header) Touch._set_matrix(this._header.childNodes[1].firstChild, x, 0, t);
-        if (this._settings.footer) Touch._set_matrix(this._footer.childNodes[1].firstChild, x, 0, t);
-        this.callEvent("onSyncScroll", [x, y, t]);
-      },
-      _sync_pos: function (matrix) {
-        matrix.f -= this._scrollTop;
-        matrix.e -= this._scrollLeft;
       }
+    },
+    _sync_scroll: function (x, y, t) {
+      var diff = this._settings.prerender ? 0 : this._scrollTop;
+      y += diff;
+
+      Touch._set_matrix(this._body.childNodes[1].firstChild, x, y, t);
+
+      if (this._settings.leftSplit) Touch._set_matrix(this._body.childNodes[0].firstChild, 0, y, t);
+      if (this._settings.rightSplit) Touch._set_matrix(this._body.childNodes[2].firstChild, 0, y, t);
+      if (this._settings.header) Touch._set_matrix(this._header.childNodes[1].firstChild, x, 0, t);
+      if (this._settings.footer) Touch._set_matrix(this._footer.childNodes[1].firstChild, x, 0, t);
+      var smooth = t !== "0ms";
+      if (this._x_scroll) this._x_scroll._sync(-x, smooth);
+      if (this._y_scroll) this._y_scroll._sync(-y + diff, smooth);
+      this.callEvent("onSyncScroll", [x, y, t]);
+    },
+    _sync_y_scroll: function (y, t) {
+      var x = -this.getScrollState().x;
+
+      Touch._set_matrix(this._body.childNodes[1].firstChild, x, y, t);
+
+      if (this._settings.leftSplit) Touch._set_matrix(this._body.childNodes[0].firstChild, 0, y, t);
+      if (this._settings.rightSplit) Touch._set_matrix(this._body.childNodes[2].firstChild, 0, y, t);
+      this.callEvent("onSyncScroll", [x, y, t]);
+    },
+    _sync_x_scroll: function (x, t) {
+      var y = this._settings.prerender ? -this.getScrollState().y : 0;
+
+      Touch._set_matrix(this._body.childNodes[1].firstChild, x, y, t);
+
+      if (this._settings.header) Touch._set_matrix(this._header.childNodes[1].firstChild, x, 0, t);
+      if (this._settings.footer) Touch._set_matrix(this._footer.childNodes[1].firstChild, x, 0, t);
+      this.callEvent("onSyncScroll", [x, y, t]);
+    },
+    _sync_pos: function (matrix) {
+      if (!this._settings.prerender) matrix.f -= this._scrollTop;
     }
   };
 
@@ -40354,7 +40237,7 @@
       var result;
 
       try {
-        result = window.eval(expr);
+        result = exec(expr);
       } catch (ex) {
         assert(false, "Math error in datatable<br>" + expr);
         result = "";
@@ -40697,20 +40580,35 @@
     /////////////////////////////
     _correct_after_focus_y: function () {
       if (this._in_edit_mode) {
-        if (this._ignore_after_focus_scroll) this._ignore_after_focus_scroll = false;else {
-          this._y_scroll.scrollTo(this.getScrollState().y + this._body.childNodes[1].firstChild.scrollTop);
+        var scrollTop = this._body.childNodes[1].firstChild.scrollTop;
+
+        if (scrollTop) {
+          this._y_scroll.scrollTo(this.getScrollState().y + scrollTop);
 
           this._body.childNodes[1].firstChild.scrollTop = 0;
-          this._ignore_after_focus_scroll = true;
         }
       }
     },
-    _correct_after_focus_x: function () {
+    _correct_after_focus: function () {
       if (this._in_edit_mode) {
-        this._x_scroll.scrollTo(this._body.childNodes[1].scrollLeft);
+        var _this$_body$childNode = this._body.childNodes[1],
+            scrollTop = _this$_body$childNode.scrollTop,
+            scrollLeft = _this$_body$childNode.scrollLeft;
+        if (this._ignore_after_focus_scroll) return this._ignore_after_focus_scroll = false;
+        if (this._settings.prerender) this._y_scroll.scrollTo(scrollTop);
+
+        this._x_scroll.scrollTo(scrollLeft);
+
+        if (this._touch_scroll) {
+          if (scrollTop) this._body.childNodes[1].scrollTop = 0;
+          if (scrollLeft) this._body.childNodes[1].scrollLeft = 0;
+          this._ignore_after_focus_scroll = scrollTop || scrollLeft;
+        }
       }
     },
     _component_specific_edit_init: function () {
+      var _this = this;
+
       this.attachEvent("onScrollY", this._update_editor_y_pos);
       this.attachEvent("onScrollX", this._update_editor_y_pos);
       this.attachEvent("onScrollY", this._refocus_inline_editor);
@@ -40726,8 +40624,14 @@
       this.attachEvent("onAfterScroll", function () {
         if (this._settings.topSplit) this.editStop();
       });
-      this._body.childNodes[1].firstChild.onscroll = bind(this._correct_after_focus_y, this);
-      this._body.childNodes[1].onscroll = bind(this._correct_after_focus_x, this);
+
+      this._body.childNodes[1].onscroll = function () {
+        return _this._correct_after_focus();
+      };
+
+      if (!this._settings.prerender) this._body.childNodes[1].firstChild.onscroll = function () {
+        return _this._correct_after_focus_y();
+      };
     },
     _update_editor_y_pos: function () {
       if (this._in_edit_mode) {
@@ -41068,6 +40972,20 @@
       }
 
       if (!silent) this._refresh_columns();
+    },
+    _getHiddenColumnIndex: function (id) {
+      if (this._hidden_column_order.length) {
+        for (var i = 0; i < this._hidden_column_order.length; i++) {
+          if (this._hidden_column_order[i] == id) return i;
+        }
+
+        return -1;
+      }
+
+      return this.getColumnIndex(id);
+    },
+    _getHiddenColumnId: function (index) {
+      return this._hidden_column_order.length ? this._hidden_column_order[index] : this.columnId(index);
     }
   };
 
@@ -41403,7 +41321,7 @@
 
       if (value == "order") {
         control = {
-          $drag: bind(function (s, e) {
+          $drag: bind(function (s, e, pointer) {
             if (!this._isDraggable(e) || this._rs_process) return false;
             var id = this.locate(e);
             if (!id || !this.callEvent("onBeforeColumnDrag", [id.column, e])) return false;
@@ -41413,7 +41331,14 @@
               custom: "column_dnd"
             };
             var column = this.getColumnConfig(id.column);
-            this._relative_column_drag = posRelative(e);
+
+            if (pointer === "touch") {
+              var hnode = this.getHeaderNode(id.column, id.rind);
+              this._relative_column_drag = {
+                x: pos(e).x - offset(hnode).x
+              };
+            } else this._relative_column_drag = posRelative(e);
+
             this._limit_column_drag = column.width;
             this._auto_scroll_force = true;
             return "<div class='webix_dd_drag_column' style='width:" + column.width + "px'>" + (column.header[0].text || "&nbsp;") + "</div>";
@@ -41426,7 +41351,7 @@
             node.style.display = "none";
             var html = document.elementFromPoint(pos$$1.x, box.y + this._settings.headerRowHeight / 2);
             var id = html ? this.locate(html) : null;
-            var start = DragControl.getContext().start.column;
+            var start = context.start.column;
 
             if (id && id.column != start && (!this._column_dnd_temp_block || id.column != this._last_sort_dnd_node)) {
               //ignore normal dnd , and dnd from other components
@@ -41889,7 +41814,7 @@
       if (!this._style_hash) this._style_hash = {};
       if (!this._style_hash[type]) this._style_hash[type] = {};
       if (options.docHeader && type == "excel") styles = [{
-        0: this._getExportDocStyle(options.docHeader.css)
+        0: this._getExportDocStyle(options.docHeader.css, type)
       }, {
         0: {}
       }];
@@ -41943,7 +41868,7 @@
       if (options.docFooter && type == "excel") styles = styles.concat([{
         0: {}
       }, {
-        0: this._getExportDocStyle(options.docFooter.css)
+        0: this._getExportDocStyle(options.docFooter.css, type)
       }]);
       return styles;
     },
@@ -42009,7 +41934,7 @@
         return rules;
       }
     },
-    _getExportDocStyle: function (css) {
+    _getExportDocStyle: function (css, type) {
       css = exports.extend(css || {}, {
         visibility: "hidden",
         "white-space": "nowrap",
@@ -42027,7 +41952,7 @@
 
       this._body.appendChild(node);
 
-      var style = this._getExportCellStyle(node, cssStr);
+      var style = this._getExportCellStyle(node, cssStr, type);
 
       remove(node);
       return style;
@@ -42531,9 +42456,8 @@
       if (header.rotate) css += " webix_measure_rotate";else for (var i = 0; i < colspan; i++) {
         width += this._columns[ind + i] ? this._columns[ind + i].width : this.config.columnWidth;
       }
-      var size = getTextSize([header.text], css, width); //+1 to compensate for scrollHeight rounding
-
-      return (header.rotate ? size.width : size.height) + 1;
+      var size = getTextSize([header.text], css, width);
+      return header.rotate ? size.width : size.height;
     },
     _normalize_headers: function (collection, heights) {
       var rows = 0; // clear array of previous values
@@ -42693,7 +42617,7 @@
           cell += " class=\"" + hcss + "\"";
           cell += " " + sheight + ">";
           var text = header.text === "" ? "&nbsp;" : header.text;
-          if (header.rotate) text = "<div class='webix_rotate' style='width:" + (cheight - 10) + "px;transform-origin:center " + (cheight - 15) / 2 + "px;-webkit-transform-origin:center " + (cheight - 15) / 2 + "px;'>" + text + "</div>";
+          if (header.rotate) text = "<div class='webix_rotate' style='width:" + (cheight - 10) + "px;transform-origin:center " + (cheight - 15) / 2 + "px;'>" + text + "</div>";
           cell += text + "</div>";
           if (isSpan) spans += cell;else html += cell;
           top += cell_height + 1;
@@ -42821,7 +42745,6 @@
       if (x !== null) this._x_scroll.scrollTo(x);
       if (y !== null) this._y_scroll.scrollTo(y);
     },
-    _touch_scroll: "touch",
     getScrollState: function () {
       if (this._getScrollState_touch) return this._getScrollState_touch();
       var diff = this._render_scroll_shift ? 0 : this._render_scroll_diff || 0;
@@ -42834,18 +42757,29 @@
       this.showItemByIndex(this.getIndexById(id), -1);
     },
     _render_header_section: function (sec, name, heights) {
+      var _this2 = this;
+
       var header = sec.childNodes;
       header[0].innerHTML = this._render_subheader(0, this._settings.leftSplit, this._left_width, name, heights);
       header[1].innerHTML = this._render_subheader(this._settings.leftSplit, this._rightSplit, this._dtable_width, name, heights);
       header[2].innerHTML = this._render_subheader(this._rightSplit, this._columns.length, this._right_width, name, heights);
-      if (this._dtable_column_refresh) header[1].scrollLeft = this.getScrollState().x;
-      header[1].onscroll = bind(this._scroll_with_header, this);
+      var x = this.getScrollState().x;
+      if (env.touch) Touch._set_matrix(header[1].firstChild, -x, 0, "0ms");else header[1].scrollLeft = x;
+
+      header[1].onscroll = function () {
+        return _this2._scroll_with_header();
+      };
     },
     _scroll_with_header: function () {
-      var active = this.getScrollState().x;
-      var header = this._header.childNodes[1].scrollLeft; // on mobile devices scrollLeft can be a non-round value
+      var scrollLeft = this._header.childNodes[1].scrollLeft;
+      if (this._ignore_after_focus_scroll) return this._ignore_after_focus_scroll = false;
 
-      if (Math.ceil(header) != Math.ceil(active)) this.scrollTo(header, null);
+      this._x_scroll.scrollTo(scrollLeft);
+
+      if (this._touch_scroll) {
+        if (scrollLeft) this._header.childNodes[1].scrollLeft = 0;
+        this._ignore_after_focus_scroll = scrollLeft;
+      }
     },
     _refresh_tracking_header_content: function () {
       this.refreshHeaderContent(true, true);
@@ -42903,9 +42837,7 @@
     _set_size_scroll_area: function (obj, height, hdx) {
       if (this._scrollSizeY) {
         obj.style.height = Math.max(height, 1) - 1 + "px";
-        obj.style.width = (this._rightSplit ? 0 : hdx) + this._scrollSizeY - 1 + "px"; // temp. fix: Chrome [DIRTY]
-
-        if (env.isWebKit) var w = obj.offsetWidth; //eslint-disable-line
+        obj.style.width = (this._rightSplit ? 0 : hdx) + this._scrollSizeY - 1 + "px";
       } else obj.style.display = "none";
     },
     _size_header_footer_fix: function () {
@@ -42914,10 +42846,9 @@
     },
     _update_scroll: function () {
       var hasX = !(this._settings.autowidth || this._settings.scrollX === false);
-      this._scrollSizeX = hasX ? env.scrollSize : 0;
       var hasY = !(this._settings.autoheight || this._settings.scrollY === false);
+      this._scrollSizeX = hasX ? env.scrollSize : 0;
       this._scrollSizeY = hasY ? env.scrollSize : 0;
-      if (env.touch) hasX = hasY = false;
 
       if (this._x_scroll) {
         this._x_scroll._settings.scrollSize = this._scrollSizeX;
@@ -42932,11 +42863,10 @@
     _create_scrolls: function () {
       this._scrollTop = 0;
       this._scrollLeft = 0;
-      var scrx, scry;
-      scrx = scry = 1;
-      if (this._settings.autoheight || this._settings.scrollY === false) scry = this._scrollSizeY = 0;
-      if (this._settings.autowidth || this._settings.scrollX === false) scrx = this._scrollSizeX = 0;
-      if (env.touch) scrx = scry = 0;
+      var hasX = !(this._settings.autowidth || this._settings.scrollX === false);
+      var hasY = !(this._settings.autoheight || this._settings.scrollY === false);
+      if (!hasX) this._scrollSizeX = 0;
+      if (!hasY) this._scrollSizeY = 0;
 
       if (!this._x_scroll) {
         this._x_scroll = ui({
@@ -42944,10 +42874,10 @@
           container: this._footer.previousSibling,
           scrollWidth: this._dtable_width,
           scrollSize: this._scrollSizeX,
-          scrollVisible: scrx
+          scrollVisible: hasX
         }); //fix for scroll space on Mac
 
-        if (scrx && !this._scrollSizeX && !env.$customScroll) this._x_scroll._viewobj.style.position = "absolute";
+        if (!this._scrollSizeX && !env.$customScroll) this._x_scroll._viewobj.style.position = "absolute";
 
         this._x_scroll.attachEvent("onScroll", bind(this._onscroll_x, this));
       }
@@ -42962,7 +42892,7 @@
           scrollHeight: 100,
           scroll: "y",
           scrollSize: this._scrollSizeY,
-          scrollVisible: scry
+          scrollVisible: hasY
         });
 
         this._y_scroll.activeArea(this._body);
@@ -43237,6 +43167,8 @@
 
       if (!this._settings.prerender) {
         this._check_rendered_cols();
+      } else if (env.touch) {
+        this._sync_y_scroll(-value, "0ms");
       } else {
         var conts = this._body.childNodes;
 
@@ -43253,14 +43185,16 @@
       }
     },
     _setLeftScroll: function (value) {
-      this._body.childNodes[1].scrollLeft = this._scrollLeft = value;
+      this._scrollLeft = value;
+      if (env.touch) return this._sync_x_scroll(-value, "0ms");
+      this._body.childNodes[1].scrollLeft = value;
       if (this._settings.header) this._header.childNodes[1].scrollLeft = value;
       if (this._settings.footer) this._footer.childNodes[1].scrollLeft = value;
     },
     _onscroll_x: function (value) {
       var scrollChange = this._scrollLeft !== value;
       if (this._renderDelay) this._delayedLeftScroll = value;else this._setLeftScroll(value);
-      if (this._settings.prerender === false) this._check_rendered_cols(this._minimize_dom_changes ? false : true);
+      if (!this._settings.prerender) this._check_rendered_cols(true);
       if (env.$customScroll) temp$1._update_scroll(this._body);
 
       if (scrollChange) {
@@ -43424,7 +43358,7 @@
       this._rows_cache = [];
     },
     _adjust_rows: function () {
-      if (this._settings.prerender && this._rows_body) {
+      if (this._rows_body && !this._touch_scroll && this._settings.prerender) {
         var state = this.getScrollState();
         this._rows_body.style.top = "-" + (state.y || 0) + "px";
       }
@@ -43486,13 +43420,14 @@
           this._rows_body.style.top = this._render_scroll_shift + "px";
 
           this._body.appendChild(this._rows_body);
+
+          this.attachEvent("onSyncScroll", function (x, y, t) {
+            Touch._set_matrix(this._rows_body, 0, y, t);
+          });
         }
 
         this._rows_body.appendChild(_row);
 
-        this.attachEvent("onSyncScroll", function (x, y, t) {
-          Touch._set_matrix(this._rows_body, 0, y, t);
-        });
         if (this._settings.subview) this.callEvent("onSubViewRender", [item, _row]);
       }
     },
@@ -43864,15 +43799,6 @@
         this._header_fix_width = delta;
 
         this._size_header_footer_fix();
-      } // temp. fix: Chrome [DIRTY]
-
-
-      if (env.isWebKit) {
-        var w = this._body.childNodes[0].offsetWidth; //eslint-disable-line
-
-        w = this._body.childNodes[1].offsetWidth;
-        w = this._body.childNodes[1].firstChild.offsetWidth;
-        w = this._body.childNodes[2].offsetWidth;
       }
 
       this._x_scroll.sizeTo(this._content_width - this._scrollSizeY);
@@ -43897,9 +43823,9 @@
       return sizes;
     },
     _restore_scroll_state: function () {
-      if (this._x_scroll && !env.touch) {
+      if (this._x_scroll) {
         var state = this.getScrollState();
-        this._x_scroll.config.scrollPos = this._y_scroll.config.scrollPos = 0;
+        this._x_scroll.config.scrollPos = this._y_scroll.config.scrollPos = -1;
         this.scrollTo(state.x, state.y);
       }
     },
@@ -44028,7 +43954,7 @@
     _last_order: [],
     _last_sorted: {},
     _sort: function (col_id, direction, type$$1, preserve) {
-      var _this2 = this;
+      var _this3 = this;
 
       preserve = this._settings.sort === "multi" && preserve;
       direction = direction || "asc";
@@ -44053,11 +43979,11 @@
       if (type$$1 == "server") {
         var params = [col.id, direction, type$$1];
         if (this._last_order.length > 1) params = [this._last_order.map(function (id) {
-          return _this2._last_sorted[id];
+          return _this3._last_sorted[id];
         })];
         this.callEvent("onBeforeSort", params);
         if (!this._skip_server_op) this.loadNext(0, 0, 0, 0, true, true).then(function () {
-          return _this2._on_after_sort(params);
+          return _this3._on_after_sort(params);
         });else this._skip_server_op.$params = params; // save last parameters
       } else {
         if (type$$1 == "text") {
@@ -44070,7 +43996,7 @@
         }
 
         if (this._last_order.length > 1) this.data.sort(this._last_order.map(function (id) {
-          return _this2._last_sorted[id];
+          return _this3._last_sorted[id];
         }));else this.data.sort(config);
       }
 
@@ -44092,7 +44018,6 @@
     },
     //because we using non-standard rendering model, custom logic for mouse detection need to be used
     _mouseEvent: function (e, hash, name, pair) {
-      e = e || event;
       var trg = e.target;
       if (this._settings.subview && this != $$(trg)) return; //define some vars, which will be used below
 
@@ -44105,7 +44030,7 @@
       while (trg && trg.parentNode && trg != this._viewobj.parentNode) {
         var trgCss = _getClassName(trg);
 
-        if (css = trgCss) {
+        if ((css = trgCss) && hash) {
           css = css.toString().split(" ");
 
           for (var i = css.length - 1; i >= 0; i--) {
@@ -44378,7 +44303,9 @@
       return TablePaste.clipboard_setter.call(this, value);
     },
     _run_load_next: function (conf, direction) {
-      for (var i = 0; i < conf.start; i++) {
+      var start = conf.start;
+
+      for (var i = 0; i < start; i++) {
         var id = this.data.order[i];
         if (id && this.getItem(id).$level != 1) conf.start--;
       }
@@ -44824,8 +44751,8 @@
   exports.filters = filters;
   exports.patterns = patterns;
   exports.fullscreen = fullscreen;
-  exports.version = version$1;
-  exports.name = name$1;
+  exports.version = version;
+  exports.name = name;
   exports.level_in = level_in;
   exports.level_out = level_out;
   exports.clone = clone;

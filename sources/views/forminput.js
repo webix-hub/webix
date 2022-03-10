@@ -91,7 +91,7 @@ const api = {
 		}
 		if(message) {
 			this.$view.style.position = "relative";
-			this._invalidMessage = create("div", { "class":"webix_inp_bottom_label", role:config.invalid?"alert":"", "aria-relevant":"all", style:"position:absolute; bottom:0px; padding:2px 0; background: white; left:"+(this._inputSpacing/2+(config.label?config.labelWidth:0))+"px; " }, message);
+			this._invalidMessage = create("div", { "class":"webix_inp_bottom_label", role:config.invalid?"alert":"", "aria-relevant":"all", style:"position:absolute; bottom:0px; padding:2px 0; background:"+$active.backColor+"; left:"+(this._inputSpacing/2+(config.label?config.labelWidth:0))+"px; " }, message);
 			this._viewobj.appendChild(this._invalidMessage);
 		}
 	}

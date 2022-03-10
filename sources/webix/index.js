@@ -12,18 +12,7 @@ export * from "./message";
 export * from "./api";
 export * from "./init";
 
-import "./ie8";
-
-/*
-	Next two ugly blocks are here for IE8 compatibility
-	rollup converts "import * as" to Object.freeze which doesn't work in IE8
-
-	for modern browsers it can be replaced with 
-*/
-
-//	import * as html from "./html";
-import { denySelect, allowSelect, index, createCss, addStyle, removeStyle, create, getValue, remove, insertBefore, locate, offset, posRelative, pos, preventEvent, stopEvent, triggerEvent, addCss, removeCss, getTextSize, download, _getClassName, setSelectionRange, getSelectionRange, addMeta } from "./html";
-const html = { denySelect, allowSelect, index, createCss, addStyle, removeStyle, create, getValue, remove, insertBefore, locate, offset, posRelative, pos, preventEvent, stopEvent, triggerEvent, addCss, removeCss, getTextSize, download, _getClassName, setSelectionRange, getSelectionRange, addMeta };
+import * as html from "./html";
 export { html };
 
 //	import * as skin from "./skin";

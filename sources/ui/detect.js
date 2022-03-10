@@ -5,11 +5,11 @@ import {set as setSkin} from "../webix/skin";
 import {create, addStyle} from "../webix/html";
 import {define} from "../services";
 
+if (env.mobile || env.$customScroll)
+	env.scrollSize = 0;
 
-env.scrollSize = ((env.touch||env.$customScroll)?0:17);
 ready(function(){
-	var size = _detectScrollSize();
-	env.scrollSize = env.touch ? 0 : size;
+	env.scrollSize = _detectScrollSize();
 });
 
 
@@ -36,7 +36,7 @@ function _fixHeight(){
 	if (fixed) return;
 
 	addStyle("html, body{ height:100%; }");
-	document.body.className+=" webix_full_screen";
+	document.body.className += " webix_full_screen";
 	Touch.limit(false);
 	fixed = true;
 }

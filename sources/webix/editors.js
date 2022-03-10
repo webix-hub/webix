@@ -100,10 +100,8 @@ const editors = {
 		},
 		setValue:function(){},
 		focus:function(){
-			try{	//IE9
-				this.node.select();
-				this.node.focus();
-			} catch(e){} //eslint-disable-line
+			this.node.focus();
+			this.node.select();
 		},
 		getInputNode:function(){},
 		$inline:true

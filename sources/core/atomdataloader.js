@@ -12,6 +12,8 @@ const silentErrorMarker = {};
 
 const AtomDataLoader={
 	$init:function(config){
+		this._data_generation = 0;
+
 		//prepare data store
 		this.data = {};
 		this.waitData = promise.defer();
@@ -86,11 +88,11 @@ const AtomDataLoader={
 			result = promise.resolve(result);
 		}
 
-		const gen = this._data_generation;
+		const gen = ++this._data_generation;
 		if(result && result.then){
 			return result.then((data) => {
 				// component destroyed, or clearAll was issued
-				if (this.$destructed || (gen && this._data_generation !== gen))
+				if (this.$destructed || this._data_generation !== gen)
 					// by returning rejection we are preventing the further executing chain
 					// if user have used list.load(data).then(do_something)
 					// the do_something will not be executed
@@ -105,13 +107,13 @@ const AtomDataLoader={
 	//loads data from object
 	parse:function(data,type,clear){
 		if (data && typeof data.then == "function"){
-			const generation = this._data_generation;
+			const gen = ++this._data_generation;
 			// component destroyed, or clearAll was issued
-			return data.then(bind(function(data){ 
-				if (this.$destructed || (generation && this._data_generation !== generation))
+			return data.then((data) => {
+				if (this.$destructed || this._data_generation !== gen)
 					return promise.reject();
-				this.parse(data, type, clear); 
-			}, this));
+				this.parse(data, type, clear);
+			});
 		}
 
 		//loading data from other component

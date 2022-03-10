@@ -3,16 +3,14 @@ import UIManager from "../core/uimanager";
 
 import clipbuffer from "../webix/clipbuffer";
 import csv from "../webix/csv";
-import env from "../webix/env";
 
 import {isUndefined, delay} from "../webix/helpers";
 
 
 const TablePaste = {
 	clipboard_setter:function(value){
-		if (env.touch) return value;
-
 		if (value === true || value === 1) value = "block";
+
 		clipbuffer.init();
 		this.attachEvent("onSelectChange",this._sel_to_clip);
 		this.attachEvent("onAfterEditStop", function(v, ed){

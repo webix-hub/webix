@@ -23,10 +23,10 @@ const DataLoader =proto({
 		config = config || "";
 
 		this._feed_last = {};
-		this._data_generation = 1;
+		this._data_generation = 0;
 
 		this.data = new DataStore();
-		this.data.attachEvent("onClearAll",bind(this._call_onclearall,this));
+		this.data.attachEvent("onClearAll", bind(this._call_onclearall, this));
 		this.data.attachEvent("onServerConfig", bind(this._call_on_config, this));
 		this.attachEvent("onDestruct", this._call_onclearall);
 

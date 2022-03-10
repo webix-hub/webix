@@ -12,7 +12,6 @@ import template from "../webix/template";
 
 const api = {
 	name:"slider",
-	$touchCapture:true,
 	defaults:{
 		min:0,
 		max:100,
@@ -109,10 +108,10 @@ const api = {
 		return Math.min(Math.max(value, min), max);
 	},
 	refresh:function(){
-		var handle =  this._get_slider_handle();
-		if(handle){
+		const handle =  this._get_slider_handle();
+		if (handle){
 			this._set_value_now();
-			if(this._settings.title)
+			if (this._settings.title)
 				handle.setAttribute("aria-label", this._settings.label+" "+this._settings.title(this._settings, this));
 
 			this._set_inner_size();
@@ -133,14 +132,12 @@ const api = {
 		return this._safeValue(value);
 	},
 	$init:function(config){
-		if(env.touch)
-			this.attachEvent("onTouchStart" , bind(this._on_mouse_down_start, this));
-		else
-			_event(this._viewobj, "mousedown", bind(this._on_mouse_down_start, this));
+		_event(this._viewobj, env.mouse.down, e => this._on_mouse_down_start(e, "mouse"));
+		if (env.touch)
+			_event(this._viewobj, env.touch.down, e => this._on_mouse_down_start(e, "touch"));
 
 		_event( this.$view, "keydown", bind(this._handle_move_keyboard, this));
-
-		if(config.vertical){
+		if (config.vertical){
 			config.height = config.height || $active.vSliderHeight;
 			this._viewobj.className += " webix_slider_vertical";
 			this._sliderPadding = $active.vSliderPadding;
@@ -154,7 +151,7 @@ const api = {
 		this._sliderBorder = $active.sliderBorder;//1px border
 	},
 	_handle_move_keyboard:function(e){
-		var code = e.keyCode, c = this._settings, value = c.value;
+		var code = e.which || e.keyCode, c = this._settings, value = c.value;
 
 		if(code>32 && code <41){
 			preventEvent(e);
@@ -193,83 +190,52 @@ const api = {
 			}
 		}
 	},
-	_on_mouse_down_start:function(e){
-		if (this._handle_drag_events) return;
-
+	_on_mouse_down_start:function(e, pointer){
 		var trg = e.target;
-		if(this._mouse_down_process){
+		if (this._mouse_down_process)
 			this._mouse_down_process(e);
-		}
 
 		var value = this._settings.value;
-		if(isArray(value))
-			value = copy(value);
+		if (isArray(value)) value = copy(value);
 
-		if (trg.className.indexOf("webix_slider_handle")!=-1){
-			this._start_value = value;
-			return this._start_handle_dnd.apply(this,arguments);
-		} else if (trg.className.indexOf("webix_slider") != -1){
-			this._start_value = value;
+		this._start_value = value;
+		if (trg.className.indexOf("webix_slider") !== -1)
+			this._settings.value = this._get_value_from_event(e);
 
-			this._settings.value = this._get_value_from_event.apply(this,arguments);
-
-			this._start_handle_dnd(e);
-		}
-	},
-	_start_handle_dnd:function(){
-		if(env.touch){
-			this._handle_drag_events = [
-				this.attachEvent("onTouchMove" , bind(this._handle_move_process, this)),
-				this.attachEvent("onTouchEnd"  , bind(this._handle_move_stop, this))
-			];
-		}
-		else
-			this._handle_drag_events = [
-				event(document.body, "mousemove", bind(this._handle_move_process, this)),
-				event(window, "mouseup", bind(this._handle_move_stop, this))
-			];
+		const passive = (pointer === "touch") ? { passive:false } : null;
+		this._handle_drag_events = [
+			event(document.body, env[pointer].move, e => this._handle_move_process(e, pointer), passive),
+			event(document, env[pointer].up, () => this._handle_move_stop()),
+		];
 		addCss(document.body,"webix_noselect");
 	},
 	_handle_move_stop:function(){
 		//detach event handlers
-		if(this._handle_drag_events){
-			if(env.touch){
-				this.detachEvent(this._handle_drag_events[0]);
-				this.detachEvent(this._handle_drag_events[1]);
-			}
-			else{
-				eventRemove(this._handle_drag_events[0]);
-				eventRemove(this._handle_drag_events[1]);
-			}
-			this._handle_drag_events = null;
-		}
-
-		removeCss(document.body,"webix_noselect");
+		eventRemove(this._handle_drag_events[0]);
+		eventRemove(this._handle_drag_events[1]);
+		this._handle_drag_events = null;
 
 		var value = this._settings.value;
-
-		if(isArray(value))
-			value = copy(value);
+		if (isArray(value)) value = copy(value);
 
 		this._settings.value = this._start_value;
 		this.setValue(value, "user");
 
 		this._get_slider_handle(this._activeIndex).focus();
 		this._activeIndex = -1;
+
+		removeCss(document.body, "webix_noselect");
 	},
-	_handle_move_process:function(){
-		this._settings.value = this._get_value_from_event.apply(this,arguments);
+	_handle_move_process:function(e, pointer){
+		this._settings.value = this._get_value_from_event(e);
 		this.refresh();
 		this.callEvent("onSliderDrag", []);
+
+		if (pointer === "touch") preventEvent(e);
 	},
-	_get_value_from_event:function(event,touchContext){
-		// this method takes 2 arguments in case of touch env
-		var pos = 0;
-		var ax = this._settings.vertical?"y":"x";
-		if(env.touch)
-			pos = touchContext?touchContext[ax]: event[ax];
-		else
-			pos = getPos(event)[ax];
+	_get_value_from_event:function(e){
+		const ax = this._settings.vertical ? "y" : "x";
+		const pos = getPos(e)[ax];
 		return this._get_value_from_pos(pos);
 	},
 	_get_value_from_pos:function(pos){

@@ -301,6 +301,18 @@ const Mixin = {
 
 		if (!silent)
 			this._refresh_columns();
+	},
+	_getHiddenColumnIndex: function(id){
+		if(this._hidden_column_order.length){
+			for (var i = 0; i < this._hidden_column_order.length; i++)
+				if (this._hidden_column_order[i] == id)
+					return i;
+			return -1;
+		}
+		return this.getColumnIndex(id);
+	},
+	_getHiddenColumnId: function(index){
+		return this._hidden_column_order.length?this._hidden_column_order[index]:this.columnId(index);
 	}
 };
 

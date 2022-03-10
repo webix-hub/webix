@@ -228,7 +228,7 @@
 		color: @barFontColor;
 	}
 	.webix_el_icon .webix_el_box{
-		#border > .radius(@skin_input_radius);
+		border-radius: @skin_input_radius;
 	}
 	.webix_el_icon .webix_el_box:hover{
 		.darkHoverRuleA
@@ -249,7 +249,7 @@
 	.layoutBarBG;
 }
 .webix_layout_space > .webix_toolbar{
-		#border > .radius(@layoutRadius);
+	border-radius: @layoutRadius;
 }
 
 
@@ -339,15 +339,6 @@
 }
 
 
-//resizer
-.resizerXBG(){
-	#gradient > .v3(@backColor, @darkerBG, @darkestBG);
-}
-.resizerYBG(){
-	#gradient > .h3(@backColor, @darkerBG, @darkestBG);
-}
-
-
 .webix_toolbar.webix_layout_subbar{
 	background: transparent;
 	.webix_view{
@@ -360,33 +351,19 @@
 	background-color: @backColor;
 }
 
-
-@layoutRadius: 4px;
-.webix_view.rounded_top{
-	 #border > .top(@layoutRadius);
-}
-.webix_view.rounded_right{
-	#border > .right(@layoutRadius);
-}
-.webix_view.rounded_bottom{
-	#border > .bottom(@layoutRadius);
-}
-.webix_view.rounded_left{
-	#border > .left(@layoutRadius);
-}
-
 //*****************//
 //* round borders *//
 //*****************//
-.webix_layout_space > .webix_view, .webix_layout_wide > .webix_view{
-	#border > .radius(@layoutRadius);
+@layoutRadius: 4px;
 
+.webix_layout_space > .webix_view, .webix_layout_wide > .webix_view{
+	border-radius: @layoutRadius;
 }
 
 
 .webix_layout_space, .webix_layout_wide{
 	.webix_layout_accordion .webix_accordionitem{
-		#border > .radius(@layoutRadius);
+		border-radius: @layoutRadius;
 	}
 }
 
@@ -479,14 +456,10 @@
 	.webix_ss_filter select, .webix_ss_filter input{
 		height: @inputHeight - 2*@skin_input_y_padding;
 		vertical-align: middle;
-		#border > .radius(@skin_input_radius);
+		border-radius: @skin_input_radius;
 	}
 
 }
-
-/*.webix_ss_header tr:nth-child(2) td{
-	border-top: 1px solid transparent ;
-}*/
 
 .dtBodyCell{
 	border-bottom: 1px solid @dataBorderColor ;
@@ -541,7 +514,7 @@
 }
 .webix_view{
 	.webix_pager_item,.webix_pager_item_selected{
-		#border > .radius(@skin_input_radius);
+		border-radius: @skin_input_radius;
 	}
 }
 
@@ -704,13 +677,10 @@
 }
 
 .inputStyle(@color: @backColor, @borderColor: @inputBorderColor){
-	//background: @color;
 	background: lighten(@color,8%);
 	font-family: @fontFamily;
 
 	border-color: @borderColor;
-	/*.altBackColor;
-	.altBackBorderColor;*/
 }
 
 .webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker{
@@ -744,7 +714,7 @@
 }
 .webix_el_search, .webix_el_text, .webix_el_combo, .webix_el_colorpicker, .webix_el_datepicker{
 	input{
-		#border > .radius(@skin_input_radius);
+		border-radius: @skin_input_radius;
 	}
 	input:focus{
 		.focusStyle;
@@ -753,7 +723,7 @@
 }
 .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker {
 	.webix_inp_static{
-		#border > .radius(@skin_input_radius);
+		border-radius: @skin_input_radius;
 		padding-right: 28px;
 		white-space: nowrap;
 	}
@@ -777,12 +747,12 @@
 }
 
 .webix_el_select select, .webix_el_textarea textarea{
-	#border > .radius(@skin_input_radius);
+	border-radius: @skin_input_radius;
 }
 
 // multiselect combo
 .webix_el_text .webix_inp_static{
-	#border > .radius(@skin_input_radius);
+	border-radius: @skin_input_radius;
 	white-space: nowrap;
 }
 .webix_focused .webix_inp_static{

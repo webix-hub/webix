@@ -1,5 +1,4 @@
-import {delay, uid, toNode, isUndefined} from "./helpers.js";
-import env from "./env.js";
+import {delay, uid, toNode, extend, isUndefined} from "./helpers.js";
 
 let _native_on_selectstart = 0;
 const _style_element = {};
@@ -32,7 +31,7 @@ export function createCss(rule, sufix){
 
 	for (var key in rule)
 		text+= key+":"+rule[key]+";";
-    
+
 	var name = _style_cache[text+sufix];
 	if (!name){
 		name = "s"+uid();
@@ -55,11 +54,8 @@ export function addStyle(rule, group){
 		else
 			_style_element["default"] = style;
 	}
-	/*IE8*/
-	if (style.styleSheet)
-		style.styleSheet.cssText += rule;
-	else
-		style.appendChild(document.createTextNode(rule));
+
+	style.appendChild(document.createTextNode(rule));
 }
 
 export function removeStyle(group){
@@ -78,7 +74,7 @@ export function create(name,attrs,html){
 	if (attrs["class"])
 		node.className = attrs["class"];
 	if (html)
-		node.innerHTML=html;
+		node.innerHTML = html;
 	return node;
 }
 
@@ -86,7 +82,7 @@ export function create(name,attrs,html){
 export function getValue(node){
 	node = toNode(node);
 	if (!node) return "";
-	return isUndefined(node.value)?node.innerHTML:node.value;
+	return isUndefined(node.value) ? node.innerHTML : node.value;
 }
 
 //remove html node, can process an array of nodes at once
@@ -114,8 +110,7 @@ export function locate(e,id){
 	if (e.tagName)
 		trg = e;
 	else {
-		e=e||event;
-		trg=e.target;
+		trg = e.target;
 	}
     
 	while (trg){
@@ -130,117 +125,93 @@ export function locate(e,id){
 
 //returns position of html element on the page
 export function offset(elem) {
-	if (elem.getBoundingClientRect) { //HTML5 method
-		const box = elem.getBoundingClientRect();
-		const body = document.body;
-		const docElem = document.documentElement;
-		const scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
-		const scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
-		const clientTop = docElem.clientTop || body.clientTop || 0;
-		const clientLeft = docElem.clientLeft || body.clientLeft || 0;
-		const top  = box.top +  scrollTop - clientTop;
-		const left = box.left + scrollLeft - clientLeft;
-		return { y: Math.round(top), x: Math.round(left), width:elem.offsetWidth, height:elem.offsetHeight };
-	} else { //fallback to naive approach
-		let top=0, left=0;
-		while(elem) {
-			top = top + parseInt(elem.offsetTop,10);
-			left = left + parseInt(elem.offsetLeft,10);
-			elem = elem.offsetParent;
-		}
-		return { y: top, x: left, width:elem.offsetHeight, height:elem.offsetWidth };
-	}
+	const box = elem.getBoundingClientRect();
+	const body = document.body;
+	const docElem = document.documentElement;
+	const scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
+	const scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+	const clientTop = docElem.clientTop || body.clientTop || 0;
+	const clientLeft = docElem.clientLeft || body.clientLeft || 0;
+	const top  = box.top +  scrollTop -  clientTop;
+	const left = box.left + scrollLeft - clientLeft;
+	return { y:Math.round(top), x:Math.round(left), width:elem.offsetWidth, height:elem.offsetHeight };
 }
 
 //returns relative position of event
 export function posRelative(ev){
-	ev = ev || event;
-	if (!isUndefined(ev.offsetX))
-		return { x:ev.offsetX, y:ev.offsetY };	//ie, webkit
-	else
-		return { x:ev.layerX, y:ev.layerY };	//firefox
+	return { x:ev.offsetX, y:ev.offsetY };
 }
 
 //returns position of event
 export function pos(ev){
-	ev = ev || event;
+	if (!ev.type)	// webix touch event
+		return {x:ev.x, y:ev.y};
+
 	if (ev.touches && ev.touches[0])
 		ev = ev.touches[0];
 
-	if(ev.pageX || ev.pageY)	//FF, KHTML
-		return {x:ev.pageX, y:ev.pageY};
-	//IE
-	var d  =  ((env.isIE)&&(document.compatMode != "BackCompat"))?document.documentElement:document.body;
-	return {
-		x:ev.clientX + d.scrollLeft - d.clientLeft,
-		y:ev.clientY + d.scrollTop  - d.clientTop
-	};
+	return {x:ev.pageX, y:ev.pageY};
 }
 
 //prevent event action
 export function preventEvent(e){
-	if(e && e.preventDefault) e.preventDefault();
-	if(e) e.returnValue = false;
+	e.preventDefault();
 	return stopEvent(e);
 }
 
 //stop event bubbling
 export function stopEvent(e){
-	e = (e||event);
-	if(e.stopPropagation) e.stopPropagation();
-	e.cancelBubble=true;
+	e.stopPropagation();
 	return false;
 }
 
-export function triggerEvent(node, type, name){
-	if(document.createEventObject){
-		const ev = document.createEventObject();
-		if (node.fireEvent)
-			node.fireEvent("on"+name, ev);
-	} else{
-		const ev = document.createEvent(type);
-		ev.initEvent(name, true, true);
-		if (node.dispatchEvent)
-			node.dispatchEvent(ev);
+export function triggerEvent(node, type, name, details){
+	let event;
+	if (typeof(window[type]) === "function") {
+		details = extend(details||{}, { bubbles:true, cancelable:true });
+		event = new window[type](name, details);
+	} else {		//IE 11 support
+		event = document.createEvent(type);
+		event.initEvent(name, true, true);
 	}
+	node.dispatchEvent(event);
 }
 
 //add css class to the node
 export function addCss(node,name,check){
 	if (!check || node.className.indexOf(name) === -1)
-		node.className+=" "+name;
+		node.className += " "+name;
 }
 
 //remove css class from the node
 export function removeCss(node,name){
-	node.className=node.className.replace(RegExp(" "+name,"g"),"");
+	node.className = node.className.replace(RegExp(" "+name,"g"),"");
 }
 
 export function getTextSize(text, css, basewidth){
-	var d = create("DIV",{"class":"webix_view webix_measure_size "+(css||"")},"");
+	const d = create("DIV",{"class":"webix_view webix_measure_size "+(css||"")},"");
 	d.style.cssText = "height:auto;visibility:hidden; position:absolute; top:0px; left:0px; overflow:hidden;"+(basewidth?("width:"+basewidth+"px;"):"width:auto;white-space:nowrap;");
 	document.body.appendChild(d);
 
-	var all = (typeof text !==  "object") ? [text] : text;
-	var width = 0;
-	var height = 0;
+	const all = (typeof text !==  "object") ? [text] : text;
+	let width = 0, height = 0;
 
-	for (var i = 0; i < all.length; i++) {
+	for (let i=0; i<all.length; i++) {
 		d.innerHTML = all[i];
-		//we need to add 1 to offsetWidth/Height because these methods return value as an integer
-		//we can use ie9+ d.getBoundingClientRect().width
-		width = Math.max(width, d.offsetWidth+1);
-		height = Math.max(height, d.offsetHeight+1);
+
+		const rect = d.getBoundingClientRect();
+		width = Math.max(width, Math.ceil(rect.width));
+		height = Math.max(height, Math.ceil(rect.height));
 	}
-    
+
 	remove(d);
-	return { width:width, height:height };
+	return { width, height };
 }
 
 export function download(data, filename){
 	var objUrl = false;
 
-	if(typeof data =="object"){//blob
+	if(typeof data == "object"){//blob
 		if(window.navigator.msSaveBlob)
 			return window.navigator.msSaveBlob(data, filename);
 		else {
@@ -277,40 +248,14 @@ export function _getClassName(node){
 
 export function setSelectionRange(node, start, end){
 	start = start || 0;
-	end  = end || start;
+	end = end || start;
 
 	node.focus();
-	if(node.setSelectionRange)
-		node.setSelectionRange(start, end);
-	else{
-		//ie8
-		var textRange = node.createTextRange();
-		textRange.collapse(true);
-		textRange.moveEnd("character", end);
-		textRange.moveStart("character", start);
-		textRange.select();
-	}
+	node.setSelectionRange(start, end);
 }
 
 export function getSelectionRange(node){
-	if("selectionStart" in node)
-		return {start:node.selectionStart || 0, end:node.selectionEnd || 0};
-	else{
-		//ie8
-		node.focus();
-		var selection = document.selection.createRange();
-		var bookmark = selection.getBookmark();
-		var textRange = node.createTextRange();
-
-		textRange.moveToBookmark(bookmark);
-		var length = textRange.text.length;
-        
-		textRange.collapse(true);
-		textRange.moveStart("character", -node.value.length);
-
-		var start = textRange.text.length;
-		return {start:start, end: start + length};
-	}
+	return {start:node.selectionStart || 0, end:node.selectionEnd || 0};
 }
 
 export function addMeta(name, value){

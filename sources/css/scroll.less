@@ -35,8 +35,13 @@
 	.touchScroll;
 }
 
-
-
+.webix_custom_scroll{
+	-ms-overflow-style: none;	/* IE, Edge */
+	scrollbar-width: none;		/* Firefox */
+}
+.webix_custom_scroll::-webkit-scrollbar {
+	display: none;				/* Chrome, Edge(chromium), Opera, Safari, all browsers on iOS */
+}
 
 .webix_c_scroll_y{
 	position:absolute;
@@ -45,11 +50,7 @@
 	right: 0px;
 }
 .webix_c_scroll_y > div{
-
-	-moz-transition: width 0.3s 0.2s, margin 0.3s 0.2s;
-	-webkit-transition: width 0.3s 0.2s, margin 0.3s 0.2s;
-	-o-transition: width 0.3s 0.2s, margin 0.3s 0.2s;
-	-ms-transition: width 0.3s 0.2s, margin 0.3s 0.2s;
+	transition: width 0.3s 0.2s, margin 0.3s 0.2s;
 
 	width:4px; height:100%;
 	background-color:silver;
@@ -69,10 +70,7 @@
 	bottom: 0px;
 }
 .webix_c_scroll_x > div{
-	-moz-transition: height 0.3s 0.2s, margin 0.3s 0.2s;
-	-webkit-transition: height 0.3s 0.2s, margin 0.3s 0.2s;
-	-o-transition: height 0.3s 0.2s, margin 0.3s 0.2s;
-	-ms-transition: height 0.3s 0.2s, margin 0.3s 0.2s;
+	transition: height 0.3s 0.2s, margin 0.3s 0.2s;
 
 	height:4px; width:100%;
 	background-color:silver;
@@ -107,8 +105,4 @@
 	height:auto;
 	clear:both;
 	position:relative;
-}
-
-.webix_scroll_touch_ie{
-	touch-action: none;
 }

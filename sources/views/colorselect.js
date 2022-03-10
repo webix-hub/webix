@@ -1,4 +1,4 @@
-import {pos as htmlPos, addCss, removeCss, offset, preventEvent} from "../webix/html";
+import {pos as getPos, addCss, removeCss, offset, preventEvent} from "../webix/html";
 import {protoUI} from "../ui/core";
 import {_event, event, eventRemove} from "../webix/htmlevents";
 import {$active, $name} from "../webix/skin";
@@ -20,25 +20,16 @@ const api = {
 	$init:function(){
 		this._hValue = this._sValue = this._vValue = 0;
 
-		if(env.touch){
-			this.attachEvent("onTouchStart", (e, ctx) => {
-				const css = e.target.className;
-				const parent = e.target.parentNode.className;
-
-				if(css == "webix_color_block" || parent == "webix_color_block")
-					this._handle_dnd(ctx||e);
-				else if(css.indexOf("webix_color_line") == 0)
-					this._handle_dnd(ctx||e, true);
-			});
-		}
 		_event(this.$view, "keydown", (e) => this._handle_move_keyboard(e));
 		this.attachEvent("onAfterRender", function(){
-			if(!env.touch){
-				_event(this._colorBlock, "mousedown", (e) => this._handle_dnd(e));
-				_event(this._colorLine, "mousedown", (e) => this._handle_dnd(e, true));
+			_event(this._colorBlock, env.mouse.down, (e) => this._handle_dnd(e, "mouse"));
+			_event(this._colorLine, env.mouse.down, (e) => this._handle_dnd(e, "mouse", true));
+			if (env.touch) {
+				_event(this._colorBlock, env.touch.down, (e) => this._handle_dnd(e, "touch"));
+				_event(this._colorLine, env.touch.down, (e) => this._handle_dnd(e, "touch", true));
 			}
 			_event(this._colorOutText, "change", () => this.setValue(this._colorOutText.value, "user"));
-			if(this._settings.button)
+			if (this._settings.button)
 				_event(this._viewobj.querySelector(".webix_button"), "click", () => {
 					this.callEvent("onColorSelect", [this.getValue()]);
 				});
@@ -46,8 +37,6 @@ const api = {
 		this.attachEvent("onDestruct", function(){
 			this._colorCircle = this._colorLineCircle = this._colorBlock = null;
 			this._colorLine = this._colorOutText = this._colorOutBlock = this._offset = null;
-
-			if(this._handle_drag_events) this._detach_drag_events();
 		});
 	},
 	$skin:function(){
@@ -130,7 +119,7 @@ const api = {
 
 	// dragging to set value
 	_move_block:function(e){
-		const pos = env.touch ? {x: e.x, y: e.y} : htmlPos(e);
+		const pos = getPos(e);
 
 		let x = pos.x - this._offset.x;
 		let y = pos.y - this._offset.y;
@@ -153,7 +142,7 @@ const api = {
 		this._setOutColors();
 	},
 	_move_line:function(e){
-		const pos = env.touch ? {x: e.x, y: e.y} : htmlPos(e);
+		const pos = getPos(e);
 
 		let x = pos.x - this._offset.x;
 		x = Math.max(Math.min(x, this._offset.width), 0);
@@ -166,10 +155,10 @@ const api = {
 		this._setOutColors();
 		this._setBlockColors();
 	},
-	_handle_dnd:function(e, line){
+	_handle_dnd:function(e, pointer, line){
 		this._offset = offset(this._colorBlock);
-		
-		if(line){
+
+		if (line){
 			addCss(this._colorLine, "webix_color_area_active");
 			this._move_line(e);
 		} else {
@@ -177,45 +166,35 @@ const api = {
 			this._move_block(e);
 		}
 
-		if(env.touch){
-			this._handle_drag_events = [
-				this.attachEvent("onTouchMove", (e, ctx) => this._handle_move_process(ctx||e, line)),
-				this.attachEvent("onTouchEnd", () => this._handle_move_stop(line))
-			];
-		} else {
-			this._handle_drag_events = [
-				event(document.body, "mousemove", (e) => this._handle_move_process(e, line)),
-				event(window, "mouseup", () => this._handle_move_stop(line))
-			];
-		}
+		const passive = (pointer === "touch") ? { passive:false } : null;
+		this._handle_drag_events = [
+			event(document.body, env[pointer].move, e => this._handle_move_process(e, pointer, line), passive),
+			event(document, env[pointer].up, () => this._handle_move_stop(line))
+		];
 		addCss(document.body,"webix_noselect");
 	},
-	_handle_move_process:function(e, line){
-		if(line) this._move_line(e);
+	_handle_move_process:function(e, pointer, line){
+		if (line) this._move_line(e);
 		else this._move_block(e);
-	},
-	_detach_drag_events:function(){
-		if(env.touch){
-			this.detachEvent(this._handle_drag_events[0]);
-			this.detachEvent(this._handle_drag_events[1]);
-		} else {
-			eventRemove(this._handle_drag_events[0]);
-			eventRemove(this._handle_drag_events[1]);
-		}
-		this._handle_drag_events = null;
+
+		if (pointer === "touch") preventEvent(e);
 	},
 	_handle_move_stop:function(line){
-		this._detach_drag_events();
+		//detach event handlers
+		eventRemove(this._handle_drag_events[0]);
+		eventRemove(this._handle_drag_events[1]);
+		this._handle_drag_events = null;
+
 		this.setValue(this._current_value, "user");
 
-		if(line){
+		if (line){
 			removeCss(this._colorLine, "webix_color_area_active");
 			this._colorLineCircle.focus();
 		} else {
 			removeCss(this._colorBlock, "webix_color_area_active");
 			this._colorCircle.focus();
 		}
-		removeCss(document.body,"webix_noselect");
+		removeCss(document.body, "webix_noselect");
 	},
 	_move_block_value(val, inc){
 		return Math.min(Math.max(val+inc/100, 0), 1);
@@ -224,7 +203,7 @@ const api = {
 		return Math.min(Math.max(val+inc, 0), 359);
 	},
 	_handle_move_keyboard:function(e){
-		const code = e.keyCode;
+		const code = e.which || e.keyCode;
 
 		if(code>32 && code <41){
 			const match =  /webix_color_(\w*)circle/.exec(e.target.className);

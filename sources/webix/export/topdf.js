@@ -17,8 +17,10 @@ export const toPDF = function(id, options){
 
 	options.export_mode = "pdf";
 
-	options.fontName = options.fontName || "pt-sans.regular";
-	options.boldFontName = options.boldFontName || "pt-sans.bold";
+	extend(options, {
+		fontName: "pt-sans.regular",
+		boldFontName: "pt-sans.bold"
+	});
 
 	id = isArray(id)?id:[id];
 	let views = [];

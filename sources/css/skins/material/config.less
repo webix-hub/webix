@@ -387,7 +387,7 @@
 	.layoutBarBG;
 }
 .webix_layout_space > .webix_toolbar{
-	#border > .radius(@layoutRadius);
+	border-radius: @layoutRadius;
 }
 
 .webix_view.webix_layout_accordion{
@@ -508,15 +508,6 @@
 }
 
 
-//resizer
-.resizerXBG(){
-	#gradient > .v3(@backColor, @darkerBG, @darkestBG);
-}
-.resizerYBG(){
-	#gradient > .h3(@backColor, @darkerBG, @darkestBG);
-}
-
-
 .webix_toolbar.webix_layout_subbar{
 	background: transparent;
 	.webix_view{
@@ -530,32 +521,19 @@
 }
 
 
-@layoutRadius: 2px;
-.webix_view.rounded_top{
-	#border > .top(@layoutRadius);
-}
-.webix_view.rounded_right{
-	#border > .right(@layoutRadius);
-}
-.webix_view.rounded_bottom{
-	#border > .bottom(@layoutRadius);
-}
-.webix_view.rounded_left{
-	#border > .left(@layoutRadius);
-}
-
 //*****************//
 //* round borders *//
 //*****************//
-.webix_layout_space > .webix_view, .webix_layout_wide > .webix_view{
-	#border > .radius(@layoutRadius);
+@layoutRadius: 2px;
 
+.webix_layout_space > .webix_view, .webix_layout_wide > .webix_view{
+	border-radius: @layoutRadius;
 }
 
 
 .webix_layout_space, .webix_layout_wide{
 	.webix_layout_accordion .webix_accordionitem{
-		#border > .radius(@layoutRadius);
+		border-radius: @layoutRadius;
 	}
 }
 
@@ -573,7 +551,7 @@
 		border-color: @formButtonColor;
 	}
 	div{
-		#border > .radius(0);
+		border-radius: 0;
 	}
 }
 
@@ -670,7 +648,7 @@
 	.webix_ss_filter select, .webix_ss_filter input{
 		height: @inputHeight - 2*@skin_input_y_padding;
 		vertical-align: middle;
-		#border > .radius(@skin_input_radius);
+		border-radius: @skin_input_radius;
 		border-color: @inputBorderColor;
 		&:focus{
 			border-color: @baseColor;
@@ -730,7 +708,7 @@
 .webix_view .webix_dt_editor{
 	input, select{
 		border-color: @baseColor;
-		#border > .radius(@skin_input_radius);
+		border-radius: @skin_input_radius;
 	}
 }
 @dtCheckboxMarginTop: (@rowHeight - 14)/2;
@@ -767,7 +745,7 @@
 }
 .webix_view{
 	.webix_pager_item,.webix_pager_item_selected{
-		#border > .radius(@skin_input_radius);
+		border-radius: @skin_input_radius;
 		border-width: 0px;
 	}
 }
@@ -806,6 +784,11 @@
 		div{
 			background-color: transparent;
 		}
+	}
+
+	.webix_tree_item,
+	.webix_tree_item.webix_selected{
+   		padding-right: @dataPadding;
 	}
 }
 
@@ -954,13 +937,10 @@
 }
 
 .inputStyle(@color: @backColor, @borderColor: @inputBorderColor){
-	//background: @color;
 	background: lighten(@color,8%);
 	font-family: @fontFamily;
 
 	border-color: @borderColor;
-	/*.altBackColor;
-	.altBackBorderColor;*/
 }
 
 .focusStyle{
@@ -974,7 +954,7 @@
 }
 .webix_el_search, .webix_el_text, .webix_el_combo, .webix_el_colorpicker, .webix_el_datepicker{
 	input{
-		#border > .radius(@skin_input_radius);
+		border-radius: @skin_input_radius;
 	}
 	input:focus{
 		.focusStyle;
@@ -983,7 +963,7 @@
 }
 .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker{
 	.webix_inp_static{
-		#border > .radius(@skin_input_radius);
+		border-radius: @skin_input_radius;
 		padding-right: 28px;
 		white-space: nowrap;
 		text-overflow: ellipsis;
@@ -1008,12 +988,12 @@
 }
 
 .webix_el_select select, .webix_el_textarea textarea{
-	#border > .radius(@skin_input_radius);
+	border-radius: @skin_input_radius;
 }
 
 // multiselect combo
 .webix_el_text .webix_inp_static{
-	#border > .radius(@skin_input_radius);
+	border-radius: @skin_input_radius;
 	white-space: nowrap;
 }
 .webix_focused .webix_inp_static{
@@ -1030,7 +1010,7 @@
 .webix_multicombo_value, .webix_multicombo_tag,
 .webix_multicombo_value.webix_readonly{
 	background-color: @baseBg;
-	#border > .radius(100px);
+	border-radius: 100px;
 	padding: 0 @dataPadding 0 @dataPadding;
 }
 .webix_multicombo_value{
@@ -1048,7 +1028,7 @@
 .webix_checksuggest_select_all{
 	&:hover{
 		background-color: @accentBg;
-		#border > .radius(@skin_input_radius);
+		border-radius: @skin_input_radius;
 		.webix_label_right {
 			color: @baseColor;
 		}
@@ -1250,7 +1230,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 .webix_el_tabbar .webixtype_icon, .webix_el_tabbar .webixtype_iconTop, .webix_el_tabbar .webixtype_image{
 	.webix_item_tab{
 		padding: 0;
-		#border > .radius(0);
+		border-radius: 0;
 	}
 	.webix_item_tab .webix_img_btn{
 		color: @selectTabFontColor;
@@ -1454,7 +1434,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 .webix_view > .webix_disabled{
 	background-color: @baseBg;
 	opacity: 0.6;
-	filter:progid:DXImageTransform.Microsoft.Alpha(opacity=60);
 }
 .webix_disabled_view .webix_disabled_top_label{
 	color: @disabledFontColor;
@@ -1582,7 +1561,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	.webix_cal_day_inner{
 		display:inline-block;
 		font-size: @smallFontSize;
-		#border > .radius(50%);
+		border-radius: 50%;
 		&:hover{
 			background-color: @accentBg;
 		}
@@ -1628,7 +1607,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 			}
 		}
 		span{
-			#border > .radius(50%);
+			border-radius: 50%;
 			&:hover{
 				background-color: @selectColor;
 			}
@@ -1954,7 +1933,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		left: 0px;
 		right: 0px;
 		top: 0px;
-		#border > .radius(50%);
+		border-radius: 50%;
 		transform: scale(0);
 		transition-property: transform, opacity;
 	}
@@ -1992,7 +1971,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	color: @backColor;
 	font-weight: 500;
 	line-height: 20px;
-	#border > .radius(@skin_input_radius);
+	border-radius: @skin_input_radius;
 	border: none;
 }
 .portlet_marker, .portlet_markertop, .portlet_markerbottom, .portlet_markerleft, .portlet_markerright{
@@ -2108,7 +2087,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	.webix_nav_item{
 		background-color: transparent;
 		border-color: rgba(255,255,255, 0.4);
-		filter:alpha(opacity=100);
 		opacity: 1;
 		&:hover{
 			border-color: rgba(255,255,255, 0.6);
@@ -2130,7 +2108,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	font-family: @iconFamily;
 	font-size: 24px;
 	color: @backColor;
-	#border > .radius(50%);
+	border-radius: 50%;
 	&:hover, &:focus{
 		background-color: rgba(0,0,0,0.2);
 		transition: 0.15s;
@@ -2143,7 +2121,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	font-size: 48px;
 	color: @backColor;
 	background: rgba(0,0,0,0.2);
-	#border > .radius(@skin_input_radius);
+	border-radius: @skin_input_radius;
 	&:hover, &:focus{
 		background: rgba(0,0,0,0.4);
 	}

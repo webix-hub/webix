@@ -266,7 +266,7 @@ const TreeStore = {
 	_sync_to_order:function(master){
 		this.order = _to_array();
 
-		// send current order to prevent simultaneous use in synс mode
+		// send current order to prevent simultaneous use in sync mode
 		this._sync_each_child(this.order, 0, master);
 	},
 	_sync_each_child:function(order, start, master){

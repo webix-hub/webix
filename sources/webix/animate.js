@@ -53,9 +53,6 @@ animate.end = function(node, animation){
 	//plan next animation, if any
 	state._wait_animate = delay(animate, this, [node,animation],10);
 };
-animate.isSupported=function(){
-	return !state.$testmode && env.transform && env.transition && !env.isOpera;
-};
 animate.formLine=function(next, current, animation){
 	var direction = animation.direction;
 
@@ -126,7 +123,6 @@ animate.start = function(node, animation){
 
 	animation = Settings._mergeSettings(animation,animate.defaults);
 
-	var prefix = env.cssPrefix;
 	var settings = node._has_animation = animation;
 	var skew_options, scale_type;
 
@@ -162,7 +158,7 @@ animate.start = function(node, animation){
 	}
 
 	var duration = settings.duration + "ms " + settings.timing + " " + settings.delay+"ms";
-	var css_general = prefix+"TransformStyle: preserve-3d;"; // general css rules
+	var css_general = "transformStyle: preserve-3d;"; // general css rules
 	var css_transition = "";
 	var css_transform = "";
 
@@ -194,7 +190,7 @@ animate.start = function(node, animation){
 			var y = settings.y +"px";
 			// translate(x, y) OR translate3d(x, y, 0)
 			css_transform = env.translate+"("+x+", "+y+((env.translate=="translate3d")?", 0":"")+")";
-			css_transition = prefix+"transform " + duration;
+			css_transition = "transform " + duration;
 			break;
 		default:
 			break;

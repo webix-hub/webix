@@ -1,6 +1,6 @@
 import {create, remove, createCss} from "../webix/html";
 import {protoUI} from "../ui/core";
-import {extend, bind, delay} from "../webix/helpers";
+import {extend, delay} from "../webix/helpers";
 
 import template from "../webix/template";
 import env from "../webix/env";
@@ -41,8 +41,8 @@ const api = {
 			//so we are using unshift to place it at start
 			this.$ready.unshift(this._after_init_call);
 		
-		var type = config.type || config.item;
-		var prerender = config.prerender || this.defaults.prerender || (type && type.width =="auto") || config.drag == "move" || config.drag == "order";
+		const type = config.type || config.item;
+		const prerender = config.prerender || this.defaults.prerender || (type && type.width =="auto") || config.drag == "move" || config.drag == "order";
 		
 		if (!prerender && !config.autoheight)
 			extend(this, VirtualRenderStack, true);
@@ -101,7 +101,7 @@ const api = {
 		height:50,
 		padding:8,
 		classname:function(obj, common, marks){
-			var css = "webix_dataview_item";
+			let css = "webix_dataview_item";
 
 			if (common.css) css += " "+common.css;
 			if (common.type) css += " "+common.type;
@@ -140,10 +140,19 @@ const api = {
 	},
 	autoheight_setter:function(mode){
 		if (mode){
-			this.data.attachEvent("onStoreLoad", bind(this.resize, this));
+			this.data.attachEvent("onStoreLoad", () => this.resize());
+			this.data.attachEvent("onStoreUpdated", (id, obj, mode) => {
+				if (!id || mode === "add" || mode === "delete") this._auto_resize();
+			});
+			this.data.attachEvent("onSyncApply", () => this._auto_resize());
 			this._contentobj.style.overflowY = "hidden";
 		}
 		return mode;
+	},
+	_auto_resize: function(){
+		if (this._settings.autoheight) {
+			this.resize();
+		}
 	},
 	$getSize:function(dx, dy){
 		if (this._settings.xCount && this.type.width != "auto" && !this._autowidth)
@@ -151,7 +160,7 @@ const api = {
 		if (this._settings.yCount && this.type.height != "auto" && !this._autoheight)
 			this._settings.height = this.type.height*this._settings.yCount + this._tilesPadding;
 
-		var width = this._settings.width || this._content_width;
+		const width = this._settings.width || this._content_width;
 		if (this._settings.autoheight && width){
 			this._recalk_counts();
 			this._calck_autoheight(width);

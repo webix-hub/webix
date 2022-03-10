@@ -237,16 +237,16 @@ const api = {
 		d.style.cssText = "visibility:hidden;position:absolute;top:0px;left:0px;overflow:hidden;";
 		document.body.appendChild(d);
 
-		let width = 0;
-		let height = 0;
+		let width = 0, height = 0;
 		for (let i=0; i<c.length; i++){
 			d.className = "webix_measure_size "+c[i].css;
 			d.style.width = c[i].width?c[i].width+"px":"auto";
 			d.style.height = c[i].height?c[i].height+"px":"auto";
 			d.innerHTML = c[i].text;
 
-			width = Math.max(width, d.offsetWidth+1);
-			height = Math.max(height, d.offsetHeight+1);
+			const rect = d.getBoundingClientRect();
+			width = Math.max(width, Math.ceil(rect.width));
+			height = Math.max(height, Math.ceil(rect.height));
 		}
 
 		remove(d);

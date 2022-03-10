@@ -2,6 +2,7 @@ import {addCss, removeCss} from "../webix/html";
 import {_to_array, bind, isArray} from "../webix/helpers";
 import {_event, event} from "../webix/htmlevents";
 import {assert} from "../webix/debug";
+import env from "../webix/env";
 
 import ready from "../webix/ready";
 import state from "../core/state";
@@ -34,10 +35,10 @@ const SelectionModel ={
 	_set_noselect: function(){
 		if (this._settings.select=="multiselect" || this._settings.multiselect || this._settings.select=="area")
 			_event(this.$view,"mousedown", function(e){
-				var shiftKey = (e||window.event).shiftKey;
-				if(shiftKey){
-					state._noselect_element = this;
-					addCss(this,"webix_noselect",1);
+				if (e.shiftKey || (env.isIE && e.ctrlKey)){
+					const node = env.isIE ? document.body : this;
+					state._noselect_element = node;
+					addCss(node, "webix_noselect", true);
 				}
 			});
 	},

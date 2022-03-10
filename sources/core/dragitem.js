@@ -1,6 +1,5 @@
 import {pos, offset} from "../webix/html";
 import {use} from "../services";
-import env from "../webix/env";
 import Touch from "../core/touch";
 import {extend, delay, _power_array, isArray} from "../webix/helpers";
 import {assert} from "../webix/debug";
@@ -68,7 +67,7 @@ const DragItem ={
 		if (this._auto_scroll_delay)
 			this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
 
-		const fragile = (this.addRowCss && env.touch && !this._settings.prerender);
+		const fragile = (this._touch_scroll && !this._settings.prerender);
 		if (this._settings.dragscroll !== false  && !fragile)
 			this._auto_scroll_delay = delay(function(pos,id){
 				this._drag_pause(id);
@@ -182,11 +181,11 @@ const DragItem ={
 				}
 			}
 			//save initial dnd params
-			var context = DragControl._drag_context= { source:list, start:id };
+			var context = DragControl._drag_context = { source:list, start:id };
 			context.from = this;
 
 			if (this.callEvent("onBeforeDrag",[context,e])){
-				if (env.touch && this._touch_scroll == "touch")
+				if (Touch._start_context)
 					delay(function(){ Touch._start_context = null; });
 
 				//set drag representation

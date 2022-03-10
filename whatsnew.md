@@ -1,5 +1,17 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
+Version 9.2.0 (March 2022)
+=============================
+
+### Major features
+
+- Problems with touch handlers on hybrid devices (Microsoft Surface or a laptop with touchscreen)
+- grouplist: setOpenState method is added
+- combo: ability to add new options via the input
+- $onBlur handler for inputs is added
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_9_2.html)
+
 Version 9.1.0 (November 2021)
 ===============================
 

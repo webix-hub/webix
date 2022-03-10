@@ -1,11 +1,10 @@
 import EventSystem from "../core/eventsystem";
 import Settings from "../core/settings";
-import {addCss, preventEvent} from "../webix/html";
+import {preventEvent} from "../webix/html";
 import {protoUI} from "../ui/core";
 import env from "../webix/env";
-import Touch from "../core/touch";
-import {toNode, isUndefined} from "../webix/helpers";
-import {_event, event} from "../webix/htmlevents";
+import {toNode, isUndefined, delay} from "../webix/helpers";
+import {_event} from "../webix/htmlevents";
 import {$active} from "../webix/skin";
 
 
@@ -16,15 +15,15 @@ const api = {
 		scroll:"x",
 		scrollPos:0,
 		scrollSize:18,
-		scrollVisible:1,
+		scrollVisible:true,
 		zoom:1
 	},
 	$init:function(config){
 		var dir = config.scroll||"x";
 		var node = this._viewobj = toNode(config.container);
 		node.className += " webix_vscroll_"+dir;
-		node.innerHTML="<div class='webix_vscroll_body'></div>";
-		_event(node,"scroll", this._onscroll,{bind:this});
+		node.innerHTML = "<div class='webix_vscroll_body'></div>";
+		_event(node, "scroll", () => this._onscroll_delay());
 
 		this._last_set_size = 0;
 	},
@@ -34,6 +33,9 @@ const api = {
 	reset:function(){
 		this.config.scrollPos = 0;
 		this._viewobj[this.config.scroll == "x"?"scrollLeft":"scrollTop"] = 0;
+
+		if (this._scroll_delay)
+			clearTimeout(this._scroll_delay[0]);
 	},
 	_check_quantum:function(value){
 		if (value>1500000){
@@ -58,12 +60,8 @@ const api = {
 		value = value-(top||0)-(bottom||0);
 
 		var width = this._settings.scrollSize;
-		//IEFix
-		//IE doesn't react on scroll-click if it has not at least 1 px of visible content
-		if (env.isIE && width)
-			width += 1;
 		if (!width && this._settings.scrollVisible && !env.$customScroll){
-			this._viewobj.style.pointerEvents="none";
+			this._viewobj.style.pointerEvents = "none";
 			width = 14;
 		}
 
@@ -73,7 +71,7 @@ const api = {
 			this._viewobj.style.display = "block";
 			if (top)
 				this._viewobj.style.marginTop = top+ "px";
-			this._viewobj.style[this._settings.scroll == "x"?"width":"height"] =  Math.max(0,value)+"px";
+			this._viewobj.style[this._settings.scroll == "x"?"width":"height"] = Math.max(0,value)+"px";
 			this._viewobj.style[this._settings.scroll == "x"?"height":"width"] = width+"px";
 		}
 
@@ -91,12 +89,28 @@ const api = {
 		if (pos > max)
 			this.scrollTo(max);
 	},
-	scrollTo:function(value){
-		if (value<0)
-			value = 0;
-		var config = this._settings;
+	_sync(value, smooth){
+		const config = this._settings;
 
-		value = value / config.zoom;
+		value = Math.round(value / config.zoom);
+		//safety check for negative values
+		if (value < 0) value = 0;
+
+		if (smooth && this._viewobj.scrollTo) {
+			const options = { top:0, left:0, behavior:"smooth" };
+			options[config.scroll == "x"?"left":"top"] = value;
+
+			this._viewobj.scrollTo(options);
+		} else {
+			this._viewobj[config.scroll == "x"?"scrollLeft":"scrollTop"] = value;
+		}
+		this._onscroll_delay(150);
+		this._settings.scrollPos = value || 0;
+	},
+	scrollTo:function(value){
+		const config = this._settings;
+
+		value = Math.round(value / config.zoom);
 		//safety check for negative values
 		if (value < 0) value = 0;
 
@@ -107,10 +121,20 @@ const api = {
 			return true;
 		}
 	},
-	_onscroll:function(){	
-		var x = this._viewobj[this._settings.scroll == "x"?"scrollLeft":"scrollTop"];
-		if (Math.floor(x) != Math.floor(this._settings.scrollPos))
-			this._onscroll_inner(x, false);
+	_onscroll_delay:function(time){
+		if (this._scroll_delay) {
+			time = time || this._scroll_delay[1];
+			clearTimeout(this._scroll_delay[0]);
+		}
+		this._scroll_delay = [delay(this._onscroll, this, [!!time], time), time];
+	},
+	_onscroll:function(sync){
+		this._scroll_delay = null;
+		if (sync) return;
+
+		const v = Math.round( this._viewobj[this._settings.scroll == "x"?"scrollLeft":"scrollTop"] );
+		if (v != this._settings.scrollPos)
+			this._onscroll_inner(v, false);
 	},
 	_onscroll_inner:function(value, api){
 		//size of scroll area
@@ -122,46 +146,11 @@ const api = {
 		}
 		
 		this._settings.scrollPos = value || 0;
-		this.callEvent("onScroll",[this.getScroll()]);
+		this.callEvent("onScroll", [this.getScroll()]);
 	},
 	activeArea:function(area, x_mode){
 		this._x_scroll_mode = x_mode;
-		_event(area, "wheel", this._on_wheel,{bind:this, passive:false});
-		this._add_touch_events(area);
-	},
-
-	_add_touch_events: function(area){
-		if(!env.touch && window.navigator.pointerEnabled){
-			addCss(area,"webix_scroll_touch_ie",true);
-			_event(area, "pointerdown", function(e){
-				if(e.pointerType == "touch" || e.pointerType == "pen"){
-					this._start_context = Touch._get_context_m(e);
-					this._start_scroll_pos = this.getScroll();
-				}
-			},{bind:this});
-
-			event(document.body, "pointermove", function(e){
-				var scroll;
-				if(this._start_context){
-					this._current_context = Touch._get_context_m(e);
-					if(this._settings.scroll == "x" ){
-						scroll = this._current_context.x - this._start_context.x;
-					}
-					else if(this._settings.scroll == "y"){
-						scroll = this._current_context.y - this._start_context.y;
-					}
-					if(scroll && Math.abs(scroll) > 5){
-						this.scrollTo(this._start_scroll_pos - scroll);
-					}
-				}
-			},{bind:this});
-			event(window, "pointerup", function(){
-				if(this._start_context){
-					this._start_context = this._current_context = null;
-				}
-			},{bind:this});
-		}
-
+		_event(area, "wheel", this._on_wheel, {bind:this, passive:false});
 	},
 	_on_wheel:function(e){
 		let dir = 0;
@@ -189,9 +178,8 @@ const api = {
 		if(env.isSafari)
 			this._scroll_trg = e.target;
 
-		if (dir)
-			if (this.scrollTo(this.getScroll() + dir*this._settings.scrollStep))
-				return preventEvent(e);
+		if (dir && this.scrollTo(this.getScroll() + dir*this._settings.scrollStep))
+			return preventEvent(e);
 
 	}
 };

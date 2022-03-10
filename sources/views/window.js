@@ -256,7 +256,7 @@ const api = {
 
 		this._viewobj.style.display = "block";
 		this._hide_timer = 1;
-		delay(function(){ this._hide_timer = 0; }, this, [], (env.touch ? 400 : 100 ));
+		delay(function(){ this._hide_timer = 0; }, this, [], (env.fastClick ? 100 : 400));
 
 		this._render_hidden_views();
 
@@ -457,10 +457,7 @@ const api = {
 				this.setPosition(state.left, state.top);
 			} else {
 				if (this._settings.position == "top"){
-					if (animate.isSupported())
-						top = -1*height;
-					else
-						top = 10;
+					top = -1*height;
 				}
 				//popup inside a fixed win
 				if(!this._settings.position){

@@ -3,7 +3,6 @@ import {triggerEvent, getTextSize} from "../webix/html";
 import {protoUI, ui, $$} from "../ui/core";
 import template from "../webix/template";
 import {$active} from "../webix/skin";
-import env from "../webix/env";
 import {bind, extend} from "../webix/helpers";
 import {assert} from "../webix/debug";
 
@@ -44,10 +43,9 @@ const api = {
 					if (parent._hide_on_item_click)
 						parent.hide();
 				} else {
-					if (env.touch || (this === parent && parent._settings.openAction == "click")){
+					const touch = e.pointerType && e.pointerType !== "mouse";
+					if (touch || (this === parent && parent._settings.openAction == "click"))
 						this._mouse_move_activation(id, trg);
-					}
-
 					//do not close popups when clicking on menu folder
 					e.showpopup = parent._settings.id;
 				}
@@ -61,7 +59,7 @@ const api = {
 				if(sel)
 					node = this.getItemNode(sel);
 				if(node)
-					triggerEvent(node, "MouseEvents", "click");
+					triggerEvent(node, "MouseEvent", "click");
 			}
 
 		});
@@ -181,7 +179,6 @@ const api = {
 		return sub;
 	},
 	_menu_was_activated:function(){
-		if (env.touch) return false;
 		var top = this.getTopMenu();
 		if (top._settings.openAction == "click"){
 			var sub = top._open_sub_menu;

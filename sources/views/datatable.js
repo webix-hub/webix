@@ -467,7 +467,7 @@ const api = {
 			this._normalize_headers("footer", this._footers);
 			this._footer_height = this._footers._summ;
 			this._render_header_section(this._footer, "footer", this._footers);
-		}	
+		}
 
 		this.refreshHeaderContent(false, false);
 		this._size_header_footer_fix();
@@ -494,8 +494,7 @@ const api = {
 			width
 		);
 
-		//+1 to compensate for scrollHeight rounding
-		return (header.rotate ? size.width : size.height ) + 1;
+		return (header.rotate ? size.width : size.height);
 	},
 	_normalize_headers:function(collection, heights){
 		let rows = 0;
@@ -648,7 +647,7 @@ const api = {
 
 				let text = (header.text === "") ? "&nbsp;" : header.text;
 				if (header.rotate)
-					text = "<div class='webix_rotate' style='width:"+(cheight-10)+"px;transform-origin:center "+(cheight-15)/2+"px;-webkit-transform-origin:center "+(cheight-15)/2+"px;'>"+text+"</div>";
+					text = "<div class='webix_rotate' style='width:"+(cheight-10)+"px;transform-origin:center "+(cheight-15)/2+"px;'>"+text+"</div>";
 
 				cell += text + "</div>";
 				if (isSpan) spans += cell;
@@ -769,13 +768,12 @@ const api = {
 		if (y !== null)
 			this._y_scroll.scrollTo(y);
 	},
-	_touch_scroll:"touch",
 	getScrollState:function(){
 		if (this._getScrollState_touch)
 			return this._getScrollState_touch();
 
-		var diff =  this._render_scroll_shift?0:(this._render_scroll_diff||0);
-		return {x:(this._scrollLeft||0), y:(this._scrollTop + diff)};
+		const diff = this._render_scroll_shift ? 0 : (this._render_scroll_diff||0);
+		return { x:(this._scrollLeft||0), y:(this._scrollTop+diff) };
 	},
 	showItem:function(id){
 		this.showItemByIndex(this.getIndexById(id), -1);
@@ -787,17 +785,24 @@ const api = {
 		header[1].innerHTML = this._render_subheader(this._settings.leftSplit, this._rightSplit, this._dtable_width, name, heights);
 		header[2].innerHTML = this._render_subheader(this._rightSplit, this._columns.length, this._right_width, name, heights);
 
-		if(this._dtable_column_refresh)
-			header[1].scrollLeft = this.getScrollState().x;
-		header[1].onscroll = bind(this._scroll_with_header, this);
+		const x = this.getScrollState().x;
+		if (env.touch)
+			Touch._set_matrix(header[1].firstChild,-x,0,"0ms");
+		else header[1].scrollLeft = x;
+		header[1].onscroll = () => this._scroll_with_header();
 	},
 	_scroll_with_header:function(){
-		var active = this.getScrollState().x;
-		var header = this._header.childNodes[1].scrollLeft;
+		const scrollLeft = this._header.childNodes[1].scrollLeft;
 
-		// on mobile devices scrollLeft can be a non-round value
-		if (Math.ceil(header) != Math.ceil(active))
-			this.scrollTo(header, null);
+		if (this._ignore_after_focus_scroll)
+			return this._ignore_after_focus_scroll = false;
+
+		this._x_scroll.scrollTo(scrollLeft);
+
+		if (this._touch_scroll){
+			if (scrollLeft) this._header.childNodes[1].scrollLeft = 0;
+			this._ignore_after_focus_scroll = scrollLeft;
+		}
 	},
 	_refresh_tracking_header_content:function(){
 		this.refreshHeaderContent(true, true);
@@ -846,13 +851,8 @@ const api = {
 	headerContent:[],
 	_set_size_scroll_area:function(obj, height, hdx){
 		if (this._scrollSizeY){
-
 			obj.style.height = Math.max(height,1)-1+"px";
 			obj.style.width = (this._rightSplit?0:hdx)+this._scrollSizeY-1+"px";
-
-			// temp. fix: Chrome [DIRTY]
-			if (env.isWebKit)
-				var w = obj.offsetWidth; //eslint-disable-line
 		} else 
 			obj.style.display = "none";
 	},
@@ -863,12 +863,11 @@ const api = {
 			this._set_size_scroll_area(this._footer_scroll, this._footer_height, this._header_fix_width);
 	},
 	_update_scroll:function(){
-		var hasX = !(this._settings.autowidth || this._settings.scrollX === false);
-		this._scrollSizeX =  hasX ? env.scrollSize : 0;
-		var hasY = !(this._settings.autoheight || this._settings.scrollY === false);
+		const hasX = !(this._settings.autowidth || this._settings.scrollX === false);
+		const hasY = !(this._settings.autoheight || this._settings.scrollY === false);
+		this._scrollSizeX = hasX ? env.scrollSize : 0;
 		this._scrollSizeY = hasY ? env.scrollSize : 0;
-		if (env.touch)
-			hasX = hasY = false;
+
 		if (this._x_scroll){
 			this._x_scroll._settings.scrollSize = this._scrollSizeX;
 			this._x_scroll._settings.scrollVisible = hasX;
@@ -879,30 +878,26 @@ const api = {
 		}
 	},
 	_create_scrolls:function(){
-
 		this._scrollTop = 0;
 		this._scrollLeft = 0;
-		var scrx, scry; scrx = scry = 1;
 
-		if (this._settings.autoheight || this._settings.scrollY === false)
-			scry = this._scrollSizeY = 0;
-		if (this._settings.autowidth || this._settings.scrollX === false)
-			scrx = this._scrollSizeX = 0;
-		
-		if (env.touch) scrx = scry = 0;
+		const hasX = !(this._settings.autowidth || this._settings.scrollX === false);
+		const hasY = !(this._settings.autoheight || this._settings.scrollY === false);
+		if (!hasX) this._scrollSizeX = 0;
+		if (!hasY) this._scrollSizeY = 0;
 
 		if (!this._x_scroll){
 			this._x_scroll = ui({
-				view:"vscroll",
-				container:this._footer.previousSibling,
-				scrollWidth:this._dtable_width,
-				scrollSize:this._scrollSizeX,
-				scrollVisible:scrx
+				view: "vscroll",
+				container: this._footer.previousSibling,
+				scrollWidth: this._dtable_width,
+				scrollSize: this._scrollSizeX,
+				scrollVisible: hasX
 			});
 
 			//fix for scroll space on Mac
-			if (scrx && !this._scrollSizeX && !env.$customScroll)
-				this._x_scroll._viewobj.style.position="absolute";
+			if (!this._scrollSizeX && !env.$customScroll)
+				this._x_scroll._viewobj.style.position = "absolute";
 
 			this._x_scroll.attachEvent("onScroll", bind(this._onscroll_x, this));
 		}
@@ -913,12 +908,12 @@ const api = {
 			this._footer_scroll = vscroll_view.nextSibling;
 
 			this._y_scroll = ui({
-				view:"vscroll",
-				container:vscroll_view,
-				scrollHeight:100,
-				scroll:"y",
-				scrollSize:this._scrollSizeY,
-				scrollVisible:scry
+				view: "vscroll",
+				container: vscroll_view,
+				scrollHeight: 100,
+				scroll: "y",
+				scrollSize: this._scrollSizeY,
+				scrollVisible: hasY
 			});
 
 			this._y_scroll.activeArea(this._body);
@@ -1169,8 +1164,9 @@ const api = {
 		this._scrollTop = value;
 		if (!this._settings.prerender){
 			this._check_rendered_cols();
-		}
-		else {
+		} else if (env.touch){
+			this._sync_y_scroll(-value, "0ms");
+		} else {
 			var conts = this._body.childNodes;
 			for (var i = 0; i < conts.length; i++){
 				conts[i].scrollTop = value;
@@ -1178,13 +1174,17 @@ const api = {
 		}
 
 		if (env.$customScroll) CustomScroll._update_scroll(this._body);
-		if(scrollChange){
+		if (scrollChange){
 			this.callEvent("onScrollY",[]);
 			this.callEvent("onAfterScroll",[]);
 		}
 	},
 	_setLeftScroll:function(value){
-		this._body.childNodes[1].scrollLeft = this._scrollLeft = value;
+		this._scrollLeft = value;
+		if (env.touch)
+			return this._sync_x_scroll(-value, "0ms");
+
+		this._body.childNodes[1].scrollLeft = value;
 		if (this._settings.header)
 			this._header.childNodes[1].scrollLeft = value;
 		if (this._settings.footer)
@@ -1192,16 +1192,17 @@ const api = {
 	},
 	_onscroll_x:function(value){
 		var scrollChange = (this._scrollLeft !== value);
-		if(this._renderDelay)
+		if (this._renderDelay)
 			this._delayedLeftScroll = value;
 		else
 			this._setLeftScroll(value);
-		if (this._settings.prerender===false)
-			this._check_rendered_cols(this._minimize_dom_changes?false:true);
+
+		if (!this._settings.prerender)
+			this._check_rendered_cols(true);
 
 		if (env.$customScroll) CustomScroll._update_scroll(this._body);
 
-		if(scrollChange){
+		if (scrollChange){
 			this.callEvent("onScrollX",[]);
 			this.callEvent("onAfterScroll",[]);
 		}
@@ -1357,7 +1358,7 @@ const api = {
 		this._rows_cache=[];
 	},
 	_adjust_rows:function(){
-		if(this._settings.prerender && this._rows_body){
+		if (this._rows_body && !this._touch_scroll && this._settings.prerender){
 			var state = this.getScrollState();
 			this._rows_body.style.top = "-"+(state.y||0) +"px";
 		}
@@ -1413,13 +1414,15 @@ const api = {
 			if (!this._rows_body){
 				this._rows_body = create("DIV");
 				this._rows_body.style.position = "relative";
-				this._rows_body.style.top = this._render_scroll_shift+"px";
+				this._rows_body.style.top = this._render_scroll_shift + "px";
 				this._body.appendChild(this._rows_body);
+
+				this.attachEvent("onSyncScroll", function(x,y,t){
+					Touch._set_matrix(this._rows_body,0,y,t);
+				});
 			}
+
 			this._rows_body.appendChild(row);
-			this.attachEvent("onSyncScroll", function(x,y,t){
-				Touch._set_matrix(this._rows_body,0,y,t);
-			});
 			if (this._settings.subview)
 				this.callEvent("onSubViewRender", [item, row]);
 		}
@@ -1804,14 +1807,6 @@ const api = {
 			this._size_header_footer_fix();
 		}
 
-		// temp. fix: Chrome [DIRTY]
-		if (env.isWebKit){
-			var w = this._body.childNodes[0].offsetWidth; //eslint-disable-line
-			w = this._body.childNodes[1].offsetWidth;
-			w = this._body.childNodes[1].firstChild.offsetWidth;
-			w = this._body.childNodes[2].offsetWidth;
-		}
-
 		this._x_scroll.sizeTo(this._content_width-this._scrollSizeY);
 		this._x_scroll.define("scrollWidth", this._dtable_width+this._left_width+this._right_width);
 	},
@@ -1837,9 +1832,9 @@ const api = {
 		return sizes;
 	},
 	_restore_scroll_state:function(){
-		if (this._x_scroll && !env.touch){
+		if (this._x_scroll){
 			var state = this.getScrollState();
-			this._x_scroll.config.scrollPos = this._y_scroll.config.scrollPos = 0;
+			this._x_scroll.config.scrollPos = this._y_scroll.config.scrollPos = -1;
 			this.scrollTo(state.x, state.y);
 		}
 	},
@@ -2008,8 +2003,7 @@ const api = {
 	},
 	//because we using non-standard rendering model, custom logic for mouse detection need to be used
 	_mouseEvent:function(e,hash,name,pair){
-		e=e||event;
-		var trg=e.target;
+		var trg = e.target;
 		if (this._settings.subview && this != $$(trg)) return;
 
 		//define some vars, which will be used below
@@ -2022,7 +2016,7 @@ const api = {
 		//loop through all parents
 		while (trg && trg.parentNode && trg != this._viewobj.parentNode){
 			var trgCss = _getClassName(trg);
-			if ((css = trgCss)) {
+			if ((css = trgCss) && hash) {
 				css = css.toString().split(" ");
 
 				for (var i = css.length - 1; i >= 0; i--)

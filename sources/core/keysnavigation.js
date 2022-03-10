@@ -76,7 +76,7 @@ const KeysNavigation = {
 			prev = (prev === true) ? selected : null;
 
 			if (mode == "left"){
-				if (this.close) return this.close(selected);	//tree
+				if (this.close && !this._ignore_clicks) return this.close(selected);	//tree (not window)
 				if (this._level_up && this._level_up(selected)) return this.render();	//grouplist
 			} else if (mode == "right"){
 				if (this.open) return this.open(selected);

@@ -1,4 +1,3 @@
-import state from "../core/state";
 import i18n from "../webix/i18n";
 import rules from "../webix/rules";
 import template from "../webix/template";
@@ -43,8 +42,7 @@ function modal_key(e){
 	const source = e.target;
 
 	if (count > 0 && message.keyboard){
-		e = e||window.event;
-		const code = e.which||e.keyCode;
+		const code = e.which || e.keyCode;
 		if(code != 13 && code != 32 && code != 27)
 			return;
 
@@ -143,9 +141,6 @@ function info(text){
 		text = null;
 	};
 
-	if (state.$testmode)
-		message.className += " webix_no_transition";
-
 	if (t.position == "bottom" && t.area.firstChild)
 		t.area.insertBefore(message,t.area.firstChild);
 	else
@@ -216,7 +211,6 @@ function _boxStructure(config, ok, cancel, hasInput){
 	}
 
 	box.onclick = function(e){
-		e = e ||window.event;
 		var source = e.target;
 		if (!source.className) source = source.parentNode;
 		if (source.className.indexOf("webix_popup_button")!=-1){

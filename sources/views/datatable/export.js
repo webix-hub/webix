@@ -36,7 +36,7 @@ const Mixin = {
 			this._style_hash[type] = {};
 
 		if (options.docHeader && type == "excel")
-			styles = [{ 0:this._getExportDocStyle(options.docHeader.css)}, { 0:{}}];
+			styles = [{ 0:this._getExportDocStyle(options.docHeader.css, type)}, { 0:{}}];
 		if (options.header!==false)
 			styles = this._getExportHStyles(options, "header", styles, type);
 
@@ -77,7 +77,7 @@ const Mixin = {
 		if (options.footer !== false && this.config.footer)
 			styles = this._getExportHStyles(options, "footer", styles, type);
 		if (options.docFooter && type == "excel")
-			styles = styles.concat([{0:{}}, { 0:this._getExportDocStyle(options.docFooter.css)}]);
+			styles = styles.concat([{0:{}}, { 0:this._getExportDocStyle(options.docFooter.css, type)}]);
 
 		return styles;
 	},
@@ -140,14 +140,14 @@ const Mixin = {
 			return rules;
 		}
 	},
-	_getExportDocStyle: function(css){
+	_getExportDocStyle: function(css, type){
 		css = extend(css||{}, {visibility:"hidden", "white-space":"nowrap", "text-align":"left"});
 		let cssStr = "";
 		for (let i in css) cssStr += (i+":"+css[i]+";");
 
 		const node = create("div", {style:cssStr});
 		this._body.appendChild(node);
-		const style = this._getExportCellStyle(node, cssStr);
+		const style = this._getExportCellStyle(node, cssStr, type);
 		remove(node);
 
 		return style;

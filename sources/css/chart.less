@@ -26,9 +26,9 @@
 	position : absolute;
 	top : 0px;
 	left : 0px;
-	border:0px;
-	filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0);
+	border: 0px;
 	opacity: 0;
+	pointer-events: none;
 }
 /*scales*/
 .webix_axis_item_y{
@@ -36,7 +36,6 @@
 	height:18px;
 	line-height:18px;
 
-	/*line-height:10px;*/
 	margin-top:-4px;
 	text-align:right;
 }
@@ -53,21 +52,10 @@
 	text-align:center;
 	font-family:Verdana;
 	font-size:13px;
-	/*safari*/
-	-webkit-transform: rotate(-90deg);
-    /*firefox*/
-	-moz-transform: rotate(-90deg);
-	/*opera*/
-	-o-transform:rotate(-90deg);
-    /*IE9*/
-    -ms-transform: rotate(-90deg);
     transform: rotate(-90deg);
 	padding-left:3px;
 }
-.webix_ie_filter{
-    /*IE8*/
-    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
-}
+
 /*legend block*/
 .webix_chart_legend{
     position:absolute;

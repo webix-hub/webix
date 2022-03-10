@@ -10,12 +10,10 @@ import AutoScroll from "../../core/autoscroll";
 const Mixin = {
 	blockselect_setter:function(value){
 		if (value && this._block_sel_flag){
+			_event(this._viewobj, env.mouse.down, e => this._bs_down(e, "mouse"));
 			if (env.touch)
-				this.attachEvent("onLongTouch", this._bs_down);
-			else 
-				_event(this._viewobj, env.mouse.down, this._bs_down, {bind:this});
+				this.attachEvent("onLongTouch", e => this._bs_down(e, "touch"));
 
-			_event(this._viewobj, env.mouse.move, this._bs_move, {bind:this});
 			this._block_sel_flag = this._bs_ready = this._bs_progress = false;
 			this.attachEvent("onAfterScroll", this._update_block_selection);
 			// auto scroll
@@ -37,7 +35,7 @@ const Mixin = {
 		}
 		return false;
 	},
-	_bs_down:function(e){
+	_bs_down:function(e, pointer){
 		// do not listen to mousedown of subview on master
 		if (this._settings.subview && this != $$(e.target)) return;
 		if (this._childOf(e, this._body)){
@@ -45,24 +43,30 @@ const Mixin = {
 			if (e.target && e.target.tagName == "INPUT" || this._rs_process) return;
 
 			this._bs_position = offset(this._body);
-			const pos = env.touch ? e : getPos(e);
+			const pos = getPos(e);
 			this._bs_ready = [pos.x - this._bs_position.x, pos.y - this._bs_position.y];
 
-			preventEvent(e);
-			this._bs_up_init();
+			this._bs_handler_init(e.target, pointer);
 		}
 	},
-	_bs_up_init:function(){
-		const handler = event(document.body, env.mouse.up, e => {
-			eventRemove(handler);
-			return this._bs_up(e);
-		});
+	_bs_handler_init:function(target, pointer){
+		if (pointer === "touch") {
+			this._bs_mm_handler = event(target, env[pointer].move, e => this._bs_move(e, pointer), { passive:false });
+			this._bs_mu_handler = event(target, env[pointer].up, e => this._bs_up(e));
+		} else {
+			this._bs_mm_handler = event(this._viewobj, env[pointer].move, e => this._bs_move(e, pointer));
+			this._bs_mu_handler = event(document, env[pointer].up, e => this._bs_up(e));
+		}
 	},
 	_bs_up:function(e){
 		if (this._block_panel){
 			this._bs_select("select", true, e);
 			this._block_panel = remove(this._block_panel);
 		}
+
+		this._bs_mm_handler = eventRemove(this._bs_mm_handler);
+		this._bs_mu_handler = eventRemove(this._bs_mu_handler);
+
 		removeCss(document.body,"webix_noselect");
 		this._bs_ready = this._bs_progress = false;
 		if (this._auto_scroll_delay)
@@ -153,7 +157,7 @@ const Mixin = {
 
 					if (this._auto_scroll_delay)
 						this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
-					if (e && (!env.touch || this._settings.prerender))
+					if (e && (!this._touch_scroll || this._settings.prerender))
 						this._auto_scroll_delay = delay(this._auto_scroll, this, [getPos(e)], 250);
 				}
 
@@ -171,15 +175,14 @@ const Mixin = {
 	},
 	_bs_start:function(){
 		this._block_panel = create("div", {"class":"webix_block_selection"},"");
-
 		this._body.appendChild(this._block_panel);
 	},
-	_bs_move:function(e){
+	_bs_move:function(e, pointer){
 		if (this._rs_progress) return;
 		if (this._bs_ready !== false){
 			if(!this._bs_progress) addCss(document.body,"webix_noselect");
 
-			const pos = env.touch ? env.mouse.context(e) : getPos(e);
+			const pos = getPos(e);
 			const progress = [pos.x - this._bs_position.x, pos.y - this._bs_position.y];
 
 			//prevent unnecessary block selection while dbl-clicking
@@ -192,7 +195,7 @@ const Mixin = {
 			this._bs_progress = progress;
 			this._bs_select(this.config.blockselect, false, e);
 
-			if (env.touch) preventEvent(e);
+			if (pointer === "touch") preventEvent(e);
 		}
 	},
 	_locate_cell_xy:function(x,y){

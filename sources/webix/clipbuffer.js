@@ -29,7 +29,7 @@ const clipbuffer = {
 		document.body.appendChild(this._area);
 
 		event(document.body, "keydown", bind(function(e){
-			var key = e.keyCode;
+			var key = e.which || e.keyCode;
 			var ctrl = !!(e.ctrlKey || e.metaKey);
 			if (key === 86 && ctrl){
 				this._area.value = "";

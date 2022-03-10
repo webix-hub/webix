@@ -101,7 +101,7 @@ const RenderStack ={
 	showItem:function(id){
 
 		var html = this.getItemNode(id);
-		if (html&&this.scrollTo){
+		if (html && this.scrollTo){
 			var txmin = html.offsetLeft;
 			var txmax = txmin + html.offsetWidth;
 			var tymin = html.offsetTop;

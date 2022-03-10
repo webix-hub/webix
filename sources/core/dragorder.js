@@ -113,10 +113,13 @@ const DragOrder ={
 		}
 	},
 	$dragDestroy: function(){
-		let context = DragControl._drag_context;
+		const context = DragControl._drag_context;
 
 		if (isArray(context.source))
 			this._remove_css(context.source, "webix_invisible");
+
+		if (this._settings.dynamic)
+			this.render(null, null, "drag-end");
 
 		remove(DragControl._html);
 	},

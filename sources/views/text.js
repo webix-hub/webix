@@ -21,7 +21,7 @@ const api = {
 			const node = this.getInputNode();
 			//attach onChange handler only for controls which do not manage blur on their own
 			//for example - combo
-			if (!this._onBlur)
+			if (!this.$onBlur)
 				_event(node, "change", () => this._applyChanges("user"));
 			if (c.suggest)
 				$$(c.suggest).linkInput(this);
@@ -35,9 +35,9 @@ const api = {
 			}
 		}
 	},
-	_applyChanges: function(с){
+	_applyChanges: function(c){
 		const value = this.getValue();
-		this.setValue(value, с);
+		this.setValue(value, c);
 	},
 	_toggleClearIcon:function(value){
 		const c = this._settings;
@@ -68,9 +68,9 @@ const api = {
 		if (!isUndefined(config.icon))
 			this._settings.icon = config.icon;
 
-		if (this._onBlur)
+		if (this.$onBlur)
 			this.attachEvent("onBlur", function(){
-				if (this._rendered_input) this._onBlur();
+				if (this._rendered_input) this.$onBlur();
 			});
 		this.attachEvent("onAfterRender", this._init_onchange);
 		this.attachEvent("onDestruct", function(){

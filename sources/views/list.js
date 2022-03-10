@@ -1,7 +1,7 @@
 import {addCss, createCss} from "../webix/html";
 import {protoUI} from "../ui/core";
 import {$active} from "../webix/skin";
-import {bind, extend, isArray} from "../webix/helpers";
+import {extend, isArray} from "../webix/helpers";
 import template from "../webix/template";
 
 import env from "../webix/env";
@@ -26,9 +26,10 @@ const api = {
 		addCss(this._viewobj, this._listClassName + (((config.layout||this.defaults.layout) == "x")?"-x":"") );
 		this.data.provideApi(this,true);
 
-		this._auto_resize = bind(this._auto_resize, this);
-		this.data.attachEvent("onStoreUpdated", this._auto_resize);
-		this.data.attachEvent("onSyncApply", this._auto_resize);
+		this.data.attachEvent("onStoreUpdated", (id, obj, mode) => {
+			if (!id || mode === "add" || mode === "delete") this._auto_resize();
+		});
+		this.data.attachEvent("onSyncApply", () => this._auto_resize());
 
 		this._viewobj.setAttribute("role", "listbox");
 	},

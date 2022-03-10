@@ -41,7 +41,6 @@
 	left: 0;
 
 	background-color: black;
-	filter:progid:DXImageTransform.Microsoft.Alpha(opacity=20);
 	opacity: 0.2;
 }
 
@@ -66,16 +65,16 @@
 	background-image:data-uri('../images/@{skin}/arrows.png');
 }
 .webix_point_top{
-	#image > .pointTopImage();
+	background-position: 0 -36px;
 }
 .webix_point_bottom{
-	#image > .pointBottomImage();
+	background-position: 0 0;
 }
 .webix_point_right{
-	#image > .pointRightImage();
+	background-position: 0 -22px;
 }
 .webix_point_left{
-	#image > .pointLeftImage();
+	background-position: 0 -9px;
 }
 
 .webix_resize_handle{
@@ -93,7 +92,6 @@
 
 .webix_resize_frame{
 	position: absolute;
-	filter:alpha(opacity=10);
 	opacity: 0.1;
 	background: @mainColor;
 	display: block;

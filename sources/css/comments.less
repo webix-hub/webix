@@ -1,11 +1,7 @@
 /*comments list*/
 .webix_comments .webix_list{
 	transition: all 0.5s ease;
-	-webkit-transition: all 0.5s ease; /** Chrome & Safari **/
-	-moz-transition: all 0.5s ease; /** Firefox **/
-	-o-transition: all 0.5s ease; /** Opera **/
 	transition-property: height;
-	-webkit-transition-property: height; /* Safari */
 	.webix_list_item{
 		margin-top: 24px;
 		border: none;
@@ -71,15 +67,16 @@
 	height: 40px;
 }
 .webix_comments_status {
+	z-index: 1;
+	top: 30px;
+	left: 30px;
 	border-radius: 50%;
 	border: 2px solid #FFFFFF;
 	position: absolute;
-	height:12px;
-	width:12px;
-	box-sizing:border-box;
-	top: 30px;
-	left: 30px;
-	z-index: 1;
+	height: 12px;
+	width: 12px;
+	#box > .sizing;
+
 	&.active{
 		background-color:@accentColor;
 	}

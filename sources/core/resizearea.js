@@ -1,4 +1,4 @@
-import {create, offset, addCss, pos as getPos, remove, removeCss} from "../webix/html";
+import {preventEvent, create, offset, addCss, pos as getPos, remove, removeCss} from "../webix/html";
 import env from "../webix/env";
 import {zIndex} from "../ui/helpers";
 import {_event, event, eventRemove} from "../webix/htmlevents";
@@ -24,7 +24,9 @@ const ResizeArea = {
 				/*@attr*/"webix_disable_drag" : "true"
 			});
 			rp.appendChild(this._rwHandle);
-			_event(this._rwHandle, env.mouse.down, this._wrDown, {bind:this});
+			_event(this._rwHandle, env.mouse.down, e => this._wrDown(e, "mouse"));
+			if (env.touch)
+				_event(this._rwHandle, env.touch.down, e => this._wrDown(e, "touch"));
 		}
 	},
 	_showResizeFrame: function(width,height){
@@ -40,16 +42,17 @@ const ResizeArea = {
 		this._resizeFrame.style.width = width + "px";
 		this._resizeFrame.style.height = height + "px";
 	},
-	_wrDown:function(){
+	_wrDown:function(e, pointer){
 		if (this.config.resize){
 			addCss(document.body,"webix_noselect webix_resize_cursor");
 			this._wsReady = offset(this._viewobj);
 
-			this._resizeHandlersMove = event(document.body, env.mouse.move, this._wrMove, {bind:this});
-			this._resizeHandlersUp   = event(document.body, env.mouse.up, this._wrUp, {bind:this});
+			const passive = (pointer === "touch") ? { passive:false } : null;
+			this._resizeHandlersMove = event(document.body, env[pointer].move, e => this._wrMove(e, pointer), passive);
+			this._resizeHandlersUp   = event(document, env[pointer].up, () => this._wrUp());
 		}
 	},
-	_wrMove:function(e){
+	_wrMove:function(e, pointer){
 		if (this._wsReady !== false){
 			var elPos = getPos(e);
 			var progress = {x:elPos.x - this._wsReady.x, y: elPos.y - this._wsReady.y};
@@ -74,6 +77,8 @@ const ResizeArea = {
 
 			this._wsProgress = progress;
 			this._showResizeFrame(progress.x,progress.y);
+
+			if (pointer === "touch") preventEvent(e);
 		}
 	},
 	_wrUp:function(){

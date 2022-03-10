@@ -1,5 +1,4 @@
 import {create, insertBefore, remove} from "../webix/html";
-import Touch from "../core/touch";
 import env from "../webix/env";
 import {isUndefined, extend, delay} from "../webix/helpers";
 
@@ -45,17 +44,17 @@ const ProgressBar = {
 			insertBefore(this._progress, this._viewobj.firstChild, this._viewobj);
 			this._viewobj.setAttribute("aria-busy", "true");
 
-			if(!Touch.$active || this._touch_scroll == "native"){
-				if(this.getScrollState){
+			if(!this._touch_scroll){
+				if (this.getScrollState){
 					var scroll = this.getScrollState();
-					if(this._viewobj.scrollWidth != this.$width){
+					if (this._viewobj.scrollWidth != this.$width){
 						this._progress.style.left = scroll.x +"px";
 					}
-					if(this._viewobj.scrollHeight != this.$height){
+					if (this._viewobj.scrollHeight != this.$height){
 						if(config.type != "bottom"){
-							this._progress.style.top = scroll.y +"px";
+							this._progress.style.top = scroll.y + "px";
 						} else {
-							this._progress.style.top =  scroll.y + this.$height - this._progress.offsetHeight +"px";
+							this._progress.style.top = scroll.y + this.$height - this._progress.offsetHeight +"px";
 						}
 
 					}
@@ -69,46 +68,21 @@ const ProgressBar = {
 
 		if (this._progress_animate){
 			var position = config.position || 1;
-			//check for css-transition support
-			if(this._progress.style[env.transitionDuration] !== undefined || !config.delay){
-				if (config.delay){
-					// force reflow
-					width = this._viewobj.firstChild.offsetWidth;
-					this._progress.firstChild.style[env.transitionDuration] = config.delay+"ms";
-				}
-
-				// animate to new value
-				this._progress.firstChild.style.width = position*100+"%";
-			} else{
-				//if animation is not supported fallback to timeouts [IE9]
-				var count = 0,
-					start = 0,
-					step = position/config.delay*30,
-					view = this;
-
-				if(this._progressTimer){
-					//reset the existing progress
-					window.clearInterval(this._progressTimer);
-					start = this._progress.firstChild.offsetWidth/this._progress.offsetWidth*100;
-				}
-				this._progressTimer = window.setInterval(function(){
-					if(count*30 == config.delay){
-						window.clearInterval(view._progressTimer);
-					}
-					else{
-						if(view._progress && view._progress.firstChild)
-							view._progress.firstChild.style.width = start+count*step*position*100+"%";
-						count++;
-					}
-				},30);
+			if (config.delay){
+				// force reflow
+				width = this._viewobj.firstChild.offsetWidth;
+				this._progress.firstChild.style[env.transitionDuration] = config.delay+"ms";
 			}
+
+			// animate to new value
+			this._progress.firstChild.style.width = position*100+"%";
 		}
 
 		if (this._progress_hide)
 			clearTimeout(this._progress_hide);
 
-		if(config.hide)
-			this._progress_hide = delay(this.hideProgress, this, [1], config.delay);
+		if (config.hide)
+			this._progress_hide = delay(this.hideProgress, this, [true], config.delay);
 
 		// necessary to prevent code optimization
 		return width;
@@ -116,8 +90,6 @@ const ProgressBar = {
 	hideProgress:function(now){
 		if (this._progress){
 			if (now || !this._progress_animate){
-				if(this._progressTimer)
-					window.clearInterval(this._progressTimer);
 				remove(this._progress);
 				this._progress = null;
 				this._viewobj.removeAttribute("aria-busy");

@@ -28,20 +28,24 @@ const api = {
 	defaults:{
 		sendAction:"click",
 		mode:"comments",
-		highlight:true
+		highlight:true,
+		maxInputHeight: 84
 	},
 	$init: function(config){
 		this.$view.className +=" webix_comments";
 		this._destroy_with_me = [];
 
-		config.rows = [this._configList(config)];
+		config.rows = [this.$configList(config)];
 		if(!config.moreButton)
 			config.moreButton = template(i18n.comments.moreComments);
 
 		if(!config.readonly){
-			config.rows.push(this._configForm(config));
+			config.rows.push(this.$configForm(config));
 			this._initMenu();
 		}
+
+		if (env.mobile)
+			config.keepButtonVisible = true;
 
 		this._initUsers(config.users);
 		this.$ready.push(this._afterInit);
@@ -80,7 +84,7 @@ const api = {
 				else if(view !==this._sendButton && view !==this._listMenu && (!this._userList || view !== this._userList.getList()) &&
 					(!e || (e.target.className||"").toString().indexOf("webix_comments_menu") ===-1)
 				){
-					this._changeTextarea();
+					this._changeTextarea(false);
 				}
 			});
 
@@ -158,7 +162,6 @@ const api = {
 	},
 	$skin:function(){
 		layout.api.$skin.call(this);
-
 		this._inputHeight = $active.inputHeight+6;
 	},
 	getUsers: function(){
@@ -212,27 +215,24 @@ const api = {
 		}
 		this.remove(id);
 	},
-	_changeTextarea: function(increase){
-		// this behaviour is only for desktop, otherwise we will never see the button on mobile
+	_changeTextarea: function(expand){
 		// prevent unnecessary operations
-		if (env.touch || (!increase == !this._text_expanded))
-			return;
-		
-		var text = this._input;	
-		if(increase){
+		if (expand === this._text_expanded) return;
+
+		const config = this._settings;
+		if (expand){
 			this._sendButton.getParentView().show();
-			text.define({height:84});
-			this._text_expanded = true;
-		}
-		else{
-			if(UIManager.hasFocus(this._sendButton)){
+			this._input.define({ height:config.maxInputHeight });
+		} else {
+			if (UIManager.hasFocus(this._sendButton))
 				UIManager.setFocus(this._list);
-			}
-			this._sendButton.getParentView().hide();
-			text.define({height:this._inputHeight});
-			this._text_expanded = false;
+
+			if (!config.keepButtonVisible)
+				this._sendButton.getParentView().hide();
+			this._input.define({ height:(config.minInputHeight||this._inputHeight) });
 		}
-		text.resize();
+		this._input.resize();
+		this._text_expanded = expand;
 	},
 	focus: function(){
 		this._changeTextarea(true);
@@ -285,13 +285,13 @@ const api = {
 
 		this._destroy_with_me.push(this._listMenu);
 	},
-	_configForm: function(config){
+	$configForm: function(config){
 		const locale = i18n.comments;
 		const textarea = {
 			view: "textarea",
 			localId:"textarea",
 			css:"webix_comments_textarea",
-			height:this._inputHeight,
+			height: config.minInputHeight || this._inputHeight,
 			name: "text",
 			placeholder: locale["placeholder"],
 			keyPressTimeout:100,
@@ -326,14 +326,14 @@ const api = {
 			);
 		}
 
-		return {
+		let form = {
 			view:"form",
 			minHeight: 50,
 			paddingX:10,
 			elements:[
 				textarea,
 				{
-					hidden: !env.touch,
+					hidden: !config.keepButtonVisible,
 					cols:[
 						{},
 						{
@@ -348,6 +348,7 @@ const api = {
 				}
 			]
 		};
+		return form;
 	},
 	_highlightMention(text, textarea){
 		if(text.indexOf("@") === -1)
@@ -366,7 +367,7 @@ const api = {
 
 		return `<span class="webix_comments_mention">${textarea?text:("@"+name)}</span>`;
 	},
-	_configList: function(config){
+	$configList: function(config){
 		var css = "webix_comments_";
 
 		var type = {

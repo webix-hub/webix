@@ -6,6 +6,7 @@ import promise from "../../thirdparty/promiz";
 import {download} from "../../webix/html";
 import {$$} from "../../ui/core";
 import {assert} from "../../webix/debug";
+import {extend} from "../../webix/helpers";
 
 export const toCSV = function(id, options){
 	options = options || {};
@@ -17,7 +18,10 @@ export const toCSV = function(id, options){
 	if(!view) return promise.reject(errorMessage);
 
 	options.export_mode = "csv";
-	options.filterHTML = true;
+
+	extend(options, {
+		filterHTML: true
+	});
 
 	const scheme = getExportScheme(view, options);
 	const result = getExportData(view, options, scheme);

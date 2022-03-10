@@ -1,7 +1,7 @@
 import template from "../../webix/template";
 import env from "../../webix/env";
 import {assert} from "../../webix/debug";
-import {bind} from "../../webix/helpers";
+import {bind, exec} from "../../webix/helpers";
 
 
 const Mixin = {
@@ -270,7 +270,7 @@ const Mixin = {
 	_compute: function(expr) {
 		var result;
 		try {
-			result = window.eval(expr);
+			result = exec(expr);
 		} catch(ex) {
 			assert(false,"Math error in datatable<br>"+expr);
 			result = "";

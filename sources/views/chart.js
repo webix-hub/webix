@@ -1,7 +1,6 @@
 import base from "../views/view";
 import template from "../webix/template";
 import color from "../webix/color";
-import env from "../webix/env";
 import i18n from "../webix/i18n";
 
 import Group from "../core/group";
@@ -599,7 +598,7 @@ const api = {
 		var className = "webix_axis_title_y";
 		var text=this.canvases["y"].renderTextAt("middle",false,0,parseInt((point1.y-point0.y)/2+point0.y,10),this._settings.yAxis.title,className);
 		if (text)
-			text.style.left = (env.transform?(text.offsetHeight-text.offsetWidth)/2:0)+"px";
+			text.style.left = (text.offsetHeight-text.offsetWidth)/2 + "px";
 	},
 	_calculateLogScale: function(nmin,nmax){
 		var startPower = Math.floor(this._log10(nmin));

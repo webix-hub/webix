@@ -1,22 +1,22 @@
 import env from "../webix/env";
 import ready from "../webix/ready";
 
-import {event, eventRemove} from "../webix/htmlevents";
+import {event} from "../webix/htmlevents";
 import {callEvent} from "../webix/customevents";
-import {preventEvent, removeCss, create, remove, addCss, addStyle} from "../webix/html";
+import {preventEvent, removeCss, addCss, addStyle} from "../webix/html";
 
 //late binding
-import {ui, $$} from "../ui/core";
+import {$$} from "../ui/core";
 
 const Touch = {
 	config:{
-		longTouchDelay:1000,
+		longTouchDelay:700,
 		scrollDelay:150,
 		gravity:500,
-		deltaStep:30,
+		deltaStep:10,
 		speed:"0ms",
-		finish:1500,
-		ellastic:true
+		finish:1000,
+		elastic:true
 	},
 	limit:function(value){
 		Touch._limited = value !== false;	
@@ -30,9 +30,9 @@ const Touch = {
 	$init:function(){
 		Touch.$init = function(){};
 
-		event(document.body, mouse.down,	Touch._touchstart, {passive:false});
-		event(document.body, mouse.move, 	Touch._touchmove, {passive:false});
-		event(document.body, mouse.up, 	Touch._touchend);
+		event(document.body, env.touch.down,	Touch._touchstart, {passive:false});
+		event(document.body, env.touch.move, 	Touch._touchmove, {passive:false});
+		event(document, env.touch.up, 	Touch._touchend);
 
 		event(document.body,"dragstart",function(e){
 			if(Touch._disabled || Touch._limited) return;
@@ -46,8 +46,6 @@ const Touch = {
 	_clear_artefacts:function(){
 		Touch._start_context = Touch._current_context = Touch._prev_context = Touch._scroll_context = null;
 		Touch._scroll_mode = Touch._scroll_node = Touch._scroll_stat = Touch._long_touched = null;
-		//remove(Touch._scroll);
-		//Touch._scroll = [null, null];
 		Touch._delta = 	{ _x_moment:0, _y_moment:0, _time:0 };
 
 		if (Touch._css_button_remove){
@@ -78,7 +76,7 @@ const Touch = {
 				var y = temp.f;
 				var finish = Touch.config.finish;
 
-				var delta = Touch._get_delta(e, true);
+				var delta = Touch._get_delta(e);
 				var view = $$(Touch._scroll_node);
 
 				var gravity = (view && view.$scroll ? view.$scroll.gravity : Touch.config.gravity);
@@ -104,16 +102,11 @@ const Touch = {
 					if (view && view.adjustScroll)
 						view.adjustScroll(result);
 
-
-					//finish = Math.max(100,(Touch._fast_correction?100:finish));
-					finish = Math.max(100, finish);
-
-
+					finish = Math.min(Touch.config.finish, Math.max(100, finish));
 					if (x != result.e || y != result.f) {
 						Touch._set_matrix(Touch._scroll_node, result.e, result.f, finish + "ms");
 						if (Touch._scroll_master)
 							Touch._scroll_master._sync_scroll(result.e, result.f, finish + "ms");
-						Touch._set_scroll(result.e, result.f, finish + "ms");
 					} else {
 						Touch._scroll_end();
 					}
@@ -131,7 +124,7 @@ const Touch = {
 		Touch._translate_event("onTouchMove");
 
 		if (Touch._scroll_mode){
-			Touch._set_scroll_pos(delta);
+			Touch._set_scroll_pos();
 		} else {
 			Touch._axis_x = Touch._axis_check(delta._x, "x", Touch._axis_x);
 			Touch._axis_y = Touch._axis_check(delta._y, "y", Touch._axis_y);
@@ -145,9 +138,10 @@ const Touch = {
 						Touch.config.scale = data.scale;
 					}
 				}
-				Touch._init_scroller(delta); //apply scrolling
-			} else if (env.isMac) {
-				const view = $$(Touch._start_context);
+				Touch._init_scroller(); //apply scrolling
+			} else {
+				const state = Touch._is_scroll();
+				const view = $$(state && state[0]);		// support subviews
 				if (view && view.$hasYScroll && view.$hasYScroll() && e.cancelable){
 					return preventEvent(e);
 				}
@@ -163,25 +157,16 @@ const Touch = {
 		var prev = Touch._prev_context || Touch._start_context;
 
 		var view = $$(Touch._scroll_node);
-		var ellastic = (view&&view.$scroll)?view.$scroll.ellastic: Touch.config.ellastic;
+		var elastic = (view && view.$scroll) ? view.$scroll.elastic : Touch.config.elastic;
+
 		if (Touch._scroll[0])
-			temp.e = Touch._correct_minmax( temp.e - prev.x + Touch._current_context.x , ellastic, temp.e, Touch._scroll_stat.dx, Touch._scroll_stat.px);
+			temp.e = Touch._correct_minmax( temp.e - prev.x + Touch._current_context.x , elastic, temp.e, Touch._scroll_stat.dx, Touch._scroll_stat.px);
 		if (Touch._scroll[1])
-			temp.f = Touch._correct_minmax( temp.f - prev.y + Touch._current_context.y , ellastic, temp.f, Touch._scroll_stat.dy, Touch._scroll_stat.py);
+			temp.f = Touch._correct_minmax( temp.f - prev.y + Touch._current_context.y , elastic, temp.f, Touch._scroll_stat.dy, Touch._scroll_stat.py);
 
 		Touch._set_matrix(Touch._scroll_node, temp.e, temp.f, "0ms");
 		if (Touch._scroll_master)
 			Touch._scroll_master._sync_scroll(temp.e, temp.f, "0ms");
-		Touch._set_scroll(temp.e, temp.f, "0ms");
-	},
-	_set_scroll:function(dx, dy, speed){
-		
-		var edx = Touch._scroll_stat.px/Touch._scroll_stat.dx * -dx;
-		var edy = Touch._scroll_stat.py/Touch._scroll_stat.dy * -dy;
-		if (Touch._scroll[0])
-			Touch._set_matrix(Touch._scroll[0], edx, 0 ,speed);
-		if (Touch._scroll[1])
-			Touch._set_matrix(Touch._scroll[1], 0, edy ,speed);
 	},
 	scrollTo:function(node, x, y, speed){
 		Touch._set_matrix(node,x,y,speed);
@@ -209,9 +194,6 @@ const Touch = {
 			if(window.WebKitCSSMatrix)
 				/* global WebKitCSSMatrix */
 				tmatrix = new WebKitCSSMatrix(matrix);
-			else if (window.MSCSSMatrix)
-				/* global MSCSSMatrix */
-				tmatrix = new MSCSSMatrix(matrix);
 			else {
 				// matrix(1, 0, 0, 1, 0, 0) --> 1, 0, 0, 1, 0, 0
 				var _tmatrix = matrix.replace(/(matrix\()(.*)(\))/gi, "$2");
@@ -234,72 +216,36 @@ const Touch = {
 	},	
 	_correct_minmax:function(value, allow, current, dx, px){
 		if (value === current) return value;
-		
-		var delta = Math.abs(value-current);
-		var sign = delta/(value-current);
-		//	Touch._fast_correction = true;
-		
-		
-		if (value>0) return allow?(current + sign*Math.sqrt(delta)):0;
-		
-		var max = dx - px;
-		if (max + value < 0)	
-			return allow?(current - Math.sqrt(-(value-current))):-max;
-			
-		//	Touch._fast_correction = false;
+
+		if (px > dx) return 0;
+
+		const delta = Math.abs(value-current);
+		const sign = delta/(value-current);
+		if (value > 0)
+			return allow ? (current + sign*Math.sqrt(delta)) : 0;
+
+		const max = dx - px;
+		if (max + value < 0)
+			return allow ? (current + sign*Math.sqrt(delta)) : -max;
+
 		return value;
 	},	
 	_init_scroll_node:function(node){
-		if (!node.scroll_enabled){ 
-			node.scroll_enabled = true;	
-			node.parentNode.style.position="relative";
-			var prefix = env.cssPrefix;
-			node.style.cssText += prefix+"transition: "+prefix+"transform; "+prefix+"user-select:none; "+prefix+"transform-style:flat;";
+		if (!node.scroll_enabled){
+			node.scroll_enabled = true;
+			node.parentNode.style.position = "relative";
+			node.style.cssText += "transition:transform; user-select:none; transform-style:flat;";
 			node.addEventListener(env.transitionEnd,Touch._scroll_end,false);
 		}
 	},
 	_init_scroller:function(){
-		if (Touch._scroll_mode.indexOf("x") != -1)
-			Touch._scroll[0] = Touch._create_scroll("x", Touch._scroll_stat.dx, Touch._scroll_stat.px, "width");
-		if (Touch._scroll_mode.indexOf("y") != -1)
-			Touch._scroll[1] = Touch._create_scroll("y", Touch._scroll_stat.dy, Touch._scroll_stat.py, "height");
+		if (Touch._scroll_mode.indexOf("x") !== -1) Touch._scroll[0] = true;
+		if (Touch._scroll_mode.indexOf("y") !== -1) Touch._scroll[1] = true;
+
+		if (Touch._scroll[0] || Touch._scroll[1])
+			Touch._scroll[2] = Touch._scroll_node;
 
 		Touch._init_scroll_node(Touch._scroll_node);
-		window.setTimeout(function(){
-			Touch._set_scroll_pos();
-			if (Touch._scroll_stat && !Touch._scroll_stat.hidden){
-				if (Touch._scroll[0]) Touch._scroll[0].style.visibility = "visible";
-				if (Touch._scroll[1]) Touch._scroll[1].style.visibility = "visible";
-			}
-		}, 0);
-	},
-	_create_scroll:function(mode, dy, py, dim){
-		if (dy - py <2){
-			var matrix = Touch._get_matrix(Touch._scroll_node);
-			var e = (mode=="y"?matrix.e:0);
-			var f = (mode=="y"?0:matrix.f);
-			if (!Touch._scroll_master)
-				Touch._set_matrix(Touch._scroll_node, e, f, "0ms");
-			Touch._scroll_mode = Touch._scroll_mode.replace(mode,"");
-			return "";
-		}
-
-		var scroll = create("DIV", {
-			"class":"webix_scroll_"+mode
-		},"");
-
-		scroll.style.visibility = "hidden";
-		scroll.style[dim] = Math.max((py*py/dy-7),10) +"px";
-		if (Touch._scroll_stat.left){
-			if (mode === "x")
-				scroll.style.left = Touch._scroll_stat.left+"px";
-			else
-				scroll.style.right = (-Touch._scroll_stat.left)+"px";
-		}
-
-		Touch._scroll_node.parentNode.appendChild(scroll);
-
-		return scroll;
 	},
 	_axis_check:function(value, mode, old){
 		if (value > Touch.config.deltaStep){
@@ -327,10 +273,8 @@ const Touch = {
 			if (view.callEvent)
 				view.callEvent("onAfterScroll",[result]);
 		}
-		if (!Touch._scroll_mode){
-			remove(Touch._scroll);
+		if (!Touch._scroll_mode)
 			Touch._scroll = [null, null];
-		}
 		Touch._active_transion = false;
 	},
 	_long_move:function(){
@@ -338,32 +282,27 @@ const Touch = {
 		Touch._was_not_moved = false;	
 	},	
 	_stop_old_scroll:function(e){
-		if (Touch._scroll[0] || Touch._scroll[1]){
-			Touch._stop_scroll(e, Touch._scroll[0]?"x":"y");
-		}else
+		if (Touch._scroll[2]){
+			Touch._stop_scroll(e, (Touch._scroll[0] ? "x" : "y"));
+		} else
 			return true;
 	},
 	_touchstart :function(e){
-		var target = e.target;
-
 		if (Touch._disabled) return;
 
 		Touch._long_touched = null;
-		Touch._scroll_context = Touch._start_context = mouse.context(e);
+		Touch._scroll_context = Touch._start_context = env.touch.context(e);
 
-		// in "limited" mode we should have possibility to use slider
-		var element = $$(e);
-
-		if (Touch._limited && !Touch._is_scroll() && !(element && element.$touchCapture)){
+		if (Touch._limited && !Touch._is_scroll())
 			Touch._scroll_context = null;
-		}
 
 		Touch._translate_event("onTouchStart");
 
 		if (Touch._stop_old_scroll(e))
 			Touch._long_touch_timer = window.setTimeout(Touch._long_touch, Touch.config.longTouchDelay);
 
-		if (element && element.touchable && (!target.className || target.className.indexOf("webix_view")!==0)){
+		const element = $$(e);
+		if (element && element.touchable && (!e.target.className || e.target.className.indexOf("webix_view") !== 0)){
 			Touch._css_button_remove = element.getNode(e);
 			addCss(Touch._css_button_remove,"webix_touch");
 		}
@@ -373,46 +312,44 @@ const Touch = {
 			Touch._long_touched = true;
 			Touch._translate_event("onLongTouch");
 			callEvent("onClick", [Touch._start_context]);
-			//Touch._clear_artefacts();
 		}
 	},
-	_stop_scroll:function(e, stop_mode){ 
+	_stop_scroll:function(e, stop_mode){
 		Touch._locate(stop_mode);
-		var scroll = Touch._scroll[0]||Touch._scroll[1];
-		if (scroll){
+		if (Touch._scroll[2]){
 			var view = Touch._get_event_view("onBeforeScroll", true);
 			if (view)
 				view.callEvent("onBeforeScroll", [Touch._start_context,Touch._current_context]);
-		}
-		if (scroll && (!Touch._scroll_node || scroll.parentNode != Touch._scroll_node.parentNode)){
-			Touch._clear_artefacts();
-			Touch._scroll_end();
-			Touch._start_context = mouse.context(e);
+
+			if (!Touch._scroll_node || Touch._scroll_node.parentNode !== Touch._scroll[2].parentNode){
+				Touch._clear_artefacts();
+				Touch._scroll_end();
+				Touch._start_context = env.touch.context(e);
+			}
 		}
 		Touch._touchmove(e);
 	},	
 	_get_delta:function(e){
 		Touch._prev_context = Touch._current_context;
-		Touch._current_context = mouse.context(e);
-			
+		Touch._current_context = env.touch.context(e);
+
 		Touch._delta._x = Math.abs(Touch._start_context.x - Touch._current_context.x);
 		Touch._delta._y = Math.abs(Touch._start_context.y - Touch._current_context.y);
-		
+
 		if (Touch._prev_context){
 			if (Touch._current_context.time - Touch._prev_context.time < Touch.config.scrollDelay){
 				Touch._delta._x_moment = Touch._delta._x_moment/1.3+Touch._current_context.x - Touch._prev_context.x;
 				Touch._delta._y_moment = Touch._delta._y_moment/1.3+Touch._current_context.y - Touch._prev_context.y;
-			}
-			else {
+			} else {
 				Touch._delta._y_moment = Touch._delta._x_moment = 0;
 			}
 			Touch._delta._time = Touch._delta._time/1.3+(Touch._current_context.time - Touch._prev_context.time);
 		}
-		
+
 		return Touch._delta;
 	},
 	_get_sizes:function(node){
-		Touch._scroll_stat = {
+		return {
 			dx:node.offsetWidth,
 			dy:node.offsetHeight,
 			px:node.parentNode.offsetWidth,
@@ -421,11 +358,10 @@ const Touch = {
 	},
 	_is_scroll:function(locate_mode){
 		var node = Touch._start_context.target;
-		if (!env.touch && !env.transition && !env.transform) return null;
-		while(node && node.tagName!="BODY"){
-			if(node.getAttribute){
+		while(node && node.tagName != "BODY"){
+			if (node.getAttribute){
 				var mode = node.getAttribute("touch_scroll");
-				if (mode && (!locate_mode || mode.indexOf(locate_mode)!=-1))
+				if (mode && (!locate_mode || mode.indexOf(locate_mode) != -1))
 					return [node, mode];
 			}
 			node = node.parentNode;
@@ -433,11 +369,11 @@ const Touch = {
 		return null;
 	},
 	_locate:function(locate_mode){
-		var state = this._is_scroll(locate_mode);
+		var state = Touch._is_scroll(locate_mode);
 		if (state){
 			Touch._scroll_mode = state[1];
 			Touch._scroll_node = state[0];
-			Touch._get_sizes(state[0]);
+			Touch._scroll_stat = Touch._get_sizes(state[0]);
 		}
 		return state;
 	},
@@ -450,13 +386,13 @@ const Touch = {
 	_get_event_view:function(name, active){
 		var view = $$(active ? Touch._scroll_node : Touch._start_context);
 		if(!view) return null;
-		
+
 		while (view){
-			if (view.hasEvent&&view.hasEvent(name))	
+			if (view.hasEvent && view.hasEvent(name))
 				return view;
 			view = view.getParentView();
 		}
-		
+
 		return null;
 	},	
 	_get_context:function(e){
@@ -465,7 +401,7 @@ const Touch = {
 			temp.time = new Date();
 			return temp;
 		}
-			
+
 		return {
 			target:e.target,
 			x:e.touches[0].pageX,
@@ -486,55 +422,31 @@ const Touch = {
 function touchInit(){
 	if (env.touch){
 		Touch.$init();
+
 		//not full screen mode
-		if (document.body.className.indexOf("webix_full_screen") == -1)
+		if (document.body.className.indexOf("webix_full_screen") === -1)
 			Touch.limit(true);
 
-		if (env.isSafari)
-			addStyle(".webix_view{ -webkit-overflow-scrolling: touch; }");
-
-		if (window.MSCSSMatrix)
-			addStyle(".webix_view{ -ms-touch-action: none; }");
-	} else {
-		var id = event(document.body, "touchstart", function(ev){
-			if (ev.touches.length && ev.touches[0].radiusX > 4){
-				env.touch = true;
-				setMouse(mouse);
-				touchInit();
-				for (var key in ui.views){
-					var view = ui.views[key];
-					if (view && view.$touch)
-						view.$touch();
-				}
-			}
-			eventRemove(id);
-		}, { capture: true });
+		if (env.isSafari && CSS.supports("-webkit-overflow-scrolling: touch"))
+			addStyle(".webix_view{ -webkit-overflow-scrolling:touch; } .webix_scroll_cont{ transform:translateZ(0px); }");
 	}
-}
-
-function setMouse(mouse){
-	mouse.down = "touchstart";
-	mouse.move = "touchmove";
-	mouse.up   = "touchend";
-	mouse.context = Touch._get_context;
 }
 
 ready(touchInit);
 
+env.mouse = {
+	down: "mousedown",
+	move: "mousemove",
+	up: "mouseup",
+	context: Touch._get_context_m
+};
 
-var mouse = env.mouse = { down:"mousedown", up:"mouseup", 
-	move:"mousemove", context:Touch._get_context_m };
-
-if (window.navigator.pointerEnabled){
-	mouse.down = "pointerdown";
-	mouse.move = "pointermove";
-	mouse.up   = "pointerup";
-} else if (window.navigator.msPointerEnabled){
-	mouse.down = "MSPointerDown";
-	mouse.move = "MSPointerMove";
-	mouse.up   = "MSPointerUp";
-} else if (env.touch)
-	setMouse(mouse);
+env.touch = env.touch && {
+	down: "touchstart",
+	move: "touchmove",
+	up: "touchend",
+	context: Touch._get_context
+};
 	
 
 export default Touch;

@@ -40,7 +40,7 @@ const api = {
 		timeIcon: "wxi-clock",
 		separator:", "
 	},
-	_onBlur:function(){
+	$onBlur:function(){
 		const text = this.getText();
 		if (this._settings.text == text)
 			return;

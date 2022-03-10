@@ -172,7 +172,7 @@ const api = {
 		prev.$getSize(0,0);
 
 		//need to be moved in animate
-		if((animation_options||typeof animation_options=="undefined")&&animate.isSupported() && this._settings.animate) {
+		if((animation_options || isUndefined(animation_options)) && this._settings.animate) {
 			var aniset = extend({}, this._settings.animate);
 			if(this._settings.keepViews)
 				aniset.keepViews = true;
@@ -203,7 +203,7 @@ const api = {
 			animate(line, aniset);
 			this._animation_promise = aniset.wait_animation = promise.defer();
 		}
-		else { // browsers which don't support transform and transition, or animate:false in config
+		else { // animate:false in config
 			if(this._settings.keepViews){
 				prev._viewobj.style.display = "none";
 			}

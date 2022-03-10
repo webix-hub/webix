@@ -358,7 +358,7 @@ attachEvent("onClick", function(e){
 		}
 
 		let popup = element._settings.popup;
-		if (popup && !element._settings.readonly){
+		if (popup && !element._settings.readonly && !e.longtouch_drag){
 			if (typeof popup == "object" && !popup.name){
 				popup = element._settings.popup = ui(popup)._settings.id;
 				element._destroy_with_me.push($$(popup));

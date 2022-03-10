@@ -16,7 +16,7 @@ const api = {
 		popupWidth:200,
 		icon: "wxi-menu-down"
 	},
-	_onBlur:function(){
+	$onBlur:function(){
 		const text = this.getText();
 		if (this._settings.text == text || (isUndefined(this._settings.text) && !text))
 			return;
@@ -26,8 +26,21 @@ const api = {
 		if (suggest.$view.contains(document.activeElement)) 
 			return;
 
+		const newValues = this.config.newValues;
 		const nodeValue = this.getInputNode().value;
-		const value = suggest.getSuggestion(nodeValue);
+		const list = this.getList();
+
+		let value;
+		if(newValues){
+			value = list.find(obj => suggest.getItemText(obj.id) == nodeValue, true);
+			if(value)
+				value = value.id;
+			else if(nodeValue)
+				value = list.add({ value:nodeValue });
+		}
+		else
+			value = suggest.getSuggestion(nodeValue);
+
 		const oldvalue = this.getValue();
 
 		//non-empty value that differs from old value and matches filtering rule
@@ -130,8 +143,10 @@ const api = {
 		return this._settings.value||"";
 	},
 	_ignoreLabelClick:function(ev){
-		this.focus();
-		preventEvent(ev);
+		if (ev.type) {
+			this.focus();
+			preventEvent(ev);
+		}
 	}
 };
 

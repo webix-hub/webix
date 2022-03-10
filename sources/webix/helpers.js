@@ -98,11 +98,9 @@ export function bind(functor, object){
 }
 
 
-//evaluate javascript code in the global scoope
+//evaluate javascript code in the global scope
 export function exec(code){
-	if (window.execScript)	//special handling for IE
-		window.execScript(code);
-	else window.eval(code);
+	return window.eval(code);
 }
 
 export function wrap(code, wrap){
@@ -157,13 +155,13 @@ export function toFunctor(str, scope){
 	if (typeof(str)=="string"){
 		var method = str.replace("()","");
 		if (scope && scope[method]) return scope[method];
-		return window[method] || window.eval(str);
+		return window[method] || exec(str);
 	}
 	return str;
 }
 /*checks where an object is instance of Array*/
 export function isArray(obj) {
-	return Array.isArray?Array.isArray(obj):(Object.prototype.toString.call(obj) === "[object Array]");
+	return Array.isArray(obj);
 }
 export function isDate(obj){
 	return obj instanceof Date;

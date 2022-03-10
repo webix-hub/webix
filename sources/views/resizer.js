@@ -26,9 +26,11 @@ const api = {
 		this._viewobj.className += " webix_resizer";
 		var space = this.getParentView()._margin;
 		
-		_event(this._viewobj, env.mouse.down, this._rsDown, {bind:this});
-		var dir = this._getResizeDir();
+		_event(this._viewobj, env.mouse.down, e => this._rsDown(e, "mouse"));
+		if (env.touch)
+			_event(this._viewobj, env.touch.down, e => this._rsDown(e, "touch"));
 
+		var dir = this._getResizeDir();
 		this._rs_started = false;
 		this._resizer_dir = dir;
 
@@ -57,11 +59,10 @@ const api = {
 		this._viewobj.setAttribute("aria-grabbed", "false");
 
 	},
-	_rsDown:function(e){
+	_rsDown:function(e, pointer){
 		var cells = this._getResizerCells();
 		//some sibling can block resize
 		if(cells && !this._settings.disabled){
-			e = e||window.event;
 			this._rs_started = true;
 			this._rs_process = getPos(e);
 			this._rsLimit = [];
@@ -72,7 +73,7 @@ const api = {
 			this._viewobj.setAttribute("aria-dropeffect", "move");
 			
 			this._rsStart(e, cells[0]);
-			const handler = event(document.body, env.mouse.up, e => {
+			const handler = event(document, env[pointer].up, e => {
 				eventRemove(handler);
 				return this._rsUp(e);
 			});
@@ -83,9 +84,7 @@ const api = {
 		this._rs_process = false;
 	},
 	_rsStart:function(e, cell){
-
 		var dir, cellOffset, pos,posParent,start;
-		e = e||window.event;
 		dir = this._resizer_dir;
 
 		/*layout position:relative to place absolutely positioned elements in it*/
@@ -121,7 +120,7 @@ const api = {
 	},
 	_rsResizeHandler:function(){
 		let cells,cDiff,diff,dir,i,limits,limitSizes,sizes,totalSize;
-		if(this._rs_progress){
+		if (this._rs_progress){
 			cells = this._getResizerCells();
 			dir = this._rs_progress[0];
 			/*vector distance between resizer and stick*/
@@ -145,16 +144,16 @@ const api = {
 					max = cells[i]._settings[ (dir=="y")?"maxHeight":"maxWidth" ]||100000;
 				}
 
-				if(cDiff>0&&max&&max<=sizes[i] || cDiff<0&&min&&min>=sizes[i]){
+				if (cDiff>0&&max&&max<=sizes[i] || cDiff<0&&min&&min>=sizes[i]){
 					this._rsLimit[i] = (cDiff>0?max:min);
 					/*new sizes, taking into account max and min limits*/
 					limitSizes = this._rsGetLimitCellSizes(cells,dir);
 					/*stick position*/
 					this._resizeStick._dragobj.style[(dir=="y"?"top":"left")] = this._rs_progress[3] + limitSizes[0]+"px";
 					return;
-				}else if(sizes[i]<3){/*cells size can not be less than 1*/
+				} else if(sizes[i]<3) {/*cells size can not be less than 1*/
 					this._resizeStick._dragobj.style[(dir=="y"?"top":"left")] = this._rs_progress[3] + i*totalSize+1+"px";
-				}else{
+				} else {
 					this._rsLimit[i] = null;
 				}
 			}

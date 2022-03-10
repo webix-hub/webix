@@ -114,8 +114,13 @@ const UIManager = {
 				// keep form focus
 				if (this._view && this._view.getFormView() == view && this._view.focus)
 					this._view.focus();
-				else
+				else{
+					//radio view with scroll: focus changes onClick event target into radiogroup, so we need call onClick before it happens
+					if(e.target.type == "radio" || e.target.getAttribute("role") == "radio")
+						callEvent("onClick", [e]);
+
 					this.setFocus(view);
+				}
 			}
 			//remove focus from an unreachable view
 			else if (view.$view.contains(e.target))

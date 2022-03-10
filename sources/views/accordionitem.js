@@ -13,7 +13,6 @@ import template from "../webix/template";
 
 import base from "./view";
 import baseview from "./baseview";
-import animate from "../webix/animate";
 
 const api = {
 	name:"accordionitem",
@@ -208,10 +207,6 @@ const api = {
 		if(this._viewobj.className.indexOf(" "+css) < 0 ){
 			addCss(this._viewobj, css);
 		}
-		//fix collapsed columns in IE8
-		if(!env.transform){
-			addCss(this._viewobj,"webix_ie",true);
-		}
 	},
 	_getHeaderSize:function(){
 		return (this._settings.collapsed?this._settings.headerAltHeight:this._settings.headerHeight);
@@ -235,17 +230,10 @@ const api = {
 					y-=this._getHeaderSize();
 				} else if (this._settings.collapsed){
 					//-2 - borders
-					if (animate.isSupported()){
-						this._headobj.style.width = y + "px";
-						this._headobj.style.height = x + 3 + "px";
-						var d = Math.floor(y/2-x/2)+(x-this._settings.headerAltHeight)/2;
-						this._headobj.style[env.transform]="rotate(90deg) translate("+d+"px, "+(d+1)+"px)";
-					}
-					else { //IE8 fix
-						this._headobj.style.width = x + "px";
-						this._headobj.style.height = y + 3 + "px";
-					}
-
+					this._headobj.style.width = y + "px";
+					this._headobj.style.height = x + 3 + "px";
+					var d = Math.floor(y/2-x/2)+(x-this._settings.headerAltHeight)/2;
+					this._headobj.style[env.transform]="rotate(90deg) translate("+d+"px, "+(d+1)+"px)";
 				}
 			}
 			if(!this._settings.collapsed){

@@ -41,12 +41,12 @@ const api = {
 		const cx = Math.max(this._content_width, this._desired_size[0]);
 		const cy = Math.max(this._content_height, this._desired_size[2]);
 		this._body_cell.$setSize(cx, cy);
-		if (env.touch){
-			const scroll = this.getScrollState();
-			const top = this._body_cell._content_height - this._content_height;
-			if (top < scroll.y)
-				this.scrollTo(null, top);
-		}
+
+		const scroll = this.getScrollState();
+		const top = this._body_cell._content_height - this._content_height;
+		if (top < scroll.y)		// correct scrolling if necessary
+			this.scrollTo(null, top);
+
 		if (state._responsive_exception){
 			state._responsive_exception = false;
 			this._desired_size = this._body_cell.$getSize(0, 0);

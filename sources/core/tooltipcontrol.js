@@ -39,8 +39,8 @@ const TooltipControl = {
 			this._tooltip = new ui.tooltip({});
 			this._tooltip._css_name = "webix_tooltip webix_global_tooltip";
 
-			this._webix_tooltip_mm = event(document,"mousemove",this._move_tooltip,{ bind:this });
-			this._webix_tooltip_ml = event(document,"mouseleave",this._hide_tooltip, { bind:this });
+			this._webix_tooltip_mm = event(document, "pointermove", e => this._move_tooltip(e));
+			this._webix_tooltip_ml = event(document, "pointerleave", () => this._hide_tooltip());
 			this._drag_event = attachEvent("onDragMode", () => this._hide_tooltip());
 			this._click_event = attachEvent("onClick", () => this._hide_tooltip());
 		}
@@ -49,6 +49,8 @@ const TooltipControl = {
 		return this._tooltip;
 	},
 	_move_tooltip:function(e){
+		if (e.pointerType !== "mouse") return;
+
 		const c = { };
 		let node = e.target;
 		while (node instanceof Element && node.tagName != "HTML"){

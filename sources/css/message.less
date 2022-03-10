@@ -16,15 +16,7 @@
 
 	margin: 4px 4px 12px;
 
-	-webkit-transition: all .5s ease;
-	-moz-transition: all .5s ease;
-	-o-transition: all .5s ease;
 	transition: all .5s ease;
-}
-.webix_no_transition{
-	-webkit-transition: none;
-	-moz-transition: none;
-	transition: none;
 }
 .webix_message.hidden{
 	height:0px;
@@ -82,7 +74,6 @@
 div.webix_modal_cover {
 	background-color:#000;
 	cursor:default;
-	filter:progid:DXImageTransform.Microsoft.Alpha(opacity=10);
 	opacity: 0.1;
 	position: fixed;
 	z-index:19999;
@@ -118,11 +109,11 @@ div.webix_modal_cover {
 	overflow: hidden;
 	padding:@skin_input_y_padding @skin_input_x_padding;
 	input{
-		box-sizing: border-box;
 		width:100%;
 		height:@modalButtonHeight;
 		font-size: @formFontSize;
 		.inputStyle;
+		#box > .sizing;
 	}
 	&.webix_required::before{
 		position: absolute;

@@ -64,15 +64,15 @@ const DragControl ={
 			this._drag_masters[index] = null;
 		}
 	},
-	_createTouchDrag: function(e){
+	_createTouchDrag: function(e, pointer){
 		const dragCtrl = DragControl;
 		const master = this._getActiveDragMaster();
 		// for data items only
 		if (master && master.$longTouchLimit){
-			if (!dragCtrl._html && !dragCtrl.createDrag(e)) return;
+			if (!dragCtrl._html && !dragCtrl.createDrag(e, pointer)) return;
 			e.longtouch_drag = true;
 
-			const pos = { x:e.x, y:e.y };
+			const pos = getPos(e);
 			const customPos = dragCtrl.$dragPos(pos, e);
 
 			const ctx = dragCtrl._drag_context;
@@ -87,27 +87,29 @@ const DragControl ={
 	*/
 	addDrag:function(node,ctrl){
 		node = toNode(node);
-		node.webix_drag=this._getCtrl(ctrl);
-		_event(node,env.mouse.down,this._preStart,{ bind:node });
+		node.webix_drag = this._getCtrl(ctrl);
 		_event(node,"dragstart",preventEvent);
+		_event(node, env.mouse.down, e => this._preStart(e, node, "mouse"));
+		if (env.touch)
+			_event(node, env.touch.down, e => this._preStart(e, node, "touch"));
 	},
 	//logic of drag - start, we are not creating drag immediately, instead of that we hears mouse moving
-	_preStart:function(e){
+	_preStart:function(e, node, pointer){
 		if (DragControl._active){
 			//if we have nested drag areas, use the top one and ignore the inner one
 			if (DragControl._saved_event == e) return;
 			DragControl._preStartFalse(e);
 			DragControl.destroyDrag(e);
 		}
-		DragControl._active = this;
+		DragControl._active = node;
 
-		const evobj = env.mouse.context(e);
+		const evobj = env[pointer].context(e);
 		DragControl._start_pos = evobj;
 		DragControl._saved_event = e;
 
-		const passive = env.touch ? { passive:false } : null;
-		DragControl._webix_drag_mm = event(document.body,env.mouse.move,DragControl._startDrag,passive);
-		DragControl._webix_drag_mu = event(document,env.mouse.up,DragControl._preStartFalse);
+		const passive = (pointer === "touch") ? { passive:false } : null;
+		DragControl._webix_drag_mm = event(document.body, env[pointer].move, e => DragControl._startDrag(e, pointer), passive);
+		DragControl._webix_drag_mu = event(document, env[pointer].up, DragControl._preStartFalse);
 
 		//need to run here, or will not work in IE
 		addCss(document.body,"webix_noselect", 1);
@@ -118,33 +120,39 @@ const DragControl ={
 		DragControl._touch_animation = !e.cancelable;
 	},
 	//mouse was moved without button released - dnd started, update event handlers
-	_startDrag:function(e){
+	_startDrag:function(e, pointer){
 		// check touch scroll animation
+		const touch = (pointer === "touch");
 		DragControl._touch_animation = !e.cancelable;
-		if (env.touch && DragControl._touch_animation){
+		if (touch && DragControl._touch_animation){
 			DragControl._clean_dom_after_drag();
 			return DragControl.destroyDrag(e);
 		}
 
 		//prevent unwanted dnd
-		var pos = env.mouse.context(e);
+		var pos = env[pointer].context(e);
 		var master = DragControl._getActiveDragMaster();
 
 		// only long-touched elements can be dragged
-		var longTouchLimit = (env.touch && master && master.$longTouchLimit && !Touch._long_touched);
+		var longTouchLimit = (touch && master && master.$longTouchLimit && !Touch._long_touched);
 		if (longTouchLimit || Math.abs(pos.x-DragControl._start_pos.x)<5 && Math.abs(pos.y-DragControl._start_pos.y)<5)
 			return;
 
-		if (!DragControl._html && !DragControl.createDrag(DragControl._saved_event))
+		if (!DragControl._html && !DragControl.createDrag(DragControl._saved_event, pointer))
 			return DragControl._clean_dom_after_drag();
 		DragControl._clean_dom_after_drag(true);
 
 		DragControl.sendSignal("start"); //useless for now
 
-		const passive = env.touch ? { passive:false } : null;
-		DragControl._webix_drag_mm = event(document.body,env.mouse.move,DragControl._moveDrag,passive);
-		DragControl._webix_drag_mu = event(document,env.mouse.up,DragControl._stopDrag);
-		DragControl._moveDrag(e);
+		if (touch) {
+			// important: for touch events use e.target as EventTarget
+			DragControl._webix_drag_mm = event(e.target, env[pointer].move, e => DragControl._moveDrag(e, pointer), { passive:false });
+			DragControl._webix_drag_mu = event(e.target, env[pointer].up, DragControl._stopDrag);
+		} else {
+			DragControl._webix_drag_mm = event(document.body, env[pointer].move, e => DragControl._moveDrag(e, pointer));
+			DragControl._webix_drag_mu = event(document, env[pointer].up, DragControl._stopDrag);
+		}
+		DragControl._moveDrag(e, pointer, true);
 	},
 	//mouse was released while dnd is active - process target
 	_stopDrag:function(e){
@@ -165,7 +173,7 @@ const DragControl ={
 			removeCss(document.body,"webix_noselect");
 	},
 	//dnd is active and mouse position was changed
-	_moveDrag:function(e){
+	_moveDrag:function(e, pointer, first){
 		var dragCtrl = DragControl;
 		var pos = getPos(e);
 
@@ -176,20 +184,26 @@ const DragControl ={
 		dragCtrl._html.style.top=pos.y+dragCtrl.top+(customPos||!ctx.y_offset?0:ctx.y_offset) +"px";
 		dragCtrl._html.style.left=pos.x+dragCtrl.left+(customPos||!ctx.x_offset?0:ctx.x_offset)+"px";
 
-		var evobj = e;
+		// check landing at least once
+		if (first) dragCtrl._skip = false;
+
 		if (dragCtrl._skip)
-			dragCtrl._skip=false;
+			dragCtrl._skip = false;
 		else {
-			if (env.touch){
-				var context = env.mouse.context(e);
-				var target = document.elementFromPoint(context.x, context.y);
+			let evobj = e;
+			if (pointer === "touch"){
+				const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
+				const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+
+				const context = env[pointer].context(e);
+				const target = document.elementFromPoint(context.x - scrollLeft, context.y - scrollTop);
 				evobj = new Proxy(e, {
 					get: function(obj, prop){
 						if (prop === "target"){
 							return target;
 						}
 
-						var res = obj[prop];
+						const res = obj[prop];
 						if (typeof res === "function"){
 							return res.bind(e);
 						}
@@ -240,24 +254,23 @@ const DragControl ={
 		return this._html;
 	},
 	//called when dnd is initiated, must create drag representation
-	createDrag:function(e){ 
-		var dragCtl = DragControl;
-		var a=dragCtl._active;
+	createDrag:function(e, pointer){
+		var a = DragControl._active;
 
-		dragCtl._drag_context = {};
+		DragControl._drag_context = {};
 		var master = this._drag_masters[a.webix_drag];
 		var drag_container;
 
 		//if custom method is defined - use it
 		if (master.$dragCreate){
-			drag_container=master.$dragCreate(a,e);
+			drag_container = master.$dragCreate(a,e,pointer);
 			if (!drag_container) return false;
 			this._setDragOffset(e);
 			drag_container.style.position = "absolute";
 		} else {
 		//overvise use default one
-			var text = dragCtl.$drag(a,e);
-			dragCtl._setDragOffset(e);
+			var text = DragControl.$drag(a,e,pointer);
+			DragControl._setDragOffset(e);
 
 			if (!text) return false;
 			drag_container = document.createElement("DIV");
@@ -265,8 +278,8 @@ const DragControl ={
 			drag_container.className="webix_drag_zone";
 			document.body.appendChild(drag_container);
 
-			var context = dragCtl._drag_context;
-			if (context.html && env.pointerevents){
+			var context = DragControl._drag_context;
+			if (context.html){
 				context.x_offset = -Math.round(drag_container.offsetWidth  * 0.5);
 				context.y_offset = -Math.round(drag_container.offsetHeight * 0.75);
 			}
@@ -278,25 +291,27 @@ const DragControl ={
 		*/
 		drag_container.style.zIndex = Math.max(drag_container.style.zIndex,zIndex());
 
-		DragControl._skipDropH = event(drag_container,env.mouse.move,DragControl._skip_mark);
+		DragControl._skipDropH = event(drag_container, env[pointer].move, DragControl._skip_mark);
 
 		if (!DragControl._drag_context.from)
 			DragControl._drag_context = {source:a, from:a};
 		
-		DragControl._html=drag_container;
+		DragControl._html = drag_container;
 		return true;
 	},
 	//helper, prevents unwanted mouse-out events
 	_skip_mark:function(){
-		DragControl._skip=true;
+		DragControl._skip = true;
 	},
 	//after dnd end, remove all traces and used html elements
 	destroyDrag:function(e){
-		var a=DragControl._active;
+		var a = DragControl._active;
 		var master = this._drag_masters[a.webix_drag];
 
-		if (master && master.$dragDestroy){
+		if (DragControl._skipDropH)
 			DragControl._skipDropH = eventRemove(DragControl._skipDropH);
+		
+		if (master && master.$dragDestroy){
 			if(DragControl._html)
 				master.$dragDestroy(a,DragControl._html,e);
 		} else
@@ -317,27 +332,20 @@ const DragControl ={
 	top:0,	 //relative position of drag marker to mouse cursor
 	left:0,
 	_setDragOffset:function(e){
-		var dragCtl = DragControl;
-		var pos = dragCtl._start_pos;
-		var ctx = dragCtl._drag_context;
+		const pos = DragControl._start_pos;
+		const ctx = DragControl._drag_context;
 
 		if(typeof ctx.x_offset != "undefined" && typeof ctx.y_offset != "undefined")
 			return null;
 
 		ctx.x_offset = ctx.y_offset = 0;
-		if(env.pointerevents){
-			var m=DragControl._getActiveDragMaster();
-
-			if (m._getDragItemPos && m!==this){
-				var itemPos = m._getDragItemPos(pos,e);
-
-				if(itemPos){
-					ctx.x_offset = itemPos.x - pos.x;
-					ctx.y_offset = itemPos.y - pos.y;
-				}
-
+		const m = DragControl._getActiveDragMaster();
+		if (m._getDragItemPos && m !== this){
+			const itemPos = m._getDragItemPos(pos,e);
+			if (itemPos){
+				ctx.x_offset = itemPos.x - pos.x;
+				ctx.y_offset = itemPos.y - pos.y;
 			}
-
 		}
 	},
 	$dragPos:function(pos, e){
@@ -369,9 +377,9 @@ const DragControl ={
 		t.appendChild(s);
 	},
 	//called when dnd just started
-	$drag:function(s,e){
+	$drag:function(s,e,p){
 		var m=this._drag_masters[s.webix_drag];
-		if (m.$drag && m!=this) return m.$drag(s,e);
+		if (m.$drag && m!=this) return m.$drag(s,e,p);
 		return "<div style='"+s.style.cssText+"'>"+s.innerHTML+"</div>";
 	}	
 };
@@ -379,7 +387,7 @@ const DragControl ={
 //global touch-drag handler
 attachEvent("onLongTouch", function(ev){
 	if(DragControl._active && !DragControl._touch_animation)
-		DragControl._createTouchDrag(ev);
+		DragControl._createTouchDrag(ev, "touch");
 });
 
 

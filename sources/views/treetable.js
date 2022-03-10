@@ -66,7 +66,8 @@ const api = {
 		return TablePaste.clipboard_setter.call(this, value);
 	},
 	_run_load_next:function(conf, direction){
-		for (var i=0; i<conf.start; i++){
+		let start = conf.start;
+		for (var i=0; i<start; i++){
 			var id = this.data.order[i];
 			if (id && this.getItem(id).$level != 1)
 				conf.start--;

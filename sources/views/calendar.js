@@ -1,7 +1,6 @@
 import {index, triggerEvent, preventEvent} from "../webix/html";
 import {protoUI, $$} from "../ui/core";
 import {$active} from "../webix/skin";
-import env from "../webix/env";
 import {extend, copy, toFunctor, isArray} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 import template from "../webix/template";
@@ -18,7 +17,7 @@ const api = {
 	name:"calendar",
 
 	defaults:{
-		date: new Date(), //selected date, not selected by default
+		date: DateHelper.datePart(new Date()), //selected date, not selected by default
 		navigation: true,
 		monthSelect: true,
 		weekHeader: true,
@@ -52,44 +51,40 @@ const api = {
 		return date;
 	},
 	maxDate_setter:function(date){
-		return this._string_to_date(date);
+		return DateHelper.datePart( this._string_to_date(date) );
 	},
 	minDate_setter:function(date){
-		return this._string_to_date(date);
+		return DateHelper.datePart( this._string_to_date(date) );
 	},
 	minTime_setter:function(time){
 		if(typeof(time) == "string"){
 			time = i18n.parseTimeFormatDate(time);
-			time = [time.getHours(),time.getMinutes()];
-
+			time = [time.getHours(), time.getMinutes()];
 		}
-
 		return time;
 	},
 	maxTime_setter:function(time){
 		if(typeof(time) == "string"){
 			time = i18n.parseTimeFormatDate(time);
-			time = [time.getHours(),time.getMinutes()];
+			time = [time.getHours(), time.getMinutes()];
 		}
 		return time;
 	},
 	_ariaFocus:function(){
-		if (!env.touch){
-			_event(this.$view, "mousedown", () => {
-				this._mouse_time = new Date();
-			});
-			_event(this.$view, "focus", e => {
-				// in daterange
-				if (this._settings.master) return;
+		_event(this.$view, "mousedown", () => {
+			this._mouse_time = new Date();
+		});
+		_event(this.$view, "focus", e => {
+			// in daterange
+			if (this._settings.master) return;
 
-				const prev = e.relatedTarget;
-				const css = e.target.className.indexOf("webix_cal_day") !== -1;
-				if (prev && (new Date() - this._mouse_time > 100) && css && this.$view.contains(prev)){
-					const day = this._locate_day(e.target);
-					if (!this._selectedDay(day)) this._moveSelection(day);
-				}
-			}, { capture: true });
-		}
+			const prev = e.relatedTarget;
+			const css = e.target.className.indexOf("webix_cal_day") !== -1;
+			if (prev && (new Date() - this._mouse_time > 100) && css && this.$view.contains(prev)){
+				const day = this._locate_day(e.target);
+				if (!this._selectedDay(day)) this._moveSelection(day);
+			}
+		}, { capture: true });
 	},
 	$init: function() {
 		this._viewobj.className += " webix_calendar";
@@ -108,7 +103,7 @@ const api = {
 	_onKeyPress:function(code, e){
 		const target = e.target, role = target.getAttribute("role");
 		if((code === 13 || code === 32) && (role == "button" || role == "log") && !this._settings.disabled){
-			triggerEvent(target, "MouseEvents", "click");
+			triggerEvent(target, "MouseEvent", "click");
 			preventEvent(e);
 		}
 	},
@@ -143,9 +138,7 @@ const api = {
 	},
 	moveSelection:function(mode, details, focus){
 		if (this.config.master) return; //in daterange
-		var start = this.getSelectedDate();
-		if (this.config.multiselect)
-			start = start[0];
+		var start = this.getSelectedDate(true);
 		var date = DateHelper.copy(start || this.getVisibleDate());
 		this._moveSelection(date, mode, focus);
 	},
@@ -275,7 +268,7 @@ const api = {
 
 		this.callEvent("onBeforeRender",[]);
 
-		var date = this._settings.date;
+		var date = this.getVisibleDate();
 
 		var bounds = this._getDateBoundaries(date, true);
 		var sizes = this._getColumnConfigSizes(date);
@@ -309,16 +302,6 @@ const api = {
 		this._contentobj.firstChild.style.marginTop = cpad;
 
 		if(s.type == "time"){
-			var time = s.date;
-			if(time){
-				if(typeof(time) == "string"){
-					date = i18n.parseTimeFormatDate(time);
-				}
-				else if(isArray(time)){
-					date.setHours(time[0]);
-					date.setMinutes(time[1]);
-				}
-			}
 			this._changeZoomLevel(-1,date);
 		}
 		else if(s.type == "month"){
@@ -393,7 +376,7 @@ const api = {
 		if (DateHelper.equal(day, this._current_time))
 			css += " webix_cal_today";
 		if (!this._checkDate(day))
-			css+= " webix_cal_day_disabled";
+			css += " webix_cal_day_disabled";
 		if (day.getMonth() != bounds._month){
 			isOutside = true;
 			css += " webix_cal_outside";
@@ -602,20 +585,23 @@ const api = {
 			
 		},
 		"1":{	//months
-			_isBlocked: function(i,calendar){
-				var blocked = false,
-					min = calendar._settings.minDate,
-					max = calendar._settings.maxDate,
-					year = calendar._settings.date.getFullYear();
+			_isBlocked: function(i){
+				const date = this.getVisibleDate();
+				date.setMonth(i);
 
-				if (min){
+				var blocked = (this._settings.blockDates && this._settings.blockDates.call(this,date));
+				var min = this._settings.minDate,
+					max = this._settings.maxDate,
+					year = this._settings.date.getFullYear();
+
+				if (min && !blocked){
 					var minYear = min.getFullYear();
-					blocked = year<minYear || (year==minYear&&min.getMonth()>i);
+					blocked = year<minYear || (year==minYear && min.getMonth()>i);
 				}
 
 				if (max && !blocked){
 					var maxYear = max.getFullYear();
-					blocked = year>maxYear || (year==maxYear&&max.getMonth()<i);
+					blocked = year>maxYear || (year==maxYear && max.getMonth()<i);
 				}
 
 				return blocked;
@@ -664,12 +650,17 @@ const api = {
 			}
 		},
 		"2":{	//years
-			_isBlocked: function(i,calendar){
-				i += calendar._zoom_start_date;
-				var min = calendar._settings.minDate;
-				var max = calendar._settings.maxDate;
+			_isBlocked: function(i){
+				i += this._zoom_start_date;
 
-				if ((min && min.getFullYear() > i) || (max && max.getFullYear()<i))
+				const date = this.getVisibleDate();
+				date.setFullYear(i);
+
+				var blocked = (this._settings.blockDates && this._settings.blockDates.call(this,date));
+				var min = this._settings.minDate;
+				var max = this._settings.maxDate;
+
+				if (blocked || (min && min.getFullYear() > i) || (max && max.getFullYear() < i))
 					return true;
 				return false;
 			},
@@ -749,9 +740,8 @@ const api = {
 		zlogic = this._zoom_logic[this._zoom_level];
 		sections  = this._contentobj.childNodes;
 
-		if (date){
-			config.date = date;
-		}
+		if (date)
+			this.define("date", date);
 		type = config.type;
 
 		//store width and height of draw area
@@ -859,13 +849,14 @@ const api = {
 			width = Math.floor(this._reserve_box_width/4);
 			sqSize = Math.min(height, width);
 
-			if (this._checkDate(config.date))
-				selected = (this._zoom_level==1?config.date.getMonth():config.date.getFullYear());
+			selected = (this._zoom_level === 1) ? config.date.getMonth() : config.date.getFullYear() - this._zoom_start_date;
 			for (i=0; i<12; i++){
-				css = (selected == (this._zoom_level==1?i:zlogic._getContent(i, this)) ? " webix_selected" : "");
-				if(zlogic._isBlocked(i,this)){
-					css += " webix_cal_day_disabled";
+				css = "";
+				if (zlogic._isBlocked.call(this, i)) {
+					css = " webix_cal_day_disabled";
 				}
+				else if(selected == i)
+					css = " webix_selected";
 
 				var format = i18n.aria[(this._zoom_level==1?"month":"year")+"Format"];
 				html+="<div role='gridcell' aria-label='"+DateHelper.dateToStr(format)(config.date)+
@@ -914,7 +905,7 @@ const api = {
 		}
 	},
 	_correctDate:function(date){
-		if(!this._checkDate(date) && this._zoom_logic[this._zoom_level]._correctDate)
+		if(this._zoom_logic[this._zoom_level]._correctDate && !this._checkDate(date))
 			date = this._zoom_logic[this._zoom_level]._correctDate(date,this);
 		return date;
 	},
@@ -952,11 +943,9 @@ const api = {
 	_locate_date:function(target){
 		var value = target.getAttribute("data-value")*1;
 		var level = (target.className.indexOf("webix_cal_block_min")!=-1?this._zoom_level-1:this._zoom_level);
-		var now = this._settings.date;
-		var next = DateHelper.copy(now);
+		var next = this.getVisibleDate();
 
 		this._zoom_logic[level]._setContent(next, value, this);
-
 		return next;
 	},
 	on_click:{
@@ -996,7 +985,15 @@ const api = {
 			$$(this._settings.master)._time_mode = "end";
 		},
 		webix_cal_done:function(){
-			var date = DateHelper.copy(this._settings.date);
+			let date = this.getVisibleDate();
+			if (this._zoom_in) {
+				const start = this.getSelectedDate(true);
+				if (start) {
+					start.setHours(date.getHours());
+					start.setMinutes(date.getMinutes());
+					date = start;
+				}
+			}
 			date = this._correctDate(date);
 			this._selectDate(date, false, "user");
 		},
@@ -1029,31 +1026,30 @@ const api = {
 		}
 	},
 	_string_to_date: function(date, format){
-		if (!date){
+		if (!date)
 			return DateHelper.datePart(new Date());
-		}
-		if(typeof date == "string"){
+
+		if (typeof date == "string"){
 			if (format)
 				date = DateHelper.strToDate(format)(date);
 			else
-				date=i18n.parseFormatDate(date);
+				date = i18n.parseFormatDate(date);
 		}
-
 		return date;
 	},
 	_checkDate: function(date){
 		var blockedDate = (this._settings.blockDates && this._settings.blockDates.call(this,date));
 		var minDate = this._settings.minDate;
 		var maxDate = this._settings.maxDate;
-		var outOfRange = (date < minDate || date > maxDate);
-		return !blockedDate &&!outOfRange;
+		var outOfRange = (minDate && date < minDate) || (maxDate && date >= DateHelper.add(maxDate, 1, "day", true));
+		return !blockedDate && !outOfRange;
 	},
 	_findActive:function(date, mode){
-		var dir = (mode === "top" || mode ==="left" || mode === "pgup" || mode === "up") ? -1 : 1;
+		var dir = (mode === "top" || mode === "left" || mode === "pgup" || mode === "up") ? -1 : 1;
 		var newdate = DateHelper.add(date, dir, "day", true);
-		if(this._checkDate(newdate))
+		if (this._checkDate(newdate))
 			return newdate;
-		else{
+		else {
 			var compare;
 			if(this._zoom_level === 0) compare = (date.getMonth() === newdate.getMonth());
 			else if(this._zoom_level === 1 ) compare = (date.getFullYear() === newdate.getFullYear());
@@ -1071,12 +1067,15 @@ const api = {
 	_selectedDay: function(day){
 		return day && this._selected_days[day.valueOf()];
 	},
-	getSelectedDate: function() {
+	getSelectedDate: function(first) {
 		const result = [];
-		for (let key in this._selected_days)
-			result.push(DateHelper.copy(this._selected_days[key]));
 
-		return this.config.multiselect ? result : (result[0] || null);
+		const keys = Object.keys(this._selected_days);
+		const length = first ? Math.min(1, keys.length) : keys.length;
+		for (let i=0; i<length; i++)
+			result.push(DateHelper.copy(this._selected_days[keys[i]]));
+
+		return (this.config.multiselect && !first) ? result : (result[0] || null);
 	},
 	getVisibleDate: function() {
 		return DateHelper.copy(this._settings.date);

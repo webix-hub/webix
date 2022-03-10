@@ -12,7 +12,6 @@ import popup from "../views/popup";
 import window from "../views/window";
 import base from "../views/view";
 
-import animate from "../webix/animate";
 import state from "../core/state";
 
 
@@ -69,7 +68,7 @@ const api = {
 			this._setPosition();
 
 		this._hide_timer = 1;
-		delay(function(){ this._hide_timer = 0; }, this, [], (env.touch ? 400 : 100 ));
+		delay(function(){ this._hide_timer = 0; }, this, [], (env.fastClick ? 100 : 400));
 
 		if (this.config.autofocus){
 			this._prev_focus = UIManager.getFocus();
@@ -124,7 +123,7 @@ const api = {
 
 		this.$setSize(state.width, state.height);
 
-		if (typeof x == "undefined" && this._isAnimationSupported()){
+		if (typeof x == "undefined" && this._settings.animate){
 			removeCss(this.$view,"webix_animate",true);
 			// set initial state
 			this._animate[this._settings.position].beforeShow.call(this, state);
@@ -137,17 +136,13 @@ const api = {
 				this._animate[this._settings.position].show.call(this, state);
 			},this, null,10);
 
-		}
-		else{
-			if(this._settings.position === "right")
+		} else {
+			if (this._settings.position === "right")
 				state.left = state.right?maxWidth - state.width - state.right:maxWidth - state.width;
 			this.setPosition(state.left, state.top);
 		}
 	},
 	_state:{},
-	_isAnimationSupported: function(){
-		return animate.isSupported() && this._settings.animate && !(env.isIE && navigator.appVersion.indexOf("MSIE 9")!=-1);
-	},
 	hidden_setter:function(value){
 		if(value)
 			this.hide();
@@ -216,7 +211,7 @@ const api = {
 		const maxWidth = (window.innerWidth||document.documentElement.offsetWidth);
 		const maxHeight = (window.innerHeight||document.documentElement.offsetHeight);
 
-		if (this._isAnimationSupported() && maxWidth == this._state.maxWidth && maxHeight == this._state.maxHeight){
+		if (this._settings.animate && maxWidth == this._state.maxWidth && maxHeight == this._state.maxHeight){
 			// call 'hide' animation handler
 			this._animate[this._settings.position].hide.call(this, this._state);
 			// hide popup

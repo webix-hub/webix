@@ -1,9 +1,8 @@
 import {offset, insertBefore, remove} from "../webix/html";
-import {bind, copy, isArray, _to_array} from "../webix/helpers";
+import {bind, copy, _to_array} from "../webix/helpers";
 import base from "../views/view";
 import {_event} from "../webix/htmlevents";
 
-import Touch from "../core/touch";
 import DragControl from "../core/dragcontrol";
 
 /*
@@ -15,11 +14,6 @@ const VRenderStack = {
 		_event(this._viewobj, "scroll", bind(function(){
 			this.render(null, null, "paint");
 		}, this));
-	},
-	_sync_scroll:function(x,y,t){
-		if (this._settings.footer)
-			Touch._set_matrix(this._footer.childNodes[1].firstChild,x,0,t);
-		this.callEvent("onSyncScroll", [x,y,t]);
 	},
 	//return html container by its ID
 	//can return undefined if container doesn't exists
@@ -158,15 +152,6 @@ const VRenderStack = {
 	_remove_drop_area:function(){
 		remove(DragControl._dropHTML);
 		this.render(null, null, "drag-out");
-	},
-	$dragDestroy: function(){
-		if (this._init_drop_area) {
-			const context = DragControl._drag_context;
-			if (isArray(context.source))
-				this._remove_css(context.source, "webix_invisible");
-			this.render(null, null, "drag-end");
-		}
-		remove(DragControl._html);
 	},
 };
 

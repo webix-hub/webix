@@ -160,7 +160,7 @@ export default {api, view};
 
 type(view, {
 	name:"lineTree",
-	css:"webixLineTree",
+	css:"webix_line_tree",
 	icon:function(obj, common){
 		var html = "";
 		var open = "";
@@ -170,7 +170,7 @@ type(view, {
 
 			var icon = common._icon_src(obj, common, i);
 			if (icon)
-				html+="<div class='"+open+"webix_tree_img webix_tree_"+icon+"'></div>";
+				html += "<div class='"+open+"webix_tree_img webix_tree_"+icon+"'></div>";
 		}
 		return html;
 	},
@@ -198,8 +198,8 @@ type(view, {
 			//store for next round
 			common._tree_branch_render_state = lines;
 		}
-		if (!lines)
-			return 0;
+		if (!lines) return 0;
+
 		//need to be replaced with image urls
 		if (level == obj.$level){
 			var mode = 3; //3-way line

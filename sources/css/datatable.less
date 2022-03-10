@@ -1,6 +1,5 @@
 @import "common/html5.less";
 @import "common/images.less";
-@import "common/common.less";
 
 @import "view.less";
 @import "resizer.less";
@@ -199,7 +198,6 @@
 	padding: 0 3px;
 	vertical-align: top;
 	border: 1px solid @borderColor;
-	line-height: @inputHeight - @skin_input_y_padding*2; //IE8
 	#box > .sizing;
 	font-family: @fontFamily;
 }
@@ -220,8 +218,6 @@
 .webix_ss_footer, .webix_ss_footer .webix_hcolumn,
 .webix_ss_footer .webix_hs_left, .webix_ss_footer .webix_hs_center, .webix_ss_footer .webix_hs_right,
 .webix_ss_footer div.webix_ss_vscroll_footer{
-	.dataFooterFont;
-	.dataFooterBg;
 	background: darken(@backColor,2%);
 }
 .webix_hcell.webix_measure_size{
@@ -275,7 +271,6 @@
 
 	padding: 0 @dataPadding;
 
-	.dataFont;
 	.dtBodyCell;
 }
 
@@ -380,13 +375,12 @@
 	position:absolute;
 	left:0px;
 	top:0px;
-	background-color: white;
+	background-color: @backColor;
 	width: 100%;
 	padding-right:@dataPadding + 18;
 	padding-left:@dataPadding;
 	padding-top:1px;
 
-	.dataFont;
 	border-bottom:1px solid @lightBorderColor;
 }
 .webix_cell.webix_dtable_colrow.webix_selected{
@@ -401,14 +395,13 @@
 	border-top:1px solid @lightBorderColor;
 	padding: 0px 0px 0px 0px;
 	padding-left:10px;
-	box-sizing: border-box;
+	#box > .sizing;
 }
 .number .webix_cell{
 	text-align:right;
 }
 .webix_rotate{
 	transform: rotate(-90deg);
-	-webkit-transform: rotate(-90deg);
 	line-height: normal;
 }
 

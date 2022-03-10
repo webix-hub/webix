@@ -84,6 +84,27 @@ const api = {
 	getOpenState:function(){
 		return { parents:this._nested_chain, branch:this._nested_cursor };
 	},
+	setOpenState:function(id){
+		let parent = 0;
+		if (id){
+			const obj = this.getItem(id);
+			parent = obj.$count ? obj.id : obj.$parent;
+		}
+		this._nested_cursor = this.data.branch[parent];
+		this._nested_chain = [];
+
+		//build _nested_chain
+		while(parent){
+			this.getItem(parent).$template = "Back";
+			this._nested_chain.unshift(parent);
+			parent = this.getItem(parent).$parent;
+		}
+
+		//render
+		this._no_animation = true;
+		this.render();
+		this._no_animation = false;
+	},
 	render:function(id,data,type){
 		var i, lastChain;
 
@@ -120,13 +141,12 @@ const api = {
 		this.data.order = _to_array([].concat(this._nested_chain).concat(this._nested_cursor));
 
 		if (this.callEvent("onBeforeRender",[this.data])){
-			if (this._no_animation || !this._dataobj.innerHTML || !(animate.isSupported() && this._settings.animate) || (this._prev_nested_chain_length == this._nested_chain.length)) { // if dataobj is empty or animation is not supported
+			if (this._no_animation || !this._dataobj.innerHTML || !this._settings.animate || (this._prev_nested_chain_length == this._nested_chain.length)) { // if dataobj is empty or animation is not supported
 				// don't repaint invisible data
 				if (id && type !== "delete" && this.data.getIndexById(id) === -1) return;
 
 				RenderStack.render.apply(this, arguments);
-			}
-			else {
+			} else {
 				//getRange - returns all elements
 				if (this.callEvent("onBeforeRender",[this.data])){
 
@@ -214,27 +234,8 @@ const api = {
 	},
 	showItem:function(id){
 		const index = this.data.getIndexById(id);
-		if (index === -1){
-			let parent = 0;
-			if (id){
-				const obj = this.getItem(id);
-				parent = obj.$count ? obj.id : obj.$parent;
-			}
-			this._nested_cursor = this.data.branch[parent];
-			this._nested_chain = [];
-
-			//build _nested_chain
-			while(parent){
-				this.getItem(parent).$template = "Back";
-				this._nested_chain.unshift(parent);
-				parent = this.getItem(parent).$parent;
-			}
-
-			//render
-			this._no_animation = true;
-			this.render();
-			this._no_animation = false;
-		}
+		if (index === -1)
+			this.setOpenState(id);
 
 		//scroll if necessary
 		RenderStack.showItem.call(this, id);

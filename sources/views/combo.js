@@ -1,5 +1,6 @@
 import {protoUI} from "../ui/core";
 import {isUndefined} from "../webix/helpers";
+import {_event} from "../webix/htmlevents";
 
 import richselect from "./richselect";
 
@@ -8,6 +9,13 @@ const api = {
 	name:"combo",
 	getInputNode:function(){
 		return this._dataobj.getElementsByTagName("input")[0];
+	},
+	_init_onchange:function(){
+		_event(this.getInputNode(), "keydown", e => {
+			if (e.keyCode == 13)
+				richselect.api._onBlur.apply(this, []);
+		});
+		richselect.api._init_onchange.apply(this, arguments);
 	},
 	_revertValue:function(){
 		var value = this.getValue();

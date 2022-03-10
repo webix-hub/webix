@@ -4,20 +4,17 @@ import template from "../webix/template";
 
 import clipbuffer from "../webix/clipbuffer";
 import csv from "../webix/csv";
-import env from "../webix/env";
 
 const CopyPaste = {
 	clipboard_setter: function(value) {
-		if (env.touch) return value;
-
 		if (value === true || value === 1) value = "modify";
+
 		this.attachEvent("onAfterSelect", this._sel_to_clip);
 		this.attachEvent("onAfterEditStop", function(v, ed){
 			const sel = this.getSelectedId(true);
 			if(sel.length == 1 && ed.id == sel[0])
 				this._sel_to_clip();
 		});
-
 		this.attachEvent("onPaste", function(text) {
 			if (!isUndefined(this._paste[this._settings.clipboard])) {
 				const data = csv.parse(text, this._settings.delimiter);

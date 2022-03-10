@@ -212,7 +212,7 @@ const api = {
 						content;
 					var post = "<div class='webix_property_label' style='width:"+this._settings.nameWidth+"px'>"+data.label+"</div><div class='webix_property_value' style='width:"+this._data_width+"px'>";
 					if (data.collection || data.options){
-						content = data.template(data);
+						content = data.template(data, this.type, data.value, data);
 					} else if(data.format){
 						content = data.format(data.value);
 					} else

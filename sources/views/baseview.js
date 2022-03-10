@@ -66,27 +66,27 @@ const api = {
 	},
 	getChildViews:function(){ return []; },
 	queryView:function(search, all){
-		var confirm;
+		let confirm;
 		if (typeof search === "string")
 			search = { view:search };
-		if (typeof search === "object"){
-			//IE8 compatibility
-			confirm = function(test){
-				var config = test.config;
-				for (var key in search){
+		if (typeof search === "object")
+			confirm = test => {
+				const config = test.config;
+
+				for (let key in search){
 					if (config[key] != search[key])
 						return false; 
 				}
 				return true;
 			};
-		} else
+		else
 			confirm = search;
 
 		if (all === "self" && confirm(this)) return this;
-		var results = all === "all" ? [] : false;
-		var direction = all === "parent" ? this._queryGoUp : this._queryGoDown;
+		const results = all === "all" ? [] : false;
+		const direction = all === "parent" ? this._queryGoUp : this._queryGoDown;
 
-		var found = this._queryView(confirm, direction, results);
+		const found = this._queryView(confirm, direction, results);
 		return all === "all" ? results : found;
 	},
 	_queryGoDown:function(node){
@@ -306,7 +306,7 @@ const api = {
 		var target = e.target, role = target.getAttribute("role");
 
 		if((code === 13 || code === 32) && (role == "button" || role == "tab") && !this._settings.disabled){
-			triggerEvent(target, "MouseEvents", "click");
+			triggerEvent(target, "MouseEvent", "click");
 			preventEvent(e);
 		}
 	},

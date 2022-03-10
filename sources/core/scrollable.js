@@ -5,43 +5,42 @@ import {_event} from "../webix/htmlevents";
 
 import CustomScroll from "../core/customscroll";
 
-const Scrollable= {
+const Scrollable = {
 	$init:function(config){
 		//do not spam unwanted scroll containers for templates 
 		if (config && !config.scroll && this._one_time_scroll) 
 			return (this._dataobj = (this._dataobj||this._contentobj));
 
 		(this._dataobj||this._contentobj).appendChild(create("DIV",{ "class" : "webix_scroll_cont" },""));
-		this._dataobj=(this._dataobj||this._contentobj).firstChild;
+		this._dataobj = (this._dataobj||this._contentobj).firstChild;
 
-		if (this.callEvent && (!env.touch || this._touch_scroll == "native"))
+		if (this.callEvent && !this.$hasYScroll)
 			_event(this._viewobj, "scroll", function(){
 				delay(function(){
 					this.callEvent("onAfterScroll", []);
 				}, this);
 			}, { bind:this });
 	},
-	_touch_scroll:"native",
 	scroll_setter:function(value){
 		if (!value) return false;
-		var auto = value === "auto";
-		var marker =  (value =="x"?"x":(value=="xy"?"xy":(auto?"xy":"y")));
 
-		if (env.$customScroll){
+		const auto = value === "auto";
+		const marker = (value=="x"?"x":(value=="xy"?"xy":(auto?"xy":"y")));
+
+		if (env.$customScroll)
 			CustomScroll.enable(this, marker);
+
+		const style = this._dataobj.parentNode.style;
+		if (auto && !env.$customScroll){
+			style.overflowX = style.overflowY = "auto";
 		} else {
-			var node = this._dataobj.parentNode.style;
-			if (auto){
-				node.overflowX = node.overflowY = "auto";
-			} else {
-				if (marker.indexOf("x")!=-1){
-					this._scroll_x = true;
-					node.overflowX = "scroll";
-				}
-				if (marker.indexOf("y")!=-1){
-					this._scroll_y = true;
-					node.overflowY = "scroll";
-				}
+			if (marker.indexOf("x") !== -1){
+				this._scroll_x = true;
+				style.overflowX = "scroll";
+			}
+			if (marker.indexOf("y") !== -1){
+				this._scroll_y = true;
+				style.overflowY = "scroll";
 			}
 		}
 		return marker;

@@ -1,4 +1,4 @@
-import {isUndefined, bind} from "../../webix/helpers";
+import {isUndefined} from "../../webix/helpers";
 import {_event} from "../../webix/htmlevents";
 import EditAbility from "../../core/editability";
 
@@ -283,18 +283,29 @@ const Mixin = {
 	/////////////////////////////
 	_correct_after_focus_y:function(){
 		if (this._in_edit_mode){
-			if (this._ignore_after_focus_scroll)
-				this._ignore_after_focus_scroll = false;
-			else {
-				this._y_scroll.scrollTo(this.getScrollState().y+this._body.childNodes[1].firstChild.scrollTop);
+			const { scrollTop } = this._body.childNodes[1].firstChild;
+
+			if (scrollTop) {
+				this._y_scroll.scrollTo(this.getScrollState().y + scrollTop);
 				this._body.childNodes[1].firstChild.scrollTop = 0;
-				this._ignore_after_focus_scroll = true;
 			}
 		}
 	},
-	_correct_after_focus_x:function(){
+	_correct_after_focus:function(){
 		if (this._in_edit_mode){
-			this._x_scroll.scrollTo(this._body.childNodes[1].scrollLeft);
+			const { scrollTop, scrollLeft } = this._body.childNodes[1];
+
+			if (this._ignore_after_focus_scroll)
+				return this._ignore_after_focus_scroll = false;
+
+			if (this._settings.prerender) this._y_scroll.scrollTo(scrollTop);
+			this._x_scroll.scrollTo(scrollLeft);
+
+			if (this._touch_scroll){
+				if (scrollTop) this._body.childNodes[1].scrollTop = 0;
+				if (scrollLeft) this._body.childNodes[1].scrollLeft = 0;
+				this._ignore_after_focus_scroll = (scrollTop || scrollLeft);
+			}
 		}
 	},
 	_component_specific_edit_init:function(){
@@ -305,8 +316,9 @@ const Mixin = {
 		this.attachEvent("onAfterFilter", function(){ this.editStop(); });
 		this.attachEvent("onRowResize", function(){ this.editStop(); });
 		this.attachEvent("onAfterScroll", function(){ if(this._settings.topSplit) this.editStop(); });
-		this._body.childNodes[1].firstChild.onscroll = bind(this._correct_after_focus_y, this);
-		this._body.childNodes[1].onscroll = bind(this._correct_after_focus_x, this);
+		this._body.childNodes[1].onscroll = () => this._correct_after_focus();
+		if (!this._settings.prerender)
+			this._body.childNodes[1].firstChild.onscroll = () => this._correct_after_focus_y();
 	},
 	_update_editor_y_pos:function(){
 		if (this._in_edit_mode){
