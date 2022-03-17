@@ -72,36 +72,29 @@ const PagingAbility = {
 		return pager._settings;
 	},
 	_count_pager_total:function(level){
-		if (level && level !== 0){
-			var count = 0; 
-			this.each(function(obj){
-				if (obj.$level == level) count++;
+		let childs = 0;
+
+		if (level)
+			this.order.forEach(id => {
+				if (id && this.getItem(id).$level != 1)
+					childs++;
 			});
-			return count;
-		} else
-			return this.count();
+
+		return this.count()-childs;
 	},
 	_count_pager_index:function(start, count){
-		var s = this._settings.pager;
-
-		if (s.level && s.level !== 0){
-			var end = start;
-			var max = this.data.order.length;
-
-			if (count)
-				while (end < max){
-					if (this.data.order[end] && this.data.getItem(this.data.order[end]).$level == s.level){
-						if (count === 0)
-							break;
-						else
-							count--;
-					}
-					end++;
+		if (this._settings.pager.level){
+			const order = this.data.order;
+			if(!order.length)
+				count = 0;
+			else
+				for(let i = start; i <= start+count; i++){
+					const id = order[i];
+					if(id && this.getItem(id).$level != 1)
+						count++;
 				}
-
-			return end;
-		} else
-			return start+count;
+		}
+		return start+count;
 	},
 	setPage:function(value){
 		if (this._pager)

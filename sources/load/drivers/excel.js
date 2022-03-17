@@ -1,4 +1,4 @@
-import {extend, bind, isDate} from "../../webix/helpers";
+import {extend, bind, isDate, isUndefined} from "../../webix/helpers";
 import env from "../../webix/env";
 
 import Promise from "../../thirdparty/promiz";
@@ -37,19 +37,20 @@ const excel = extend({
 	},
 	parseData:function(data, options){
 		data = new Uint8Array(data);
-		var arr = [];
+		const arr = [];
 		for(let i = 0; i != data.length; ++i)
 			arr[i] = String.fromCharCode(data[i]);
 
-		var ext = (options.ext || options).toLowerCase();
+		let ext = (options.ext || options).toLowerCase();
 		if (ext != "xls") ext = "xlsx";
 		return require(env.cdn + "/extras/xlsx.core.styles.min.js").then(bind(function(){
+			const cellDates = isUndefined(options.cellDates) ? true : options.cellDates;
 			/* global XLS, XLSX */
-			var wb = (ext == "xls") ?
-				XLS.read(arr.join(""), {type: "binary", cellStyles:true, cellDates:true}) :
-				XLSX.read(arr.join(""), {type: "binary", cellStyles:true, cellDates:true});
+			const wb = (ext == "xls") ?
+				XLS.read(arr.join(""), {type: "binary", cellStyles:true, cellDates}) :
+				XLSX.read(arr.join(""), {type: "binary", cellStyles:true, cellDates});
 
-			var res = {
+			const res = {
 				sheets: wb.Sheets,
 				names: wb.SheetNames,
 				options:options,

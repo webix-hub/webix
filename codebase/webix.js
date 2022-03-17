@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.9.2.0
+ * webix UI v.9.2.1
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -2071,15 +2071,17 @@
       var ext = (options.ext || options).toLowerCase();
       if (ext != "xls") ext = "xlsx";
       return require(env.cdn + "/extras/xlsx.core.styles.min.js").then(bind(function () {
+        var cellDates = isUndefined(options.cellDates) ? true : options.cellDates;
         /* global XLS, XLSX */
+
         var wb = ext == "xls" ? XLS.read(arr.join(""), {
           type: "binary",
           cellStyles: true,
-          cellDates: true
+          cellDates: cellDates
         }) : XLSX.read(arr.join(""), {
           type: "binary",
           cellStyles: true,
-          cellDates: true
+          cellDates: cellDates
         });
         var res = {
           sheets: wb.Sheets,
@@ -13256,29 +13258,24 @@
       return pager._settings;
     },
     _count_pager_total: function (level) {
-      if (level && level !== 0) {
-        var count = 0;
-        this.each(function (obj) {
-          if (obj.$level == level) count++;
-        });
-        return count;
-      } else return this.count();
+      var _this = this;
+
+      var childs = 0;
+      if (level) this.order.forEach(function (id) {
+        if (id && _this.getItem(id).$level != 1) childs++;
+      });
+      return this.count() - childs;
     },
     _count_pager_index: function (start, count) {
-      var s = this._settings.pager;
-
-      if (s.level && s.level !== 0) {
-        var end = start;
-        var max = this.data.order.length;
-        if (count) while (end < max) {
-          if (this.data.order[end] && this.data.getItem(this.data.order[end]).$level == s.level) {
-            if (count === 0) break;else count--;
-          }
-
-          end++;
+      if (this._settings.pager.level) {
+        var order = this.data.order;
+        if (!order.length) count = 0;else for (var i = start; i <= start + count; i++) {
+          var id = order[i];
+          if (id && this.getItem(id).$level != 1) count++;
         }
-        return end;
-      } else return start + count;
+      }
+
+      return start + count;
     },
     setPage: function (value) {
       if (this._pager) this._pager.select(value);
@@ -17022,7 +17019,7 @@
     }
   };
 
-  var version = "9.2.0";
+  var version = "9.2.1";
   var name = "core";
 
   var errorMessage = "non-existing view for export";
@@ -27578,7 +27575,7 @@
       var _this = this;
 
       _event(this.getInputNode(), "keydown", function (e) {
-        if (e.keyCode == 13) richselect.api._onBlur.apply(_this, []);
+        if (e.keyCode == 13) richselect.api.$onBlur.apply(_this, []);
       });
 
       richselect.api._init_onchange.apply(this, arguments);
@@ -36309,6 +36306,11 @@
 
       if (this.callEvent("onBeforePageChange", [id, old])) {
         this.data.page = id * 1; //must be int
+        // dynamic loading:
+        // if the current page is larger than the next one (treetable branch is open)
+        // avoid extra loading (which depends on the scroll position)
+
+        this.$master._scrollTop = 0;
 
         if (this.refresh()) {
           if (!this._settings.animate || !this._animate(old, id * 1, this._settings.animate)) this.$master.refresh();

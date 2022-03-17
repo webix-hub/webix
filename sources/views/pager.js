@@ -78,6 +78,12 @@ const api = {
 		var old = this.data.page;
 		if (this.callEvent("onBeforePageChange",[id, old])){
 			this.data.page = id*1; //must be int
+
+			// dynamic loading:
+			// if the current page is larger than the next one (treetable branch is open)
+			// avoid extra loading (which depends on the scroll position)
+			this.$master._scrollTop = 0;
+
 			if (this.refresh()){
 				if (!this._settings.animate || !this._animate(old, id*1, this._settings.animate))
 					this.$master.refresh();

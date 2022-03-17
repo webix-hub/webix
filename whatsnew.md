@@ -1,5 +1,14 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
+Version 9.2.1 (March 2022)
+=============================
+
+### Fixes
+
+- Treetable: data are loaded incorrectly with pager and level property
+- Combo: regression with an error on Enter key
+- Hours are missed in dates if are were imported from Excel
+
 Version 9.2.0 (March 2022)
 =============================
 

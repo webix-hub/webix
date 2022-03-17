@@ -13,7 +13,7 @@ const api = {
 	_init_onchange:function(){
 		_event(this.getInputNode(), "keydown", e => {
 			if (e.keyCode == 13)
-				richselect.api._onBlur.apply(this, []);
+				richselect.api.$onBlur.apply(this, []);
 		});
 		richselect.api._init_onchange.apply(this, arguments);
 	},
