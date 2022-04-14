@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.9.2.1
+ * webix UI v.9.2.3
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -93,7 +93,7 @@
         isRunningTask = true;
 
         try {
-          queue[e.data]();
+          if (typeof queue[e.data] === "function") queue[e.data]();
         } catch (e) {// eslint-disable-line
         }
 
@@ -12451,8 +12451,7 @@
       var d = create("DIV");
       d.style.cssText = "position:absolute; width:100%; height:100%; top:0px; left:0px;";
       obj.appendChild(d);
-      var src = env.isIE ? "" : "src='data:image/gif;base64,R0lGODlhEgASAIAAAP///////yH5BAUUAAEALAAAAAASABIAAAIPjI+py+0Po5y02ouz3pwXADs='";
-      d.innerHTML = "<map id='" + this._id + "' name='" + this._id + "'>" + this._map.join("\n") + "</map><img " + src + " class='webix_map_img' usemap='#" + this._id + "'>";
+      d.innerHTML = "\n\t\t\t<map id=\"".concat(this._id, "\" name=\"").concat(this._id, "\">").concat(this._map.join("\n"), "</map>\n\t\t\t<img class=\"webix_map_img\" usemap=\"#").concat(this._id, "\">");
       obj._htmlmap = d; //for clearing routine
 
       this._map = [];
@@ -17019,7 +17018,7 @@
     }
   };
 
-  var version = "9.2.1";
+  var version = "9.2.3";
   var name = "core";
 
   var errorMessage = "non-existing view for export";
@@ -17162,6 +17161,7 @@
         width: (column.width || 200) * (options.export_mode === "excel" ? 8.43 / 70 : 1),
         header: column.header !== false ? column.header || _key2 : ""
       };
+      if (column.collection) record.collection = column.collection;
       if (isTree && _key2 === treeLines) record.isTree = treeColumn = true;
 
       if (options.export_mode === "excel") {
@@ -17279,10 +17279,13 @@
 
         for (var _i7 = 0; _i7 < scheme.length; _i7++) {
           var column = scheme[_i7],
-              cell = null; //spreadsheet use muon to store data, get value via $getExportValue
+              cell = null,
+              formula = void 0; //spreadsheet use muon to store data, get value via $getExportValue
 
           if (view.$getExportValue) cell = view.$getExportValue(item.id, column.id, options); //datatable math
-          else if (options.math && item["$" + column.id] && item["$" + column.id].charAt(0) == "=") cell = item["$" + column.id];
+          else if (options.math && item["$" + column.id] && item["$" + column.id].charAt(0) == "=") {
+              if (mode == "excel") formula = item["$" + column.id];else cell = item["$" + column.id];
+            }
 
           if (this._spans_pull) {
             var span = this.getSpan(item.id, column.id);
@@ -17310,6 +17313,10 @@
             }
           }
 
+          if (formula) cell = {
+            formula: formula,
+            value: cell
+          };
           line.push(cell);
         }
 
@@ -17880,8 +17887,8 @@
           c: C,
           r: R
         });
-        var stringValue = cell.v.toString();
-        var isFormula = stringValue.charAt(0) === "=";
+        var isFormula = _typeof(cell.v) == "object";
+        var stringValue = (isFormula ? cell.v.value : cell.v).toString();
 
         if (styles) {
           var cellStyle = getStyles(R, C, styles);
@@ -17915,9 +17922,9 @@
           cell.z = cell.z || XLSX.SSF[table][14];
           cell.v = excelDate(cell.v);
         } else if (isFormula) {
-          cell.t = cell.t || "n";
-          cell.f = cell.v.substring(1);
-          delete cell.v;
+          if (!cell.t) cell.t = isNaN(stringValue) ? "s" : "n";
+          cell.f = cell.v.formula.substring(1);
+          cell.v = stringValue;
         } else if (!cell.t) {
           if (typeof cell.v === "boolean") cell.t = "b";else if (typeof cell.v === "number" || parseFloat(cell.v) == cell.v) {
             cell.v = cell.v * 1;
@@ -18934,10 +18941,22 @@
     if (view.callEvent) view.callEvent("onBeforePrint", [options]);
     options = _checkOptions(options);
 
-    _beforePrint(options); //try widget's custom logic first, sometimes it may deny 
+    _beforePrint(options); //try widget's custom logic first, sometimes it may deny
 
 
-    if (!view.$customPrint || view.$customPrint(options) === true) _print(view, options);
+    var customPrint;
+
+    if (view.$customPrint) {
+      customPrint = view.$customPrint(options);
+
+      if (customPrint) {
+        if (customPrint.then) return customPrint.then(function () {
+          return _afterPrint(options);
+        });
+
+        _print(view, options);
+      }
+    } else _print(view, options);
 
     _afterPrint(options);
   };
@@ -22147,6 +22166,18 @@
       removeCss(this._headobj, "collapsed");
 
       this._headobj.setAttribute("aria-expanded", "true");
+
+      this._childRefresh(this._body_cell);
+    },
+    _childRefresh: function (view) {
+      var _this = this;
+
+      if (view.refresh) view.refresh();else if (view.getChildViews) {
+        var views = view.getChildViews();
+        views.forEach(function (v) {
+          return _this._childRefresh(v);
+        });
+      }
     },
     _collapse: function () {
       if (this._settings.headerAlt) this._headlabel.innerHTML = this._settings.headerAlt();
@@ -38426,8 +38457,6 @@
         this._viewobj[config.scroll == "x" ? "scrollLeft" : "scrollTop"] = value;
 
         this._onscroll_inner(value, true);
-
-        return true;
       }
     },
     _onscroll_delay: function (time) {
@@ -38465,24 +38494,27 @@
       });
     },
     _on_wheel: function (e) {
+      if (e.ctrlKey) return false;
       var dir = 0;
       var step = e.deltaMode === 0 ? 30 : 1;
-      if (e.ctrlKey) return false;
 
-      if (e.deltaX && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      if (e.deltaX && Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
         //x-scroll
-        if (this._x_scroll_mode && this._settings.scrollVisible) dir = e.deltaX / step;
+        if (this._x_scroll_mode && this._settings.scrollVisible) dir = (e.shiftKey ? e.deltaY : e.deltaX) / step;
       } else {
         //y-scroll
-        if (!this._x_scroll_mode && this._settings.scrollVisible) {
-          if (isUndefined(e.deltaY)) dir = e.detail;else dir = e.deltaY / step;
-        }
+        if (!this._x_scroll_mode && this._settings.scrollVisible) dir = e.deltaY / step;
       } // Safari requires target preserving
       // (used in _check_rendered_cols of DataTable)
 
 
       if (env.isSafari) this._scroll_trg = e.target;
-      if (dir && this.scrollTo(this.getScroll() + dir * this._settings.scrollStep)) return preventEvent(e);
+
+      if (dir) {
+        var old = this.getScroll();
+        this.scrollTo(old + dir * this._settings.scrollStep);
+        if (old !== this.getScroll()) preventEvent(e);
+      }
     }
   };
   var view$1g = exports.protoUI(api$1g, EventSystem, Settings);
@@ -42156,8 +42188,14 @@
       this._render_initial = function () {};
     },
     _first_render: function () {
-      this.data.attachEvent("onStoreLoad", bind(this._refresh_any_header_content, this));
-      this.data.attachEvent("onSyncApply", bind(this._refresh_any_header_content, this));
+      var _this = this;
+
+      this.data.attachEvent("onStoreLoad", function () {
+        return _this._refresh_any_header_content(true);
+      });
+      this.data.attachEvent("onSyncApply", function () {
+        return _this._refresh_any_header_content(true);
+      });
       this.data.attachEvent("onStoreUpdated", bind(function () {
         return this.render.apply(this, arguments);
       }, this));
@@ -42168,19 +42206,19 @@
       this.render();
     },
     _delayRender: function () {
-      var _this = this;
+      var _this2 = this;
 
       clearTimeout(this._renderDelay);
       this._renderDelay = delay(function () {
-        _this._renderDelay = 0;
+        _this2._renderDelay = 0;
 
-        if (!isUndefined(_this._delayedLeftScroll)) {
-          _this._setLeftScroll(_this._delayedLeftScroll);
+        if (!isUndefined(_this2._delayedLeftScroll)) {
+          _this2._setLeftScroll(_this2._delayedLeftScroll);
 
-          delete _this._delayedLeftScroll;
+          delete _this2._delayedLeftScroll;
         }
 
-        _this.render();
+        _this2.render();
       });
     },
     render: function (id, data, mode) {
@@ -42759,7 +42797,7 @@
       this.showItemByIndex(this.getIndexById(id), -1);
     },
     _render_header_section: function (sec, name, heights) {
-      var _this2 = this;
+      var _this3 = this;
 
       var header = sec.childNodes;
       header[0].innerHTML = this._render_subheader(0, this._settings.leftSplit, this._left_width, name, heights);
@@ -42769,7 +42807,7 @@
       if (env.touch) Touch._set_matrix(header[1].firstChild, -x, 0, "0ms");else header[1].scrollLeft = x;
 
       header[1].onscroll = function () {
-        return _this2._scroll_with_header();
+        return _this3._scroll_with_header();
       };
     },
     _scroll_with_header: function () {
@@ -42786,27 +42824,27 @@
     _refresh_tracking_header_content: function () {
       this.refreshHeaderContent(true, true);
     },
-    _refresh_any_header_content: function () {
-      this.refreshHeaderContent(false, true);
+    _refresh_any_header_content: function (loading) {
+      this.refreshHeaderContent(false, true, null, loading);
     },
     //[DEPRECATE] - v3.0, move to private
-    refreshHeaderContent: function (trackedOnly, preserve, id) {
+    refreshHeaderContent: function (trackedOnly, preserve, id, loading) {
       if (this._settings.header) {
-        if (preserve) this._refreshHeaderContent(this._header, trackedOnly, 1, id);
+        if (preserve) this._refreshHeaderContent(this._header, trackedOnly, 1, id, loading);
 
-        this._refreshHeaderContent(this._header, trackedOnly, 0, id);
+        this._refreshHeaderContent(this._header, trackedOnly, 0, id, loading);
       }
 
       if (this._settings.footer) {
-        if (preserve) this._refreshHeaderContent(this._footer, trackedOnly, 1, id);
+        if (preserve) this._refreshHeaderContent(this._footer, trackedOnly, 1, id, loading);
 
-        this._refreshHeaderContent(this._footer, trackedOnly, 0, id);
+        this._refreshHeaderContent(this._footer, trackedOnly, 0, id, loading);
       }
     },
     refreshFilter: function (id) {
       this.refreshHeaderContent(false, true, id);
     },
-    _refreshHeaderContent: function (sec, cellTrackOnly, getOnly, byId) {
+    _refreshHeaderContent: function (sec, cellTrackOnly, getOnly, byId, loading) {
       if (this._has_active_headers && sec) {
         var tag = "DIV";
         var attr =
@@ -42829,7 +42867,7 @@
                 obj.value = content.getValue(cells[i]);
               }
             } else if (!cellTrackOnly || content.trackCells) {
-              content.refresh(this, cells[i], obj);
+              if (!loading || !this.getColumnConfig(obj.columnId).collection) content.refresh(this, cells[i], obj);
             }
           }
         }
@@ -43956,7 +43994,7 @@
     _last_order: [],
     _last_sorted: {},
     _sort: function (col_id, direction, type$$1, preserve) {
-      var _this3 = this;
+      var _this4 = this;
 
       preserve = this._settings.sort === "multi" && preserve;
       direction = direction || "asc";
@@ -43981,11 +44019,11 @@
       if (type$$1 == "server") {
         var params = [col.id, direction, type$$1];
         if (this._last_order.length > 1) params = [this._last_order.map(function (id) {
-          return _this3._last_sorted[id];
+          return _this4._last_sorted[id];
         })];
         this.callEvent("onBeforeSort", params);
         if (!this._skip_server_op) this.loadNext(0, 0, 0, 0, true, true).then(function () {
-          return _this3._on_after_sort(params);
+          return _this4._on_after_sort(params);
         });else this._skip_server_op.$params = params; // save last parameters
       } else {
         if (type$$1 == "text") {
@@ -43998,7 +44036,7 @@
         }
 
         if (this._last_order.length > 1) this.data.sort(this._last_order.map(function (id) {
-          return _this3._last_sorted[id];
+          return _this4._last_sorted[id];
         }));else this.data.sort(config);
       }
 
@@ -44029,7 +44067,7 @@
           id = null,
           res; //loop through all parents
 
-      while (trg && trg.parentNode && trg != this._viewobj.parentNode) {
+      while (trg && trg.parentNode && this._viewobj && trg != this._viewobj.parentNode) {
         var trgCss = _getClassName(trg);
 
         if ((css = trgCss) && hash) {

@@ -1,5 +1,4 @@
 import {create} from "../webix/html";
-import env from "../webix/env";
 import {uid} from "../webix/helpers";
 import {proto} from "../ui/core";
 
@@ -63,14 +62,16 @@ const HtmlMap = proto({
 		}
 	},
 	render:function(obj){
-		var d = create("DIV");
+		const d = create("DIV");
 		d.style.cssText="position:absolute; width:100%; height:100%; top:0px; left:0px;";
 		obj.appendChild(d);
-		var src = env.isIE?"":"src='data:image/gif;base64,R0lGODlhEgASAIAAAP///////yH5BAUUAAEALAAAAAASABIAAAIPjI+py+0Po5y02ouz3pwXADs='";
-		d.innerHTML="<map id='"+this._id+"' name='"+this._id+"'>"+this._map.join("\n")+"</map><img "+src+" class='webix_map_img' usemap='#"+this._id+"'>";
-		
+
+		d.innerHTML=`
+			<map id="${this._id}" name="${this._id}">${this._map.join("\n")}</map>
+			<img class="webix_map_img" usemap="#${this._id}">`;
+
 		obj._htmlmap = d; //for clearing routine
-		
+
 		this._map = [];
 	}
 });

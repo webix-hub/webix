@@ -18,8 +18,7 @@ var sizes = {//inches, real size is value*ppi
 };
 
 const print = function(id, options){
-
-	var view = $$(id);
+	let view = $$(id);
 	if (view && view.$printView)
 		view = view.$printView();
 
@@ -32,8 +31,17 @@ const print = function(id, options){
 	options = _checkOptions(options);
 	_beforePrint(options);
 
-	//try widget's custom logic first, sometimes it may deny 
-	if(!view.$customPrint || view.$customPrint(options) === true) 
+	//try widget's custom logic first, sometimes it may deny
+	let customPrint;
+	if(view.$customPrint){
+		customPrint = view.$customPrint(options);
+		if(customPrint){
+			if(customPrint.then)
+				return customPrint.then(()=>_afterPrint(options));
+			_print(view, options);
+		}
+	}
+	else
 		_print(view, options);
 
 	_afterPrint(options);

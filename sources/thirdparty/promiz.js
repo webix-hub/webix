@@ -12,7 +12,8 @@ if (!global.setImmediate && global.addEventListener)
 			else {
 				isRunningTask = true;
 				try {
-					queue[e.data]();
+					if (typeof queue[e.data] === "function")
+						queue[e.data]();
 				} catch (e) {
 					// eslint-disable-line
 				}

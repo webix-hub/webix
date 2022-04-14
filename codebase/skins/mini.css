@@ -1292,7 +1292,7 @@ button,
   left: 0px;
   border: 0px;
   opacity: 0;
-  pointer-events: none;
+  -webkit-user-select: none;
 }
 /*scales*/
 .webix_axis_item_y {
@@ -6919,7 +6919,8 @@ body.webix_print {
 .webix_dtable.webix_data_border .webix_table_cell {
   border-right-color: #EDEFF0;
 }
-.webix_dtable .webix_ss_left .webix_column.webix_last > div {
+.webix_dtable .webix_ss_left .webix_column.webix_last > div,
+.webix_dtable .webix_table_cell.webix_last_rightcell {
   border-right: 1px solid #ccd2d4;
 }
 .webix_dtable div.webix_last_topcell {

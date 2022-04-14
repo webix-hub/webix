@@ -124,12 +124,14 @@ export function getExportScheme(view, options){
 				column = extend(extend({}, column), sourceColumn);
 		}
 
-		let record = {
+		const record = {
 			id:         column.id,
 			template:   (( rawColumn || !column.template) ? getDataHelper(key, column, raw)  : column.template ),
 			width:      ((column.width   || 200) * (options.export_mode==="excel"?8.43/70:1 )),
 			header:     (column.header!==false?(column.header||key)  : "")
 		};
+
+		if (column.collection) record.collection = column.collection;
 
 		if(isTree && key === treeLines)
 			record.isTree = treeColumn = true;
@@ -246,13 +248,17 @@ export function getExportData(view, options, scheme){
 
 			let line = [];
 			for (let i = 0; i < scheme.length; i++){
-				let column = scheme[i], cell = null;
+				let column = scheme[i], cell = null, formula;
 				//spreadsheet use muon to store data, get value via $getExportValue
 				if(view.$getExportValue)
 					cell = view.$getExportValue(item.id, column.id, options);
 				//datatable math
-				else if(options.math && item["$"+column.id] && item["$"+column.id].charAt(0) =="=")
-					cell = item["$"+column.id];
+				else if(options.math && item["$"+column.id] && item["$"+column.id].charAt(0) =="="){
+					if(mode == "excel")
+						formula = item["$"+column.id];
+					else
+						cell = item["$"+column.id];
+				}
 				if(this._spans_pull){
 					let span = this.getSpan(item.id, column.id);
 					if(span && span[4] && span[0] == item.id && span[1] == column.id){
@@ -277,6 +283,10 @@ export function getExportData(view, options, scheme){
 						cell = cell.replace(/<br\s*\/?>/mg,"\n");
 					}
 				}
+
+				if(formula)
+					cell = { formula, value: cell };
+
 				line.push(cell);
 			}
 

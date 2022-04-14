@@ -1,5 +1,25 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
+Version 9.2.3 (April 2022)
+=============================
+
+### Fixes
+
+- correct borders for span inside split
+- combo/richselect export fails
+- Chart regression: tooltips don't work
+- adding data in dynamic list that is inside collapsed accordion item
+
+Version 9.2.2 (March 2022)
+=============================
+
+### Fixes
+
+- Datatable: active click handlers throw an error on view destruction
+- custom scroll behavior issues: scroll of inner views blocks scroll of parents, Shift+wheel do not scroll the horizontal bar, etc
+- Grouplist: custom scroll does not work after animation
+- Datatable: filter is refreshed after data loading if column options are taken from a collection
+
 Version 9.2.1 (March 2022)
 =============================
 
@@ -15,7 +35,7 @@ Version 9.2.0 (March 2022)
 ### Major features
 
 - Problems with touch handlers on hybrid devices (Microsoft Surface or a laptop with touchscreen)
-- grouplist: setOpenState method is added
+- Grouplist: setOpenState method is added
 - combo: ability to add new options via the input
 - $onBlur handler for inputs is added
 
@@ -408,7 +428,7 @@ Version 3.4 (July 2016)
 
 ### Major features
 
-- "Frozen" rows in datatable
+- "Frozen" rows in Datatable
 - Patterns for text inputs
 - Area, Spline, Pie and Bar sparklines
 - "Month" and "year" time pickers
@@ -526,7 +546,7 @@ Version 2.2
 - Optional Today and Clear buttons in the Calendar
 - Ability to define file types for file uploader
 - Webix.ajax api can be used to fetch binary data ( file downloading by ajax )
-- Optional hover for rows in datatable
+- Optional hover for rows in Datatable
 - Improved scrolling on touch devices
 
 
@@ -621,7 +641,7 @@ Version 1.7
 
 ### Breaking changes in API
 
-datatable.locate method returns object with "row" and "column" properties, in previous version result object has "row" and "col" properties respectfully.
+Datatable.locate method returns object with "row" and "column" properties, in previous version result object has "row" and "col" properties respectfully.
 
 
 ### Default skin
@@ -631,9 +651,9 @@ Compact skin changed to flat theme as well ( old one renamed to skins/aircompact
 
 
 ### Improvments in API
-- text sorting mode for datatable
+- text sorting mode for Datatable
 - autoheight property for "property" view
-- ability to edit math formulas in the datatable
+- ability to edit math formulas in the Datatable
 - "touch" mode for multiselect
 
 
@@ -678,9 +698,9 @@ Version 1.5
 - functionality of desktop UI adapted to touch events and gestures
 
 ### Improvments in DataTable
-- adjustRowHeight method added to datatable
+- adjustRowHeight method added to Datatable
 - fillspace can be used for multiple columsn
-- richselect can be used as editor in the datatable
+- richselect can be used as editor in the Datatable
 - checkboxes can have checkValue and uncheckValue options
  
 ### Improvments in Angular and Backbone 
@@ -719,7 +739,7 @@ Version 1.4
 
 ### Others 
 
-- autoConfig option for the datatable
+- autoConfig option for the Datatable
 - dataprocessor tracks data moving events
 - keyboard navigation for list component
 - correct sizing of layout with hidden pannels
@@ -789,7 +809,7 @@ Version 1.1
 
 - popup's visibility on iOS
 - incorrect sizing of multiview and accordion
-- incorrect behavior of drag-n-drop in datatable
+- incorrect behavior of drag-n-drop in Datatable
 - setValue doesn't work for radio buttons
 
 
@@ -799,7 +819,7 @@ Version 1.0.2
 
 ### New functionality
 
-- getText method for datatable	
+- getText method for Datatable	
 - lineMaxLimit parameter that cuts a line in "non-item" position
 - ui.fullScreen solution for FF
 - default size of resizer changed
@@ -815,7 +835,7 @@ Version 1.0.2
 - IE8 sets invalid value after changing cell value with select editor
 - minWidth and maxWidth settings from xml
 - loading tree-like data from XML
-- datatable do not allow to define order of columns during export to pdf and excel
+- Datatable do not allow to define order of columns during export to pdf and excel
 - incorrect remove action for local and session storage
 - regression in layout rendering when views are added through addView
 - dataprocessor and id change during binding	
@@ -848,7 +868,7 @@ Version 1.0.1
 - invalid size and focus of popup editors
 - toggle button ignores inputWidth settings
 - regression in treetable checkbox behavior
-- regression in datatable markup parsing
+- regression in Datatable markup parsing
 - conflict between data and content properties of template
 - row markers are not removed during clearAll
 - mulitiview with no animation

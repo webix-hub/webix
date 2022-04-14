@@ -735,7 +735,7 @@ button,
   left: 0px;
   border: 0px;
   opacity: 0;
-  pointer-events: none;
+  -webkit-user-select: none;
 }
 /*scales*/
 .webix_axis_item_y {
@@ -5224,7 +5224,8 @@ body.webix_print {
 .webix_resizer_x {
   background-color: #818181;
 }
-.webix_dtable .webix_ss_left .webix_column.webix_last > div {
+.webix_dtable .webix_ss_left .webix_column.webix_last > div,
+.webix_dtable .webix_last_rightcell {
   border-right: 1px solid #747474;
 }
 .webix_dtable .webix_ss_right .webix_column.webix_first > div {

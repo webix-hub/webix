@@ -3,7 +3,7 @@ import Settings from "../core/settings";
 import {preventEvent} from "../webix/html";
 import {protoUI} from "../ui/core";
 import env from "../webix/env";
-import {toNode, isUndefined, delay} from "../webix/helpers";
+import {toNode, delay} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 import {$active} from "../webix/skin";
 
@@ -118,7 +118,6 @@ const api = {
 		if (value != this._settings.scrollPos){
 			this._viewobj[config.scroll == "x"?"scrollLeft":"scrollTop"] = value;
 			this._onscroll_inner(value, true);
-			return true;
 		}
 	},
 	_onscroll_delay:function(time){
@@ -153,34 +152,31 @@ const api = {
 		_event(area, "wheel", this._on_wheel, {bind:this, passive:false});
 	},
 	_on_wheel:function(e){
+		if (e.ctrlKey) return false;
+
 		let dir = 0;
 		const step = e.deltaMode === 0 ? 30 : 1;
-
-		if (e.ctrlKey)
-			return false;
-
-		if (e.deltaX && Math.abs(e.deltaX) > Math.abs(e.deltaY)){
+		if ((e.deltaX && Math.abs(e.deltaX) > Math.abs(e.deltaY)) || e.shiftKey){
 			//x-scroll
 			if (this._x_scroll_mode && this._settings.scrollVisible)
-				dir = e.deltaX / step;
+				dir = (e.shiftKey ? e.deltaY : e.deltaX) / step;
 		} else {
 			//y-scroll
-			if (!this._x_scroll_mode && this._settings.scrollVisible){
-				if (isUndefined(e.deltaY))
-					dir = e.detail;
-				else
-					dir = e.deltaY / step;
-			}
+			if (!this._x_scroll_mode && this._settings.scrollVisible)
+				dir = e.deltaY / step;
 		}
 
 		// Safari requires target preserving
 		// (used in _check_rendered_cols of DataTable)
-		if(env.isSafari)
+		if (env.isSafari)
 			this._scroll_trg = e.target;
 
-		if (dir && this.scrollTo(this.getScroll() + dir*this._settings.scrollStep))
-			return preventEvent(e);
-
+		if (dir){
+			const old = this.getScroll();
+			this.scrollTo(old + dir*this._settings.scrollStep);
+			if (old !== this.getScroll())
+				preventEvent(e);
+		}
 	}
 };
 

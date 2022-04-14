@@ -103,8 +103,8 @@ function getExcelData(data, scheme, spans, styles, options) {
 			if(cell.v === null) continue;
 			const cell_ref = XLSX.utils.encode_cell({c:C,r:R});
 
-			const stringValue = cell.v.toString();
-			const isFormula = (stringValue.charAt(0) === "=");
+			const isFormula = typeof cell.v == "object";
+			const stringValue = (isFormula ? cell.v.value : cell.v).toString();
 
 			if(styles){
 				const cellStyle = getStyles(R, C, styles);
@@ -136,9 +136,11 @@ function getExcelData(data, scheme, spans, styles, options) {
 				cell.v = excelDate(cell.v);
 			}
 			else if(isFormula){
-				cell.t = cell.t || "n";
-				cell.f = cell.v.substring(1);
-				delete cell.v;
+				if(!cell.t)
+					cell.t = isNaN(stringValue) ? "s" : "n";
+
+				cell.f = cell.v.formula.substring(1);
+				cell.v = stringValue;
 			}
 			else if(!cell.t){
 				if(typeof cell.v === "boolean")

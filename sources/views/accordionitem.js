@@ -186,6 +186,15 @@ const api = {
 		removeCss(this._headobj, "collapsed");
 
 		this._headobj.setAttribute("aria-expanded", "true");
+		this._childRefresh(this._body_cell);
+	},
+	_childRefresh: function(view){
+		if(view.refresh)
+			view.refresh();
+		else if(view.getChildViews){
+			const views = view.getChildViews();
+			views.forEach(v=>this._childRefresh(v));
+		}
 	},
 	_collapse:function(){
 		if(this._settings.headerAlt)

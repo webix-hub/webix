@@ -205,8 +205,8 @@ const api = {
 		this._render_initial = function(){};
 	},
 	_first_render:function(){
-		this.data.attachEvent("onStoreLoad", bind(this._refresh_any_header_content, this));
-		this.data.attachEvent("onSyncApply", bind(this._refresh_any_header_content, this));
+		this.data.attachEvent("onStoreLoad", ()=>this._refresh_any_header_content(true));
+		this.data.attachEvent("onSyncApply", ()=>this._refresh_any_header_content(true));
 		this.data.attachEvent("onStoreUpdated", bind(function(){ return this.render.apply(this, arguments); }, this));
 		this.data.attachEvent("onStoreUpdated", bind(this._refresh_tracking_header_content, this));
 		this.render();
@@ -807,24 +807,25 @@ const api = {
 	_refresh_tracking_header_content:function(){
 		this.refreshHeaderContent(true, true);
 	},
-	_refresh_any_header_content:function(){
-		this.refreshHeaderContent(false, true);
+	_refresh_any_header_content:function(loading){
+		this.refreshHeaderContent(false, true, null, loading);
 	},
 	//[DEPRECATE] - v3.0, move to private
-	refreshHeaderContent:function(trackedOnly, preserve, id){
+	refreshHeaderContent:function(trackedOnly, preserve, id, loading){
 		if (this._settings.header){
-			if (preserve) this._refreshHeaderContent(this._header, trackedOnly, 1, id);
-			this._refreshHeaderContent(this._header, trackedOnly, 0, id);
+			if (preserve) this._refreshHeaderContent(this._header, trackedOnly, 1, id, loading);
+			this._refreshHeaderContent(this._header, trackedOnly, 0, id, loading);
 		}
 		if (this._settings.footer){
-			if (preserve) this._refreshHeaderContent(this._footer, trackedOnly, 1, id);
-			this._refreshHeaderContent(this._footer, trackedOnly, 0, id);
+			if (preserve) this._refreshHeaderContent(this._footer, trackedOnly, 1, id, loading);
+			this._refreshHeaderContent(this._footer, trackedOnly, 0, id, loading);
 		}
 	},
 	refreshFilter:function(id){
 		this.refreshHeaderContent(false, true, id);
 	},
-	_refreshHeaderContent:function(sec, cellTrackOnly, getOnly, byId){
+	_refreshHeaderContent:function(sec, cellTrackOnly, getOnly, byId, loading){
+
 		if (this._has_active_headers && sec){
 			const tag = "DIV";
 			const attr = /*@attr*/"active_id";
@@ -842,7 +843,8 @@ const api = {
 							obj.value = content.getValue(cells[i]);
 						}
 					} else if (!cellTrackOnly || content.trackCells){
-						content.refresh(this, cells[i], obj);
+						if(!loading || !this.getColumnConfig(obj.columnId).collection)
+							content.refresh(this, cells[i], obj);
 					}
 				}
 			}
@@ -2014,7 +2016,7 @@ const api = {
 			res;
 
 		//loop through all parents
-		while (trg && trg.parentNode && trg != this._viewobj.parentNode){
+		while (trg && trg.parentNode && this._viewobj && trg != this._viewobj.parentNode){
 			var trgCss = _getClassName(trg);
 			if ((css = trgCss) && hash) {
 				css = css.toString().split(" ");
