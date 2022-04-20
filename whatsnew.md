@@ -1,33 +1,16 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
-Version 9.2.3 (April 2022)
+Version 9.3.0 (April 2022)
 =============================
 
-### Fixes
+### Major features
 
-- correct borders for span inside split
-- combo/richselect export fails
-- Chart regression: tooltips don't work
-- adding data in dynamic list that is inside collapsed accordion item
+- Chat: ability to send emojis and add reactions
+- More chart types for Pivot
+- Spreadsheet: special paste and more charts and sparkline types
+- Scheduler: ability to copy events
 
-Version 9.2.2 (March 2022)
-=============================
-
-### Fixes
-
-- Datatable: active click handlers throw an error on view destruction
-- custom scroll behavior issues: scroll of inner views blocks scroll of parents, Shift+wheel do not scroll the horizontal bar, etc
-- Grouplist: custom scroll does not work after animation
-- Datatable: filter is refreshed after data loading if column options are taken from a collection
-
-Version 9.2.1 (March 2022)
-=============================
-
-### Fixes
-
-- Treetable: data are loaded incorrectly with pager and level property
-- Combo: regression with an error on Enter key
-- Hours are missed in dates if are were imported from Excel
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_9_3.html)
 
 Version 9.2.0 (March 2022)
 =============================

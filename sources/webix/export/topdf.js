@@ -17,10 +17,14 @@ export const toPDF = function(id, options){
 
 	options.export_mode = "pdf";
 
-	extend(options, {
+	const fontFiles = {
 		fontName: "pt-sans.regular",
-		boldFontName: "pt-sans.bold"
-	});
+		boldFontName: "pt-sans.bold",
+		italicFontName: "pt-sans.italic",
+		italicBoldFontName: "pt-sans.italic-bold"
+	};
+
+	extend(options, fontFiles);
 
 	id = isArray(id)?id:[id];
 	let views = [];
@@ -80,9 +84,15 @@ export const toPDF = function(id, options){
 		if(views.length == 0)
 			return promise.reject(errorMessage);
 
-		if(font[options.fontName] && font[options.boldFontName]){
-			options._export_font = font[options.fontName];
-			options._export_font_bold = font[options.boldFontName];
+		let allFontsLoaded = true;
+
+		for(let name in fontFiles)
+			if(!font[name]){
+				allFontsLoaded = false;
+				break;
+			}
+
+		if(allFontsLoaded){
 			return getPdfData(views, options).then(function(pdf){
 				return getBlob(pdf, options);
 			});
@@ -93,15 +103,21 @@ export const toPDF = function(id, options){
 			pdfjs.load(options.fontURL||env.cdn + "/extras/"+options.fontName+".ttf", function(err, regular){
 				if(err)
 					return defer.reject(err);
-				pdfjs.load(options.boldFontURL||env.cdn + "/extras/"+options.boldFontName+".ttf", function(err, bold){
-					options._export_font = font[options.fontName] = new pdfjs.TTFFont(regular);
-					options._export_font_bold = font[options.boldFontName] = err ? null : new pdfjs.TTFFont(bold);
+				pdfjs.load(options.italicBoldFontURL||env.cdn + "/extras/"+options.italicBoldFontName+".ttf", function(errIB, ib){
+					pdfjs.load(options.italicFontURL||env.cdn + "/extras/"+options.italicFontName+".ttf", function(errI, i){
+						pdfjs.load(options.boldFontURL||env.cdn + "/extras/"+options.boldFontName+".ttf", function(errB, b){
+							font[options.fontName] = new pdfjs.TTFFont(regular);
+							font[options.boldFontName] = errB ? null : new pdfjs.TTFFont(b);
+							font[options.italicFontName] = errI ? null : new pdfjs.TTFFont(i);
+							font[options.italicBoldFontName] = errIB ? null : new pdfjs.TTFFont(ib);
 
-					defer.resolve(
-						getPdfData(views, options).then(function(pdf){
-							return getBlob(pdf, options);
-						})
-					);
+							defer.resolve(
+								getPdfData(views, options).then(function(pdf){
+									return getBlob(pdf, options);
+								})
+							);
+						});
+					});
 				});
 			});
 			return defer;
@@ -136,10 +152,8 @@ function getPdfData(views, options){
 
 			if(images[i])
 				doc.image(images[i], {align:"center"});
-			else{
-				viewOptions._export_font_bold = options._export_font_bold;
+			else
 				addPDFTable(views[i], doc);
-			}
 
 			if(viewOptions.textAfter)
 				addText(doc, "after", viewOptions.textAfter);
@@ -217,7 +231,7 @@ function addPDFDoc(options){
 
 	return new pdfjs.Document({
 		padding: 40,
-		font: options._export_font,
+		font: font[options.fontName],
 		threshold:256,
 		width,
 		height
@@ -250,7 +264,6 @@ function addPDFTable(view, doc){
 	});
 
 	const table = doc.table(tableOps);
-	const boldFont = options._export_font_bold;
 
 	//render table header
 	if(h_count){
@@ -264,8 +277,7 @@ function addPDFTable(view, doc){
 			const header = table.tr(headerOps);
 			for(let s=0; s<scheme.length; s++){
 				const cellStyle = styles ? getStyles(i, s, styles) : {};
-				if(boldFont && cellStyle.bold)
-					cellStyle.font = boldFont;
+				setFont(cellStyle, options);
 				header.td(scheme[s].header[i].toString(), cellStyle);
 			}
 		}
@@ -276,8 +288,7 @@ function addPDFTable(view, doc){
 		let row = table.tr({});
 		for(let c=0; c< data[r].length; c++){
 			const cellStyle = styles ? getStyles(r+h_count, c, styles) : {};
-			if(boldFont && cellStyle.bold)
-				cellStyle.font = boldFont;
+			setFont(cellStyle, options);
 			row.td(data[r][c], cellStyle);
 		}
 	}
@@ -295,12 +306,26 @@ function addPDFTable(view, doc){
 			let footer = table.tr(footerOps);
 			for(let s=0; s<scheme.length; s++){
 				const cellStyle = styles ? getStyles(i+beforeCount, s, styles) : {};
-				if(boldFont && cellStyle.bold)
-					cellStyle.font = boldFont;
+				setFont(cellStyle, options);
 				footer.td(scheme[s].footer[i].toString(), cellStyle);
 			}
 		}
 	}
+}
+
+function setFont(cellStyle, options){
+	const boldFont = font[options.boldFontName];
+	const italicFont = font[options.italicFontName];
+	const italicBoldFont = font[options.italicBoldFontName];
+
+	if(cellStyle.bold && boldFont) {
+		if(cellStyle.italic && italicBoldFont)
+			cellStyle.font = italicBoldFont;
+		else
+			cellStyle.font = boldFont;
+	}
+	else if(cellStyle.italic && italicFont)
+		cellStyle.font = italicFont;
 }
 
 function addPDFHeader(doc, options){

@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.9.2.3
+ * webix UI v.9.3.0
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -10826,7 +10826,8 @@
           data: data
         });
 
-        if (this._undoHistory.length == 20) this._undoHistory.splice(0, 1);
+        var undoLimit = this._settings.undoLimit || 20;
+        if (this._undoHistory.length > undoLimit) this._undoHistory.splice(0, 1);
         if (!this._skipCursorInc) this._undoCursor = this._undoHistory.length - 1;
       }
     },
@@ -14336,44 +14337,47 @@
   }
 
   Bar.prototype.draw = function (data, width, height) {
-    var i,
-        css,
-        p,
-        y,
-        padding,
-        config = this.config,
-        graph = "",
-        items = [],
-        points = this.getPoints(data, width, height),
-        renderer = SVG; // draw bars
+    var graph = "";
+    var config = this.config;
+    var renderer = SVG;
+    var horizontal = config.horizontal;
+    var items = [];
+    var origin = parseInt(this._getOrigin(data, width, height), 10) + 0.5;
+    var points = this.getPoints(data, width, height, origin); // draw bars
 
-    for (i = 0; i < points.length; i++) {
+    for (var i = 0; i < points.length; i++) {
+      var css = void 0;
       css = typeof config.itemCss == "function" ? config.itemCss.call(this, data[i]) : config.itemCss || "";
       if (config.negativeColor && data[i] < config.origin) css += " " + this._applyColor(renderer, config.negativeColor);else if (config.color) css += " " + this._applyColor(renderer, config.color);
-      p = points[i];
+      var p = points[i];
       items.push(renderer.getRect(p.x, p.y, p.width, p.height, "webix_sparklines_bar " + css));
     }
 
-    graph += renderer.group(items.join("")); // origin)
+    graph += renderer.group(items.join("")); // origin
 
-    y = parseInt(this._getOrigin(data, width, height), 10) + 0.5;
-    padding = config.paddingX || 0;
-    graph += renderer.group(renderer.getLine({
+    var padding = horizontal ? config.paddingY : config.paddingX;
+    if (horizontal) graph += renderer.group(renderer.getLine({
+      x: origin,
+      y: padding
+    }, {
+      x: origin,
+      y: height - padding
+    }, "webix_sparklines_origin"));else graph += renderer.group(renderer.getLine({
       x: padding,
-      y: y
+      y: origin
     }, {
       x: width - padding,
-      y: y
+      y: origin
     }, "webix_sparklines_origin")); // event areas
 
-    var evPoints = this._getEventPoints(data, width, height);
+    var evPoints = this._getEventPoints(data, width, height, origin);
 
     var evItems = [];
 
-    for (i = 0; i < evPoints.length; i++) {
-      p = evPoints[i];
-      evItems.push(renderer.getRect(p.x, p.y, p.width, p.height, "webix_sparklines_event_area ", {
-        "webix_area": i
+    for (var _i = 0; _i < evPoints.length; _i++) {
+      var _p = evPoints[_i];
+      evItems.push(renderer.getRect(_p.x, _p.y, _p.width, _p.height, "webix_sparklines_event_area ", {
+        "webix_area": _i
       }));
     }
 
@@ -14390,20 +14394,24 @@
 
   Bar.prototype._getOrigin = function (data, width, height) {
     var config = this.config;
-    var y = config.paddingY || 0;
-    height = (height || 100) - y * 2;
-    var pos$$1 = y + height;
+    var horizontal = config.horizontal;
+    var padding = horizontal ? config.paddingX : config.paddingY;
+    var size = ((horizontal ? width : height) || 100) - padding * 2;
+    var pos$$1;
+    if (horizontal) pos$$1 = padding;else {
+      pos$$1 = padding + size;
+    }
 
     if (config.origin !== false) {
-      var minValue = Math.min.apply(null, data);
-      var maxValue = Math.max.apply(null, data);
+      var minValue = Math.min.apply(Math, _toConsumableArray(data));
+      var maxValue = Math.max.apply(Math, _toConsumableArray(data));
       var origin = config.origin || -0.000001;
 
       if (origin >= maxValue) {
-        pos$$1 = y;
+        pos$$1 = padding;
       } else if (origin > minValue) {
-        var unitY = height / (maxValue - minValue);
-        pos$$1 -= unitY * (origin - minValue);
+        var unit = size / (maxValue - minValue);
+        pos$$1 += (horizontal ? 1 : -1) * unit * (origin - minValue);
       }
     }
 
@@ -14412,20 +14420,26 @@
 
   Bar.prototype._getEventPoints = function (data, width, height) {
     var result = [];
-    var x = this.config.paddingX || 0;
-    var y = this.config.paddingY || 0;
+    var horizontal = this.config.horizontal;
+    var x = this.config.paddingX;
+    var y = this.config.paddingY;
     width = (width || 100) - x * 2;
     height = (height || 100) - y * 2;
 
     if (data.length) {
-      var unitX = width / data.length;
+      var unit = (horizontal ? height : width) / data.length;
 
       for (var i = 0; i < data.length; i++) {
-        result.push({
-          x: Math.ceil(unitX * i) + x,
+        if (horizontal) result.push({
+          x: x,
+          y: Math.ceil(unit * i) + y,
+          height: unit,
+          width: width
+        });else result.push({
+          x: Math.ceil(unit * i) + x,
           y: y,
           height: height,
-          width: unitX
+          width: unit
         });
       }
     }
@@ -14433,38 +14447,41 @@
     return result;
   };
 
-  Bar.prototype.getPoints = function (data, width, height) {
+  Bar.prototype.getPoints = function (data, width, height, originPos) {
     var config = this.config;
-    var minValue = Math.min.apply(null, data);
+    var horizontal = config.horizontal;
+    var minValue = Math.min.apply(Math, _toConsumableArray(data));
     if (config.origin < minValue) minValue = config.origin;
-    var maxValue = Math.max.apply(null, data);
+    var maxValue = Math.max.apply(Math, _toConsumableArray(data));
     var result = [];
     var x = config.paddingX;
     var y = config.paddingY;
     var margin = config.margin;
     var barWidth = config.width || 20;
-
-    var originY = this._getOrigin(data, width, height);
-
     width = (width || 100) - x * 2;
     height = (height || 100) - y * 2;
 
     if (data.length) {
-      var unitX = width / data.length;
-      var yNum = config.scale || maxValue - minValue;
-      barWidth = Math.min(unitX - margin, barWidth);
-      margin = unitX - barWidth;
-      var minHeight = 0;
+      var unit = (horizontal ? height : width) / data.length;
+      var scale = config.scale || maxValue - minValue;
+      barWidth = Math.min(unit - margin, barWidth);
+      margin = unit - barWidth;
       var origin = minValue;
-      if (config.origin !== false && config.origin > minValue) origin = config.origin || 0;else minHeight = config.minHeight;
-      var unitY = (height - minHeight) / (yNum ? yNum : 1);
+      if (config.origin !== false && config.origin > minValue) origin = config.origin || 0;
+      var itemHeight = (horizontal ? width : height) / (scale || 1);
 
       for (var i = 0; i < data.length; i++) {
-        var h = Math.ceil(unitY * (data[i] - origin));
-        result.push({
-          x: Math.ceil(unitX * i) + x + margin / 2,
-          y: originY - (data[i] >= origin ? h : 0) - minHeight,
-          height: Math.abs(h) + minHeight,
+        var h = Math.abs(Math.ceil(itemHeight * (data[i] - origin)));
+        if (data[i] && h < config.minHeight) h += config.minHeight;
+        if (horizontal) result.push({
+          x: originPos - (data[i] >= origin ? 0 : h),
+          y: Math.ceil(unit * i) + y + margin / 2,
+          height: barWidth,
+          width: h
+        });else result.push({
+          x: Math.ceil(unit * i) + x + margin / 2,
+          y: originPos - (data[i] >= origin ? h : 0),
+          height: h,
           width: barWidth
         });
       }
@@ -14478,7 +14495,7 @@
   };
 
   function Pie(config) {
-    this.config = exports.extend(defaults$3, config || {}, true);
+    this.config = exports.extend(copy(defaults$3), config || {}, true);
   }
 
   Pie.prototype._defColorsCursor = 0;
@@ -14543,6 +14560,10 @@
     }
 
     graph += renderer.group(sectors);
+    if (config.donut) graph += SVG.getCircle({
+      x: x0,
+      y: y0
+    }, config.innerRadius || r * 0.5, "webix_sparklines_donut_hole");
     return renderer.draw(graph, width, height, "webix_sparklines_pie_chart" + (config.css ? " " + config.css : ""));
   };
 
@@ -14766,13 +14787,11 @@
       "area": {},
       "line": {},
       "item": {}
-    },
-        map = renderer.styleMap;
+    };
+    var map = renderer.styleMap;
 
     if (color) {
-      config.area[map.color] = renderer.setOpacity(color, 0.2);
-      config.line[map.lineColor] = color;
-      config.item[map.color] = color;
+      config.area[map.color] = config.line[map.lineColor] = config.item[map.color] = color;
 
       for (var name in config) {
         config[name] = createCss(config[name]);
@@ -14797,6 +14816,99 @@
       y: points[0][0].y
     });
     return points;
+  };
+
+  var defaults$5 = {
+    padding: 6,
+    radius: 2,
+    eventRadius: 8
+  };
+
+  function Radar(config) {
+    this.config = exports.extend(copy(defaults$5), config || {}, true);
+  }
+
+  Radar.prototype.draw = function (data, width, height) {
+    var line = Line.prototype;
+    var area = Area.prototype;
+    var config = this.config;
+    var renderer = SVG;
+    var x0 = width / 2;
+    var y0 = height / 2;
+    var radius = Math.min(x0, y0) - config.padding;
+    var origin = "";
+    var points = [];
+    var originPoints = [];
+
+    var ratios = this._getRatios(data.length);
+
+    data = data.map(function (v) {
+      return isNaN(v) ? 0 : v;
+    });
+    var max = Math.max.apply(Math, _toConsumableArray(data));
+    var min = Math.min.apply(Math, _toConsumableArray(data));
+    if (min > 0) min = 0;
+
+    for (var i = 0; i < data.length; i++) {
+      var angle = -Math.PI / 2 + ratios[i];
+      originPoints.push(this._getPositionByAngle(angle, x0, y0, radius));
+      var x1 = originPoints[i].x;
+      var y1 = originPoints[i].y;
+      origin += renderer.getLine({
+        x: x0,
+        y: y0
+      }, {
+        x: x1,
+        y: y1
+      }, "webix_sparklines_origin");
+      var x = void 0,
+          y = void 0;
+
+      if (data[i] == min) {
+        x = x0;
+        y = y0;
+      } else if (data[i] == max) {
+        x = x1;
+        y = y1;
+      } else {
+        var ratio = Math.abs(data[i] - min) / Math.abs(max - data[i]);
+        x = (x0 + x1 * ratio) / (1 + ratio);
+        y = (y0 + y1 * ratio) / (1 + ratio);
+      }
+
+      points.push({
+        x: x,
+        y: y
+      });
+    }
+
+    var styles = config.color ? area._applyColor(renderer, config.color) : null;
+    var originPath = renderer.definePath(line._getLinePoints(originPoints), true);
+    var path = renderer.definePath(line._getLinePoints(points), true);
+
+    var graph = renderer.group(origin + renderer.getPath(originPath, "webix_sparklines_origin")) + renderer.group(renderer.getPath(path, "webix_sparklines_area" + (styles ? " " + styles.area : ""))) + renderer.group(renderer.getPath(path, "webix_sparklines_line" + (styles ? " " + styles.line : ""))) + line._drawItems(renderer, points, config.radius, "webix_sparklines_item" + (styles ? " " + styles.item : "")) + line._drawEventItems(renderer, points, config.eventRadius);
+
+    return renderer.draw(graph, width, height, "webix_sparklines_radar_chart" + (config.css ? " " + config.css : ""));
+  };
+
+  Radar.prototype._getPositionByAngle = function (a, x, y, r) {
+    a *= -1;
+    x = x + Math.cos(a) * r;
+    y = y - Math.sin(a) * r;
+    return {
+      x: x,
+      y: y
+    };
+  };
+
+  Radar.prototype._getRatios = function (count) {
+    var ratios = [];
+
+    for (var i = 0; i < count; i++) {
+      ratios[i] = Math.PI * 2 * (i / count);
+    }
+
+    return ratios;
   };
 
   function Sparklines() {}
@@ -14841,6 +14953,7 @@
   Sparklines.types["pie"] = Pie;
   Sparklines.types["spline"] = Spline;
   Sparklines.types["splineArea"] = SplineArea;
+  Sparklines.types["radar"] = Radar;
 
   var TablePaste = {
     clipboard_setter: function (value) {
@@ -17018,7 +17131,7 @@
     }
   };
 
-  var version = "9.2.3";
+  var version = "9.3.0";
   var name = "core";
 
   var errorMessage = "non-existing view for export";
@@ -17410,10 +17523,13 @@
   var toPDF = function (id, options) {
     options = options || {};
     options.export_mode = "pdf";
-    exports.extend(options, {
+    var fontFiles = {
       fontName: "pt-sans.regular",
-      boldFontName: "pt-sans.bold"
-    });
+      boldFontName: "pt-sans.bold",
+      italicFontName: "pt-sans.italic",
+      italicBoldFontName: "pt-sans.italic-bold"
+    };
+    exports.extend(options, fontFiles);
     id = isArray(id) ? id : [id];
     var views = [];
 
@@ -17463,10 +17579,16 @@
     if (options.dataOnly) return views;
     return require([env.cdn + "/extras/pdfjs.js", env.cdn + "/extras/html2canvas-1.0.min.js"]).then(function () {
       if (views.length == 0) return Deferred.reject(errorMessage);
+      var allFontsLoaded = true;
 
-      if (font[options.fontName] && font[options.boldFontName]) {
-        options._export_font = font[options.fontName];
-        options._export_font_bold = font[options.boldFontName];
+      for (var name in fontFiles) {
+        if (!font[name]) {
+          allFontsLoaded = false;
+          break;
+        }
+      }
+
+      if (allFontsLoaded) {
         return getPdfData(views, options).then(function (pdf) {
           return getBlob(pdf, options);
         });
@@ -17476,12 +17598,18 @@
 
         pdfjs.load(options.fontURL || env.cdn + "/extras/" + options.fontName + ".ttf", function (err, regular) {
           if (err) return defer.reject(err);
-          pdfjs.load(options.boldFontURL || env.cdn + "/extras/" + options.boldFontName + ".ttf", function (err, bold) {
-            options._export_font = font[options.fontName] = new pdfjs.TTFFont(regular);
-            options._export_font_bold = font[options.boldFontName] = err ? null : new pdfjs.TTFFont(bold);
-            defer.resolve(getPdfData(views, options).then(function (pdf) {
-              return getBlob(pdf, options);
-            }));
+          pdfjs.load(options.italicBoldFontURL || env.cdn + "/extras/" + options.italicBoldFontName + ".ttf", function (errIB, ib) {
+            pdfjs.load(options.italicFontURL || env.cdn + "/extras/" + options.italicFontName + ".ttf", function (errI, i) {
+              pdfjs.load(options.boldFontURL || env.cdn + "/extras/" + options.boldFontName + ".ttf", function (errB, b) {
+                font[options.fontName] = new pdfjs.TTFFont(regular);
+                font[options.boldFontName] = errB ? null : new pdfjs.TTFFont(b);
+                font[options.italicFontName] = errI ? null : new pdfjs.TTFFont(i);
+                font[options.italicBoldFontName] = errIB ? null : new pdfjs.TTFFont(ib);
+                defer.resolve(getPdfData(views, options).then(function (pdf) {
+                  return getBlob(pdf, options);
+                }));
+              });
+            });
           });
         });
         return defer;
@@ -17512,10 +17640,7 @@
         if (viewOptions.textBefore) addText(doc, "before", viewOptions.textBefore);
         if (images[_i]) doc.image(images[_i], {
           align: "center"
-        });else {
-          viewOptions._export_font_bold = options._export_font_bold;
-          addPDFTable(views[_i], doc);
-        }
+        });else addPDFTable(views[_i], doc);
         if (viewOptions.textAfter) addText(doc, "after", viewOptions.textAfter);
         if (_i != views.length - 1) doc.pageBreak();
       }
@@ -17586,7 +17711,7 @@
     if (options.orientation && options.orientation === "landscape") height = [width, width = height][0];
     return new pdfjs.Document({
       padding: 40,
-      font: options._export_font,
+      font: font[options.fontName],
       threshold: 256,
       width: width,
       height: height
@@ -17623,8 +17748,7 @@
       headerRows: h_count,
       widths: colWidths.length ? colWidths : ["100%"]
     });
-    var table = doc.table(tableOps);
-    var boldFont = options._export_font_bold; //render table header
+    var table = doc.table(tableOps); //render table header
 
     if (h_count) {
       var headerOps = exports.extend(options.header, {
@@ -17641,7 +17765,7 @@
 
         for (var s = 0; s < scheme.length; s++) {
           var cellStyle = styles ? getStyles(_i2, s, styles) : {};
-          if (boldFont && cellStyle.bold) cellStyle.font = boldFont;
+          setFont(cellStyle, options);
           header.td(scheme[s].header[_i2].toString(), cellStyle);
         }
       }
@@ -17654,7 +17778,7 @@
       for (var c = 0; c < data[r].length; c++) {
         var _cellStyle = styles ? getStyles(r + h_count, c, styles) : {};
 
-        if (boldFont && _cellStyle.bold) _cellStyle.font = boldFont;
+        setFont(_cellStyle, options);
         row.td(data[r][c], _cellStyle);
       }
     } //render table footer
@@ -17677,11 +17801,21 @@
         for (var _s = 0; _s < scheme.length; _s++) {
           var _cellStyle2 = styles ? getStyles(_i3 + beforeCount, _s, styles) : {};
 
-          if (boldFont && _cellStyle2.bold) _cellStyle2.font = boldFont;
+          setFont(_cellStyle2, options);
           footer.td(scheme[_s].footer[_i3].toString(), _cellStyle2);
         }
       }
     }
+  }
+
+  function setFont(cellStyle, options) {
+    var boldFont = font[options.boldFontName];
+    var italicFont = font[options.italicFontName];
+    var italicBoldFont = font[options.italicBoldFontName];
+
+    if (cellStyle.bold && boldFont) {
+      if (cellStyle.italic && italicBoldFont) cellStyle.font = italicBoldFont;else cellStyle.font = boldFont;
+    } else if (cellStyle.italic && italicFont) cellStyle.font = italicFont;
   }
 
   function addPDFHeader(doc, options) {
@@ -18670,25 +18804,45 @@
     },
     parse: function (value, config) {
       if (!value || typeof value !== "string") return value;
-      if (config.prefix) value = value.toLowerCase().replace(config.prefix.toLowerCase() || "", "");
-      if (config.sufix) value = value.toLowerCase().replace(config.sufix.toLowerCase() || "", "");
+      var initialValue = value;
+      if (config.prefix) value = value.replace(config.prefix, "");
+      if (config.sufix) value = value.replace(config.sufix, "");
+      value = value.trim();
       var decimal = "";
 
       if (config.decimalDelimiter) {
         var ind = value.indexOf(config.decimalDelimiter);
 
         if (ind > -1) {
-          decimal = value.substr(ind + 1).replace(/[^0-9]/g, "");
-          decimal = decimal.substr(0, Math.min(decimal.length, config.decimalSize));
+          decimal = value.substr(ind + 1);
+          if (!rules.isNumber(decimal)) return initialValue;
+          var count = config.decimalOptional ? Infinity : config.decimalSize;
+          decimal = decimal.substr(0, Math.min(decimal.length, count));
           value = value.substr(0, ind);
         }
       }
 
-      var sign = value[0] === "-" ? -1 : 1;
-      value = value.replace(/[^0-9]/g, "");
+      var sign = 1;
+
+      if (value[0] == "-") {
+        sign = -1;
+        value = value.substr(1);
+      }
+
+      if (config.groupSize) {
+        var groups = value.split(config.groupDelimiter); //validate groups
+
+        for (var i = 0; i < groups.length; i++) {
+          var correctSize = !i && groups[i].length <= config.groupSize || groups[i].length == config.groupSize;
+          if (!correctSize || !rules.isNumber(groups[i])) return initialValue;
+        }
+
+        value = groups.join("");
+      }
+
       if (!value) value = "0";
       if (decimal) value += "." + decimal;
-      return parseFloat(value) * sign;
+      return rules.isNumber(value) ? value * sign : initialValue;
     },
     format: function (value, config) {
       if (value === "" || typeof value === "undefined") return value;
@@ -18712,11 +18866,10 @@
         } while (i > 0);
       } else int_value = str[0];
 
-      if (config.decimalSize) str = sign + int_value + (str[1] ? config.decimalDelimiter + str[1] : "");else str = sign + int_value;
-
-      if (config.prefix || config.sufix) {
-        return config.prefix + str + config.sufix;
-      } else return str;
+      if (config.decimalSize || config.decimalOptional) str = sign + int_value + (str[1] ? config.decimalDelimiter + str[1] : "");else str = sign + int_value;
+      if (config.prefix) str = config.prefix + str;
+      if (config.sufix) str += config.sufix;
+      return str;
     },
     numToStr: function (config) {
       return function (value) {
@@ -32843,7 +32996,7 @@
     }
   };
 
-  var Radar = {
+  var Radar$1 = {
     $render_radar: function (ctx, data, x, y, sIndex, map) {
       this._renderRadarChart(ctx, data, x, y, sIndex, map);
     },
@@ -34962,7 +35115,7 @@
       map.addRect(id, [points[0].x - bounds.x, points[0].y - bounds.y, points[1].x - bounds.x, points[1].y - bounds.y], sIndex);
     }
   };
-  var view$10 = exports.protoUI(api$10, Pie$1, BarChart, LineChart, BarHChart, StackedBarChart, StackedBarHChart, Spline$1, AreaChart, Radar, Scatter, Presets, SplineArea$1, DynamicChart, Group, AutoTooltip, DataLoader, MouseEvents, EventSystem, base$1.view);
+  var view$10 = exports.protoUI(api$10, Pie$1, BarChart, LineChart, BarHChart, StackedBarChart, StackedBarHChart, Spline$1, AreaChart, Radar$1, Scatter, Presets, SplineArea$1, DynamicChart, Group, AutoTooltip, DataLoader, MouseEvents, EventSystem, base$1.view);
 
   exports.protoUI({
     name: "rangechart",
@@ -41956,8 +42109,13 @@
           backgroundColor: bg,
           fontSize: cellStyle["font-size"].replace("px", "") * 0.75,
           //px to pt conversion
+          bold: cellStyle["font-weight"] != "normal" && cellStyle["font-weight"] != 400,
+          italic: cellStyle["font-style"] == "italic",
+          underline: cellStyle["text-decoration-line"] == "line-through",
+          strikethrough: cellStyle["text-decoration-line"] == "underline",
           color: color.rgbToHex(cellStyle["color"]),
           textAlign: cellStyle["text-align"],
+          whiteSpace: cellStyle["white-space"] == "normal",
           borderRightColor: this._getBorderColor(cellStyle, bg, "right"),
           borderLeftColor: this._getBorderColor(cellStyle, bg, "left"),
           borderBottomColor: this._getBorderColor(cellStyle, bg, "bottom"),
@@ -41992,60 +42150,58 @@
       return style;
     },
     _getExcelCellRules: function (cellStyle, node, common) {
-      var rules = {
-        font: {},
-        alignment: {},
-        border: {}
-      }; //font
-
-      rules.font.name = cellStyle["font-family"].replace(/,.*$/, ""); // cut off fallback font;
-
-      rules.font.sz = common.fontSize;
-      rules.font.color = {
-        rgb: common.color
-      };
-      if (cellStyle["font-weight"] !== "normal" && cellStyle["font-weight"] != 400) rules.font.bold = true;
-      if (cellStyle["text-decoration-line"] === "underline") rules.font.underline = true;
-      if (cellStyle["font-style"] === "italic") rules.font.italic = true;
-      if (cellStyle["text-decoration-line"] === "line-through") rules.font.strike = true; //alignment
-
-      rules.alignment.horizontal = common.textAlign;
-      rules.alignment.vertical = cellStyle["height"] == cellStyle["line-height"] ? "center" : "top";
-      if (cellStyle["white-space"] == "normal") rules.alignment.wrapText = true; //rotated header
-
-      if (node.firstChild && node.firstChild.className && node.firstChild.className.indexOf("webix_rotate") !== -1) rules.alignment.textRotation = 90; //background
-
-      rules.fill = {
-        fgColor: {
-          rgb: common.backgroundColor
+      var textRotation = node.firstChild && node.firstChild.className && node.firstChild.className.indexOf("webix_rotate") !== -1;
+      return {
+        font: {
+          name: cellStyle["font-family"].replace(/,.*$/, ""),
+          // cut off fallback font;
+          sz: common.fontSize,
+          color: {
+            rgb: common.color
+          },
+          bold: common.bold,
+          underline: common.underline,
+          italic: common.italic,
+          strike: common.strikethrough
+        },
+        alignment: {
+          horizontal: common.textAlign,
+          vertical: cellStyle["height"] == cellStyle["line-height"] ? "center" : "top",
+          wrapText: common.wrapText,
+          textRotation: textRotation ? 90 : null
+        },
+        fill: {
+          fgColor: {
+            rgb: common.backgroundColor
+          }
+        },
+        border: {
+          right: common.borderRightColor ? {
+            style: "thin",
+            color: {
+              rgb: common.borderRightColor
+            }
+          } : null,
+          bottom: common.borderBottomColor ? {
+            style: "thin",
+            color: {
+              rgb: common.borderBottomColor
+            }
+          } : null,
+          left: common.borderLeftColor ? {
+            style: "thin",
+            color: {
+              rgb: common.borderLeftColor
+            }
+          } : null,
+          top: common.borderTopColor ? {
+            style: "thin",
+            color: {
+              rgb: common.borderTopColor
+            }
+          } : null
         }
-      }; //borders
-
-      if (common.borderRightColor) rules.border.right = {
-        style: "thin",
-        color: {
-          rgb: common.borderRightColor
-        }
       };
-      if (common.borderBottomColor) rules.border.bottom = {
-        style: "thin",
-        color: {
-          rgb: common.borderBottomColor
-        }
-      };
-      if (common.borderLeftColor) rules.border.left = {
-        style: "thin",
-        color: {
-          rgb: common.borderLeftColor
-        }
-      };
-      if (common.borderTopColor) rules.border.top = {
-        style: "thin",
-        color: {
-          rgb: common.borderTopColor
-        }
-      };
-      return rules;
     },
     _getRules: function (node) {
       var style = {};

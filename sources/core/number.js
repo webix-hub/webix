@@ -1,4 +1,5 @@
 import i18n from "../webix/i18n";
+import rules from "../webix/rules";
 
 const Number={
 	getConfig: function(value){
@@ -40,30 +41,56 @@ const Number={
 		if (!value || typeof value !== "string")
 			return value;
 
-		if (config.prefix)
-			value = value.toLowerCase().replace(config.prefix.toLowerCase() || "", "");
-		if (config.sufix)
-			value = value.toLowerCase().replace(config.sufix.toLowerCase() || "", "");
+		const initialValue = value;
 
-		var decimal = "";
+		if (config.prefix)
+			value = value.replace(config.prefix, "");
+		if (config.sufix)
+			value = value.replace(config.sufix, "");
+
+		value = value.trim();
+
+		let decimal = "";
 		if (config.decimalDelimiter){
-			var ind = value.indexOf(config.decimalDelimiter);
+			const ind = value.indexOf(config.decimalDelimiter);
 			if (ind > -1){
-				decimal = value.substr(ind+1).replace(/[^0-9]/g, "");
-				decimal = decimal.substr(0, Math.min(decimal.length, config.decimalSize));
+				decimal = value.substr(ind+1);
+
+				if(!rules.isNumber(decimal))
+					return initialValue;
+
+				const count = config.decimalOptional ? Infinity : config.decimalSize;
+				decimal = decimal.substr(0, Math.min(decimal.length, count));
 				value = value.substr(0, ind);
 			}
 		}
 
-		var sign = value[0] === "-" ? -1 : 1;
-		value = value.replace(/[^0-9]/g, "");
+		let sign = 1;
+		if(value[0] == "-"){
+			sign = -1;
+			value = value.substr(1);
+		}
+
+		if(config.groupSize){
+			const groups = value.split(config.groupDelimiter);
+
+			//validate groups
+			for(let i = 0; i < groups.length; i++){
+				const correctSize = (!i && groups[i].length <= config.groupSize) || groups[i].length == config.groupSize;
+				if(!correctSize || !rules.isNumber(groups[i]))
+					return initialValue;
+			}
+
+			value = groups.join("");
+		}
+
 		if (!value)
 			value = "0";
 
 		if (decimal)
 			value += "."+decimal;
 
-		return parseFloat(value)*sign;
+		return rules.isNumber(value) ? value * sign : initialValue;
 	},
 	format: function(value, config){ 
 		if (value === "" || typeof value === "undefined") return value;
@@ -92,15 +119,17 @@ const Number={
 		} else
 			int_value = str[0];
 
-		if (config.decimalSize)
+		if (config.decimalSize || config.decimalOptional)
 			str = sign + int_value + (str[1] ? (config.decimalDelimiter + str[1]) : "");
 		else
 			str = sign + int_value;
 
-		if (config.prefix || config.sufix){
-			return config.prefix + str + config.sufix;
-		} else 
-			return str;
+		if(config.prefix)
+			str = config.prefix + str;
+		if(config.sufix)
+			str += config.sufix;
+
+		return str;
 	},
 	numToStr:function(config){
 		return function(value){

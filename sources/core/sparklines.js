@@ -8,6 +8,7 @@ import Line from "./sparklines/line";
 import Pie from "./sparklines/pie";
 import Spline from "./sparklines/spline";
 import SplineArea from "./sparklines/splinearea";
+import Radar from "./sparklines/radar";
 
 function Sparklines(){}
 
@@ -53,5 +54,6 @@ Sparklines.types["line"]=Line;
 Sparklines.types["pie"]=Pie;
 Sparklines.types["spline"]=Spline;
 Sparklines.types["splineArea"]=SplineArea;
+Sparklines.types["radar"]=Radar;
 
 export default Sparklines;

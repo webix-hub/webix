@@ -43,13 +43,11 @@ SplineArea.prototype.draw = function(data, width, height){
 	return  renderer.draw(graph, width, height, "webix_sparklines_splinearea_chart"+(config.css?" "+config.css:""));
 };
 SplineArea.prototype._applyColor = function(renderer,color){
-	var config = {"area": {}, "line":{},"item":{}},
-		map = renderer.styleMap;
+	const config = {"area": {}, "line":{},"item":{}};
+	const map = renderer.styleMap;
 	if(color){
-		config.area[map.color] = renderer.setOpacity(color,0.2);
-		config.line[map.lineColor] = color;
-		config.item[map.color] = color;
-		for(var name in config)
+		config.area[map.color] = config.line[map.lineColor] = config.item[map.color] = color;
+		for(let name in config)
 			config[name] = createCss(config[name]);
 	}
 	return config;

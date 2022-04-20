@@ -4869,17 +4869,23 @@ span.webix_sidebar_dir_icon {
 }
 .webix_sparklines_area {
   fill: #e5eef4;
+  opacity: 0.5;
 }
 .webix_sparklines_origin {
   stroke: #888;
   stroke-width: 1;
+  fill: transparent;
 }
 .webix_sparklines_event_area {
   fill: transparent;
 }
+.webix_sparklines_donut_hole {
+  fill: #393939;
+}
 .webix_sparklines_line_chart .webix_sparklines_event_area:hover,
 .webix_sparklines_area_chart .webix_sparklines_event_area:hover,
-.webix_sparklines_splinearea_chart .webix_sparklines_event_area:hover {
+.webix_sparklines_splinearea_chart .webix_sparklines_event_area:hover,
+.webix_sparklines_radar_chart .webix_sparklines_event_area:hover {
   fill: rgba(220, 220, 220, 0.4);
   stroke: rgba(255, 255, 255, 0.6);
 }
@@ -6081,6 +6087,9 @@ a:active .webix_custom_radio {
 }
 .webix_axis_item_y.webix_radar {
   color: #ffffff;
+}
+.webix_sparklines_area {
+  opacity: 0.2;
 }
 .webix_progress_top .webix_progress_state,
 .webix_progress_bottom .webix_progress_state {

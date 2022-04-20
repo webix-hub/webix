@@ -126,12 +126,17 @@ const Mixin = {
 			const common = {
 				backgroundColor: bg,
 				fontSize: cellStyle["font-size"].replace("px", "")*0.75, //px to pt conversion
+				bold: cellStyle["font-weight"] != "normal" && cellStyle["font-weight"] != 400,
+				italic: cellStyle["font-style"] == "italic",
+				underline: cellStyle["text-decoration-line"] == "line-through",
+				strikethrough: cellStyle["text-decoration-line"] == "underline",
 				color: color.rgbToHex(cellStyle["color"]),
 				textAlign: cellStyle["text-align"],
+				whiteSpace: cellStyle["white-space"] == "normal",
 				borderRightColor: this._getBorderColor(cellStyle, bg, "right"),
 				borderLeftColor: this._getBorderColor(cellStyle, bg, "left"),
 				borderBottomColor: this._getBorderColor(cellStyle, bg, "bottom"),
-				borderTopColor: this._getBorderColor(cellStyle, bg, "top")
+				borderTopColor: this._getBorderColor(cellStyle, bg, "top"),
 			};
 
 			const rules = type == "pdf" ? common : this._getExcelCellRules(cellStyle, node, common);
@@ -153,40 +158,34 @@ const Mixin = {
 		return style;
 	},
 	_getExcelCellRules: function(cellStyle, node, common){
-		const rules = {font:{}, alignment:{}, border:{}};
+		const textRotation = node.firstChild && node.firstChild.className && node.firstChild.className.indexOf("webix_rotate") !== -1;
 
-		//font
-		rules.font.name = cellStyle["font-family"].replace(/,.*$/, ""); // cut off fallback font;
-		rules.font.sz = common.fontSize;
-		rules.font.color = {rgb: common.color};
-
-		if (cellStyle["font-weight"] !== "normal" && cellStyle["font-weight"] != 400) rules.font.bold = true;
-		if (cellStyle["text-decoration-line"] === "underline") rules.font.underline = true;
-		if (cellStyle["font-style"] === "italic") rules.font.italic = true;
-		if (cellStyle["text-decoration-line"] === "line-through") rules.font.strike = true;
-
-		//alignment
-		rules.alignment.horizontal = common.textAlign;
-		rules.alignment.vertical = cellStyle["height"] == cellStyle["line-height"] ? "center" : "top";
-		if (cellStyle["white-space"] == "normal") rules.alignment.wrapText = true;
-		//rotated header
-		if (node.firstChild && node.firstChild.className && node.firstChild.className.indexOf("webix_rotate") !== -1)
-			rules.alignment.textRotation = 90;
-
-		//background
-		rules.fill = {fgColor:{rgb:common.backgroundColor}};
-
-		//borders
-		if (common.borderRightColor)
-			rules.border.right = {style:"thin", color:{rgb:common.borderRightColor}};
-		if (common.borderBottomColor)
-			rules.border.bottom = {style:"thin", color:{rgb:common.borderBottomColor}};
-		if (common.borderLeftColor)
-			rules.border.left = {style:"thin", color:{rgb:common.borderLeftColor}};
-		if (common.borderTopColor)
-			rules.border.top = {style:"thin", color:{rgb:common.borderTopColor}};
-
-		return rules;
+		return {
+			font: {
+				name: cellStyle["font-family"].replace(/,.*$/, ""), // cut off fallback font;
+				sz: common.fontSize,
+				color: {rgb: common.color},
+				bold: common.bold,
+				underline: common.underline,
+				italic: common.italic,
+				strike: common.strikethrough
+			},
+			alignment: {
+				horizontal: common.textAlign,
+				vertical: cellStyle["height"] == cellStyle["line-height"] ? "center" : "top",
+				wrapText: common.wrapText,
+				textRotation: textRotation ? 90 : null
+			},
+			fill: {
+				fgColor:{rgb:common.backgroundColor}
+			},
+			border: {
+				right: common.borderRightColor ? {style:"thin", color:{rgb:common.borderRightColor}} : null,
+				bottom: common.borderBottomColor ? {style:"thin", color:{rgb:common.borderBottomColor}} : null,
+				left: common.borderLeftColor ? {style:"thin", color:{rgb:common.borderLeftColor}} : null,
+				top: common.borderTopColor ? {style:"thin", color:{rgb:common.borderTopColor}} : null
+			}
+		};
 	},
 	_getRules: function(node){
 		let style = {};

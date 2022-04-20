@@ -80,7 +80,8 @@ const Undo = {
 	_addToHistory: function(id, data, action){
 		if(!this._skipHistory && this._settings.undo){
 			this._undoHistory.push({id: id, action: action, data: data});
-			if(this._undoHistory.length==20)
+			const undoLimit = this._settings.undoLimit || 20;
+			if(this._undoHistory.length > undoLimit)
 				this._undoHistory.splice(0,1);
 			if(!this._skipCursorInc)
 				this._undoCursor = this._undoHistory.length - 1;

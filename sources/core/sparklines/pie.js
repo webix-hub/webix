@@ -1,4 +1,4 @@
-import {extend} from "../../webix/helpers";
+import {extend, copy} from "../../webix/helpers";
 
 import SVG from "./svg";
 
@@ -7,7 +7,7 @@ var defaults = {
 };
 
 function Pie(config){
-	this.config = extend(defaults,config||{},true);
+	this.config = extend(copy(defaults),config||{},true);
 }
 Pie.prototype._defColorsCursor = 0;
 Pie.prototype._defColors  = [
@@ -59,6 +59,9 @@ Pie.prototype.draw = function(data, width, height){
 		sectors += renderer.getSector({x:x0,y:y0},r,points[i][0],points[i][1],"webix_sparklines_event_area",{"webix_area":i});
 	}
 	graph += renderer.group(sectors);
+
+	if(config.donut)
+		graph += SVG.getCircle({x:x0,y:y0}, config.innerRadius || r*0.5, "webix_sparklines_donut_hole");
 
 	return  renderer.draw(graph, width, height, "webix_sparklines_pie_chart"+(config.css?" "+config.css:""));
 };
