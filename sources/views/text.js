@@ -1,6 +1,6 @@
 import {protoUI, ui, $$} from "../ui/core";
 import {$active} from "../webix/skin";
-import {isUndefined, isArray, extend, uid} from "../webix/helpers";
+import {isUndefined, isArray, extend, uid, delay} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 import {getSelectionRange, setSelectionRange, getTextSize} from "../webix/html";
 import {assert} from "../webix/debug";
@@ -151,11 +151,6 @@ const api = {
 			return false;
 		return true;
 	},
-	bottomLabel_setter: function(value){
-		if(!this._settings.bottomPadding)
-			this._settings.bottomPadding = 18;
-		return value;
-	},
 	_getInvalidText: function(){
 		const text = this._settings.invalidMessage;
 		if(typeof text == "function"){
@@ -163,7 +158,15 @@ const api = {
 		}
 		return text;
 	},
-	setBottomText: function(text, height){
+	bottomLabel_setter: function(text){
+		// this._get_input_width returns 0
+		// use delay to wait for the end of the render
+		delay(() => {
+			if(!this.$destructed)
+				this.setBottomText(text);
+		});
+	},
+	setBottomText: function(text){
 		const config = this._settings;
 		if (!isUndefined(text)){
 			if (config.bottomLabel == text) return;
@@ -182,9 +185,10 @@ const api = {
 		if (!message && !config.bottomPadding)
 			config.inputHeight = 0;
 
-		if (message && !config.bottomPadding){
+		if (message && (!config.bottomPadding || this._restorePadding)){
 			this._restorePadding = 1;
-			config.bottomPadding = config.bottomPadding || height || 18;	
+			config.bottomPadding = getTextSize(message, "webix_inp_bottom_label", this._get_input_width(config)).height;
+
 			this.render();
 			this.adjust();
 			this.resize();
@@ -222,7 +226,7 @@ const api = {
 					this._inputHeight = this._content_height - (config.label?this._labelTopHeight:0) - (this.config.bottomPadding||0);
 			} else {
 				if(config.label)
-					config.labelWidth = this._getLabelWidth(config.labelWidth, config.label);
+					config.labelWidth = this._getLabelWidth(config.labelWidth, config.label, config.required);
 				if (config.bottomPadding)
 					config.inputHeight = this._content_height - this.config.bottomPadding;
 			}
@@ -313,13 +317,12 @@ const api = {
 		else
 			result = "<div class='webix_el_box' style='width:"+config.awidth+"px; height:"+config.aheight+"px'>"+label+html+"</div>";
 
-
-		//bottom message width
-		const padding = config.awidth-inputWidth-$active.inputPadding*2;
 		//bottom message text
 		const message = (config.invalid ? config.invalidMessage : "") || config.bottomLabel;
-		if (message)
-			result +=  "<div class='webix_inp_bottom_label'"+(config.invalid?"role='alert' aria-relevant='all'":"")+" style='width:"+(inputWidth||config.awidth)+"px;margin-left:"+Math.max(padding,$active.inputPadding)+"px;'>"+message+"</div>";
+		if (message){
+			const padding = config.awidth - inputWidth - $active.inputPadding;
+			result += "<div class='webix_inp_bottom_label'"+(config.invalid?"role='alert' aria-relevant='all'":"")+" style='width:"+(inputWidth||config.awidth)+"px;margin-left:"+Math.max(padding, $active.inputPadding)+"px;'>"+message+"</div>";
+		}
 
 		return result;
 	},
@@ -330,9 +333,9 @@ const api = {
 		label:"",
 		labelWidth:80
 	},
-	_getLabelWidth: function(width, label){
+	_getLabelWidth: function(width, label, required){
 		if(width == "auto")
-			width = getTextSize(label, "webix_inp_label").width;
+			width = getTextSize(label, "webix_inp_label"+(required ? " webix_required" : "")).width;
 		return width ? Math.max(width, $active.dataPadding) : 0;
 	},
 	type_setter:function(value){ return value; },

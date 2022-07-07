@@ -46,7 +46,7 @@ const api = {
 			const config = this._settings;
 
 			if (config.labelPosition != "top"){
-				config.labelWidth = config.label ? this._getLabelWidth(config.labelWidth, config.label) : 0;
+				config.labelWidth = config.label ? this._getLabelWidth(config.labelWidth, config.label, config.required) : 0;
 				config.paddingX = config.labelWidth + this._inputSpacing;
 			}
 			else {
@@ -74,9 +74,9 @@ const api = {
 			if(config.value) this.setValue(config.value, "auto");
 		});
 	},
-	_getLabelWidth: function(width, label){
+	_getLabelWidth: function(width, label, required){
 		if(width == "auto")
-			width = getTextSize(label, "webix_inp_label").width;
+			width = getTextSize(label, "webix_inp_label"+(required ? " webix_required" : "")).width;
 		return width ? Math.max(width, $active.dataPadding) : 0;
 	},
 	setBottomText: function(text) {

@@ -450,10 +450,11 @@ const api = {
 					width:width, height:height, 
 					maxWidth:maxWidth, maxHeight:maxHeight };
 				this._settings.position.call(this, state);
-
-				if (state.width != width || state.height != height)
+				if (state.width != width || state.height != height){
+					this._settings.width = state.width;
+					this._settings.height = state.height;
 					this.$setSize(state.width, state.height);
-
+				}
 				this.setPosition(state.left, state.top);
 			} else {
 				if (this._settings.position == "top"){

@@ -1,6 +1,15 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
-Version 9.3.0 (April 2022)
+Version 9.4 (July 2022)
+=============================
+
+- Diagram: curved links
+- Pie and Donut charts with multiple levels and 3D
+- SpreadSheet and Pivot with support of all charts
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_9_4.html)
+
+Version 9.3 (April 2022)
 =============================
 
 ### Major features
@@ -12,7 +21,7 @@ Version 9.3.0 (April 2022)
 
 [Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_9_3.html)
 
-Version 9.2.0 (March 2022)
+Version 9.2 (March 2022)
 =============================
 
 ### Major features
@@ -24,7 +33,7 @@ Version 9.2.0 (March 2022)
 
 [Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_9_2.html)
 
-Version 9.1.0 (November 2021)
+Version 9.1 (November 2021)
 ===============================
 
 ### Major features
@@ -35,7 +44,7 @@ Version 9.1.0 (November 2021)
 
 [Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_9_1.html)
 
-Version 9.0.0 (October 2021)
+Version 9.0 (October 2021)
 ===============================
 
 ### Major features

@@ -22,7 +22,7 @@ const SplineArea = {
 
 		if (data.length) {
 			/*getting all points*/
-			x0 = point0.x;
+			x0 = config.offset ? (point0.x + params.cellWidth*0.5) : point0.x;
 			for(i=0; i < data.length;i ++){
 				y = this._getPointY(data[i],point0,point1,params);
 				if(y || y=="0"){

@@ -121,8 +121,13 @@ const DragControl ={
 	},
 	//mouse was moved without button released - dnd started, update event handlers
 	_startDrag:function(e, pointer){
-		// check touch scroll animation
 		const touch = (pointer === "touch");
+
+		// mouse: allow dnd only on left click
+		if(!touch && DragControl._saved_event.button)
+			return;
+
+		// check touch scroll animation
 		DragControl._touch_animation = !e.cancelable;
 		if (touch && DragControl._touch_animation){
 			DragControl._clean_dom_after_drag();

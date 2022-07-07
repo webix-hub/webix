@@ -147,8 +147,17 @@ const UIManager = {
 		const modality = state._modality;
 		if (!modality.length) return true;
 
-		const top = view.queryView(a => !a.getParentView(), "parent") || view;
+		const top = this._getTop(view);
 		return (top.$view.style.zIndex||0) >= Math.max(...modality);
+	},
+	_getTop: function(view){
+		let top = view.queryView(view => !view.getParentView(), "parent") || view;
+
+		const insideContainer = $$(top.$view.parentNode); //container inside view (like filter in query view list)
+		if(insideContainer)
+			top = this._getTop(insideContainer);
+
+		return top;
 	},
 	canFocus:function(view){
 		if(document.body.modality || view.$view.modality || view.queryView(view => view.$view.modality, "parent")) //modalbox

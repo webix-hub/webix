@@ -103,12 +103,12 @@ const StackedBarHChart = {
 
 			/*takes start value into consideration*/
 			if(!yax) value += startValue/unit;
-			var color = this._settings.color.call(this,data[i]);
+			var color = this._settings.color.call(this, data[i], i);
 
 
 			/*drawing bar body*/
-			ctx.globalAlpha = this._settings.alpha.call(this,data[i]);
-			ctx.fillStyle = this._settings.color.call(this,data[i]);
+			ctx.globalAlpha = this._settings.alpha.call(this, data[i]);
+			ctx.fillStyle = color;
 			ctx.beginPath();
 			var points = this._setBarHPoints(ctx,x0,y0,barWidth,radius,unit,value,0);
 			if (gradient&&!inner_gradient) ctx.lineTo(point0.x+total_width,y0+(this._settings.border?1:0)); //fix gradient sphreading

@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.9.3.0
+ * webix UI v.9.4.0
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -1094,7 +1094,7 @@
             var value = params[a];
             if (value === null || value === undefined) value = "";
             if (_typeof(value) === "object") value = this.stringify(value);
-            t.push(a + "=" + encodeURIComponent(value)); // utf-8 escaping
+            t.push(encodeURIComponent(a) + "=" + encodeURIComponent(value)); // utf-8 escaping
           }
 
           params = t.join("&");
@@ -4200,10 +4200,19 @@
     _top_modal: function (view) {
       var modality = state._modality;
       if (!modality.length) return true;
-      var top = view.queryView(function (a) {
-        return !a.getParentView();
-      }, "parent") || view;
+
+      var top = this._getTop(view);
+
       return (top.$view.style.zIndex || 0) >= Math.max.apply(Math, _toConsumableArray(modality));
+    },
+    _getTop: function (view) {
+      var top = view.queryView(function (view) {
+        return !view.getParentView();
+      }, "parent") || view;
+      var insideContainer = $$(top.$view.parentNode); //container inside view (like filter in query view list)
+
+      if (insideContainer) top = this._getTop(insideContainer);
+      return top;
     },
     canFocus: function (view) {
       if (document.body.modality || view.$view.modality || view.queryView(function (view) {
@@ -5004,15 +5013,14 @@
     disable: function () {
       remove(this._disable_cover);
       this._settings.disabled = true;
+      var container = this._viewobj;
       this._disable_cover = create("div", {
-        "class": "webix_disabled"
+        "class": "webix_disabled",
+        "style": "left:".concat(container.scrollLeft, "px; top:").concat(container.scrollTop, "px;")
       });
-
-      this._viewobj.appendChild(this._disable_cover);
-
-      this._viewobj.setAttribute("aria-disabled", "true");
-
-      addCss(this._viewobj, "webix_disabled_view", true);
+      container.appendChild(this._disable_cover);
+      container.setAttribute("aria-disabled", "true");
+      addCss(container, "webix_disabled_view", true);
 
       UIManager._moveChildFocus(this);
     },
@@ -6802,8 +6810,10 @@
     },
     //mouse was moved without button released - dnd started, update event handlers
     _startDrag: function (e, pointer) {
-      // check touch scroll animation
-      var touch = pointer === "touch";
+      var touch = pointer === "touch"; // mouse: allow dnd only on left click
+
+      if (!touch && DragControl._saved_event.button) return; // check touch scroll animation
+
       DragControl._touch_animation = !e.cancelable;
 
       if (touch && DragControl._touch_animation) {
@@ -7713,7 +7723,12 @@
 
           this._settings.position.call(this, _state);
 
-          if (_state.width != width || _state.height != height) this.$setSize(_state.width, _state.height);
+          if (_state.width != width || _state.height != height) {
+            this._settings.width = _state.width;
+            this._settings.height = _state.height;
+            this.$setSize(_state.width, _state.height);
+          }
+
           this.setPosition(_state.left, _state.top);
         } else {
           if (this._settings.position == "top") {
@@ -12407,21 +12422,47 @@
         points: coords
       });
     },
-    addSector: function (id, alpha0, alpha1, x, y, R, ky, userdata) {
+    addSector: function (id, alpha0, alpha1, x, y, r, ky, userdata, dr, height) {
       var points = [];
-      points.push(x);
-      points.push(Math.floor(y * ky));
+      if (dr) points = points.concat(this._getArcPoints(x, y, dr, alpha1, alpha0, ky, -1));else {
+        points.push(x);
+        points.push(Math.floor(y));
+      }
+      if (!height) points = points.concat(this._getArcPoints(x, y, r, alpha0, alpha1, ky));else {
+        if (alpha0 < 0 && alpha1 >= 0) {
+          points = points.concat(this._getArcPoints(x, y, r, alpha0, 0, ky));
+          points = points.concat(this._getArcPoints(x, y + height, r, 0, alpha1, ky));
+          points = points.concat(this._getPointByAngle(x, y, r, alpha1, ky));
+        } else if (alpha0 < Math.PI && alpha1 >= Math.PI) {
+          points = points.concat(this._getPointByAngle(x, y, r, alpha0, ky));
+          points = points.concat(this._getArcPoints(x, y + height, r, alpha0, Math.PI, ky));
+          points = points.concat(this._getArcPoints(x, y, r, Math.PI, alpha1, ky));
+        } else {
+          points = points.concat(this._getPointByAngle(x, y, r, alpha0, ky));
+          points = points.concat(this._getArcPoints(x, y + height, r, alpha0, alpha1, ky));
+          points = points.concat(this._getPointByAngle(x, y, r, alpha1, ky));
+        }
+      }
+      points.push(points[0]);
+      points.push(points[1]);
+      return this.addPoly(id, points, userdata);
+    },
+    _getArcPoints: function (x, y, r, a0, a1, ky, dir) {
+      var points = [];
+      dir = dir || 1;
 
-      for (var i = alpha0; i < alpha1; i += Math.PI / 18) {
-        points.push(Math.floor(x + R * Math.cos(i)));
-        points.push(Math.floor((y + R * Math.sin(i)) * ky));
+      for (var i = a0; dir > 0 && i < a1 || dir < 0 && i > a1; i += dir * Math.PI / 18) {
+        points = points.concat(this._getPointByAngle(x, y, r, i, ky));
       }
 
-      points.push(Math.floor(x + R * Math.cos(alpha1)));
-      points.push(Math.floor((y + R * Math.sin(alpha1)) * ky));
-      points.push(x);
-      points.push(Math.floor(y * ky));
-      return this.addPoly(id, points, userdata);
+      points = points.concat(this._getPointByAngle(x, y, r, a1, ky));
+      return points;
+    },
+    _getPointByAngle: function (x, y, r, a, ky) {
+      var point = [];
+      point.push(Math.floor(x + r * Math.cos(a)));
+      point.push(Math.floor(y + r * Math.sin(a) * ky));
+      return point;
     },
     hide: function (obj, data, mode) {
       if (obj.querySelectorAll) {
@@ -13674,7 +13715,11 @@
         if (this.loadBranch) {
           //hierarchy, need to check all
           this._select_check();
-        } else this._selected.remove(id);
+        } else {
+          this._selected.remove(id);
+
+          this.callEvent("onSelectChange", [this._selected]);
+        }
       } else if (!id && !this.data.count() && !this.data._filter_order && !this.data._filter_branch) {
         //remove selection for clearAll
         this._selected = _to_array();
@@ -13686,9 +13731,17 @@
       }, this);
     },
     _select_check: function () {
+      var selectionChanged;
+
       for (var i = this._selected.length - 1; i >= 0; i--) {
-        if (!this.exists(this._selected[i])) this._selected.splice(i, 1);
+        if (!this.exists(this._selected[i])) {
+          selectionChanged = true;
+
+          this._selected.splice(i, 1);
+        }
       }
+
+      if (selectionChanged) this.callEvent("onSelectChange", [this._selected]);
     },
     //helper - changes state of selection for some item
     _select_mark: function (id, state$$1, refresh, need_unselect) {
@@ -13888,14 +13941,25 @@
         r = rgbArr[0];
         g = rgbArr[1];
         b = rgbArr[2];
-      } else {
-        if (rgb.substr(0, 1) == "#") {
-          rgb = rgb.substr(1);
-        }
-
+      } else if (rgb.substr(0, 1) == "#") {
+        rgb = rgb.substr(1);
         r = this.hexToDec(rgb.substr(0, 2));
         g = this.hexToDec(rgb.substr(2, 2));
         b = this.hexToDec(rgb.substr(4, 2));
+      } else {
+        var div = create("div", {
+          style: "color:".concat(rgb)
+        });
+        document.body.appendChild(div);
+        var _color = window.getComputedStyle(div).color; //getComputedStyle returns color as rgb/rgba
+
+        remove(div);
+
+        var arr = _color.slice(_color.indexOf("(") + 1, _color.indexOf(")")).split(", ");
+
+        r = arr[0];
+        g = arr[1];
+        b = arr[2];
       }
 
       r = parseInt(r, 10) || 0;
@@ -17131,7 +17195,7 @@
     }
   };
 
-  var version = "9.3.0";
+  var version = "9.4.0";
   var name = "core";
 
   var errorMessage = "non-existing view for export";
@@ -18021,7 +18085,7 @@
           c: C,
           r: R
         });
-        var isFormula = _typeof(cell.v) == "object";
+        var isFormula = _typeof(cell.v) == "object" && cell.v.formula;
         var stringValue = (isFormula ? cell.v.value : cell.v).toString();
 
         if (styles) {
@@ -21304,12 +21368,18 @@
       var fixed_count = 0;
       var gravity = 0;
       this._sizes = [];
+      var hiddenCount = 0;
 
       for (var i = 0; i < this._cells.length; i++) {
         //ignore hidden cells
-        if (this._cells[i]._settings.hidden) continue;
+        if (this._cells[i]._settings.hidden) {
+          hiddenCount++;
+          continue;
+        }
 
         var sizes = this._sizes[i] = this._cells[i].$getSize(0, 0);
+
+        if (this._cells[i]._hiddenByCells) hiddenCount++;
 
         if (this._cells[i].$nospace) {
           fixed_count++;
@@ -21342,6 +21412,21 @@
           } else gravity += sizes[4];
         }
       }
+
+      if (hiddenCount == this._cells.length) {
+        this._hiddenByCells = true;
+        var pView = this.getParentView();
+
+        if (pView && pView._collection) {
+          if (pView._vertical_orientation) {
+            maxHeight = 0;
+            maxWidth = 100000;
+          } else {
+            maxHeight = 100000;
+            maxWidth = 0;
+          }
+        }
+      } else delete this._hiddenByCells;
 
       if (minHeight > maxHeight) maxHeight = minHeight;
       if (minWidth > maxWidth) maxWidth = minWidth;
@@ -23860,7 +23945,7 @@
         var config = this._settings;
 
         if (config.labelPosition != "top") {
-          config.labelWidth = config.label ? this._getLabelWidth(config.labelWidth, config.label) : 0;
+          config.labelWidth = config.label ? this._getLabelWidth(config.labelWidth, config.label, config.required) : 0;
           config.paddingX = config.labelWidth + this._inputSpacing;
         } else {
           config.paddingY = this._labelTopHeight;
@@ -23885,8 +23970,8 @@
         if (config.value) this.setValue(config.value, "auto");
       });
     },
-    _getLabelWidth: function (width, label) {
-      if (width == "auto") width = getTextSize(label, "webix_inp_label").width;
+    _getLabelWidth: function (width, label, required) {
+      if (width == "auto") width = getTextSize(label, "webix_inp_label" + (required ? " webix_required" : "")).width;
       return width ? Math.max(width, $active.dataPadding) : 0;
     },
     setBottomText: function (text) {
@@ -26809,10 +26894,6 @@
       if (rule && !form._validate(rule, value, data, name)) return false;
       return true;
     },
-    bottomLabel_setter: function (value) {
-      if (!this._settings.bottomPadding) this._settings.bottomPadding = 18;
-      return value;
-    },
     _getInvalidText: function () {
       var text = this._settings.invalidMessage;
 
@@ -26822,7 +26903,16 @@
 
       return text;
     },
-    setBottomText: function (text, height) {
+    bottomLabel_setter: function (text) {
+      var _this2 = this;
+
+      // this._get_input_width returns 0
+      // use delay to wait for the end of the render
+      delay(function () {
+        if (!_this2.$destructed) _this2.setBottomText(text);
+      });
+    },
+    setBottomText: function (text) {
       var config = this._settings;
 
       if (!isUndefined(text)) {
@@ -26842,9 +26932,9 @@
       var message = (config.invalid ? config.invalidMessage : "") || config.bottomLabel;
       if (!message && !config.bottomPadding) config.inputHeight = 0;
 
-      if (message && !config.bottomPadding) {
+      if (message && (!config.bottomPadding || this._restorePadding)) {
         this._restorePadding = 1;
-        config.bottomPadding = config.bottomPadding || height || 18;
+        config.bottomPadding = getTextSize(message, "webix_inp_bottom_label", this._get_input_width(config)).height;
         this.render();
         this.adjust();
         this.resize();
@@ -26880,7 +26970,7 @@
 
           if (!config.inputHeight) this._inputHeight = this._content_height - (config.label ? this._labelTopHeight : 0) - (this.config.bottomPadding || 0);
         } else {
-          if (config.label) config.labelWidth = this._getLabelWidth(config.labelWidth, config.label);
+          if (config.label) config.labelWidth = this._getLabelWidth(config.labelWidth, config.label, config.required);
           if (config.bottomPadding) config.inputHeight = this._content_height - this.config.bottomPadding;
         }
 
@@ -26959,12 +27049,15 @@
       html += this.$renderIcon ? this.$renderIcon(config) : "";
       var result = ""; //label position, top or left
 
-      if (top) result = label + "<div class='webix_el_box' style='width:" + config.awidth + "px; height:" + config.aheight + "px'>" + html + "</div>";else result = "<div class='webix_el_box' style='width:" + config.awidth + "px; height:" + config.aheight + "px'>" + label + html + "</div>"; //bottom message width
-
-      var padding = config.awidth - inputWidth - $active.inputPadding * 2; //bottom message text
+      if (top) result = label + "<div class='webix_el_box' style='width:" + config.awidth + "px; height:" + config.aheight + "px'>" + html + "</div>";else result = "<div class='webix_el_box' style='width:" + config.awidth + "px; height:" + config.aheight + "px'>" + label + html + "</div>"; //bottom message text
 
       var message = (config.invalid ? config.invalidMessage : "") || config.bottomLabel;
-      if (message) result += "<div class='webix_inp_bottom_label'" + (config.invalid ? "role='alert' aria-relevant='all'" : "") + " style='width:" + (inputWidth || config.awidth) + "px;margin-left:" + Math.max(padding, $active.inputPadding) + "px;'>" + message + "</div>";
+
+      if (message) {
+        var padding = config.awidth - inputWidth - $active.inputPadding;
+        result += "<div class='webix_inp_bottom_label'" + (config.invalid ? "role='alert' aria-relevant='all'" : "") + " style='width:" + (inputWidth || config.awidth) + "px;margin-left:" + Math.max(padding, $active.inputPadding) + "px;'>" + message + "</div>";
+      }
+
       return result;
     },
     defaults: {
@@ -26974,8 +27067,8 @@
       label: "",
       labelWidth: 80
     },
-    _getLabelWidth: function (width, label) {
-      if (width == "auto") width = getTextSize(label, "webix_inp_label").width;
+    _getLabelWidth: function (width, label, required) {
+      if (width == "auto") width = getTextSize(label, "webix_inp_label" + (required ? " webix_required" : "")).width;
       return width ? Math.max(width, $active.dataPadding) : 0;
     },
     type_setter: function (value) {
@@ -27007,7 +27100,7 @@
       } else this.setValue(v, details && details.config);
     },
     suggest_setter: function (value) {
-      var _this2 = this;
+      var _this3 = this;
 
       if (value) {
         assert(value !== true, "suggest options can't be set as true, data need to be provided instead");
@@ -27040,7 +27133,7 @@
         this._destroy_with_me.push(_view);
 
         this.$ready.push(function () {
-          return _view._settings.master = _this2._settings.id;
+          return _view._settings.master = _this3._settings.id;
         });
         return _view._settings.id;
       }
@@ -27244,7 +27337,7 @@
           /*@attr*/
           "radio_id" + "='" + options[i].id + "' class='webix_inp_radio_border webix_radio_" + (isChecked ? "1" : "0") + "' role='presentation'>" + rd + customRadio + "</div>";
           if (label) label = "<label for='" + eachid + "' class='webix_label_right'>" + label + "</label>";
-          html.push("<div class='webix_radio_option" + (isDisabled ? " webix_disabled" : "") + "' role='presentation'" + tooltip + ">" + input + label + "</div>");
+          html.push("<div style=\"height:".concat(config.optionHeight, "px;\" class=\"webix_radio_option").concat(isDisabled ? " webix_disabled" : "", "\" role=\"presentation\"").concat(tooltip, ">").concat(input + label, "</div>"));
         }
 
         html = "<div class='webix_el_group' role='radiogroup' style='margin-left:" + (config.label ? config.labelWidth : 0) + "px;'>" + html.join("") + "</div>";
@@ -27999,27 +28092,46 @@
 
   var autoheight = {
     $init: function () {
+      var _this = this;
+
+      _event(this.$view, "keydown", function (e) {
+        return _this._checkPageUp(e);
+      });
+
       this.$ready.push(function () {
-        var _this = this;
+        var _this2 = this;
 
         if (this._settings.autoheight) {
           addCss(this.$view, "webix_noscroll");
           if (!this._settings.maxHeight) this._settings.maxHeight = 100;
 
           _event(this.$view, "input", function () {
-            _this._sizeToContent(true);
+            _this2._sizeToContent(true);
           }, {
             capture: true
           });
 
           this.attachEvent("onAfterRender", function () {
-            _this._sizeToContent();
+            _this2._sizeToContent();
           });
         }
       });
     },
+    _checkPageUp: function (e) {
+      //chrome bug: textarea with typed text is not correctly resized when pushing PageUp/PageDown key
+      var pageUp = e.key == "PageUp";
+
+      if (env.isChromium && (pageUp || e.key == "PageDown")) {
+        var input = this.getInputNode();
+        var cursorPos = pageUp ? 0 : input.value.length;
+        var scrollPos = pageUp ? 0 : input.scrollHeight;
+        e.preventDefault();
+        input.setSelectionRange(cursorPos, cursorPos);
+        input.scrollTo(0, scrollPos);
+      }
+    },
     _sizeToContent: function (focus) {
-      var _this2 = this;
+      var _this3 = this;
 
       if (this._skipSizing) return this._skipSizing = false;
       var txt = this.getInputNode();
@@ -28037,20 +28149,20 @@
       var topView = this.getTopParentView();
       clearTimeout(topView._template_resize_timer);
       topView._template_resize_timer = delay(function () {
-        if (_this2.config.height != height) {
-          _this2.config.height = height;
+        if (_this3.config.height != height) {
+          _this3.config.height = height;
           var caretPos = txt.selectionEnd;
-          _this2._skipSizing = true;
-          var value = text.api.getValue.call(_this2);
+          _this3._skipSizing = true;
+          var value = text.api.getValue.call(_this3);
 
-          _this2.resize();
+          _this3.resize();
 
-          _this2.callEvent("onInputResize", []);
+          _this3.callEvent("onInputResize", []);
 
           if (focus) {
-            txt = _this2.getInputNode(); // needed to restore "\n" value after resize
+            txt = _this3.getInputNode(); // needed to restore "\n" value after resize
 
-            text.api.$setValue.call(_this2, value);
+            text.api.$setValue.call(_this3, value);
             txt.setSelectionRange(caretPos, caretPos);
             txt.focus();
           }
@@ -28962,7 +29074,7 @@
         }]);
         this.rows_setter(rows);
       } else {
-        config.labelWidth = config.label ? this._getLabelWidth(config.labelWidth, config.label) : 0;
+        config.labelWidth = config.label ? this._getLabelWidth(config.labelWidth, config.label, config.required) : 0;
 
         if (config.labelWidth) {
           config.margin = 0;
@@ -28977,8 +29089,8 @@
         } else this.rows_setter(rows);
       }
     },
-    _getLabelWidth: function (width, label) {
-      if (width == "auto") width = getTextSize(label, "webix_inp_label").width;
+    _getLabelWidth: function (width, label, required) {
+      if (width == "auto") width = getTextSize(label, "webix_inp_label" + (required ? " webix_required" : "")).width;
       return width ? Math.max(width, $active.dataPadding) : 0;
     },
     _getselection: function (config) {
@@ -30101,9 +30213,33 @@
       if (trg == document.body && !this.isVisible() || trg.className == "webix_clipbuffer") return;
       this._last_input_target = trg;
       this._settings.master = trg.webix_master_id;
-      var code = e.which || e.keyCode; //shift and ctrl
+      var code = e.which || e.keyCode; //shift, ctrl, alt, meta
 
-      if (code == 16 || code == 17) return; // tab - hide popup and do nothing
+      if (code == 16 || code == 17 || code == 18 || code == 91) return; //move cursor via arrow
+
+      if (code > 32 && code < 40 && code != 38) return;
+      var ctrl = e.ctrlKey || e.metaKey;
+
+      var _map = [8, 46, 86, 88, 89, 90].map(function (v) {
+        return code == v;
+      }),
+          _map2 = _slicedToArray(_map, 6),
+          backspace = _map2[0],
+          del = _map2[1],
+          v = _map2[2],
+          x = _map2[3],
+          y = _map2[4],
+          z = _map2[5];
+
+      if (ctrl && !(backspace || del || v || x || y || z)) return;
+
+      if (backspace || del || ctrl && x) {
+        var input = $$(this._settings.master).getInputNode();
+        var selStart = input.selectionStart;
+        var selEnd = input.selectionEnd;
+        if (backspace && selStart == 0 || x && selStart == selEnd || del && selStart == input.value.length) return;
+      } // tab - hide popup and do nothing
+
 
       if (code == 9) return this._tab_key(e, list); // escape - hide popup
 
@@ -30719,15 +30855,9 @@
         this.callEvent("onRegionClick", arguments);
       }, this));
       google.visualization.events.addListener(this._map, "select", bind(function () {
-        var selnow = this._map.getSelection()[0];
+        var sel = this._map.getSelection()[0];
 
-        var sel = selnow || this._selprev;
-
-        if (sel) {
-          var id = this.data.order[sel.row];
-          this._selprev = sel;
-          this.callEvent("onItemClick", [id, !!selnow]);
-        }
+        if (sel) this.callEvent("onItemClick", [this.data.order[sel.row]]);
       }, this));
     }
   };
@@ -30962,8 +31092,12 @@
   var view$_ = exports.protoUI(api$_, DataLoader, EventSystem, base$1.view);
 
   var Pie$1 = {
-    $render_pie: function (ctx, data, x, y, sIndex, map) {
-      this._renderPie(ctx, data, x, y, 1, map, sIndex);
+    $render_pie: function (ctx, data, point0, point1, sIndex, map) {
+      this._renderPie(ctx, data, point0, point1, 1, map, sIndex);
+    },
+    multilevel_setter: function (value) {
+      if (value) exports.extend(this.data, TreeStore, true);
+      return value;
     },
 
     /**
@@ -30982,110 +31116,166 @@
 
 
       var radius = this._settings.radius ? this._settings.radius : coord.radius;
-      if (radius < 0) return;
-      /*real values*/
+      if (radius < 0) return; //pie center
+
+      var x = this._settings.x ? this._settings.x : coord.x;
+      var y = this._settings.y ? this._settings.y : coord.y;
+      this._lineWidth = isUndefined(this._settings.borderWidth) ? 2 : this._settings.borderWidth;
+      var angleBounds = [-Math.PI / 2, Math.PI * 3 / 2];
+      var seriesCount = this._series.length;
+      var dr = this._innerRadius || 0;
+      var len = (radius - dr) / seriesCount;
+      this._levelCount = this._settings.multilevel ? this._getLevelCount(data) : 1;
+      this._linePoints = [];
+      this._pieHeight = (this._settings.pieHeight || Math.floor(radius / 3)) * (1 - this._settings.cant) * 3;
+      this._sectorLen = this._series.length > 1 ? len : Math.round((radius - dr) / this._levelCount); //adds shadow to the 2D pie
+
+      if (ky == 1 && this._settings.shadow && !sIndex) this._addShadow(ctx, x, y, radius); //changes vertical position of the center according to 3Dpie cant
+
+      y = y / ky; // changes Canvas vertical scale
+
+      ctx.scale(1, ky);
+      this._defColorsCursor = 0;
+      if (dr && ky != 1 && !sIndex) this._createFirstLowerSectors(ctx, data, x, y, dr); // adds radial gradient to a pie
+
+      if (this._settings.gradient) {
+        var x1 = ky != 1 ? x + radius / 3 : x;
+        var y1 = ky != 1 ? y + radius / 3 : y;
+
+        this._showRadialGradient(ctx, x, y, radius, x1, y1, dr + this._sectorLen * sIndex);
+      }
+
+      this._renderLevel(ctx, data, {
+        x: x,
+        y: y
+      }, len * (sIndex + 1) + dr, point0, map, ky, angleBounds, dr + len * sIndex, 0, sIndex); //renders radius lines
+
+
+      if (this._lineWidth) {
+        ctx.globalAlpha = 0.8;
+
+        for (var i = 0; i < this._linePoints.length; i++) {
+          var points = this._linePoints[i];
+          var p0 = points[0],
+              p1 = points[1];
+
+          this._drawLine(ctx, p0.x, p0.y, p1.x, p1.y, this._settings.lineColor.call(this, data[i]), this._lineWidth);
+        }
+
+        ctx.globalAlpha = 1;
+      }
+
+      ctx.scale(1, 1 / ky);
+      if (ky != 1 && this._settings.legend) this._settings.legend.toggle = false;
+    },
+    _getLevelCount: function (data, count) {
+      var _this = this;
+
+      count = count || 1;
+      var result = [];
+      data.forEach(function (item) {
+        return result.push(item.data ? _this._getLevelCount(item.data, count + 1) : count);
+      });
+      return Math.max.apply(null, result);
+    },
+    _renderLevel: function (ctx, data, center, radius, point0, map, ky, angleBounds, dr, levelIndex, sIndex, groupColor) {
+      var alpha0 = angleBounds[0];
 
       var values = this._getValues(data);
 
       var totalValue = this._getTotalValue(values);
-      /*weighed values (the ratio of object value to total value)*/
 
+      var x = center.x,
+          y = center.y; //weighed values (the ratio of object value to total value)
 
-      var ratios = this._getRatios(values, totalValue);
-      /*pie center*/
+      var ratios = this._getRatios(values, totalValue, alpha0, angleBounds[1]);
 
-
-      var x0 = this._settings.x ? this._settings.x : coord.x;
-      var y0 = this._settings.y ? this._settings.y : coord.y;
-      /*adds shadow to the 2D pie*/
-
-      if (ky == 1 && this._settings.shadow) this._addShadow(ctx, x0, y0, radius);
-      /*changes vertical position of the center according to 3Dpie cant*/
-
-      y0 = y0 / ky;
-      /*the angle defines the 1st edge of the sector*/
-
-      var alpha0 = -Math.PI / 2;
-      var angles = [];
-      /*changes Canvas vertical scale*/
-
-      ctx.scale(1, ky);
-      /*adds radial gradient to a pie*/
-
-      if (this._settings.gradient) {
-        var x1 = ky != 1 ? x0 + radius / 3 : x0;
-        var y1 = ky != 1 ? y0 + radius / 3 : y0;
-
-        this._showRadialGradient(ctx, x0, y0, radius, x1, y1);
-      }
+      var innerRadius = this._innerRadius || 0;
 
       for (var i = 0; i < data.length; i++) {
-        if (!values[i]) continue;
-        /*drawing sector*/
-        //ctx.lineWidth = 2;
+        var r = data[i].data ? this._sectorLen * (levelIndex + 1) + innerRadius : radius;
+        if (!values[i] && totalValue) continue; //drawing sector
 
+        ctx.lineWidth = this._lineWidth;
         ctx.strokeStyle = this._settings.lineColor.call(this, data[i]);
-        ctx.beginPath();
-        ctx.moveTo(x0, y0);
-        angles.push(alpha0);
-        /*the angle defines the 2nd edge of the sector*/
+        ctx.beginPath(); //the angle defines the 2nd edge of the sector
 
-        var alpha1 = -Math.PI / 2 + ratios[i] - 0.0001;
-        ctx.arc(x0, y0, radius, alpha0, alpha1, false);
-        ctx.lineTo(x0, y0);
+        var alpha1 = ratios[i] - 0.0001;
+        var p0 = void 0,
+            p1 = void 0;
 
-        var color = this._settings.color.call(this, data[i]);
+        if (!dr) {
+          ctx.moveTo(x, y);
+          ctx.arc(x, y, r, alpha0, alpha1, false);
+          ctx.lineTo(x, y);
+        } else {
+          p0 = this._getPositionByAngle(alpha0, x, y, dr);
+          p1 = this._getPositionByAngle(alpha1, x, y, dr);
+          ctx.moveTo(p0.x, p0.y);
+          ctx.arc(x, y, r, alpha0, alpha1, false);
+          ctx.lineTo(p1.x, p1.y);
+          ctx.arc(x, y, dr, alpha1, alpha0, true);
+          ctx.moveTo(p0.x, p0.y);
+        }
 
-        ctx.fillStyle = color;
+        var color$$1 = this._getColor(data[i], i, groupColor, levelIndex);
+
+        ctx.fillStyle = color$$1;
         ctx.fill();
         /*text that needs being displayed inside the sector*/
 
-        if (this._settings.pieInnerText) this._drawSectorLabel(x0, y0, 5 * radius / 6, alpha0, alpha1, ky, this._settings.pieInnerText(data[i], totalValue), true);
-        /*label outside the sector*/
+        if (this._settings.pieInnerText) {
+          var label = this._settings.pieInnerText(data[i], totalValue, levelIndex);
 
-        if (this._settings.label) this._drawSectorLabel(x0, y0, radius + this._settings.labelOffset, alpha0, alpha1, ky, this._settings.label(data[i]));
-        /*drawing lower part for 3D pie*/
+          var r0 = this._series.length > 1 || this._levelCount > 1 ? r - 0.5 * this._sectorLen : 0.8 * r;
 
-        if (ky != 1) {
-          this._createLowerSector(ctx, x0, y0, alpha0, alpha1, radius, true);
-
-          ctx.fillStyle = "#000000";
-          ctx.globalAlpha = 0.2;
-
-          this._createLowerSector(ctx, x0, y0, alpha0, alpha1, radius, false);
-
-          ctx.globalAlpha = 1;
-          ctx.fillStyle = color;
+          this._drawSectorLabel(x, y, r0, alpha0, alpha1, ky, label, true, sIndex, color$$1);
         }
-        /*creats map area (needed for events)*/
 
+        var isLastLevel = !data[i].data && sIndex == this._series.length - 1; //label outside the sector
 
-        map.addSector(data[i].id, alpha0, alpha1, x0 - point0.x, y0 - point0.y / ky, radius, ky, sIndex);
+        if (this._settings.label && isLastLevel) {
+          var text = this._settings.label(data[i], totalValue, sIndex);
+
+          this._drawSectorLabel(x, y, r + this._settings.labelOffset, alpha0, alpha1, ky, text, false, sIndex);
+        }
+
+        var isSectorFront = ky != 1 && isLastLevel ? this._applyPieHeight(ctx, x, y, alpha0, alpha1, r, false, data[i], i, color$$1) : null; // creates map area (needed for events)
+
+        var pHeight = isSectorFront ? this._pieHeight * ky : 0;
+        map.addSector(data[i].id, alpha0, alpha1, x - point0.x, y * ky - point0.y, r, ky, sIndex, dr, pHeight); // add child sectors
+
+        if (data[i].data) this._renderLevel(ctx, data[i].data, center, radius, point0, map, ky, [alpha0, alpha1], r, levelIndex + 1, sIndex, color$$1); // borders
+
+        var p = this._getPositionByAngle(alpha0, x, y, r);
+
+        this._linePoints.push([{
+          x: p0 ? p0.x : x,
+          y: p0 ? p0.y : y
+        }, p]);
+
+        if (this._lineWidth) this._drawArcBorder(ctx, x, y, r, alpha0, alpha1, isLastLevel);
         alpha0 = alpha1;
       }
-      /*renders radius lines and labels*/
+    },
+    _getColor: function (item, i, groupColor, levelIndex) {
+      var color$$1 = this._settings.color.call(this, item, i, levelIndex || 0, groupColor || null);
 
-
-      ctx.globalAlpha = 0.8;
-      var p;
-
-      for (i = 0; i < angles.length; i++) {
-        p = this._getPositionByAngle(angles[i], x0, y0, radius);
-
-        this._drawLine(ctx, x0, y0, p.x, p.y, this._settings.lineColor.call(this, data[i]), 2);
-      }
-
-      ctx.globalAlpha = 1;
-
-      if (ky == 1 && this._settings.border) {
-        ctx.lineWidth = this._settings.borderWidth || 2;
-        ctx.strokeStyle = this._settings.borderColor ? this._settings.borderColor.call(this) : "#ffffff";
-        ctx.beginPath();
-        ctx.arc(x0, y0, radius + 1, 0, 2 * Math.PI, false);
-        ctx.stroke();
-      }
-
-      ctx.scale(1, 1 / ky);
+      if (!color$$1 && groupColor) color$$1 = this._getLighterColor(groupColor, 0.15 * (i + 1));
+      return color$$1;
+    },
+    _getLighterColor: function (c, f) {
+      var rgb = color.toRgb(c);
+      var hsv = color.rgbToHsv(rgb[0], rgb[1], rgb[2]);
+      hsv[1] -= hsv[1] * (f || 0.5);
+      return "#" + color.rgbToHex("rgb(" + color.hsvToRgb(hsv[0], hsv[1], hsv[2]) + ")");
+    },
+    _drawArcBorder: function (ctx, x, y, r, startAngle, endAngle, isLastLevel) {
+      var w = ctx.lineWidth = this._lineWidth;
+      ctx.strokeStyle = this._settings.borderColor ? this._settings.borderColor.call(this) : "#ffffff";
+      ctx.beginPath();
+      ctx.arc(x, y, r - (isLastLevel ? 0 : w / 2), startAngle, endAngle, false);
+      ctx.stroke();
     },
 
     /**
@@ -31096,10 +31286,31 @@
       var v = [];
 
       for (var i = 0; i < data.length; i++) {
-        v.push(Math.abs(parseFloat(this._settings.value(data[i])) || 0));
+        var item = data[i];
+        var value = parseFloat(this._settings.value(item));
+        if (isNaN(value) && item.data) value = this._getChildSum(item.id, item.data);
+        item.$value = value;
+        v.push(Math.abs(value || 0));
       }
 
       return v;
+    },
+
+    /**
+     * Get total value by child branches
+     * @param id {string} a branch id
+     * @param data {array} child branches
+     */
+    _getChildSum: function (id, data) {
+      var sum = 0;
+
+      for (var i = 0; i < data.length; i++) {
+        var value = parseFloat(this._settings.value(data[i]));
+        if (isNaN(value) && data[i].data) sum += this._getChildSum(data[i].id, data[i].data);else sum += Math.abs(value || 0);
+      }
+
+      this.getItem(id).$value = sum;
+      return sum;
     },
 
     /**
@@ -31121,15 +31332,16 @@
      *   @param: the array of values
      *   @param: total value (optional)
      */
-    _getRatios: function (values, totalValue) {
-      var value;
-      var ratios = [];
-      var prevSum = 0;
-      totalValue = totalValue || this._getTotalValue(values);
+    _getRatios: function (values, totalValue, angleStart, angleEnd) {
+      var i,
+          value,
+          ratios = [],
+          prevSum = 0,
+          totalAngleValue = typeof angleStart != "undefined" ? angleEnd - angleStart : Math.PI * 2;
 
-      for (var i = 0; i < values.length; i++) {
-        value = values[i];
-        ratios[i] = Math.PI * 2 * (totalValue ? (value + prevSum) / totalValue : 1 / values.length);
+      for (i = 0; i < values.length; i++) {
+        value = totalValue ? values[i] : 1 / values.length;
+        ratios[i] = (angleStart || 0) + totalAngleValue * (value + prevSum) / (totalValue || 1);
         prevSum += value;
       }
 
@@ -31142,14 +31354,6 @@
      *   @param: y - the height of a container
      */
     _getPieParameters: function (point0, point1) {
-      /*var offsetX = 0;
-       var offsetY = 0;
-       if(this._settings.legend &&this._settings.legend.layout!="x")
-       offsetX = this._settings.legend.width*(this._settings.legend.align=="right"?-1:1);
-       var x0 = (x + offsetX)/2;
-       if(this._settings.legend &&this._settings.legend.layout=="x")
-       offsetY = this._settings.legend.height*(this._settings.legend.valign=="bottom"?-1:1);
-       var y0 = (y+offsetY)/2;*/
       var width = point1.x - point0.x;
       var height = point1.y - point0.y;
       var x0 = point0.x + width / 2;
@@ -31172,41 +31376,86 @@
      *   @param: R - pie radius
      *   @param: line (boolean) - if the sector needs a border
      */
-    _createLowerSector: function (ctx, x0, y0, a1, a2, R, line) {
-      ctx.lineWidth = 1;
-      /*checks if the lower sector needs being displayed*/
+    _createFirstLowerSectors: function (ctx, data, x, y, r) {
+      var values = this._getValues(data);
 
-      if (!(a1 <= 0 && a2 >= 0 || a1 >= 0 && a2 <= Math.PI || Math.abs(a1 - Math.PI) > 0.003 && a1 <= Math.PI && a2 >= Math.PI)) return;
+      var totalValue = this._getTotalValue(values);
 
-      if (a1 <= 0 && a2 >= 0) {
-        a1 = 0;
-        line = false;
+      var a1 = -Math.PI / 2;
 
-        this._drawSectorLine(ctx, x0, y0, R, a1, a2);
+      var ratios = this._getRatios(values, totalValue, a1, 3 * Math.PI / 2);
+
+      for (var i = 0; i < data.length; i++) {
+        var a2 = ratios[i] - 0.0001;
+
+        var color$$1 = this._getColor(data[i], i);
+
+        this._applyPieHeight(ctx, x, y, a1, a2, r, true, data[i], i, color$$1);
+
+        a1 = a2;
       }
 
-      if (a1 <= Math.PI && a2 >= Math.PI) {
-        a2 = Math.PI;
-        line = false;
+      this._defColorsCursor = 0;
+    },
+    _applyPieHeight: function (ctx, x, y, a1, a2, r, all, item, i, color$$1) {
+      // checks if the lower sector needs being displayed
+      if (!all && !(a1 <= 0 && a2 >= 0 || a1 >= 0 && a2 <= Math.PI || Math.abs(a1 - Math.PI) > 0.003 && a1 <= Math.PI && a2 >= Math.PI)) return false;
+      ctx.fillStyle = color$$1;
+      ctx.strokeStyle = this._settings.lineColor.call(this, item, i);
 
-        this._drawSectorLine(ctx, x0, y0, R, a1, a2);
-      }
-      /*the height of 3D pie*/
+      this._createLowerSector(ctx, x, y, a1, a2, r, true, all);
 
+      ctx.fillStyle = "#000000";
+      ctx.globalAlpha = 0.2;
 
-      var offset = (this._settings.pieHeight || Math.floor(R / 4)) / this._settings.cant;
+      this._createLowerSector(ctx, x, y, a1, a2, r, false, all);
 
-      ctx.beginPath();
-      ctx.arc(x0, y0, R, a1, a2, false);
-      ctx.lineTo(x0 + R * Math.cos(a2), y0 + R * Math.sin(a2) + offset);
-      ctx.arc(x0, y0 + offset, R, a2, a1, true);
-      ctx.lineTo(x0 + R * Math.cos(a1), y0 + R * Math.sin(a1));
-      ctx.fill();
-      if (line) ctx.stroke();
+      ctx.globalAlpha = 1;
+      return true;
     },
 
     /**
-     *   draws a serctor arc
+     *   creates lower part of sector in 3Dpie
+     *   @param: ctx - canvas object
+     *   @param: x - the horizontal position of the pie center
+     *   @param: y - the vertical position of the pie center
+     *   @param: a0 - the angle that defines the first edge of a sector
+     *   @param: a1 - the angle that defines the second edge of a sector
+     *   @param: r - pie radius
+     *   @param: line (boolean) - if the sector needs a border
+     */
+    _createLowerSector: function (ctx, x, y, a1, a2, r, line, all) {
+      ctx.lineWidth = this._lineWidth;
+
+      if (!all) {
+        if (a1 <= 0 && a2 >= 0) {
+          a1 = 0;
+          line = false;
+
+          this._drawSectorLine(ctx, x, y, r, a1, a2);
+        }
+
+        if (a1 <= Math.PI && a2 >= Math.PI) {
+          a2 = Math.PI;
+          line = false;
+
+          this._drawSectorLine(ctx, x, y, r, a1, a2);
+        }
+      } // the height of 3D pie
+
+
+      ctx.beginPath();
+      ctx.arc(x, y, r, a1, a2, false);
+      ctx.lineTo(x + r * Math.cos(a2), y + r * Math.sin(a2) + this._pieHeight);
+      ctx.arc(x, y + this._pieHeight, r, a2, a1, true);
+      ctx.lineTo(x + r * Math.cos(a1), y + r * Math.sin(a1));
+      ctx.fill();
+      if (line && this._lineWidth) ctx.stroke();
+      return true;
+    },
+
+    /**
+     *   draws a sector arc
      */
     _drawSectorLine: function (ctx, x0, y0, R, a1, a2) {
       ctx.beginPath();
@@ -31219,16 +31468,17 @@
      *   @param: ctx - canvas object
      *   @param: x - the horizontal position of the pie center
      *   @param: y - the vertical position of the pie center
-     *   @param: R - pie radius
+     *   @param: r - pie radius
      */
-    _addShadow: function (ctx, x, y, R) {
+    _addShadow: function (ctx, x, y, r) {
       ctx.globalAlpha = 0.5;
       var shadows = ["#c4c4c4", "#c6c6c6", "#cacaca", "#dcdcdc", "#dddddd", "#e0e0e0", "#eeeeee", "#f5f5f5", "#f8f8f8"];
 
       for (var i = shadows.length - 1; i > -1; i--) {
         ctx.beginPath();
         ctx.fillStyle = shadows[i];
-        ctx.arc(x + 1, y + 1, R + i, 0, Math.PI * 2, true);
+        ctx.arc(x + 1, y + 1, r + i, 0, Math.PI * 2, true);
+        ctx.arc(x + 1, y + 1, r - 2, Math.PI * 2, 0, false);
         ctx.fill();
       }
 
@@ -31254,8 +31504,9 @@
      *   @param: radius - pie radius
      *   @param: x0 - the horizontal position of a gradient center
      *   @param: y0 - the vertical position of a gradient center
+     *   @param: dr - the inner radius (for donut or series)
      */
-    _showRadialGradient: function (ctx, x, y, radius, x0, y0) {
+    _showRadialGradient: function (ctx, x, y, radius, x0, y0, dr) {
       //ctx.globalAlpha = 0.3;
       ctx.beginPath();
       var gradient;
@@ -31267,9 +31518,9 @@
 
       ctx.fillStyle = gradient;
       ctx.arc(x, y, radius, 0, Math.PI * 2, true);
-      ctx.fill(); //ctx.globalAlpha = 1;
-
-      ctx.globalAlpha = 0.7;
+      if (dr) ctx.arc(x, y, dr, Math.PI * 2, 0, false);
+      ctx.fill();
+      ctx.globalAlpha = 0.75;
     },
 
     /**
@@ -31277,16 +31528,19 @@
      *   @param: ctx - canvas object
      *   @param: x0 - the horizontal position of the pie center
      *   @param: y0 - the vertical position of the pie center
-     *   @param: R - pie radius
+     *   @param: r - pie radius
      *   @param: alpha1 - the angle that defines the 1st edge of a sector
      *   @param: alpha2 - the angle that defines the 2nd edge of a sector
      *   @param: ky - the value that defines an angle of inclination
      *   @param: text - label text
-     *   @param: in_width (boolean) - if label needs being displayed inside a pie
+     *   @param: in_width {boolean} - if label needs being displayed inside a pie
+     *   @param: sIndex {number} - series index
      */
-    _drawSectorLabel: function (x0, y0, R, alpha1, alpha2, ky, text, in_width) {
-      var t = this.canvases[0].renderText(0, 0, text, 0, 1);
-      if (!t) return; //get existing width of text
+    _drawSectorLabel: function (x0, y0, r, alpha1, alpha2, ky, text, in_width, sIndex, bgColor) {
+      var css = !in_width || this._getFontCss(bgColor);
+
+      var t = this.canvases[sIndex].renderText(0, 0, text, css, 1);
+      if (!t) return; // get existing width of text
 
       var labelWidth = t.scrollWidth;
       t.style.width = labelWidth + "px"; //adjust text label to fit all text
@@ -31298,40 +31552,29 @@
       if (in_width) width = labelWidth / 1.8;
       var alpha = alpha1 + (alpha2 - alpha1) / 2; //position and its correction
 
-      R = R - (width - 8) / 2;
+      r = r - (width - 8) / 2;
       var corr_x = -width;
       var corr_y = -8;
       var align = "right"; //for items in left upper and lower sector
 
       if (alpha >= Math.PI / 2 && alpha < Math.PI || alpha <= 3 * Math.PI / 2 && alpha >= Math.PI) {
-        corr_x = -labelWidth - corr_x + 1;
-        /*correction for label width*/
+        corr_x = -labelWidth - corr_x + 1; // correction for label width
 
         align = "left";
-      }
-      /*
-         calculate position of text
-         basically get point at center of pie sector
-      */
+      } // calculate position of text basically get point at center of pie sector
 
 
       var offset = 0;
-      if (!in_width && ky < 1 && alpha > 0 && alpha < Math.PI) offset = (this._settings.height || Math.floor(R / 4)) / ky;
-      var y = (y0 + Math.floor((R + offset) * Math.sin(alpha))) * ky + corr_y;
-      var x = x0 + Math.floor((R + width / 2) * Math.cos(alpha)) + corr_x;
-      /*
-         if pie sector starts in left of right part pie,
-         related text	must be placed to the left of to the right of pie as well
-      */
+      if (!in_width && ky < 1 && alpha > 0 && alpha < Math.PI) offset = (this._settings.height || Math.floor(r / 4)) / ky;
+      var y = (y0 + Math.floor((r + offset) * Math.sin(alpha))) * ky + corr_y;
+      var x = x0 + Math.floor((r + width / 2) * Math.cos(alpha)) + corr_x; // if pie sector starts in left of right part pie,
+      // related text	must be placed to the left of to the right of pie as well
 
       var left_end = alpha2 < Math.PI / 2 + 0.01;
       var left_start = alpha1 < Math.PI / 2;
 
       if (left_start && left_end) {
         x = Math.max(x, x0 + 3); //right part of pie
-
-        /*if(alpha2-alpha1<0.2)
-        	x = x0;*/
       } else if (!left_start && !left_end) x = Math.min(x, x0 - labelWidth); //left part of pie
       else if (!in_width && (alpha >= Math.PI / 2 && alpha < Math.PI || alpha <= 3 * Math.PI / 2 && alpha >= Math.PI)) {
           x += labelWidth / 3;
@@ -31344,27 +31587,36 @@
       t.style.textAlign = align;
       t.style.whiteSpace = "nowrap";
     },
-    $render_pie3D: function (ctx, data, x, y, sIndex, map) {
-      this._renderPie(ctx, data, x, y, this._settings.cant, map);
+    _getFontCss: function (bgColor) {
+      var rgb = color.toRgb(bgColor);
+      var brightness = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]; // webix_inner_text_dark/light adds 4px to the width (padding)
+
+      return "webix_chart_pie_label webix_inner_text_" + (brightness > 180 ? "dark" : "light");
+    },
+    $render_pie3D: function (ctx, data, point0, point1, sIndex, map) {
+      this._renderPie(ctx, data, point0, point1, this._settings.cant, map, sIndex);
     },
     $render_donut: function (ctx, data, point0, point1, sIndex, map) {
+      this._renderDonut(ctx, data, point0, point1, map, sIndex);
+    },
+    $render_donut3D: function (ctx, data, point0, point1, sIndex, map) {
+      this._renderDonut(ctx, data, point0, point1, map, sIndex, this._settings.cant);
+    },
+    _renderDonut: function (ctx, data, point0, point1, map, sIndex, ky) {
       if (!data.length) return;
-
-      this._renderPie(ctx, data, point0, point1, 1, map, sIndex);
-
       var config = this._settings;
 
       var coord = this._getPieParameters(point0, point1);
 
       var pieRadius = config.radius ? config.radius : coord.radius;
       if (pieRadius <= 0) return;
-      var innerRadius = config.innerRadius && config.innerRadius < pieRadius ? config.innerRadius : pieRadius / 3;
       var x0 = config.x ? config.x : coord.x;
       var y0 = config.y ? config.y : coord.y;
-      ctx.fillStyle = $active.backColor;
-      ctx.beginPath();
-      ctx.arc(x0, y0, innerRadius, 0, Math.PI * 2, true);
-      ctx.fill();
+      var innerRadius = config.innerRadius;
+      if (!innerRadius || innerRadius > pieRadius) innerRadius = pieRadius / 3;
+      this._innerRadius = innerRadius;
+
+      this._renderPie(ctx, data, point0, point1, ky || 1, map, sIndex);
 
       if (this._settings.donutInnerText) {
         var values = this._getValues(data);
@@ -31495,7 +31747,7 @@
         var x0 = point0.x + barOffset + i * cellWidth + (barWidth + 1) * seriesIndex;
         var y0 = point1.y;
 
-        var color$$1 = gradient || this._settings.color.call(this, data[i]);
+        var color$$1 = gradient || this._settings.color.call(this, data[i], i);
 
         var border = this._settings.border ? 1 : 0;
 
@@ -32048,7 +32300,7 @@
 
 
         if (!xax) value += startValue / unit;
-        color = gradient || this._settings.color.call(this, data[i]);
+        color = gradient || this._settings.color.call(this, data[i], i);
         /*drawing the gradient border of a bar*/
 
         if (this._settings.border) {
@@ -32396,14 +32648,12 @@
         /*the max height limit*/
 
         if (y0 < point0.y + 1) continue;
-
-        var color = this._settings.color.call(this, data[i]);
-
+        var color = config.color.call(this, data[i], i);
         var firstSector = Math.abs(y0 - (origin ? point1.y + minValue * unit : point1.y)) < 3;
         /*drawing bar body*/
 
         ctx.globalAlpha = config.alpha.call(this, data[i]);
-        ctx.fillStyle = ctx.strokeStyle = config.color.call(this, data[i]);
+        ctx.fillStyle = ctx.strokeStyle = color;
         ctx.beginPath();
         var y1 = y0 - unit * value + (firstSector ? negValue ? -1 : 1 : 0);
 
@@ -32599,12 +32849,12 @@
 
         if (!yax) value += startValue / unit;
 
-        var color = this._settings.color.call(this, data[i]);
+        var color = this._settings.color.call(this, data[i], i);
         /*drawing bar body*/
 
 
         ctx.globalAlpha = this._settings.alpha.call(this, data[i]);
-        ctx.fillStyle = this._settings.color.call(this, data[i]);
+        ctx.fillStyle = color;
         ctx.beginPath();
 
         var points = this._setBarHPoints(ctx, x0, y0, barWidth, radius, unit, value, 0);
@@ -33597,7 +33847,7 @@
 
       if (data.length) {
         /*getting all points*/
-        x0 = point0.x;
+        x0 = config.offset ? point0.x + params.cellWidth * 0.5 : point0.x;
 
         for (i = 0; i < data.length; i++) {
           y = this._getPointY(data[i], point0, point1, params);
@@ -33971,22 +34221,22 @@
     /*@attr*/
     "webix_area_id",
     on_click: {
-      webix_chart_legend_item: function (e, id, obj) {
-        var series = obj.getAttribute(
+      webix_chart_legend_item: function (e, itemId, obj) {
+        var id = obj.getAttribute(
         /*@attr*/
         "series_id");
 
-        if (this.callEvent("onLegendClick", [e, series, obj])) {
-          if (typeof series != "undefined" && this._series.length > 1) {
+        if (this.callEvent("onLegendClick", [e, id, obj])) {
+          if (!isUndefined(id) && this._series.length > 1 && this._series[id]) {
             var config = this._settings;
             var values = config.legend.values;
-            var toggle = values && values[series].toggle || config.legend.toggle; // hide action
+            var toggle = values && values[id].toggle || config.legend.toggle; // hide action
 
-            if (toggle) {
+            if (values && toggle) {
               if (obj.className.indexOf("hidden") != -1) {
-                this.showSeries(series);
+                this.showSeries(id);
               } else {
-                this.hideSeries(series);
+                this.hideSeries(id);
               }
             }
           }
@@ -34069,7 +34319,7 @@
       if (this._settings.legend) {
         if (!this.canvases["legend"]) this.canvases["legend"] = this._createCanvas("legend");
 
-        this._drawLegend(this.data.getRange(), this._content_width, this._content_height);
+        this._drawLegend(this._getDataRange(), this._content_width, this._content_height);
       }
 
       this._map = map = new HtmlMap(this._id);
@@ -34112,9 +34362,12 @@
         elem.style[prop] = style[prop] + "px";
       }
     },
+    _getDataRange: function () {
+      return this.data.branch ? this._getChartTreeData() : this.data.getRange();
+    },
     _getChartData: function () {
       var axis, axisConfig, config, data, i, newData, start, units, value, valuesHash;
-      data = this.data.getRange();
+      data = this._getDataRange();
       axis = this._settings.type.toLowerCase().indexOf("barh") != -1 ? "yAxis" : "xAxis";
       axisConfig = this._settings[axis];
 
@@ -34160,6 +34413,23 @@
 
       return data;
     },
+    _getChartTreeData: function (id) {
+      var _this = this;
+
+      var data = [];
+      var ids = this.data.branch[id || 0];
+
+      if (ids) {
+        ids.forEach(function (childId) {
+          var item = _this.data.getItem(childId);
+
+          data.push(item);
+          if (_this.data.branch[childId]) item.data = _this._getChartTreeData(childId);
+        });
+      }
+
+      return data;
+    },
     series_setter: function (config) {
       if (!config || _typeof(config) != "object") {
         assert(config, "Chart :: Series must be an array or object");
@@ -34199,11 +34469,11 @@
       "default": function (obj) {
         var count = this.count();
         var colorsCount = this._defColors.length;
-        var i = this.getIndexById(obj.id);
+        var i = this.data.getBranchIndex ? this.data.getBranchIndex(obj.id) : this.getIndexById(obj.id);
 
         if (colorsCount > count) {
           if (i) {
-            if (i < colorsCount - count) i = this._defColorsCursor + 2;else i = this._defColorsCursor + 1;
+            if (i > 0 && i < colorsCount - count) i = this._defColorsCursor + 2;else i = this._defColorsCursor + 1;
           }
 
           this._defColorsCursor = i;
@@ -34214,6 +34484,9 @@
     },
     color_setter: function (value) {
       return this.colormap[value] || template(value);
+    },
+    childColor_setter: function (value) {
+      return template(value);
     },
     fill_setter: function (value) {
       return !value || value == "0" ? false : template(value);
@@ -34676,15 +34949,17 @@
       return this.getItem(id);
     },
     _getActiveSeries: function (e) {
-      var a, areas, i, offset$$1, pos$$1, selection, x, y;
-      areas = this._map._areas;
-      offset$$1 = offset(this._contentobj._htmlmap);
-      pos$$1 = pos(e);
-      x = pos$$1.x - offset$$1.x;
-      y = pos$$1.y - offset$$1.y;
+      var type = this._settings.type;
+      if (type.indexOf("pie") > -1 || type.indexOf("donut") > -1) return e.target.getAttribute("userdata") * 1;
+      var areas = this._map._areas,
+          offset$$1 = offset(this._contentobj._htmlmap),
+          pos$$1 = pos(e),
+          x = pos$$1.x - offset$$1.x,
+          y = pos$$1.y - offset$$1.y;
+      var selection;
 
-      for (i = 0; i < areas.length; i++) {
-        a = areas[i].points;
+      for (var i = 0; i < areas.length; i++) {
+        var a = areas[i].points;
 
         if (x <= a[2] && x >= a[0] && y <= a[3] && y >= a[1]) {
           if (selection) {
@@ -34728,7 +35003,6 @@
     *   @param: height - the height of the container
     */
     _drawLegend: function (data, width) {
-      /*position of the legend block*/
       var i,
           legend,
           legendContainer,
@@ -34740,18 +35014,12 @@
           y = 0,
           ctx,
           itemColor,
-          disabled,
-          item;
+          disabled;
       data = data || [];
       width = width || this._content_width;
       ctx = this.canvases["legend"].getCanvas();
-      /*legend config*/
-
       legend = this._settings.legend;
-      /*the legend sizes*/
-
-      style = this._settings.legend.layout != "x" ? "width:" + legend.width + "px" : "";
-      /*creation of legend container*/
+      style = this._settings.legend.layout != "x" ? "width:" + legend.width + "px" : ""; // legend container
 
       if (this._legendObj) {
         this._legendObj.innerHTML = "";
@@ -34771,15 +35039,18 @@
 
       this._legendObj = legendContainer;
 
-      this._contentobj.appendChild(legendContainer);
-      /*rendering legend text items*/
+      this._contentobj.appendChild(legendContainer); // rendering legend text items
 
 
       legendItems = [];
       if (!legend.values) for (i = 0; i < data.length; i++) {
         legendItems.push(this._drawLegendText(legendContainer, legend.template(data[i]), data[i].id));
       } else for (i = 0; i < legend.values.length; i++) {
-        legendItems.push(this._drawLegendText(legendContainer, legend.values[i].text, typeof legend.values[i].id != "undefined" ? _typeof(legend.values[i].id) : i, legend.values[i].$hidden));
+        var seriesId = isUndefined(legend.values[i].id) ? i : legend.values[i].id;
+
+        var item = this._drawLegendText(legendContainer, legend.values[i].text, seriesId, legend.values[i].$hidden);
+
+        legendItems.push(item);
       }
       var rendered = document.body.contains(this._contentobj);
       var parentNode, d; // inside window
@@ -34797,21 +35068,11 @@
       legendHeight = legendContainer.offsetHeight;
       /*this._settings.legend.width = legendWidth;
       this._settings.legend.height = legendHeight;*/
-
-      /*setting legend position*/
+      //setting legend position
 
       if (legendWidth < width) {
-        if (legend.layout == "x" && legend.align == "center") {
-          x = (width - legendWidth) / 2;
-        }
-
-        if (legend.align == "right") {
-          x = width - legendWidth;
-        }
-
-        if (legend.margin && legend.align != "center") {
-          x += (legend.align == "left" ? 1 : -1) * legend.margin;
-        }
+        if (legend.layout == "x" && legend.align == "center") x = (width - legendWidth) / 2;else if (legend.align == "right") x = width - legendWidth;
+        if (legend.margin && legend.align != "center") x += (legend.align == "left" ? 1 : -1) * legend.margin;
       }
 
       if (legendHeight < this._content_height) {
@@ -34823,23 +35084,22 @@
       }
 
       legendContainer.style.left = x + "px";
-      legendContainer.style.top = y + "px";
-      /*drawing colorful markers*/
+      legendContainer.style.top = y + "px"; // drawing markers
 
       ctx.save();
 
       for (i = 0; i < legendItems.length; i++) {
-        item = legendItems[i];
+        var _item = legendItems[i];
 
         if (legend.values && legend.values[i].$hidden) {
           disabled = true;
-          itemColor = legend.values[i].disableColor ? legend.values[i].disableColor : "#edeff0";
+          itemColor = legend.values[i].disableColor || "#edeff0";
         } else {
           disabled = false;
-          itemColor = legend.values ? legend.values[i].color : this._settings.color.call(this, data[i]);
+          itemColor = legend.values ? legend.values[i].color : this._settings.color.call(this, data[i], i);
         }
 
-        this._drawLegendMarker(ctx, item.offsetLeft + x, item.offsetTop + y, itemColor, item.offsetHeight, disabled, i);
+        this._drawLegendMarker(ctx, _item.offsetLeft + x, _item.offsetTop + y, itemColor, _item.offsetHeight, disabled, i);
       }
 
       ctx.restore();
@@ -34859,8 +35119,7 @@
     */
     _drawLegendText: function (cont, value, series, disabled) {
       var style = "";
-      if (this._settings.legend.layout == "x") style = "float:left;";
-      /*the text of the legend item*/
+      if (this._settings.legend.layout == "x") style = "float:left;"; // the text of the legend item
 
       var text = create("DIV", {
         "style": style + "padding-left:" + (10 + this._settings.legend.marker.width) + "px",
@@ -34888,18 +35147,13 @@
       var marker = this._settings.legend.marker;
       var values = this._settings.legend.values;
       var type = values && values[i].markerType ? values[i].markerType : marker.type;
-
-      if (color$$1) {
-        ctx.strokeStyle = ctx.fillStyle = color$$1;
-      }
-
-      if (type == "round" || !marker.radius) {
+      if (color$$1) ctx.strokeStyle = ctx.fillStyle = color$$1;
+      if (type == "none") return false;else if (type == "round" || !marker.radius) {
         ctx.beginPath();
         var r = marker.height / 2;
         ctx.arc(x + r + 5, y + height / 2, r, 0, 2 * Math.PI);
         ctx.fill();
       } else if (type == "item") {
-        /*copy of line*/
         if (this._settings.line && this._settings.type != "scatter" && !this._settings.disableLines) {
           ctx.beginPath();
           ctx.lineWidth = this._series[i].line.width;
@@ -34911,8 +35165,6 @@
           ctx.lineTo(x1, y0);
           ctx.stroke();
         }
-        /*item copy*/
-
 
         var config = this._series[i].item;
         var radius = parseInt(config.radius.call(this, {}), 10) || 0;
@@ -34963,43 +35215,35 @@
     *   @param: height - the height of the chart container
     */
     _getChartBounds: function (width, height) {
-      var chartX0, chartY0, chartX1, chartY1;
-      chartX0 = this._settings.padding.left;
-      chartY0 = this._settings.padding.top;
-      chartX1 = width - this._settings.padding.right;
-      chartY1 = height - this._settings.padding.bottom;
+      var padding = this._settings.padding;
+      var x = padding.left,
+          y = padding.top,
+          x1 = width - padding.right,
+          y1 = height - padding.bottom;
 
       if (this._settings.legend) {
-        var legend = this._settings.legend;
-        /*legend size*/
-
-        var legendWidth = this._settings.legend.width;
-        var legendHeight = this._settings.legend.height;
-        /*if legend is horizontal*/
+        var legend = this._settings.legend,
+            legendWidth = legend.width,
+            legendHeight = legend.height; // if legend is horizontal
 
         if (legend.layout == "x") {
           if (legend.valign == "center") {
-            if (legend.align == "right") chartX1 -= legendWidth;else if (legend.align == "left") chartX0 += legendWidth;
-          } else if (legend.valign == "bottom") {
-            chartY1 -= legendHeight;
-          } else {
-            chartY0 += legendHeight;
-          }
-        }
-        /*vertical scale*/
+            if (legend.align == "right") x1 -= legendWidth;else if (legend.align == "left") x += legendWidth;
+          } else if (legend.valign == "bottom") y1 -= legendHeight;else y += legendHeight;
+        } // vertical scale
         else {
-            if (legend.align == "right") chartX1 -= legendWidth;else if (legend.align == "left") chartX0 += legendWidth;
+            if (legend.align == "right") x1 -= legendWidth;else if (legend.align == "left") x += legendWidth;
           }
       }
 
       return {
         start: {
-          x: chartX0,
-          y: chartY0
+          x: x,
+          y: y
         },
         end: {
-          x: chartX1,
-          y: chartY1
+          x: x1,
+          y: y1
         }
       };
     },
@@ -38358,7 +38602,7 @@
 
         if (!popup.config.hidden && !popup.$view.contains(trg) && !this.$view.firstChild.contains(trg) && !popup.queryView({
           view: "menu"
-        })._open_sub_menu) {
+        })._open_sub_menu && !(this.$view._custom_scroll_size && this.$view._custom_scroll_size._scroll_y_node)) {
           popup.hide();
         }
       }, {
@@ -39492,11 +39736,13 @@
       if (this._bs_progress) delay(this._bs_select, this, [false, false]);
     },
     _bs_select: function (mode, theend, e) {
-      var start = null;
-      if (!this._bs_ready[2]) this._bs_ready[2] = this._locate_cell_xy.apply(this, this._bs_ready);
-      start = this._bs_ready[2];
+      var cell = this._bs_ready[2] || this._locate_cell_xy(this._bs_ready[0], this._bs_ready[1]);
 
-      var end = this._locate_cell_xy.apply(this, this._bs_progress);
+      var start = {
+        row: cell.row,
+        column: cell.column
+      },
+          end = this._locate_cell_xy(this._bs_progress[0], this._bs_progress[1], true);
 
       if (!this.callEvent("onBeforeBlockSelect", [start, end, theend, e])) return;
 
@@ -39568,12 +39814,14 @@
 
       if (theend) this.callEvent("onAfterBlockSelect", [start, end]);
     },
-    _bs_start: function () {
+    _bs_start: function (handleStart) {
       this._block_panel = create("div", {
         "class": "webix_block_selection"
       }, "");
 
       this._body.appendChild(this._block_panel);
+
+      this.$handleStart = !!handleStart;
     },
     _bs_move: function (e, pointer) {
       if (this._rs_progress) return;
@@ -39584,7 +39832,7 @@
         var progress = [pos$$1.x - this._bs_position.x, pos$$1.y - this._bs_position.y]; //prevent unnecessary block selection while dbl-clicking
 
         if (Math.abs(this._bs_ready[0] - progress[0]) < 5 && Math.abs(this._bs_ready[1] - progress[1]) < 5) return;
-        if (this._bs_progress === false) this._bs_start(e);
+        if (this._bs_progress === false) this._bs_start();
         this._bs_progress = progress;
 
         this._bs_select(this.config.blockselect, false, e);
@@ -39592,7 +39840,7 @@
         if (pointer === "touch") preventEvent(e);
       }
     },
-    _locate_cell_xy: function (x, y) {
+    _locate_cell_xy: function (x, y, isEndPoint) {
       var inTopSplit = false,
           row = null,
           column = null;
@@ -39611,9 +39859,10 @@
       if (y < 0) y = 0;
       var cols = this._settings.columns;
       var rows = this.data.order;
+      var handle = isEndPoint && this.$handleStart;
+      var dir = handle ? this._getHandleMoveDirection(x, y) : null;
       var summ = 0;
-
-      for (var i = 0; i < cols.length; i++) {
+      if (!handle || dir == "x") for (var i = 0; i < cols.length; i++) {
         summ += cols[i].width;
 
         if (summ >= x) {
@@ -39621,23 +39870,25 @@
           break;
         }
       }
-
-      if (!column) column = cols[cols.length - 1].id;
+      if (!column) column = handle ? this._bs_ready[5].column : cols[cols.length - 1].id;
       summ = 0;
-      var start = this.data.$min || 0;
 
-      if (this._settings.fixedRowHeight) {
-        row = rows[start + Math.floor(y / this._settings.rowHeight)];
-      } else for (var _i = start; _i < rows.length; _i++) {
-        summ += this._getHeightByIndex(_i);
+      if (!handle || dir == "y") {
+        var start = this.data.$min || 0;
 
-        if (summ >= y) {
-          row = rows[_i];
-          break;
+        if (this._settings.fixedRowHeight) {
+          row = rows[start + Math.floor(y / this._settings.rowHeight)];
+        } else for (var _i = start; _i < rows.length; _i++) {
+          summ += this._getHeightByIndex(_i);
+
+          if (summ >= y) {
+            row = rows[_i];
+            break;
+          }
         }
       }
 
-      if (!row) row = rows[rows.length - 1];
+      if (!row) row = handle ? this._bs_ready[5].row : rows[rows.length - 1];
       return {
         row: row,
         column: column
@@ -39656,6 +39907,25 @@
       }
 
       return y;
+    },
+    _getHandleMoveDirection: function (x, y) {
+      var dir;
+      var p0 = [this._bs_ready[0], this._bs_ready[1]];
+      var p1 = [this._bs_ready[3], this._bs_ready[4]];
+      var xMax = p1[0] + this._columns_pull[this._bs_ready[5].column].width;
+
+      var yMax = p1[1] + this._getRowHeight(this._bs_ready[5].row);
+
+      if (x <= xMax && x >= p0[0]) {
+        if (y <= yMax && y >= p0[1]) dir = x < p1[0] ? "x" : "y";else dir = "y";
+      } else {
+        var x0 = x > p1[0] ? xMax : p0[0];
+        var y0 = y > p1[1] ? yMax : p0[1];
+        dir = Math.abs(x - x0) > Math.abs(y - y0) ? "x" : "y";
+        if (dir == "y" && x < p0[0] && y <= yMax && y >= p0[1]) dir = null;
+      }
+
+      return dir;
     }
   };
 
@@ -41778,7 +42048,7 @@
               header.colspan = colspan;
             }
 
-            if (header.rowspan && length === 1) {
+            if (header.rowspan) {
               header.height = (header.height || this.config.headerRowHeight) * header.rowspan;
               header.rowspan = null;
             }
@@ -41926,29 +42196,42 @@
         rwidth += widths[i];
       }
 
-      if (rwidth > this._getPageWidth(options)) {
-        base[0].forEach(function (item) {
-          for (var _i = 0; _i < item.length; _i++) {
-            if (item[_i] && item[_i].style && item[_i].style.width) item[_i].style.width = "auto";
-          }
-        });
-      }
+      if (rwidth > this._getPageWidth(options)) if (base[0]) base[0].forEach(function (item) {
+        for (var _i = 0; _i < item.length; _i++) {
+          if (item[_i] && item[_i].style && item[_i].style.width) item[_i].style.width = "auto";
+        }
+      });
     },
     _getTableHTML: function (tableData, options) {
+      var _this = this;
+
       var container = create("div");
-      tableData.forEach(bind(function (table, i) {
+      var sCount = this.config.topSplit || 0;
+      var hCount = options.header ? this.config.columns[0].header.length : 0;
+      var fCount = options.footer ? this.config.columns[0].footer.length : 0; //rows are not repeated on every page if header > 6
+
+      var topSplitIndex = hCount + sCount;
+      var headerCount = topSplitIndex > 6 ? hCount : topSplitIndex;
+      tableData.forEach(function (table, i) {
         var tableHTML = create("table", {
-          "class": "webix_table_print " + this.$view.className + (options.borderless ? " borderless" : ""),
-          "style": "border-collapse:collapse",
-          "id": this.$view.getAttribute("id")
-        });
-        table.forEach(function (row) {
+          class: "webix_table_print " + _this.$view.className + (options.borderless ? " borderless" : ""),
+          style: "border-collapse:collapse",
+          id: _this.$view.getAttribute("id")
+        }, "<thead></thead><tbody></tbody><tfoot></tfoot>");
+        container.appendChild(tableHTML);
+
+        var _tableHTML$children = _slicedToArray(tableHTML.children, 3),
+            header = _tableHTML$children[0],
+            body = _tableHTML$children[1],
+            footer = _tableHTML$children[2];
+
+        table.forEach(function (row, rowIndex) {
           var tr = create("tr");
           row.forEach(function (cell) {
             if (!cell.$inspan) {
-              var td = create("td");
-              td.innerHTML = cell.txt;
-              td.className = cell.className;
+              var td = create("td", {
+                class: cell.className
+              }, cell.txt);
 
               for (var key in cell.style) {
                 td.style[key] = cell.style[key];
@@ -41962,17 +42245,17 @@
               tr.appendChild(td);
             }
           });
-          tableHTML.appendChild(tr);
+          if (sCount && rowIndex + 1 == topSplitIndex) tr.className = "webix_print_top_split";
+          if (rowIndex < headerCount) header.appendChild(tr);else if (table.length - fCount > rowIndex) body.appendChild(tr);else footer.appendChild(tr);
         });
-        container.appendChild(tableHTML);
 
         if (i + 1 < tableData.length) {
           var br = create("DIV", {
-            "class": "webix_print_pagebreak"
+            class: "webix_print_pagebreak"
           });
           container.appendChild(br);
         }
-      }, this));
+      });
       return container;
     }
   };

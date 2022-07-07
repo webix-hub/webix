@@ -77,12 +77,9 @@ const Mixin = {
 			delay(this._bs_select, this, [false, false]);
 	},
 	_bs_select:function(mode, theend, e){
-		let start = null;
-		if(!this._bs_ready[2])
-			this._bs_ready[2] = this._locate_cell_xy.apply(this, this._bs_ready);
-		start = this._bs_ready[2];
-
-		const end = this._locate_cell_xy.apply(this, this._bs_progress);
+		const cell = this._bs_ready[2]||this._locate_cell_xy(this._bs_ready[0],this._bs_ready[1]);
+		const start = {row: cell.row, column: cell.column},
+			end = this._locate_cell_xy(this._bs_progress[0],this._bs_progress[1],true);
 
 		if (!this.callEvent("onBeforeBlockSelect", [start, end, theend, e]))
 			return;
@@ -166,16 +163,17 @@ const Mixin = {
 				style.top = starty+"px";
 				style.width = (endx-startx)+"px";
 				style.height = (endy-starty)+"px";
-
 			}
 		}
 
 		if (theend)
 			this.callEvent("onAfterBlockSelect", [start, end]);
 	},
-	_bs_start:function(){
+
+	_bs_start:function(handleStart){
 		this._block_panel = create("div", {"class":"webix_block_selection"},"");
 		this._body.appendChild(this._block_panel);
+		this.$handleStart = !!handleStart;
 	},
 	_bs_move:function(e, pointer){
 		if (this._rs_progress) return;
@@ -190,7 +188,7 @@ const Mixin = {
 				return;
 
 			if (this._bs_progress === false)
-				this._bs_start(e);
+				this._bs_start();
 
 			this._bs_progress = progress;
 			this._bs_select(this.config.blockselect, false, e);
@@ -198,7 +196,7 @@ const Mixin = {
 			if (pointer === "touch") preventEvent(e);
 		}
 	},
-	_locate_cell_xy:function(x,y){
+	_locate_cell_xy:function(x,y, isEndPoint){
 		let inTopSplit = false,
 			row = null,
 			column = null;
@@ -224,33 +222,38 @@ const Mixin = {
 		const cols = this._settings.columns;
 		const rows = this.data.order;
 
-		let summ = 0; 
-		for (let i=0; i<cols.length; i++){
-			summ+=cols[i].width;
-			if (summ>=x){
-				column = cols[i].id;
-				break;
+		const handle = isEndPoint && this.$handleStart;
+		const dir = handle?this._getHandleMoveDirection(x,y):null;
+
+		let summ = 0;
+		if(!handle || dir =="x")
+			for (let i=0; i<cols.length; i++){
+				summ+=cols[i].width;
+				if (summ>=x){
+					column = cols[i].id;
+					break;
+				}
 			}
-		}
+		
 		if (!column)
-			column = cols[cols.length-1].id;
+			column = handle?this._bs_ready[5].column:cols[cols.length-1].id;
 
 		summ = 0;
-
-		const start = this.data.$min || 0;
-		if (this._settings.fixedRowHeight){
-			row = rows[start + Math.floor(y/this._settings.rowHeight)];
-		} else for (let i=start; i<rows.length; i++){
-			summ+=this._getHeightByIndex(i);
-			if (summ>=y){
-				row = rows[i];
-				break;
+		if(!handle || dir=="y"){
+			const start = this.data.$min || 0;
+			if (this._settings.fixedRowHeight) {
+				row = rows[start + Math.floor(y / this._settings.rowHeight)];
+			} else for (let i = start; i < rows.length; i++) {
+				summ += this._getHeightByIndex(i);
+				if (summ >= y) {
+					row = rows[i];
+					break;
+				}
 			}
 		}
 		if (!row)
-			row = rows[rows.length-1];
-
-		return {row:row, column:column};
+			row = handle?this._bs_ready[5].row:rows[rows.length-1];
+		return {row, column};
 	},
 	_getTopSplitOffset: function(cell, area){
 		let y = 0,
@@ -264,6 +267,27 @@ const Mixin = {
 		}
 
 		return y;
+	},
+	_getHandleMoveDirection(x, y){
+		let dir;
+		const p0 = [this._bs_ready[0], this._bs_ready[1]];
+		const p1 = [this._bs_ready[3], this._bs_ready[4]];
+		const xMax = p1[0]+ this._columns_pull[this._bs_ready[5].column].width;
+		const yMax = p1[1]+ this._getRowHeight(this._bs_ready[5].row);
+		if(x <= xMax && x >= p0[0]){
+			if(y <= yMax && y >= p0[1])
+				dir = x < p1[0]?"x":"y";
+			else
+				dir = "y";
+		}
+		else{
+			const x0 = x > p1[0]?xMax:p0[0];
+			const y0 = y > p1[1]?yMax:p0[1];
+			dir = Math.abs(x - x0) > Math.abs(y - y0)?"x":"y";
+			if(dir == "y" && x < p0[0] && y <= yMax && y >= p0[1])
+				dir = null;
+		}
+		return dir;
 	}
 };
 

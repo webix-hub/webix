@@ -103,13 +103,13 @@ const StackedBarChart = {
 			/*the max height limit*/
 			if(y0 < (point0.y+1)) continue;
 
-			var color = this._settings.color.call(this,data[i]);
+			var color = config.color.call(this, data[i], i);
 
 			var firstSector =  Math.abs(y0-(origin?(point1.y+minValue*unit):point1.y))<3;
 
 			/*drawing bar body*/
 			ctx.globalAlpha = config.alpha.call(this,data[i]);
-			ctx.fillStyle = ctx.strokeStyle = config.color.call(this,data[i]);
+			ctx.fillStyle = ctx.strokeStyle = color;
 			ctx.beginPath();
 
 			var y1 = y0 - unit*value + (firstSector?(negValue?-1:1):0);

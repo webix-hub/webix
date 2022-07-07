@@ -150,14 +150,16 @@ const api = {
 	disable:function(){
 		remove(this._disable_cover);
 		this._settings.disabled = true;
+		const container = this._viewobj;
 
 		this._disable_cover = create("div",{
-			"class":"webix_disabled"
+			"class":"webix_disabled",
+			"style":`left:${container.scrollLeft}px; top:${container.scrollTop}px;`
 		});
 
-		this._viewobj.appendChild(this._disable_cover);
-		this._viewobj.setAttribute("aria-disabled", "true");
-		addCss(this._viewobj,"webix_disabled_view",true);
+		container.appendChild(this._disable_cover);
+		container.setAttribute("aria-disabled", "true");
+		addCss(container,"webix_disabled_view",true);
 		UIManager._moveChildFocus(this);
 	},
 	enable:function(){

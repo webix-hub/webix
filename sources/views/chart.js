@@ -96,21 +96,20 @@ const api = {
 	},
 	_id:/*@attr*/"webix_area_id",
 	on_click:{
-		webix_chart_legend_item: function(e,id,obj){
-			var series = obj.getAttribute(/*@attr*/"series_id");
-			if(this.callEvent("onLegendClick",[e,series,obj])){
-				if((typeof series != "undefined")&&this._series.length>1){
+		webix_chart_legend_item: function(e, itemId, obj){
+			const id = obj.getAttribute(/*@attr*/"series_id");
+			if(this.callEvent("onLegendClick",[e, id, obj])){
+				if(!isUndefined(id) && this._series.length > 1 && this._series[id]){
 					var config = this._settings;
 					var values = config.legend.values;
-					var toggle = (values&&values[series].toggle)||config.legend.toggle;
-
+					var toggle = (values&&values[id].toggle) || config.legend.toggle;
 					// hide action
-					if(toggle){
+					if(values && toggle){
 						if(obj.className.indexOf("hidden")!=-1){
-							this.showSeries(series);
+							this.showSeries(id);
 						}
 						else{
-							this.hideSeries(series);
+							this.hideSeries(id);
 						}
 					}
 				}
@@ -182,7 +181,6 @@ const api = {
 			return;
 
 		data = this._getChartData();
-
 		if (!this.callEvent("onBeforeRender",[data, type]))
 			return;
 		
@@ -198,7 +196,7 @@ const api = {
 			if(!this.canvases["legend"])
 				this.canvases["legend"] =  this._createCanvas("legend");
 			this._drawLegend(
-				this.data.getRange(),
+				this._getDataRange(),
 				this._content_width,
 				this._content_height
 			);
@@ -250,10 +248,14 @@ const api = {
 			elem.style[prop] = style[prop]+"px";
 		}
 	},
+	_getDataRange: function(){
+		return this.data.branch?this._getChartTreeData():this.data.getRange();
+	},
 	_getChartData: function(){
 		var axis, axisConfig ,config, data, i, newData,
 			start, units, value, valuesHash;
-		data = this.data.getRange();
+
+		data = this._getDataRange();
 		axis = (this._settings.type.toLowerCase().indexOf("barh")!=-1?"yAxis":"xAxis");
 		axisConfig = this._settings[axis];
 		if(axisConfig&&axisConfig.units&&(typeof axisConfig.units == "object")){
@@ -287,6 +289,19 @@ const api = {
 				}
 			}
 			return newData;
+		}
+		return data;
+	},
+	_getChartTreeData: function(id){
+		const data = [];
+		const ids = this.data.branch[id||0];
+		if(ids){
+			ids.forEach(childId=>{
+				const item = this.data.getItem(childId);
+				data.push(item);
+				if(this.data.branch[childId])
+					item.data = this._getChartTreeData(childId);
+			});
 		}
 		return data;
 	},
@@ -324,14 +339,14 @@ const api = {
 			if (pos==1536) pos-=1;
 			return this._rainbow[Math.floor(pos/256)](pos%256);
 		},
-
 		"default": function(obj){
 			var count = this.count();
 			var colorsCount = this._defColors.length;
-			var i = this.getIndexById(obj.id);
+
+			var i = this.data.getBranchIndex?this.data.getBranchIndex(obj.id):this.getIndexById(obj.id);
 			if(colorsCount > count){
 				if(i){
-					if(i < colorsCount - count)
+					if(i > 0 && i < colorsCount - count)
 						i = this._defColorsCursor +2;
 					else
 						i = this._defColorsCursor+1;
@@ -345,6 +360,9 @@ const api = {
 	},
 	color_setter:function(value){
 		return this.colormap[value]||template( value);
+	},
+	childColor_setter: function(value){
+		return template(value);
 	},
 	fill_setter:function(value){
 		return ((!value||value=="0")?false:template( value));
@@ -760,16 +778,19 @@ const api = {
 		return this.getItem(id);
 	},
 	_getActiveSeries: function(e){
-		var a, areas, i, offset, pos, selection,  x, y;
+		const type = this._settings.type;
+		if(type.indexOf("pie") > -1 || type.indexOf("donut") > -1)
+			return e.target.getAttribute("userdata")*1;
 
-		areas = this._map._areas;
-		offset = getOffset(this._contentobj._htmlmap);
-		pos = getPos(e);
-		x = pos.x - offset.x;
-		y = pos.y - offset.y;
+		const areas = this._map._areas,
+			offset = getOffset(this._contentobj._htmlmap),
+			pos = getPos(e),
+			x = pos.x - offset.x,
+			y = pos.y - offset.y;
 
-		for( i = 0; i < areas.length; i++){
-			a = areas[i].points;
+		let selection;
+		for(let i = 0; i < areas.length; i++){
+			const a = areas[i].points;
 			if(x <= a[2] && x >= a[0] && y <= a[3] && y >= a[1]){
 				if(selection){
 					if(areas[i].index > selection.index)
@@ -779,7 +800,6 @@ const api = {
 					selection = areas[i];
 			}
 		}
-
 		return selection?selection.index:0;
 	},
 	hideSeries:function(series){
@@ -808,27 +828,20 @@ const api = {
 	*   @param: height - the height of the container
 	*/
 	_drawLegend:function(data,width){
-		/*position of the legend block*/
 		var i, legend, legendContainer, legendHeight, legendItems, legendWidth, style,
-			x=0, y= 0, ctx, itemColor, disabled, item;
+			x=0, y= 0, ctx, itemColor, disabled;
 
 		data = data||[];
 		width = width||this._content_width;
 		ctx = this.canvases["legend"].getCanvas();
-		/*legend config*/
 		legend = this._settings.legend;
-		/*the legend sizes*/
-
 		style = (this._settings.legend.layout!="x"?"width:"+legend.width+"px":"");
-		/*creation of legend container*/
-
+		// legend container
 		if(this._legendObj){
-
 			this._legendObj.innerHTML = "";
 			this._legendObj.parentNode.removeChild(this._legendObj);
 		}
 		this.canvases["legend"].clearCanvas(true);
-
 		legendContainer = create("DIV",{
 			"class":"webix_chart_legend",
 			"style":"left:"+x+"px; top:"+y+"px;"+style
@@ -839,7 +852,7 @@ const api = {
 		this._legendObj = legendContainer;
 		this._contentobj.appendChild(legendContainer);
 
-		/*rendering legend text items*/
+		// rendering legend text items
 		legendItems = [];
 		if(!legend.values)
 			for(i = 0; i < data.length; i++){
@@ -847,7 +860,9 @@ const api = {
 			}
 		else
 			for(i = 0; i < legend.values.length; i++){
-				legendItems.push(this._drawLegendText(legendContainer,legend.values[i].text,(typeof legend.values[i].id!="undefined"?typeof legend.values[i].id:i),legend.values[i].$hidden));
+				const seriesId = isUndefined(legend.values[i].id)?i:legend.values[i].id;
+				const item = this._drawLegendText(legendContainer, legend.values[i].text, seriesId, legend.values[i].$hidden);
+				legendItems.push(item);
 			}
 
 		const rendered = document.body.contains(this._contentobj);
@@ -856,9 +871,7 @@ const api = {
 		// inside window
 		if(!rendered){
 			d = create("DIV",{"style":"visibility:hidden; position:absolute; top:0px; left:0px;"},"");
-
 			parentNode = this._contentobj.parentNode;
-
 			document.body.appendChild(d);
 			d.appendChild(this._contentobj);
 		}
@@ -868,17 +881,15 @@ const api = {
 
 		/*this._settings.legend.width = legendWidth;
 		this._settings.legend.height = legendHeight;*/
-		/*setting legend position*/
+		//setting legend position
 		if(legendWidth<width){
-			if(legend.layout == "x"&&legend.align == "center"){
-				x = (width-legendWidth)/2;
-			}
-			if(legend.align == "right"){
-				x = width-legendWidth;
-			}
-			if(legend.margin&&legend.align != "center"){
+			if(legend.layout == "x"&&legend.align == "center")
+				x = (width - legendWidth)/2;
+			else if(legend.align == "right")
+				x = width - legendWidth;
+
+			if(legend.margin&&legend.align != "center")
 				x += (legend.align == "left"?1:-1)*legend.margin;
-			}
 		}
 
 		if(legendHeight<this._content_height){
@@ -893,19 +904,19 @@ const api = {
 		legendContainer.style.left = x+"px";
 		legendContainer.style.top = y+"px";
 
-		/*drawing colorful markers*/
+		// drawing markers
 		ctx.save();
 		for(i = 0; i < legendItems.length; i++){
-			item = legendItems[i];
+			const item = legendItems[i];
 			if(legend.values&&legend.values[i].$hidden){
 				disabled = true;
-				itemColor = (legend.values[i].disableColor?legend.values[i].disableColor:"#edeff0");
+				itemColor = legend.values[i].disableColor || "#edeff0";
 			}
 			else{
 				disabled = false;
-				itemColor = (legend.values?legend.values[i].color:this._settings.color.call(this,data[i]));
+				itemColor = (legend.values?legend.values[i].color:this._settings.color.call(this, data[i], i));
 			}
-			this._drawLegendMarker(ctx,item.offsetLeft+x,item.offsetTop+y,itemColor,item.offsetHeight,disabled,i);
+			this._drawLegendMarker(ctx,item.offsetLeft + x,item.offsetTop+y,itemColor,item.offsetHeight,disabled,i);
 		}
 		ctx.restore();
 
@@ -925,7 +936,7 @@ const api = {
 		var style = "";
 		if(this._settings.legend.layout=="x")
 			style = "float:left;";
-		/*the text of the legend item*/
+		// the text of the legend item
 		var text = create("DIV",{
 			"style":style+"padding-left:"+(10+this._settings.legend.marker.width)+"px",
 			"class":"webix_chart_legend_item"+(disabled?" hidden":""),
@@ -950,18 +961,17 @@ const api = {
 		var marker = this._settings.legend.marker;
 		var values = this._settings.legend.values;
 		var type = (values&&values[i].markerType?values[i].markerType:marker.type);
-		if(color){
+		if(color)
 			ctx.strokeStyle = ctx.fillStyle = color;
-		}
-
-		if(type=="round"||!marker.radius){
+		if(type == "none")
+			return false;
+		else if(type=="round"||!marker.radius){
 			ctx.beginPath();
 			const r = marker.height/2;
 			ctx.arc(x+r+5, y+height/2, r, 0, 2 * Math.PI);
 			ctx.fill();
 		}
 		else if(type=="item"){
-			/*copy of line*/
 			if(this._settings.line&&this._settings.type != "scatter" && !this._settings.disableLines){
 				ctx.beginPath();
 				ctx.lineWidth = this._series[i].line.width;
@@ -973,7 +983,6 @@ const api = {
 				ctx.lineTo(x1,y0);
 				ctx.stroke();
 			}
-			/*item copy*/
 			var config = this._series[i].item;
 			var radius = parseInt(config.radius.call(this,{}),10)||0;
 			var markerType = config.type.call(this,{});
@@ -1025,41 +1034,39 @@ const api = {
 	*   @param: height - the height of the chart container
 	*/
 	_getChartBounds:function(width,height){
-		var chartX0, chartY0, chartX1, chartY1;
-		
-		chartX0 = this._settings.padding.left;
-		chartY0 = this._settings.padding.top;
-		chartX1 = width - this._settings.padding.right;
-		chartY1 = height - this._settings.padding.bottom;	
+		const padding = this._settings.padding;
+		let x = padding.left,
+			y = padding.top,
+			x1 = width - padding.right,
+			y1 = height - padding.bottom;
 		
 		if(this._settings.legend){
-			var legend = this._settings.legend;
-			/*legend size*/
-			var legendWidth = this._settings.legend.width;
-			var legendHeight = this._settings.legend.height;
+			const legend = this._settings.legend,
+				legendWidth = legend.width,
+				legendHeight = legend.height;
 		
-			/*if legend is horizontal*/
+			// if legend is horizontal
 			if(legend.layout == "x"){
 				if(legend.valign == "center"){
 					if(legend.align == "right")
-						chartX1 -= legendWidth;
+						x1-= legendWidth;
 					else if(legend.align == "left")
-						chartX0 += legendWidth;
-				} else if(legend.valign == "bottom"){
-					chartY1 -= legendHeight;
-				} else {
-					chartY0 += legendHeight;
-				}
+						x += legendWidth;
+				} else if(legend.valign == "bottom")
+					y1 -= legendHeight;
+				else
+					y += legendHeight;
+
 			}
-			/*vertical scale*/
+			// vertical scale
 			else {
 				if(legend.align == "right")
-					chartX1 -= legendWidth;
+					x1 -= legendWidth;
 				else if(legend.align == "left")
-					chartX0 += legendWidth;
+					x += legendWidth;
 			}
 		}
-		return {start:{x:chartX0,y:chartY0},end:{x:chartX1,y:chartY1}};
+		return { start: {x, y}, end: {x: x1, y: y1} };
 	},
 	/**
 	*   gets the maximum and minimum values for the stacked chart

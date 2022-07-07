@@ -107,7 +107,7 @@ const BarChart = {
 			var x0 = point0.x + barOffset + i*cellWidth+(barWidth+1)*seriesIndex;
 			var y0 = point1.y;
 
-			var color = gradient||this._settings.color.call(this,data[i]);
+			var color = gradient||this._settings.color.call(this, data[i], i);
 			var border = this._settings.border?1:0;
 			var label = this._settings.label(data[i]);
 			

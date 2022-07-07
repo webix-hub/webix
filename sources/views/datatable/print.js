@@ -46,7 +46,7 @@ const Mixin = {
 						spans[tid+1][h] = header.colspan-colspan;
 						header.colspan = colspan;
 					}
-					if(header.rowspan && length === 1){
+					if(header.rowspan){
 						header.height = (header.height || this.config.headerRowHeight)*header.rowspan;
 						header.rowspan = null;
 					}
@@ -74,12 +74,11 @@ const Mixin = {
 
 		return base;
 	},
-	_getTableArray:function (options, base, start){ 
-
+	_getTableArray:function (options, base, start){
 		var columns = this.config.columns;
 		var sel = this.getSelectedId(true);
-		var maxWidth = options.fit =="page" ? Infinity : this._getPageWidth(options);
-		
+		var maxWidth = options.fit == "page" ? Infinity : this._getPageWidth(options);
+
 		var rightRestriction = 0;
 		var bottomRestriction = 0;
 		var tableArray = [];
@@ -106,7 +105,7 @@ const Mixin = {
 					if(rowIndex === 0)
 						widths.push(columns[c].width);
 
-					if(width > maxWidth && c>start){ // 'c>start' ensures that a single long column will have to fit the page
+					if(width > maxWidth && c > start){ // 'c>start' ensures that a single long column will have to fit the page
 						newTableStart = c; break; }
 
 					if(options.data !=="selection" || (options.data=="selection" && this._findIndex(sel, function(obj){
@@ -200,63 +199,76 @@ const Mixin = {
 		let rwidth = 0;
 		for(let i = 0; i < widths.length; i++)
 			rwidth += widths[i];
-		
-		if(rwidth > this._getPageWidth(options)){
-			base[0].forEach((item) => {
-				for(let i = 0; i < item.length; i++){
-					if(item[i] && item[i].style && item[i].style.width)
-						item[i].style.width = "auto";
-				}
-			});
-		}
+
+		if(rwidth > this._getPageWidth(options))
+			if(base[0])
+				base[0].forEach((item) => {
+					for(let i = 0; i < item.length; i++){
+						if(item[i] && item[i].style && item[i].style.width)
+							item[i].style.width = "auto";
+					}
+				});
 	},
 	_getTableHTML:function(tableData, options){
-		
-		var container = create("div");
+		const container = create("div");
+		const sCount = this.config.topSplit || 0;
+		const hCount = options.header ? this.config.columns[0].header.length : 0;
+		const fCount = options.footer ? this.config.columns[0].footer.length : 0;
 
-		tableData.forEach(bind(function(table, i){
+		//rows are not repeated on every page if header > 6
+		const topSplitIndex = hCount + sCount;
+		const headerCount = topSplitIndex > 6 ? hCount : topSplitIndex;
 
-			var tableHTML = create("table", {
-				"class":"webix_table_print "+this.$view.className+(options.borderless?" borderless":""),
-				"style":"border-collapse:collapse",
-				"id":this.$view.getAttribute("id")
-			});
+		tableData.forEach((table, i)=>{
+			const tableHTML = create(
+				"table",
+				{
+					class: "webix_table_print "+this.$view.className+(options.borderless?" borderless":""),
+					style: "border-collapse:collapse",
+					id: this.$view.getAttribute("id")
+				},
+				"<thead></thead><tbody></tbody><tfoot></tfoot>"
+			);
+			container.appendChild(tableHTML);
+			const [header, body, footer] = tableHTML.children;
 
-			table.forEach(function(row){
-				var tr = create("tr");
+			table.forEach((row, rowIndex)=>{
+				const tr = create("tr");
 
-				row.forEach(function(cell){
+				row.forEach(cell => {
 					if(!cell.$inspan){
-						var td = create("td");
+						const td = create("td", {class: cell.className}, cell.txt);
 
-						td.innerHTML = cell.txt;
-						td.className = cell.className;
-						
-						for(var key in cell.style)
+						for(let key in cell.style)
 							td.style[key] = cell.style[key];
-						
+
 						if(cell.span){
 							td.colSpan = cell.span.colspan;
 							td.rowSpan = cell.span.rowspan;
 						}
-						tr.appendChild(td);	
+						tr.appendChild(td);
 					}
-						
 				});
-				tableHTML.appendChild(tr);
+
+				if(sCount && rowIndex + 1 == topSplitIndex)
+					tr.className = "webix_print_top_split";
+
+				if(rowIndex < headerCount)
+					header.appendChild(tr);
+				else if(table.length - fCount > rowIndex)
+					body.appendChild(tr);
+				else
+					footer.appendChild(tr);
 			});
-			container.appendChild(tableHTML);
 
 			if(i+1 < tableData.length){
-				var br = create("DIV", {"class":"webix_print_pagebreak"});
+				const br = create("DIV", {class: "webix_print_pagebreak"});
 				container.appendChild(br);
 			}
-			
-		}, this));
+		});
 
 		return container;
 	}
 };
-
 
 export default Mixin;

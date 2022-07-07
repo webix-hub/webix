@@ -1,4 +1,5 @@
 import {isArray} from "../webix/helpers";
+import {create, remove} from "../webix/html";
 
 const color = {
 	_toHex:["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"],
@@ -33,6 +34,7 @@ const color = {
 	},
 	toRgb:function(rgb){
 		var r,g,b,rgbArr;
+
 		if (typeof(rgb) != "string") {
 			r = rgb[0];
 			g = rgb[1];
@@ -42,13 +44,23 @@ const color = {
 			r = rgbArr[0];
 			g = rgbArr[1];
 			b = rgbArr[2];
-		} else {
-			if (rgb.substr(0, 1) == "#") {
-				rgb = rgb.substr(1);
-			}
+		} else if (rgb.substr(0, 1) == "#"){
+			rgb = rgb.substr(1);
 			r = this.hexToDec(rgb.substr(0, 2));
 			g = this.hexToDec(rgb.substr(2, 2));
 			b = this.hexToDec(rgb.substr(4, 2));
+		} else {
+			const div = create("div", {style:`color:${rgb}`});
+			document.body.appendChild(div);
+			const color = window.getComputedStyle(div).color; //getComputedStyle returns color as rgb/rgba
+			remove(div);
+			const arr = color.slice(
+				color.indexOf("(") + 1,
+				color.indexOf(")")
+			).split(", ");
+			r = arr[0];
+			g = arr[1];
+			b = arr[2];
 		}
 		r = (parseInt(r,10)||0);
 		g = (parseInt(g,10)||0);

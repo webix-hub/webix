@@ -179,13 +179,9 @@ const api = {
 		google.visualization.events.addListener(this._map, "ready", bind(function(){this.callEvent("onMapReady", arguments);}, this));
 		google.visualization.events.addListener(this._map, "regionClick", bind(function(){this.callEvent("onRegionClick", arguments);}, this));
 		google.visualization.events.addListener(this._map, "select", bind(function(){
-			var selnow = this._map.getSelection()[0];
-			var sel = selnow || this._selprev;
-			if(sel){
-				var id = this.data.order[sel.row];
-				this._selprev = sel;
-				this.callEvent("onItemClick", [id, !!selnow]);
-			}
+			const sel = this._map.getSelection()[0];
+			if(sel)
+				this.callEvent("onItemClick", [ this.data.order[sel.row] ]);
 		}, this));
 	}
 };

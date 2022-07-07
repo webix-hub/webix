@@ -100,7 +100,7 @@ const BarHChart = {
 
 			/*takes start value into consideration*/
 			if(!xax) value += startValue/unit;
-			color = gradient||this._settings.color.call(this,data[i]);
+			color = gradient||this._settings.color.call(this, data[i], i);
 
 			/*drawing the gradient border of a bar*/
 			if(this._settings.border){

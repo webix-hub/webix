@@ -103,7 +103,7 @@ function getExcelData(data, scheme, spans, styles, options) {
 			if(cell.v === null) continue;
 			const cell_ref = XLSX.utils.encode_cell({c:C,r:R});
 
-			const isFormula = typeof cell.v == "object";
+			const isFormula = typeof cell.v == "object" && cell.v.formula;
 			const stringValue = (isFormula ? cell.v.value : cell.v).toString();
 
 			if(styles){

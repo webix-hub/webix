@@ -93,7 +93,7 @@ const api = {
 			this.rows_setter(rows);
 		} 
 		else{
-			config.labelWidth = config.label ? this._getLabelWidth(config.labelWidth, config.label) : 0;
+			config.labelWidth = config.label ? this._getLabelWidth(config.labelWidth, config.label, config.required) : 0;
 			if(config.labelWidth){
 				config.margin = 0;
 				this.cols_setter([{ 
@@ -109,9 +109,9 @@ const api = {
 				this.rows_setter(rows);
 		}
 	},
-	_getLabelWidth: function(width, label){
+	_getLabelWidth: function(width, label, required){
 		if(width == "auto")
-			width = getTextSize(label, "webix_inp_label").width;
+			width = getTextSize(label, "webix_inp_label"+(required ? " webix_required" : "")).width;
 		return width ? Math.max(width, $active.dataPadding) : 0;
 	},
 	_getselection: function(config) {

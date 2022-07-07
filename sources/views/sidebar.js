@@ -261,7 +261,8 @@ const api = {
 
 		_event(document.body, "pointermove", function(e){
 			const trg = e.target;
-			if (!popup.config.hidden && !popup.$view.contains(trg) && !this.$view.firstChild.contains(trg) && !popup.queryView({view:"menu"})._open_sub_menu){
+			if (!popup.config.hidden && !popup.$view.contains(trg) && !this.$view.firstChild.contains(trg) && !popup.queryView({view:"menu"})._open_sub_menu
+				&& !(this.$view._custom_scroll_size && this.$view._custom_scroll_size._scroll_y_node)){
 				popup.hide();
 			}
 		}, {bind:this});

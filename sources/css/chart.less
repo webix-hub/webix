@@ -19,6 +19,20 @@
 	font-size: 12px;
     z-index: 80;
 }
+
+.webix_chart .webix_canvas_text{
+	border-radius: 4px;
+	&.webix_inner_text_dark{
+		color: @fontColor;
+		text-shadow: 0 0 4px #ffffff;
+		padding: 0 2px;
+	}
+	&.webix_inner_text_light{
+		color: #ffffff;
+		text-shadow: 0 0 4px @fontColor;
+		padding: 0 2px;
+	}
+}
 /*map*/
 .webix_map_img{
 	width : 100%;

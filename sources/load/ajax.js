@@ -76,7 +76,7 @@ ajax.prototype={
 						value = "";
 					if(typeof value==="object")
 						value = this.stringify(value);
-					t.push(a+"="+encodeURIComponent(value)); // utf-8 escaping
+					t.push(encodeURIComponent(a)+"="+encodeURIComponent(value)); // utf-8 escaping
 				}
 				params=t.join("&");
 			}

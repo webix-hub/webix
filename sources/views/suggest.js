@@ -284,8 +284,28 @@ const api = {
 		this._settings.master = trg.webix_master_id;
 
 		var code = e.which || e.keyCode;
-		//shift and ctrl
-		if (code == 16 || code == 17) return;
+		//shift, ctrl, alt, meta
+		if (code == 16 || code == 17 || code == 18 || code == 91) return;
+
+		//move cursor via arrow
+		if(code > 32  && code < 40 && code != 38) return;
+
+		const ctrl = e.ctrlKey || e.metaKey;
+		const [backspace, del, v, x, y, z] = [8, 46, 86, 88, 89, 90].map(v => code == v);
+		if(ctrl && !(backspace || del || v || x || y || z)) return;
+
+		if(backspace || del || (ctrl && x)){
+			const input = $$(this._settings.master).getInputNode();
+			const selStart = input.selectionStart;
+			const selEnd = input.selectionEnd;
+			
+			if(
+				(backspace && selStart == 0) ||
+				(x && selStart == selEnd) ||
+				(del && selStart == input.value.length)
+			)
+				return;
+		}
 
 		// tab - hide popup and do nothing
 		if (code == 9)

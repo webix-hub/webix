@@ -1283,6 +1283,19 @@ button,
   font-size: 12px;
   z-index: 80;
 }
+.webix_chart .webix_canvas_text {
+  border-radius: 4px;
+}
+.webix_chart .webix_canvas_text.webix_inner_text_dark {
+  color: #475466;
+  text-shadow: 0 0 4px #ffffff;
+  padding: 0 2px;
+}
+.webix_chart .webix_canvas_text.webix_inner_text_light {
+  color: #ffffff;
+  text-shadow: 0 0 4px #475466;
+  padding: 0 2px;
+}
 /*map*/
 .webix_map_img {
   width: 100%;
@@ -4318,6 +4331,7 @@ textarea.webix_invalid {
 }
 label.webix_required:after,
 legend.webix_required:after,
+.webix_measure_size.webix_required:after,
 .webix_richtext_inp_label.webix_required .webix_template:after {
   padding-left: 4px;
   content: "*";
@@ -5413,10 +5427,10 @@ legend.webix_forminput_label_top {
   margin: 0 auto 10px auto;
 }
 .webix_gage_min_range {
-  left: -74px;
+  left: -23%;
 }
 .webix_gage_max_range {
-  right: -74px;
+  right: -23%;
 }
 .webix_gage_min_range,
 .webix_gage_max_range {
@@ -5424,7 +5438,9 @@ legend.webix_forminput_label_top {
   margin-top: 20px;
   position: absolute;
   text-align: center;
-  width: 150px;
+  width: 46%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .webix_gage_range_info {
   font-size: 1.2em;
@@ -5433,6 +5449,11 @@ legend.webix_forminput_label_top {
 .webix_gage_value {
   font-size: 2.2em;
   color: #404040;
+}
+.webix_gage_value,
+.webix_gage_range_info {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .webix_gage_gradient_point_animated {
   transition: transform 1.3s linear;
@@ -5446,6 +5467,23 @@ legend.webix_forminput_label_top {
   to {
     stroke-dashoffset: 0;
   }
+}
+.webix_gage_small_font .webix_gage_info,
+.webix_gage_small_font .webix_gage_range_info {
+  font-size: 1em;
+}
+.webix_gage_small_font .webix_gage_label,
+.webix_gage_small_font .webix_gage_value {
+  font-weight: 500;
+  font-size: 1.2em;
+}
+.webix_gage_small_font .webix_gage_min_range,
+.webix_gage_small_font .webix_gage_max_range {
+  margin-top: 0;
+}
+.webix_gage_small_font .webix_gage_placeholder {
+  margin-top: 0;
+  padding-top: 20px;
 }
 .webix_bullet_name {
   width: 100;
@@ -6046,6 +6084,9 @@ body.webix_print {
   }
   .webix_table_print tr {
     page-break-inside: avoid;
+  }
+  .webix_table_print .webix_print_top_split .webix_cell {
+    border-bottom: 1px solid #d2d2d2;
   }
   .webix_table_print .webix_cell {
     display: table-cell !important;

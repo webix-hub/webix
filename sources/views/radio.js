@@ -50,11 +50,10 @@ const api = {
 				if (label)
 					label = "<label for='"+eachid+"' class='webix_label_right'>" + label + "</label>";
 
-				html.push("<div class='webix_radio_option"+(isDisabled?" webix_disabled":"")+"' role='presentation'"+tooltip+">"+input+label+"</div>");
-				
+				html.push(`<div style="height:${config.optionHeight}px;" class="webix_radio_option${(isDisabled?" webix_disabled":"")}" role="presentation"${tooltip}>${input+label}</div>`);
 			}
 			html = "<div class='webix_el_group' role='radiogroup' style='margin-left:"+(config.label?config.labelWidth:0)+"px;'>"+html.join("")+"</div>";
-			
+
 			return common.$renderInput(config, html, id);
 		}
 	},

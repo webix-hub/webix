@@ -63,8 +63,10 @@ const SelectionModel ={
 			if (this.loadBranch){
 				//hierarchy, need to check all
 				this._select_check();
-			} else
+			} else{
 				this._selected.remove(id);
+				this.callEvent("onSelectChange",[this._selected]);
+			}
 		}
 		else if (!id && !this.data.count() && !this.data._filter_order && !this.data._filter_branch){	//remove selection for clearAll
 			this._selected = _to_array();
@@ -77,9 +79,14 @@ const SelectionModel ={
 			}, this);
 	},
 	_select_check:function(){
-		for (var i = this._selected.length - 1; i >= 0; i--)
-			if (!this.exists(this._selected[i]))
+		let selectionChanged;
+		for (let i = this._selected.length - 1; i >= 0; i--)
+			if (!this.exists(this._selected[i])){
+				selectionChanged = true;
 				this._selected.splice(i,1);
+			}
+		if(selectionChanged)
+			this.callEvent("onSelectChange",[this._selected]);
 	},
 	//helper - changes state of selection for some item
 	_select_mark:function(id,state,refresh,need_unselect){

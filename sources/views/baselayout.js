@@ -381,13 +381,19 @@ const api = {
 		var fixed_count = 0;
 		var gravity = 0;
 		this._sizes=[];
+		let hiddenCount = 0;
 
 		for (var i=0; i < this._cells.length; i++) {
 			//ignore hidden cells
-			if (this._cells[i]._settings.hidden)
+			if(this._cells[i]._settings.hidden){
+				hiddenCount++;
 				continue;
-			
+			}
+
 			var sizes = this._sizes[i] = this._cells[i].$getSize(0,0);
+
+			if(this._cells[i]._hiddenByCells)
+				hiddenCount++;
 
 			if (this._cells[i].$nospace){
 				fixed_count++;
@@ -399,7 +405,7 @@ const api = {
 				if (sizes[0]>minWidth) minWidth = sizes[0];
 				//take min maxSize value
 				if (sizes[1]<maxWidth) maxWidth = sizes[1];
-				
+
 				minHeight += sizes[2];
 				maxHeight += sizes[3];
 
@@ -410,7 +416,7 @@ const api = {
 				if (sizes[2]>minHeight) minHeight = sizes[2];
 				//take min maxSize value
 				if (sizes[3]<maxHeight) maxHeight = sizes[3];
-				
+
 				minWidth += sizes[0];
 				maxWidth += sizes[1];
 
@@ -418,6 +424,22 @@ const api = {
 				else gravity += sizes[4];
 			}
 		}
+
+		if(hiddenCount == this._cells.length){
+			this._hiddenByCells = true;
+			const pView = this.getParentView();
+			if(pView && pView._collection){
+				if (pView._vertical_orientation){
+					maxHeight = 0;
+					maxWidth = 100000;
+				}else{
+					maxHeight = 100000;
+					maxWidth = 0;
+				}
+			}
+		}
+		else
+			delete this._hiddenByCells;
 
 		if (minHeight>maxHeight)
 			maxHeight = minHeight;

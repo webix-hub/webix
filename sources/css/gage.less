@@ -27,10 +27,10 @@
     margin: 0 auto 10px auto;
 }
 .webix_gage_min_range {
-    left: -74px;
+    left: -23%;
 }
 .webix_gage_max_range {
-    right: -74px;
+    right:  -23%;
 }
 .webix_gage_min_range,
 .webix_gage_max_range {
@@ -38,8 +38,11 @@
     margin-top: 20px;
     position: absolute;
     text-align: center;
-    width: 150px;
+    width: 46%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+
 .webix_gage_range_info {
     font-size: 1.2em;
     line-height: 1;
@@ -47,6 +50,11 @@
 .webix_gage_value {
     font-size: 2.2em;
     color: #404040;
+}
+.webix_gage_value,
+.webix_gage_range_info{
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .webix_gage_gradient_point_animated {
     transition: transform 1.3s linear;
@@ -60,4 +68,22 @@
   to {
     stroke-dashoffset: 0;
   }
+}
+.webix_gage_small_font{
+    .webix_gage_info,
+    .webix_gage_range_info{
+        font-size: 1em;
+    }
+    .webix_gage_label,
+    .webix_gage_value{
+        font-weight: @boldStyle;
+        font-size: 1.2em;
+    }
+    .webix_gage_min_range, .webix_gage_max_range{
+        margin-top:0;
+    }
+    .webix_gage_placeholder{
+        margin-top:0;
+        padding-top: 20px;
+    }
 }

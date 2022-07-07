@@ -24,20 +24,52 @@ const HtmlMap = proto({
 		this._areas.push({index: userdata, points:coords});
 
 	},
-	addSector:function(id,alpha0,alpha1,x,y,R,ky,userdata){
-		var points = [];
-		points.push(x);
-		points.push(Math.floor(y*ky)); 
-		for(var i = alpha0; i < alpha1; i+=Math.PI/18){
-			points.push(Math.floor(x+R*Math.cos(i)));
-			points.push(Math.floor((y+R*Math.sin(i))*ky));
+	addSector:function(id, alpha0, alpha1, x, y, r, ky, userdata, dr, height){
+		let points = [];
+
+		if(dr)
+			points = points.concat(this._getArcPoints(x, y, dr, alpha1, alpha0, ky, -1));
+		else{
+			points.push(x);
+			points.push(Math.floor(y));
 		}
-		points.push(Math.floor(x+R*Math.cos(alpha1)));
-		points.push(Math.floor((y+R*Math.sin(alpha1))*ky));
-		points.push(x);
-		points.push(Math.floor(y*ky)); 
-		
-		return this.addPoly(id,points,userdata);
+		if(!height)
+			points = points.concat(this._getArcPoints(x, y, r, alpha0, alpha1, ky));
+		else{
+			if(alpha0 < 0 && alpha1 >= 0){
+				points = points.concat(this._getArcPoints(x, y, r, alpha0, 0, ky));
+				points = points.concat(this._getArcPoints(x, y + height, r, 0, alpha1, ky));
+				points = points.concat(this._getPointByAngle(x, y, r, alpha1, ky));
+			}
+			else if(alpha0 < Math.PI && alpha1>=Math.PI){
+				points = points.concat(this._getPointByAngle(x, y, r, alpha0, ky));
+				points = points.concat(this._getArcPoints(x, y + height, r, alpha0, Math.PI, ky));
+				points = points.concat(this._getArcPoints(x, y, r, Math.PI, alpha1, ky));
+			}
+			else{
+				points = points.concat(this._getPointByAngle(x, y, r, alpha0, ky));
+				points = points.concat(this._getArcPoints(x, y + height, r, alpha0, alpha1, ky));
+				points = points.concat(this._getPointByAngle(x, y, r, alpha1, ky));
+			}
+		}
+		points.push(points[0]);
+		points.push(points[1]);
+		return this.addPoly(id, points, userdata);
+	},
+	_getArcPoints: function(x, y, r, a0, a1, ky, dir){
+		let points = [];
+		dir = dir || 1;
+
+		for(let i = a0; (dir>0 && i < a1) || (dir<0 && i > a1); i += dir*Math.PI/18)
+			points = points.concat(this._getPointByAngle(x, y, r, i, ky));
+		points = points.concat(this._getPointByAngle(x, y, r, a1, ky));
+		return points;
+	},
+	_getPointByAngle: function(x, y, r, a, ky){
+		const point = [];
+		point.push(Math.floor(x + r * Math.cos(a)));
+		point.push(Math.floor(y + r * Math.sin(a)* ky));
+		return point;
 	},
 	hide:function(obj, data, mode){
 		if (obj.querySelectorAll){

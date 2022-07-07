@@ -4,9 +4,11 @@ import {_event} from "../webix/htmlevents";
 import text from "./text";
 import {create, remove, addCss, removeCss} from "../webix/html";
 import {$active} from "../webix/skin";
+import env from "../webix/env";
 
 const autoheight = {
 	$init: function(){
+		_event(this.$view, "keydown", (e) => this._checkPageUp(e));
 		this.$ready.push(function(){
 			if(this._settings.autoheight){
 				addCss(this.$view, "webix_noscroll");
@@ -20,6 +22,19 @@ const autoheight = {
 				});
 			}
 		});
+	},
+	_checkPageUp: function(e){
+		//chrome bug: textarea with typed text is not correctly resized when pushing PageUp/PageDown key
+		const pageUp = e.key == "PageUp";
+		if(env.isChromium && (pageUp || e.key == "PageDown")){
+			const input = this.getInputNode();
+			const cursorPos = pageUp ? 0 : input.value.length;
+			const scrollPos = pageUp ? 0 : input.scrollHeight;
+
+			e.preventDefault();
+			input.setSelectionRange(cursorPos, cursorPos);
+			input.scrollTo(0, scrollPos);
+		}
 	},
 	_sizeToContent: function(focus){
 		if(this._skipSizing)
