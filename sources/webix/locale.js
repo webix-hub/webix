@@ -24,8 +24,10 @@ function extend(base,source){
 const helpers = ["fullDateFormat", "timeFormat", "dateFormat", "longDateFormat", "parseFormat", "parseTimeFormat"];
 
 i18n.setLocale = function(locale){
-	if (typeof locale == "string")
+	if (typeof locale == "string"){
+		i18n.locale = locale;
 		locale = i18n.locales[locale];
+	}
 	if (locale){
 		const origin = copy(en);
 		locale.priceSettings  = copy(locale.priceSettings || locale);
@@ -44,11 +46,33 @@ i18n.setLocale = function(locale){
 	const _price_format = template(i18n.price);
 	const _price_settings = i18n.priceSettings || i18n;
 
-	i18n.intFormat = Number.numToStr({ groupSize:i18n.groupSize, groupDelimiter:i18n.groupDelimiter, decimalSize : 0});
-	i18n.priceFormat = function(value){ return _price_format(Number.format(value, _price_settings)); };
+	i18n.intFormat = Number.numToStr({ groupSize: i18n.groupSize, groupDelimiter: i18n.groupDelimiter, decimalSize: 0});
+	i18n.priceFormat = function(value){
+		const sign = value < 0;
+		if(sign)
+			value = Math.abs(value);
+
+		value = Number.format(value, _price_settings);
+
+		if(sign){
+			switch(_price_settings.minusPosition){
+				case "before":
+					return _price_settings.minusSign + _price_format(value);
+				case "parentheses":
+					return _price_settings.minusSign[0] + _price_format(value) + _price_settings.minusSign[1];
+				case "after":
+					value += _price_settings.minusSign;
+					break;
+				case "inside":
+					value = _price_settings.minusSign + value;
+					break;
+			}
+		}
+
+		return _price_format(value);
+	};
 	i18n.numberFormat = Number.format;
 };
-
 
 i18n.locales={ "en-US" : en };
 i18n.setLocale("en-US");

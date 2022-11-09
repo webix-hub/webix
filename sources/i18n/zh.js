@@ -4,6 +4,8 @@ const zh = {
 	groupSize:3,
 	decimalDelimiter:".",
 	decimalSize:2,
+	minusPosition:"before",
+	minusSign:"-",
 	dateFormat:"%Y/%m/%j",
 	timeFormat:"%G:%i",
 	longDateFormat:"%Y'年'%m'月'%j'日'",
@@ -15,7 +17,9 @@ const zh = {
 		groupDelimiter:",",
 		groupSize:3,
 		decimalDelimiter:".",
-		decimalSize:2
+		decimalSize:2,
+		minusPosition:"inside",
+		minusSign:"-"
 	},
 	calendar:{
 		monthFull:["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"],

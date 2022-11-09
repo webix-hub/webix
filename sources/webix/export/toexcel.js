@@ -46,7 +46,7 @@ export const toExcel = function(id, options){
 	return require(env.cdn + "/extras/xlsx.core.styles.min.js").then(function(){
 		if(!views.length) return defer.reject(errorMessage);
 
-		const wb = { SheetNames:[], Sheets:{}, Workbook:{ WBProps :{}, Names:[] }};
+		const wb = { SheetNames:[], Sheets:{}, Workbook:{ WBProps :{}, Names:[], Sheets:[] }};
 
 		for(let i = 0; i<views.length; i++){
 			const viewOptions = views[i].viewOptions;
@@ -66,6 +66,7 @@ export const toExcel = function(id, options){
 			wb.SheetNames.push(sname);
 			wb.Sheets[sname] = data;
 			wb.Workbook.Names = wb.Workbook.Names.concat(ranges);
+			wb.Workbook.Sheets.push({ state: views[i].state || "visible" });
 		}
 
 		/* global XLSX */

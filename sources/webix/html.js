@@ -247,11 +247,14 @@ export function _getClassName(node){
 }
 
 export function setSelectionRange(node, start, end){
-	start = start || 0;
-	end = end || start;
-
 	node.focus();
-	node.setSelectionRange(start, end);
+
+	if(node.setSelectionRange){
+		start = start || 0;
+		end = end || start;
+
+		node.setSelectionRange(start, end);
+	}
 }
 
 export function getSelectionRange(node){

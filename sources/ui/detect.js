@@ -20,7 +20,7 @@ function _detectScrollSize(){
 
 	document.body.appendChild(div);
 	var width = div.offsetWidth-div.clientWidth;
-	var name = { 200:"flat" , 210:"compact", 230: "contrast", 240:"material", 250:"mini" }[Math.floor(div.offsetHeight/10)*10];
+	var name = { 200:"flat", 210:"compact", 220:"contrast", 230:"material", 240:"mini", 250:"willow", 260:"dark" }[Math.floor(div.offsetHeight/10)*10];
 	document.body.removeChild(div);
 
 	if (name)

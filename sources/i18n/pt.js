@@ -3,6 +3,8 @@ const pt = {
 	groupSize:3,
 	decimalDelimiter:",",
 	decimalSize:2,
+	minusPosition:"before",
+	minusSign:"-",
 
 	dateFormat:"%d/%m/%Y",
 	timeFormat:"%G:%i",
@@ -16,7 +18,9 @@ const pt = {
 		groupDelimiter:".",
 		groupSize:3,
 		decimalDelimiter:",",
-		decimalSize:2
+		decimalSize:2,
+		minusPosition:"before",
+		minusSign:"-"
 	},
 	fileSize: ["b","Kb","Mb","Gb","Tb","Pb","Eb"],
 	calendar:{

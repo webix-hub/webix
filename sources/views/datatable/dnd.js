@@ -168,6 +168,14 @@ const Mixin = {
 		var nodeName = e.target.nodeName;
 		return nodeName != "INPUT" && nodeName != "TEXTAREA";
 	},
+	_getColumnDragText: function(id, rind){
+		const header = this.getColumnConfig(id).header;
+		let text = header[rind]? header[rind].text : null;
+		for (let i = 0; !text && i < header.length; i++)
+			if (header[i] && header[i].text)
+				text = header[i].text;
+		return text || "&nbsp;";
+	},
 	dragColumn_setter:function(value){
 		var control; //will be defined below
 		if (value == "order"){
@@ -189,7 +197,7 @@ const Mixin = {
 					this._limit_column_drag = column.width;
 
 					this._auto_scroll_force = true;
-					return "<div class='webix_dd_drag_column' style='width:"+column.width+"px'>"+(column.header[0].text||"&nbsp;")+"</div>";
+					return "<div class='webix_dd_drag_column' style='width:"+column.width+"px'>"+this._getColumnDragText(id.column, id.rind)+"</div>";
 				}, this),
 				$dragPos:bind(function(pos, e, node){
 					var context = DragControl.getContext();
@@ -215,8 +223,7 @@ const Mixin = {
 								this._dragTarget.style.display = "none";
 								this.$view.parentNode.appendChild(this._dragTarget);
 							}
-
-							this.moveColumn(start, end_index+(start_index<end_index?1:0));
+							this._moveColumn(start, end_index+(start_index<end_index?1:0), context.start.rind);
 							this._last_sort_dnd_node = id.column;
 							this._column_dnd_temp_block = true;
 						}
@@ -265,19 +272,12 @@ const Mixin = {
 				$drag:bind(function(s,e){
 					if(!this._isDraggable(e) || this._rs_process) return false;
 					var id = this.locate(e);
+
 					if (!id || !this.callEvent("onBeforeColumnDrag", [id.column, e])) return false;
 					DragControl._drag_context = { from:control, start:id, custom:"column_dnd" };
 
-					var header = this.getColumnConfig(id.column).header;
-					var text = "&nbsp;";
-					for (var i = 0; i < header.length; i++)
-						if (header[i]){
-							text = header[i].text;
-							break;
-						}
-
 					this._auto_scroll_force = true;
-					return "<div class='webix_dd_drag_column'>"+text+"</div>";
+					return "<div class='webix_dd_drag_column'>"+this._getColumnDragText(id.column,  id.rind)+"</div>";
 				}, this),
 				$drop:bind(function(s,t,e){
 					var target = e;
@@ -286,16 +286,16 @@ const Mixin = {
 						target = this._drag_column_last;
 
 					var id = this.locate(target);
-
 					if (!id) return false;
-					var start = DragControl.getContext().start.column;
-					if (start != id.column){
-						if (!this.callEvent("onBeforeColumnDrop",[start, id.column ,e])) return;
-						var start_index = this.getColumnIndex(start);
+					const start = DragControl.getContext().start;
+					const startId = start.column;
+					if (startId != id.column){
+						if (!this.callEvent("onBeforeColumnDrop",[startId, id.column ,e])) return;
+						var start_index = this.getColumnIndex(startId);
 						var end_index = this.getColumnIndex(id.column);
 
-						this.moveColumn(start, end_index+(start_index<end_index?1:0));
-						this.callEvent("onAfterColumnDrop",[start, id.column, e]);
+						this._moveColumn(startId, end_index+(start_index<end_index?1:0), start.rind);
+						this.callEvent("onAfterColumnDrop",[startId, id.column, e]);
 					}
 				}, this),
 				$dragIn:bind(function(s,t,e){

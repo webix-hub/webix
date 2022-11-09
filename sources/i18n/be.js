@@ -3,6 +3,8 @@ const be = {
 	groupSize:3,
 	decimalDelimiter:",",
 	decimalSize:2,
+	minusPosition:"before",
+	minusSign:"-",
 
 	dateFormat:"%d.%m.%Y",
 	timeFormat:"%H:%i",
@@ -13,8 +15,10 @@ const be = {
 	priceSettings:{
 		groupSize:3,
 		groupDelimiter:" ",
-		decimalDelimiter:"",
-		decimalSize:0
+		decimalDelimiter:",",
+		decimalSize:0,
+		minusPosition:"before",
+		minusSign:"-"
 	},
 
 	calendar:{

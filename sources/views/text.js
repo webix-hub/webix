@@ -41,10 +41,10 @@ const api = {
 	},
 	_toggleClearIcon:function(value){
 		const c = this._settings;
-		if (!c.clear || !this._clear_icon) return;
+		if (c.readonly || !c.clear || !this._clear_icon) return;
 
-		if (c.clear === "hover" || c.clear === "replace"){
-			const css = value ? "webix_clear_icon "+(c.clear==="hover"?c.icon:"wxi-close") : c.icon;
+		if (c.clear == "hover" || c.clear == "replace"){
+			const css = value ? "webix_clear_icon "+(c.clear == "hover" ? c.icon : "wxi-close") : c.icon;
 			this._clear_icon.className = "webix_input_icon " + css;
 		} else {
 			const state = value ? "" : "hidden";
@@ -97,10 +97,11 @@ const api = {
 			html += "<span style='right:"+right+"px;height:"+(height-padding)+"px;padding-top:"+padding+"px;' class='webix_input_icon "+c.icon+"'></span>";
 		}
 
-		if (c.clear === true){
+		if (!c.readonly && c.clear === true){
 			right += 24;
 			html += "<span style='right:"+right+"px;height:"+(height-padding)+"px;padding-top:"+padding+"px;' class='webix_input_icon webix_clear_icon webix_icon_transparent wxi-close'></span>";
 		}
+
 		return html;
 	},
 	relatedView_setter:function(value){
@@ -344,7 +345,10 @@ const api = {
 	_pattern:function(value){ return value; },
 	$setValue:function(value){
 		value = this._pattern(value);
-		this.getInputNode().value = value;
+
+		if(this.getInputNode())
+			this.getInputNode().value = value;
+
 		this._toggleClearIcon(value);
 	},
 	$getValue:function(){

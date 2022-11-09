@@ -1,5 +1,8 @@
 import {protoUI, $$} from "../ui/core";
 import {uid, bind} from "../webix/helpers";
+import {_event} from "../webix/htmlevents";
+import {preventEvent} from "../webix/html";
+import env from "../webix/env";
 
 import text from "./text";
 import DataCollection from "../core/datacollection";
@@ -25,6 +28,19 @@ const api = {
 			html += "</select>";
 			return common.$renderInput(obj, html, id);
 		}
+	},
+	$init:function(){
+		this.attachEvent("onAfterRender", function(){
+			const input = this.getInputNode();
+			_event(input, env.mouse.down, e => this._checkReadOnly(e));
+			_event(input, "keydown", e => this._checkReadOnly(e, (e.which || e.keyCode) == 9));
+			if (env.touch)
+				_event(input, env.touch.down, e => this._checkReadOnly(e));
+		});
+	},
+	_checkReadOnly:function(e, tab){
+		if(!tab && this._settings.readonly)
+			preventEvent(e);
 	},
 	options_setter:function(value){
 		if (value){

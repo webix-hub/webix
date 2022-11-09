@@ -36,7 +36,8 @@ const api = {
 			return d.getDate();
 		},
 		width: 260,
-		height: 250
+		height: 250,
+		separator:", "
 	},
 
 	dayTemplate_setter: template,
@@ -196,7 +197,6 @@ const api = {
 		var s = this._settings;
 		var _columnsHeight = [];
 		var _columnsWidth = [];
-		var min = Infinity;
 
 		var containerWidth = this._content_width - (this._content_padding+$active.borderWidth)*2;
 
@@ -207,16 +207,14 @@ const api = {
 		for(var i=0; i<columnsNumber; i++) {
 			_columnsWidth[i] = Math.ceil(containerWidth/(columnsNumber-i));
 			containerWidth -= _columnsWidth[i];
-			min = Math.min(min, _columnsWidth[i]);
 		}
 
 		var rowsNumber = bounds._rows;
 		for (var k = 0; k < rowsNumber; k++) {
 			_columnsHeight[k] = Math.ceil(containerHeight/(rowsNumber-k) );
 			containerHeight -= _columnsHeight[k];
-			min = Math.min(min, _columnsHeight[k]);
 		}
-		return [_columnsWidth, _columnsHeight, min];
+		return [_columnsWidth, _columnsHeight];
 	},
 	icons_setter: function(value){
 		if(!value)
@@ -286,7 +284,7 @@ const api = {
 
 		if(s.weekHeader)
 			html += "<div class='webix_cal_header' style='margin:0 "+cpad+"' aria-hidden='true'>"+this._week_template(width)+"</div>";
-		html += "<div class='webix_cal_body' role='grid' style='margin:0 "+cpad+"'>"+this._body_template(width, height, bounds, sizes[2])+"</div>";
+		html += "<div class='webix_cal_body' role='grid' style='margin:0 "+cpad+"'>"+this._body_template(width, height, bounds)+"</div>";
 
 		if (s.timepicker || this._icons){
 			html += "<div class='webix_cal_footer' style='margin:0 "+cpad+"'>";
@@ -388,13 +386,13 @@ const api = {
 		css += " webix_cal_day";
 		return css;
 	},
-	_body_template: function(widths, heights, bounds, sqSize){
+	_body_template: function(widths, heights, bounds){
 		const s = this._settings;
 		const start = s.weekNumber ? 1 : 0;
 		let day = DateHelper.datePart(DateHelper.copy(bounds._start));
 		let weekNumber = DateHelper.getISOWeek(DateHelper.add(day, 2, "day", true));
 
-		let html = "", focusable;
+		let html = "", focusable, sqSize;
 		for (let y=0; y<heights.length; y++){
 			html += "<div class='webix_cal_row' role='row' style='height:"+heights[y]+"px;line-height:"+heights[y]+"px'>";
 
@@ -422,6 +420,7 @@ const api = {
 				if (day.getDate() == 1 && !isOutside) tabindex = "$webix_tabindex";
 				if (tabindex == "0") focusable = true;
 
+				sqSize = Math.min(heights[y], widths[x]);
 				html += "<div day='"+x+"' role='gridcell' "+(isOutside?"aria-hidden='true'":"")+" aria-label='"+alabel+
 					"' tabindex='"+tabindex+"' aria-selected='"+(sel && !isOutside?"true":"false")+"' class='"+css+"' style='text-align:center; width:"+widths[x]+
 					"px'><span aria-hidden='true' class='webix_cal_day_inner' style='display:inline-block; "+this._getCalSizesString(sqSize,sqSize)+"'>"+d+"</span></div>";
@@ -1084,9 +1083,27 @@ const api = {
 		this.selectDate(date, true, false, config);
 	},
 	getValue: function(format){
-		var date = this.getSelectedDate();
+		let date = this.getSelectedDate();
+
+		if(isArray(date)){
+			date = date.map(date => this._formatValue(date, format));
+			if(this._settings.stringResult)
+				date = date.join(this._settings.separator);
+		}
+		else
+			date = this._formatValue(date, format);
+
+		return date;
+	},
+	_formatValue: function(date, format){
 		if (format)
 			date = DateHelper.dateToStr(format)(date);
+		else if(this._settings.stringResult){
+			if(this._settings.type == "time")
+				date = i18n.parseTimeFormatStr(date);
+			else
+				date = i18n.parseFormatStr(date);
+		}
 		return date;
 	},
 	selectDate: function(date, show, add, config){
@@ -1094,7 +1111,9 @@ const api = {
 			this._selected_days = {};
 
 		if (date){
-			if (!isArray(date)) date = [date];
+			if(typeof date == "string")
+				date = date.split(this._settings.separator);
+			else if (!isArray(date)) date = [date];
 			for (let i=0; i<date.length; i++){
 				const days = this._string_to_date(date[i]);
 				const key = DateHelper.datePart(DateHelper.copy(days)).valueOf();

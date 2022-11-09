@@ -1,7 +1,7 @@
 import {pos as getPos, addCss, removeCss, offset, preventEvent} from "../webix/html";
 import {protoUI} from "../ui/core";
 import {_event, event, eventRemove} from "../webix/htmlevents";
-import {$active, $name} from "../webix/skin";
+import {$active} from "../webix/skin";
 import i18n from "../webix/i18n";
 import env from "../webix/env";
 
@@ -40,10 +40,7 @@ const api = {
 		});
 	},
 	$skin:function(){
-		if($name == "compact" || $name == "mini")
-			this._inpHeight = 24;
-		else
-			this._inpHeight = 32;
+		this._inpHeight = $active.inputHeight - 2*$active.inputPadding;
 	},
 	$setSize:function(x,y){
 		if(base.api.$setSize.call(this,x,y)){
@@ -266,9 +263,9 @@ const api = {
 		this.callEvent("onBeforeRender",[]);
 
 		const inpWidth = (this.$width - $active.dataPadding*3)/2;
-		//24 paddings, 32 color line, 12 padding
-		const bHeight = this.$height - 24 - 32 - this._inpHeight - (this._settings.button ? (this._inpHeight+12) : 0);
-		
+		//8+14 color line, 3(or 4) data paddings 
+		const bHeight = this.$height - 3*$active.dataPadding - 22 - this._inpHeight - (this._settings.button ? (this._inpHeight+$active.dataPadding) : 0);
+
 		let html = "<div class=\"webix_color_area\">";
 		html += `
 			<div ${/*@attr*/"webix_disable_drag"}="true" class="webix_color_block" style="height:${bHeight}px;">

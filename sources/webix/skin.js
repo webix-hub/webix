@@ -6,6 +6,8 @@ import mini from "../css/skins/mini/config";
 import flat from "../css/skins/flat/config";
 import compact from "../css/skins/compact/config";
 import contrast from "../css/skins/contrast/config";
+import willow from "../css/skins/willow/config";
+import dark from "../css/skins/dark/config";
 
 export var $active, $name;
 
@@ -25,7 +27,7 @@ export function set(name){
 	}		
 }
 
-const skin = { set, material, mini, flat, compact, contrast };
+const skin = { set, material, mini, flat, compact, contrast, willow, dark };
 
 set(window.webix_skin || "material");
 

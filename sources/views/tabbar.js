@@ -27,31 +27,26 @@ const api = {
 		defaults.tabMoreWidth = skin.tabMoreWidth||40;
 		defaults.borderless = !skin.tabBorder;
 	},
-	_getTabbarSizes: function(){
+	_getTabbarSizes: function(selected){
+		const config = this._settings;
+		const inputWidth = this._input_width - config.tabOffset * 2;
+		const tabs = this._filterOptions(config.options);
 
-		var config = this._settings,
-			i, len,
-			tabs = this._filterOptions(config.options),
-			totalWidth = this._input_width - config.tabOffset*2,
-			limitWidth = config.optionWidth||config.tabMinWidth;
+		const width = config.optionWidth || config.tabMinWidth;
 
-		len = tabs.length;
+		//the selected tab will be rendered anyway
+		let totalWidth = tabs.find(tab => tab.id == selected).width || width;
+		let max = 1;
 
-		if(config.tabMinWidth && totalWidth/len < limitWidth){
-			return { max: (parseInt(totalWidth/limitWidth,10)||1)};
+		for(let i = 0; i < tabs.length; i++){
+			if(tabs[i].id == selected)
+				continue;
+			if((totalWidth += (tabs[i].width || width)) > inputWidth)
+				return { max };
+			max++;
 		}
 
-
-		if(!config.optionWidth){
-			for(i=0;i< len; i++){
-				if(tabs[i].width){
-					totalWidth -= tabs[i].width+(!i&&!config .type?config.tabMargin:0);
-					len--;
-				}
-			}
-		}
-
-		return {width: (len?totalWidth/len:config.tabMinWidth)};
+		return { width: inputWidth / tabs.length };
 	},
 	_init_popup: function () {
 		const obj = this._settings;
@@ -139,7 +134,7 @@ const api = {
 				contentWidth = common._input_width - obj.tabOffset*2-(!obj.type?(obj.tabMargin)*(tabs.length-1):0);
 				verticalOffset = obj.topOffset+obj.bottomOffset;
 
-				var sizes = common._getTabbarSizes();
+				var sizes = common._getTabbarSizes(obj.value);
 
 				if (sizes.max && sizes.max < tabs.length){
 					//we need popup

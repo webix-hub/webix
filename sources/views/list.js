@@ -89,7 +89,6 @@ const api = {
 	_auto_height_calc:function(count){
 		var value = this.data.$pagesize||this.count();
 
-		this._onoff_scroll(count && count < value, "y");
 		if (this._settings.autoheight && value < (count||Infinity) ) 
 			count = value;
 		var height = this._one_height() * count + (this.type.margin||0);
@@ -97,7 +96,11 @@ const api = {
 		if(this.getUnits)
 			height += this.getUnits().length*this.type.headerHeight;
 
-		return Math.max(height,this._settings.minHeight||0);
+		const maxHeight = this._settings.maxHeight || Infinity;
+		height = Math.max(height, this._settings.minHeight || 0);
+
+		this._onoff_scroll((count && count < value) || (height > maxHeight), "y");
+		return Math.min(height, maxHeight);
 	},
 	_one_height:function(){
 		return this.type.height + (this.type.margin||0);

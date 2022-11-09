@@ -2,7 +2,7 @@ import {protoUI} from "../ui/core";
 import {delay, uid} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 import text from "./text";
-import {create, remove, addCss, removeCss} from "../webix/html";
+import {create, remove, addCss, removeCss, preventEvent} from "../webix/html";
 import {$active} from "../webix/skin";
 import env from "../webix/env";
 
@@ -31,7 +31,7 @@ const autoheight = {
 			const cursorPos = pageUp ? 0 : input.value.length;
 			const scrollPos = pageUp ? 0 : input.scrollHeight;
 
-			e.preventDefault();
+			preventEvent(e);
 			input.setSelectionRange(cursorPos, cursorPos);
 			input.scrollTo(0, scrollPos);
 		}

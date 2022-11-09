@@ -1,5 +1,14 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
+Version 10.0 (November 2022)
+=============================
+
+- Willow and Dark skins
+- Desktop widget
+- ToDo list
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_10_0.html)
+
 Version 9.4 (July 2022)
 =============================
 

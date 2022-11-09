@@ -1,4 +1,4 @@
-import {_to_array, _power_array} from "../../webix/helpers";
+import {_to_array, _power_array, isUndefined} from "../../webix/helpers";
 import {assert} from "../../webix/debug";
 
 
@@ -35,15 +35,77 @@ const Mixin = {
 		}
 	},
 	moveColumn:function(id, index){
+		this._moveColumn(id, index);
+	},
+	_moveColumn: function(id, index, hrIndex){
 		const cindex = this.getColumnIndex(id);
 		if (cindex == index || cindex == -1) return false; //already in place
-
+		let cols;
+		if(!isUndefined(hrIndex)){
+			if(!this._check_source_span(cindex, index, hrIndex))
+				return false;
+			cols = this._get_span_columns(cindex, hrIndex, index);
+			index += this._get_target_span_shift(cindex, index);
+			if(cols){
+				for(let i = 0; i < cols.length; i++){
+					const inc = cindex > index?i:0;
+					const sId = cols[i];
+					if(this.getColumnIndex(sId) < 0 && i > 0){
+						this._moveHiddenSpanColumn(sId, cols[0], i);
+					}
+					else
+						this._changeColumnIndex(cols[i], index + inc, hrIndex);
+				}
+			}
+		}
+		if(!cols)
+			this._changeColumnIndex(id, index, hrIndex);
+		this._refresh_columns();
+	},
+	_changeColumnIndex: function(id, index, hrIndex){
+		let cindex = this.getColumnIndex(id);
 		const horder = this._hidden_column_order;
 		const columns = this._settings.columns;
 
-		// remove from the previous place
 		let hindex;
+		// handle colspan in another header line
+		const header = columns[cindex].header;
+		if(!isUndefined(hrIndex) && header && header[hrIndex]){
+			const sourceSpan = header[hrIndex].colspan || 1;
+			let batchChanged = false;
+			for(let i = 0; i < header.length; i++){
+				if(i != hrIndex && header[i] && header[i].colspan){
+					const hI = header[i];
+					const span = hI.colspan;
+					if(span > sourceSpan){
+						const nextCol = columns[cindex + sourceSpan];
+						if(nextCol.batch && !columns[cindex].batch){
+							batchChanged = true;
+							columns[cindex].batch = nextCol.batch;
+							delete nextCol.batch;
+						}
+						nextCol.header[i] = hI;
+					}
+				}
+			}
+			// drop to column with colspan settings
+			const tIndex = index == columns.length? index-1: index;
+
+			const tHeader = columns[tIndex].header;
+			for(let i = 0; i < tHeader.length; i++){
+				const span = tHeader[i] ? tHeader[i].colspan:1;
+				if(i != hrIndex && span > 1 && cindex > tIndex && cindex <  tIndex + span){
+					if(!batchChanged && columns[cindex].batch && !columns[tIndex].batch){
+						columns[tIndex].batch = columns[cindex].batch;
+						delete columns[cindex].batch;
+					}
+					header[i] = tHeader[i];
+				}
+			}
+		}
+		// remove from the previous place
 		const col = columns.splice(cindex, 1)[0];
+
 		if (horder.length){
 			hindex = horder.find(id);
 			horder.removeAt(hindex);
@@ -56,13 +118,84 @@ const Mixin = {
 
 		let pos;
 		if (horder.length){
+			pos = 0;
 			const prev = columns[nindex-1];
-			pos = prev && prev.id ? horder.find(prev.id)+1 : 0;
+			if(prev && prev.id){
+				let pId = prev.id;
+				pos = this._getHiddenColumnIndex(pId);
+				do{
+					pos += 1;
+					pId = horder[pos];
+				} while (this.getColumnIndex(pId) < 0 && pos < horder.length);
+			}
 			horder.insertAt(col.id, pos);
 		}
 		this._updateSplit(nindex, pos, 1);
+	},
+	_moveHiddenSpanColumn: function(id, prevId, inc){
+		const horder = this._hidden_column_order;
+		// remove from the previous place
+		let hindex = this._getHiddenColumnIndex(id);
+		horder.removeAt(hindex);
+		this._updateSplit(-1, hindex, -1);
+		// paste into new
+		const index = this._getHiddenColumnIndex(prevId) + inc;
+		horder.insertAt(id, index);
+		this._updateSplit(-1, index, 1);
+	},
+	_check_source_span: function(indexFrom, indexTo, hrIndex){
+		if(indexTo > indexFrom)
+			indexTo--;
+		const fromSpan = (this._columns[indexFrom].header[hrIndex].colspan || 1) - 1;
+		for(let i =0; i< this._columns.length; i++){
+			const header = this._columns[i].header;
+			for (let j = 0; j < header.length; j++){
+				if(i != indexFrom || j != hrIndex){
+					const span = header[j] && header[j].colspan || 1;
+					const i1 = i + span - 1;
+					if(span > 1 && i <= indexFrom && i1 >= (indexFrom + fromSpan) && (i > indexTo || i1 < indexTo))
+						return false;
+				}
+			}
+		}
+		return true;
+	},
+	_get_target_span_shift: function(indexFrom, indexTo){
+		for(let i =0; i< this._columns.length; i++){
+			const header = this._columns[i].header;
+			for (let j = 0; j < header.length; j++){
+				if(i != indexFrom){
+					const span = header[j] && header[j].colspan;
+					if(span){
+						const i1 = i + span - 1;
+						if(i < indexTo && i1 >= indexTo && (i > indexFrom || i1 < indexFrom)){
+							let newIndexTo = indexFrom > indexTo?i:i1+1;
+							return newIndexTo - indexTo;
 
-		this._refresh_columns();
+						}
+					}
+				}
+			}
+		}
+		return 0;
+	},
+	_get_span_columns: function(cIndex, hrIndex){
+		let columns, h = this._columns[cIndex].header;
+		let span = h[hrIndex].colspan || 1;
+
+		for(let i = 0; i < h.length; i++){
+			if(h[i] && h[i].$colspan && h[i].$colspan > h[i].colspan)
+				span = Math.max(span, h[i].$colspan);
+		}
+
+		if(span > 1){
+			const id = this.columnId(cIndex);
+			columns = [id];
+			const hIndex = this._getHiddenColumnIndex(id);
+			for( let i = hIndex+1; i < hIndex + span; i++)
+				columns.push(this._getHiddenColumnId(i));
+		}
+		return columns;
 	},
 	_init_horder:function(horder, cols){
 		if (!horder.length){
@@ -92,6 +225,7 @@ const Mixin = {
 			
 			if (opts.spans){
 				const header = cols[index].header;
+
 				for (let i=0; i<header.length; i++){
 					if (header[i])
 						span = Math.max(span, (header[i].colspan || 1));
@@ -272,7 +406,7 @@ const Mixin = {
 		this.render();
 	},
 	showColumnBatch:function(batch, mode, silent){
-		const preserve = typeof mode != "undefined";
+		const preserve = !isUndefined(mode);
 		mode = mode !== false;
 
 		const sub = [];

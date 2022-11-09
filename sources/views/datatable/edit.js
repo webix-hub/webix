@@ -47,7 +47,7 @@ const Mixin = {
 		if (type.$inline)
 			node = this._locateInput(id);
 		type.node = node;
-			
+
 		var item = this.getItem(row);
 		var format = col_settings.editFormat;
 
@@ -62,6 +62,9 @@ const Mixin = {
 		type.setValue(format?format(value):value, item);
 		type.value = item[column];
 		this._addEditor(id, type);
+
+		if(type.getPopup)
+			type.getPopup()._editorMaster = this._settings.id;
 
 		if (!type.$inline)
 			type._editor_pos = this._sizeToCell(id, node, true);

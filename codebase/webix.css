@@ -319,7 +319,8 @@ body.webix_noselect {
 .webix_header.webix_dark .webix_icon_button:hover:before {
   background-color: rgba(0, 0, 0, 0.2);
 }
-.webix_header.webix_dark .webix_icon_button:hover .webix_icon {
+.webix_header.webix_dark .webix_icon_button:hover .webix_icon,
+.webix_header.webix_dark .webix_icon_button:focus .webix_icon {
   opacity: 1;
 }
 .webix_header.webix_dark .webix_icon_button .webix_icon {
@@ -733,7 +734,8 @@ button,
 .webix_accordionitem_header.webix_dark .webix_icon_button:hover:before {
   background-color: rgba(0, 0, 0, 0.2);
 }
-.webix_accordionitem_header.webix_dark .webix_icon_button:hover .webix_icon {
+.webix_accordionitem_header.webix_dark .webix_icon_button:hover .webix_icon,
+.webix_accordionitem_header.webix_dark .webix_icon_button:focus .webix_icon {
   opacity: 1;
 }
 .webix_accordionitem_header.webix_dark .webix_icon_button .webix_icon {
@@ -1471,18 +1473,14 @@ button,
   overflow: hidden;
   position: relative;
 }
-.webix_hs_left,
 .webix_hs_center,
 .webix_hs_right,
+.webix_hs_left,
 .webix_ss_center,
 .webix_ss_right,
 .webix_ss_left {
   overflow: hidden;
   float: left;
-  position: relative;
-}
-.webix_ss_center,
-.webix_ss_right {
   position: relative;
 }
 .webix_ss_center_scroll {
@@ -2116,7 +2114,6 @@ button,
   width: 5px;
 }
 .webix_measure_size div {
-  margin-left: -5px;
   float: none;
 }
 .webix_measure_size div,
@@ -2177,7 +2174,7 @@ button,
 .webix_tree_img {
   background-color: #FFFFFF;
   float: left;
-  width: 25px;
+  width: 24px;
   height: 24px;
   background-position: 0 0;
 }
@@ -2639,7 +2636,8 @@ button,
 .webix_property_label_line.webix_dark .webix_icon_button:hover:before {
   background-color: rgba(0, 0, 0, 0.2);
 }
-.webix_property_label_line.webix_dark .webix_icon_button:hover .webix_icon {
+.webix_property_label_line.webix_dark .webix_icon_button:hover .webix_icon,
+.webix_property_label_line.webix_dark .webix_icon_button:focus .webix_icon {
   opacity: 1;
 }
 .webix_property_label_line.webix_dark .webix_icon_button .webix_icon {
@@ -3048,7 +3046,7 @@ div.webix_modal_cover {
   right: 18px;
   padding-top: 1px;
   content: "*";
-  color: red;
+  color: #FF5C4C;
 }
 .webix_popup_input.webix_el_text.webix_popup_invalid input {
   background-color: #ffedee;
@@ -4309,9 +4307,9 @@ label.webix_required:after,
 legend.webix_required:after,
 .webix_measure_size.webix_required:after,
 .webix_richtext_inp_label.webix_required .webix_template:after {
-  padding-left: 4px;
   content: "*";
-  color: red;
+  padding-left: 4px;
+  color: #FF5C4C;
 }
 .webix_multicombo .webix_inp_static {
   padding: 0 3px 0 0;
@@ -4399,19 +4397,20 @@ legend.webix_required:after,
   margin-right: 4px;
 }
 .webix_checksuggest_select_all {
-  border: none;
-  border-bottom: 1px solid #ebebeb;
-  border-color: #ebebeb;
+  border-color: transparent;
+  border-bottom: 1px solid #DADEE0;
   margin-bottom: 1px;
 }
 .webix_checksuggest_select_all .webix_label_right {
   text-transform: capitalize;
   display: block;
-  padding-top: 2px;
-  padding-bottom: 4px;
+  padding: 4px 12px 0 12px;
 }
 .webix_checksuggest_select_all input {
   display: none;
+}
+.webix_checksuggest_select_all:hover {
+  cursor: pointer;
 }
 .webix_checksuggest_select_all:hover .webix_label_right {
   cursor: pointer;
@@ -4442,6 +4441,9 @@ legend.webix_required:after,
   word-wrap: break-word;
   margin: 5px 12px;
   white-space: pre-wrap;
+}
+.webix_el_texthighlight.webix_disabled_view .webix_text_highlight {
+  background-color: #fbfbfd;
 }
 .webix_el_texthighlight .webix_text_highlight,
 .webix_el_texthighlight input,
@@ -4642,7 +4644,7 @@ legend.webix_required:after,
   color: #FFFFFF;
 }
 .webix_menu-x .webix_list_item:first-child {
-  margin-left: 0px;
+  margin-left: 0;
 }
 .webix_menu-x .webix_submenu_icon {
   top: 14px;
@@ -4898,7 +4900,8 @@ legend.webix_required:after,
 .webix_toolbar.webix_layout_subbar.webix_dark .webix_icon_button:hover:before {
   background-color: rgba(0, 0, 0, 0.2);
 }
-.webix_toolbar.webix_layout_subbar.webix_dark .webix_icon_button:hover .webix_icon {
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_icon_button:hover .webix_icon,
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_icon_button:focus .webix_icon {
   opacity: 1;
 }
 .webix_toolbar.webix_layout_subbar.webix_dark .webix_icon_button .webix_icon {
@@ -5012,23 +5015,23 @@ legend.webix_required:after,
   text-align: center;
   float: right;
 }
-.error_icon,
-.cancel_icon {
+.webix_error_icon,
+.webix_cancel_icon {
   display: inline-block;
   background-repeat: no-repeat;
 }
-.error_icon {
+.webix_error_icon {
   width: 18px;
   height: 16px;
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAQCAYAAAAbBi9cAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyBpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBXaW5kb3dzIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjZFMDdENjlDNjE2QzExRTI5QzhBQUU2OUI3RDY4RTFCIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjZFMDdENjlENjE2QzExRTI5QzhBQUU2OUI3RDY4RTFCIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6NkUwN0Q2OUE2MTZDMTFFMjlDOEFBRTY5QjdENjhFMUIiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6NkUwN0Q2OUI2MTZDMTFFMjlDOEFBRTY5QjdENjhFMUIiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4ZJnE7AAABdklEQVR42mK80aLPgAcwA/EcIOYB4mgg/oWuQL36AphmYcAPYvl5WBOYmBgY3n/6fQTIn4hLIRMeQ0CuaBHgY2EQ4GMF8euAWIgcg6qF+NmkOdiZGdhYmRiEBdhAhrSQapAKEBcJC7DCBUQE2UBUGhAbkGLQBDEhdjYmJkaGtHVMDD4LmBk+/2RgEBdhBwX+ZGINcuLiZPYW5Ie45tknRrAhIFqAl5WBh4vFBijsR8ggkI29IA0wwMsOo/+DaWjA9wIxGz6D0oAKDXi5EalCkvc/2DApPgifm5OZQZCPFRyGuAwCxwqya0AAZADMVTAgyA92TDUQS2MzqAUUxcAgRjPoP9hVyICVhREUi6B01g4TY4RmES0gvqSuyMPMQAK4ef/LXyBlAswmF2DWd4kJs2M1pGgLIvrRAXJyAIWqNzcXi7cgHysDqQAUnt9//LW52WoQBfLaDRlxDnWgYQzkAKBBDI+ef38E0n3nycsf6gyUgUcAAQYA9DZJKVXGocQAAAAASUVORK5CYII=");
 }
 .webix_upload_server {
-  color: green;
+  color: #55CD97;
 }
 .webix_remove_upload {
   float: right;
 }
-.cancel_icon {
+.webix_cancel_icon {
   margin-top: 9px;
   width: 14px;
   height: 14px;
@@ -5414,7 +5417,7 @@ legend.webix_forminput_label_top {
 }
 .webix_gage_value {
   font-size: 2.2em;
-  color: #404040;
+  color: #475466;
 }
 .webix_gage_value,
 .webix_gage_range_info {
@@ -5451,25 +5454,32 @@ legend.webix_forminput_label_top {
   margin-top: 0;
   padding-top: 20px;
 }
-.webix_bullet_name {
-  width: 100;
-}
 .webix_bullet_header {
-  font-weight: bold;
-  font-size: 15px;
+  font-weight: 500;
 }
+.webix_bullet_header,
 .webix_bullet_subheader {
-  font-size: 15px;
+  font-size: 14px;
+  fill: #475466;
 }
 .webix_bullet_scale {
+  fill: #74869f;
   font-size: 12px;
-  font-weight: bold;
+  font-weight: 500;
+  stroke: none;
+  text-anchor: middle;
+}
+.webix_bullet_scale_lines {
+  stroke: #74869f;
+}
+.webix_bullet_marker {
+  y: 5px;
+  width: 3px;
 }
 .webix_timeline .webix_scroll_cont {
   padding-top: 28px;
 }
 .webix_timeline_item {
-  height: 46px;
   line-height: 0;
   padding: 0 12px;
   position: relative;
@@ -6214,18 +6224,9 @@ body.webix_print {
   color: #1CA1C1;
   letter-spacing: 0px;
 }
-.barFont {
-  font-family: Roboto, sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  color: #475466;
-  letter-spacing: 0px;
-}
 .selectFocusRule {
   background: #edeff5;
 }
-/*[L]*/
-/*[L]*/
 .layoutBarBG .webix_el_label .webix_el_box {
   font-family: Roboto, sans-serif;
   font-size: 16px;
@@ -6397,7 +6398,8 @@ body.webix_print {
 .layoutBarBG.webix_dark .webix_icon_button:hover:before {
   background-color: rgba(0, 0, 0, 0.2);
 }
-.layoutBarBG.webix_dark .webix_icon_button:hover .webix_icon {
+.layoutBarBG.webix_dark .webix_icon_button:hover .webix_icon,
+.layoutBarBG.webix_dark .webix_icon_button:focus .webix_icon {
   opacity: 1;
 }
 .layoutBarBG.webix_dark .webix_icon_button .webix_icon {
@@ -6659,7 +6661,8 @@ body.webix_print {
 .webix_toolbar.webix_dark .webix_icon_button:hover:before {
   background-color: rgba(0, 0, 0, 0.2);
 }
-.webix_toolbar.webix_dark .webix_icon_button:hover .webix_icon {
+.webix_toolbar.webix_dark .webix_icon_button:hover .webix_icon,
+.webix_toolbar.webix_dark .webix_icon_button:focus .webix_icon {
   opacity: 1;
 }
 .webix_toolbar.webix_dark .webix_icon_button .webix_icon {
@@ -7514,7 +7517,7 @@ div.webix_inp_static,
   background: #FFFFFF;
   color: #1CA1C1;
 }
-.webix_remove_upload .cancel_icon {
+.webix_cancel_icon {
   background-image: none;
   font-family: "Webix Material Icons";
   font-size: 17px;
@@ -7522,13 +7525,13 @@ div.webix_inp_static,
   height: auto;
   width: 20px;
 }
-.webix_remove_upload .cancel_icon:hover {
+.webix_cancel_icon:hover {
   color: #FF5C4C;
 }
-.webix_remove_upload .cancel_icon:before {
+.webix_cancel_icon:before {
   content: "\F011";
 }
-.webix_upload_error .error_icon {
+.webix_error_icon {
   background-image: none;
   font-family: "Webix Material Icons";
   font-size: 20px;
@@ -7536,7 +7539,7 @@ div.webix_inp_static,
   width: 20px;
   color: #FF5C4C;
 }
-.webix_upload_error .error_icon:before {
+.webix_error_icon:before {
   content: "\F034";
 }
 .webix_inp_counter_next:hover,
@@ -8125,7 +8128,8 @@ div.webix_inp_static,
   transform: scale(0);
   transition-property: transform, opacity;
 }
-.webix_icon_button:hover .webix_icon {
+.webix_icon_button:hover .webix_icon,
+.webix_icon_button:focus .webix_icon {
   color: #475466;
 }
 .webix_icon_button:hover:before {
@@ -8228,6 +8232,13 @@ legend.webix_forminput_label,
 .webix_chart .webix_axis_title_y,
 .webix_chart .webix_canvas_text.webix_axis_radar_title {
   color: #94A1B3;
+}
+.webix_bullet_scale {
+  fill: #94A1B3;
+  font-size: 12px;
+}
+.webix_bullet_scale_lines {
+  stroke: #94A1B3;
 }
 .webix_toolbar.pdf_bar {
   background-color: #474747;
@@ -8359,7 +8370,7 @@ textarea.webix_invalid {
   background: rgba(255, 255, 255, 0.4);
 }
 .webix_skin_mark {
-  height: 240px;
+  height: 230px;
 }
 /* based on MaterialDesignIcons.com */
 @font-face {

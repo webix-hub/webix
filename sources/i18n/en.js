@@ -3,6 +3,8 @@ const en = {
 	groupSize:3,
 	decimalDelimiter:".",
 	decimalSize:2,
+	minusPosition:"before",
+	minusSign:"-",
 
 	dateFormat:"%m/%d/%Y",
 	timeFormat:"%h:%i %A",
@@ -16,7 +18,9 @@ const en = {
 		groupDelimiter:",",
 		groupSize:3,
 		decimalDelimiter:".",
-		decimalSize:2
+		decimalSize:2,
+		minusPosition:"before",
+		minusSign:"-",
 	},
 	fileSize: ["b","Kb","Mb","Gb","Tb","Pb","Eb"],
 	

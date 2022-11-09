@@ -464,8 +464,8 @@ const api = {
 
 		this._mergeSettings(config,{
 			title:"",
-			color:"#edeff0",
-			lineColor:"#edeff0",
+			color:$active.dataBorderColor,
+			lineColor:$active.dataBorderColor,
 			template:"{obj}",
 			lines:true
 		});
@@ -477,8 +477,8 @@ const api = {
 	yAxis_setter:function( config){
 		this._mergeSettings(config,{
 			title:"",
-			color:"#edeff0",
-			lineColor:"#edeff0",
+			color:$active.dataBorderColor,
+			lineColor:$active.dataBorderColor,
 			template:"{obj}",
 			lines:true,
 			bg:$active.backColor
@@ -910,7 +910,7 @@ const api = {
 			const item = legendItems[i];
 			if(legend.values&&legend.values[i].$hidden){
 				disabled = true;
-				itemColor = legend.values[i].disableColor || "#edeff0";
+				itemColor = legend.values[i].disableColor || $active.dataBorderColor;
 			}
 			else{
 				disabled = false;

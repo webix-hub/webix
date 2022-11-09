@@ -219,6 +219,8 @@ const EditAbility ={
 
 		this._addEditor(id, type);
 
+		if(type.getPopup)
+			type.getPopup()._editorMaster = this._settings.id;
 		//show it over cell
 		if (show !== false)
 			this.showItem(id);
@@ -227,7 +229,6 @@ const EditAbility ={
 
 		if (type.afterRender)
 			type.afterRender();
-
 		return node;
 	},
 	_locate_cell:function(id){

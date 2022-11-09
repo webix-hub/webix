@@ -1,4 +1,5 @@
 import color from "../../webix/color";
+import {$active} from "../../webix/skin";
 
 const BarChart = {
 	/**
@@ -88,7 +89,7 @@ const BarChart = {
 		}
 		/*draws a black line if the horizontal scale isn't defined*/
 		if(!xax){
-			this._drawLine(ctx,point0.x,point1.y+0.5,point1.x,point1.y+0.5,"#edeff0",1); //hardcoded color!
+			this._drawLine(ctx,point0.x,point1.y+0.5,point1.x,point1.y+0.5,$active.dataBorderColor,1);
 		}
 
 		for(i=0; i < data.length;i ++){

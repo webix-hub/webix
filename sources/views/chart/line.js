@@ -1,4 +1,4 @@
-
+import {$name} from "../../webix/skin";
 
 const LineChart = {
 	/**
@@ -59,7 +59,7 @@ const LineChart = {
 					this._drawLine(ctx,x1,y1,x2,y2,config.line.color.call(this,data[i-1]),config.line.width);
 					//line shadow
 					if(config.line&&config.line.shadow){
-						ctx.globalAlpha = 0.3;
+						ctx.globalAlpha = ($name == "contrast" || $name == "dark") ? 0.1 : 0.3;
 						this._drawLine(ctx,x1+2,y1+config.line.width+8,x2+2,y2+config.line.width+8,"#eeeeee",config.line.width+3);
 						ctx.globalAlpha = 1;
 					}

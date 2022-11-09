@@ -61,11 +61,11 @@ const api = {
 		let right = this._inputSpacing/2 + 5;
 		let html = "<div class='webix_input_icon' style='top:"+(c.inputPadding+4)+"px;right:"+right+"px;background-color:"+c.value+";'></div>";
 
-		if (c.clear){
+		if (!c.readonly && c.clear){
 			const height = c.aheight - 2*c.inputPadding;
 			const padding = (height - 18)/2 -1;
 			right += 24;
-			html += "<span style='right:"+right+"px;height:"+(height-padding)+"px;padding-top:"+padding+"px;' class='webix_input_icon webix_clear_icon wxi-close'></span>";
+			html += "<span style='right:"+right+"px;height:"+(height-padding)+"px;padding-top:"+padding+"px;' class='webix_input_icon webix_clear_icon webix_icon_transparent wxi-close'></span>";
 		}
 		return html;
 	}

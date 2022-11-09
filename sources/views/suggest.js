@@ -86,7 +86,11 @@ const api = {
 		return isUndefined(config) ? null : { config };
 	},
 	_set_input_value:function(text){
-		this._last_input_target.value = text;
+		const trg = this._last_input_target;
+		if(trg.getAttribute("contentEditable") == "true" || trg.getAttribute("contentEditable") == "")
+			trg.innerText = text;
+		else
+			trg.value = text;
 	},
 	_preselectMasterOption:function(data){
 		const text = data.id ? this.getItemText(data.id) : (data.text||data.value);
@@ -254,7 +258,7 @@ const api = {
 
 		_event(node,"keydown",function(e){
 			if ((node != document.body || this.isVisible()) && (input.config ? (!input.config.readonly) : (!node.getAttribute("readonly"))))
-				this._suggestions(e);
+				this._suggestions(e, node);
 		}, {bind:this});
 		
 		if(input._getInputDiv)
@@ -270,7 +274,7 @@ const api = {
 
 		this._non_ui_mode = true;
 	},
-	_suggestions: function(e){
+	_suggestions: function(e, node){
 		//should be before tab and arrows handlers: IME can call keydown twice
 		if (this._last_delay)
 			this._last_delay = clearTimeout(this._last_delay);
@@ -280,8 +284,9 @@ const api = {
 		if((trg == document.body && !this.isVisible()) || trg.className =="webix_clipbuffer")
 			return;
 
-		this._last_input_target = trg;
 		this._settings.master = trg.webix_master_id;
+		if(node != document.body)
+			this._last_input_target = trg;
 
 		var code = e.which || e.keyCode;
 		//shift, ctrl, alt, meta
@@ -295,14 +300,13 @@ const api = {
 		if(ctrl && !(backspace || del || v || x || y || z)) return;
 
 		if(backspace || del || (ctrl && x)){
-			const input = $$(this._settings.master).getInputNode();
-			const selStart = input.selectionStart;
-			const selEnd = input.selectionEnd;
-			
+			const selStart = trg.selectionStart;
+			const selEnd = trg.selectionEnd;
+
 			if(
 				(backspace && selStart == 0) ||
 				(x && selStart == selEnd) ||
-				(del && selStart == input.value.length)
+				(del && selStart == (trg.value || trg.innerText).length)
 			)
 				return;
 		}
@@ -334,7 +338,7 @@ const api = {
 					UIManager.getFocus() != $$(this._settings.master)) return;
 
 			this._resolve_popup = true;
-			//spreadsheet use contentEditable div for cell highlighting
+
 			const val = contentEditable ? trg.innerText : trg.value;
 
 			if (this._before_filtering)
@@ -358,13 +362,13 @@ const api = {
 
 		// filtering is complete
 		// if there are as min 1 variant it must be shown, hidden otherwise
-		if (list.count() >0){
+		if (list.count() > 0){
 			this.adjust();
 			if(!this.isVisible())
 				this._dont_unfilter = true;
 			this.show(this._last_input_target,null,true);
 			this._dont_unfilter = false;
-		} else {
+		} else if(this._last_input_target){
 			this.hide();
 			this._last_input_target = null;
 		}
@@ -376,6 +380,17 @@ const api = {
 		if (!this.isVisible() || (input && input != this._last_input_target)){
 			var list = this.getList();
 			if (list.filter && !this._dont_unfilter){
+				// clear gridsuggest filters
+				if(list.eachColumn){
+					list.eachColumn(id => {
+						const filter = list.getFilter(id);
+						if(filter){
+							if (filter.setValue) filter.setValue("");
+							else filter.value = "";
+						}
+					});
+				}
+
 				list.filter("");
 			}
 

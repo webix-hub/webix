@@ -248,44 +248,49 @@ export function getExportData(view, options, scheme){
 
 			let line = [];
 			for (let i = 0; i < scheme.length; i++){
-				let column = scheme[i], cell = null, formula;
+				let column = scheme[i], cell = null;
 				//spreadsheet use muon to store data, get value via $getExportValue
 				if(view.$getExportValue)
 					cell = view.$getExportValue(item.id, column.id, options);
-				//datatable math
-				else if(options.math && item["$"+column.id] && item["$"+column.id].charAt(0) =="="){
-					if(mode == "excel")
-						formula = item["$"+column.id];
-					else
-						cell = item["$"+column.id];
-				}
-				if(this._spans_pull){
-					let span = this.getSpan(item.id, column.id);
-					if(span && span[4] && span[0] == item.id && span[1] == column.id){
-						cell = span[4];
-						if(filterHTML && typeof cell === "string")
-							cell = cell.replace(htmlFilter, "");
+				else {
+					//datatable math
+					let formula;
+					if(options.math && item["$"+column.id] && item["$"+column.id].charAt(0) =="="){
+						if(mode == "excel")
+							formula = item["$"+column.id];
+						else
+							cell = item["$"+column.id];
 					}
-				}
-				if(!cell){
-					cell = column.template(item, view.type, item[column.id], column, i);
-					if (!cell && cell !== 0) cell = "";
-					if(column.isTree && treeline)
-						cell = " "+Array(item.$level).join(treeline)+" "+cell;
-					if (filterHTML && typeof cell === "string"){
-						cell = cell.replace(htmlFilter, "");
-					}
-					//remove end/start spaces(ex.hierarchy data)
-					if (typeof cell === "string" && mode === "csv")
-						cell = cell.trim();
-					//for multiline data
-					if (typeof cell === "string" && (mode === "excel" || mode === "csv")){
-						cell = cell.replace(/<br\s*\/?>/mg,"\n");
-					}
-				}
 
-				if(formula)
-					cell = { formula, value: cell };
+					if(this._spans_pull){
+						let span = this.getSpan(item.id, column.id);
+						if(span && span[4] && span[0] == item.id && span[1] == column.id){
+							cell = span[4];
+							if(filterHTML && typeof cell === "string")
+								cell = cell.replace(htmlFilter, "");
+						}
+					}
+
+					if(!cell){
+						cell = column.template(item, view.type, item[column.id], column, i);
+						if (!cell && cell !== 0) cell = "";
+						if(column.isTree && treeline)
+							cell = " "+Array(item.$level).join(treeline)+" "+cell;
+						if (filterHTML && typeof cell === "string"){
+							cell = cell.replace(htmlFilter, "");
+						}
+						//remove end/start spaces(ex.hierarchy data)
+						if (typeof cell === "string" && mode === "csv")
+							cell = cell.trim();
+						//for multiline data
+						if (typeof cell === "string" && (mode === "excel" || mode === "csv")){
+							cell = cell.replace(/<br\s*\/?>/mg,"\n");
+						}
+					}
+
+					if(formula)
+						cell = { formula, value: cell };
+				}
 
 				line.push(cell);
 			}

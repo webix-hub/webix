@@ -24,7 +24,7 @@ const skin = {
 	sliderBorder: 1,
 	vSliderPadding:15,
 	vSliderHeight:100,
-	switchHeight:22,
+	switchHeight:24,
 	switchWidth:50,
 
 	//margin - distance between cells
@@ -55,7 +55,8 @@ const skin = {
 	optionHeight: 32,
 	timelineColor:"#1CA1C1",
 
-	backColor:"#ffffff",
+	backColor:"#FFFFFF",
+	dataBorderColor:"#EDEFF0",
 
 	//colorboard
 	colorPadding: 4

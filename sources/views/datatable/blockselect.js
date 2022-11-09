@@ -77,7 +77,9 @@ const Mixin = {
 			delay(this._bs_select, this, [false, false]);
 	},
 	_bs_select:function(mode, theend, e){
-		const cell = this._bs_ready[2]||this._locate_cell_xy(this._bs_ready[0],this._bs_ready[1]);
+		if(!this._bs_ready[2])
+			this._bs_ready[2] = this._locate_cell_xy(this._bs_ready[0],this._bs_ready[1]);
+		const cell = this._bs_ready[2];
 		const start = {row: cell.row, column: cell.column},
 			end = this._locate_cell_xy(this._bs_progress[0],this._bs_progress[1],true);
 
@@ -146,16 +148,18 @@ const Mixin = {
 					startx = Math.min(startn.left, endn.left);
 					endx = Math.max(startn.left+startWidth, endn.left+endWidth);
 
-					starty = Math.min(startn.top, endn.top);
-					endy = Math.max(startn.top+startn.height, endn.top+endn.height);
+					starty = Math.min(startn.top, endn.top) ;
+					endy = Math.max(startn.top+startn.height, endn.top+endn.height) ;
 
 					if (this._settings.topSplit)
 						starty += this._getTopSplitOffset(start);
+					if(e){
+						if (this._auto_scroll_delay)
+							this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
+						if (!this._touch_scroll || this._settings.prerender)
+							this._auto_scroll_delay = delay(this._auto_scroll, this, [getPos(e)], 250);
+					}
 
-					if (this._auto_scroll_delay)
-						this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
-					if (e && (!this._touch_scroll || this._settings.prerender))
-						this._auto_scroll_delay = delay(this._auto_scroll, this, [getPos(e)], 250);
 				}
 
 				const style = this._block_panel.style;

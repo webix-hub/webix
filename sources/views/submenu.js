@@ -48,12 +48,16 @@ const api = {
 	_dummy_cell_interface : {
 		$getSize:function(dx, dy){
 			//we saving height and width, as list can hardcode new values
-			var h = this._view._settings.height*1;
-			var w = this._view._settings.width*1;
-			var size = menu.api.$getSize.call(this._view, dx, dy);
+			const h = this._view._settings.height*1;
+			const w = this._view._settings.width*1;
+			//to avoid duplicate borders, use "borderless" for inner size
+			const inner = this._view._settings._inner;
+			this._view._settings._inner = {top:true, left:true, right:true, bottom:true};
+			const size = menu.api.$getSize.call(this._view, dx, dy);
 			//restoring
 			this._view._settings.height = h;
 			this._view._settings.width = w;
+			this._view._settings._inner = inner;
 			return size;
 		},
 		$setSize:function(x,y){

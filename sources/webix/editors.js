@@ -1,19 +1,16 @@
-
-
 import {create} from "../webix/html";
-import {isArray, isUndefined, copy, toNode, bind, delay, extend} from "../webix/helpers";
+import {isArray, isUndefined, copy, toNode, delay, extend} from "../webix/helpers";
 import {ui, $$} from "../ui/core";
 import i18n from "../webix/i18n";
 import {_event} from "../webix/htmlevents";
 import {assert} from "../webix/debug";
 import {callEvent} from "../webix/customevents";
 
-
 function init_suggest(editor, input){
-	var suggest = editor.config.suggest;
+	const suggest = editor.config.suggest;
 	if (suggest){
-		var box = editor.config.suggest = create_suggest(suggest);
-		var boxobj = $$(box);
+		const box = editor.config.suggest = create_suggest(suggest);
+		const boxobj = $$(box);
 		if (boxobj && input)
 			boxobj.linkInput(input);
 		return boxobj;
@@ -24,7 +21,7 @@ function attach_editend(suggest){
 	if (suggest && suggest.setMasterValue && !suggest._editor_initialized){
 		suggest._editor_initialized = true;
 		suggest.attachEvent("onValueSuggest", function(){
-			delay(function(){ callEvent("onEditEnd", []); });
+			delay(()=>callEvent("onEditEnd", []));
 		});
 	}
 }
@@ -33,7 +30,6 @@ function create_suggest(config){
 	if (typeof config == "string") return config;
 	if (config.linkInput) return config._settings.id;
 
-
 	if (typeof config == "object"){
 		if (isArray(config))
 			config = { data: config };
@@ -41,7 +37,7 @@ function create_suggest(config){
 	} else if (config === true)
 		config = { view:"suggest" };
 
-	var obj = ui(config);
+	const obj = ui(config);
 	return obj.config.id;
 }
 
@@ -139,8 +135,8 @@ const editors = {
 			return this.node.firstChild;
 		},
 		render:function(){
-			var html = "";
-			var options = this.config.options || this.config.collection;
+			let html = "";
+			const options = this.config.options || this.config.collection;
 			assert(options,"options not defined for select editor");
 
 			if (options.data && options.data.each)
@@ -149,15 +145,15 @@ const editors = {
 				});
 			else {
 				if (isArray(options)){
-					for (var i=0; i<options.length; i++){
-						var rec = options[i];
-						var isplain = isUndefined(rec.id);
-						var id = isplain ? rec : rec.id;
-						var label = isplain ? rec : rec.value;
+					for (let i = 0; i < options.length; i++){
+						const rec = options[i];
+						const isplain = isUndefined(rec.id);
+						const id = isplain ? rec : rec.id;
+						const label = isplain ? rec : rec.value;
 
 						html +="<option value='"+id+"'>"+label+"</option>";
 					}
-				} else for (var key in options){
+				} else for (let key in options){
 					html +="<option value='"+key+"'>"+options[key]+"</option>";
 				}
 			}
@@ -185,15 +181,17 @@ const editors = {
 			return this.getPopup().getChildViews()[0];
 		},
 		getPopup:function(){
-			if (!this.config.$popup)
-				this.config.$popup = this.createPopup();
+			let id = this.config.$popup;
 
-			return $$(this.config.$popup);
+			if (!(id && $$(id)))
+				id = this.config.$popup = this.createPopup();
+
+			return $$(id);
 		},
 		createPopup:function(){
-			var popup = this.config.popup || this.config.suggest;
+			const popup = this.config.popup || this.config.suggest;
 			if (popup){
-				var pobj;
+				let pobj;
 				if (typeof popup == "object" && !popup.name){
 					popup.view = popup.view || "suggest";
 					pobj = ui(copy(popup));
@@ -213,54 +211,56 @@ const editors = {
 				return pobj;
 			}
 
-			var type = editors.$popup[this.popupType];
-			if (typeof type != "string" && !type.name){
-				type = editors.$popup[this.popupType] = ui(type);
-				this.popupInit(type);
+			const editor = editors.$popup[this.popupType];
+			let popupId = editor.$popup;
 
-				if(!type.linkInput)
+			if(!(popupId && $$(popupId))){
+				const popup = ui(copy(editor));
+				if(!popup.linkInput && !popupId)
 					this.linkInput(document.body);
-			
+				editor.$popup = popupId = popup._settings.id;
+				this.popupInit(popup);
 			}
-			return type._settings.id;
+
+			return popupId;
 		},
 		linkInput:function(node){
-			_event(toNode(node), "keydown", bind(function(e){
-			//abort, when editor was not initialized yet
+			_event(toNode(node), "keydown", e => {
+				//abort, when editor was not initialized yet
 				if (!this.config.$popup) return;
 
-				var code = e.which || e.keyCode, list = this.getInputNode();
+				const code = e.which || e.keyCode, list = this.getInputNode();
 				if(!list.isVisible()) return;
 
 				if(list.moveSelection && code < 41 && code > 32){
-					var dir;
+					let dir;
 					if(code == 33) dir = "pgup";
-					if(code == 34) dir = "pgdown";
-					if(code == 35) dir = "bottom";
-					if(code == 36) dir = "top";
-					if(code == 37) dir = "left";
-					if(code == 38) dir = "up";
-					if(code == 39) dir = "right";
-					if(code == 40) dir = "down";
+					else if(code == 34) dir = "pgdown";
+					else if(code == 35) dir = "bottom";
+					else if(code == 36) dir = "top";
+					else if(code == 37) dir = "left";
+					else if(code == 38) dir = "up";
+					else if(code == 39) dir = "right";
+					else if(code == 40) dir = "down";
 
 					list.moveSelection(dir);
-				} 
+				}
 				// shift+enter support for 'popup' editor
 				else if(code === 13 && ( e.target.nodeName !=="TEXTAREA" || !e.shiftKey))
 					callEvent("onEditEnd", []);
 			
-			}, this));
+			});
 		},
 
 		popupInit:function(){},
 		popupType:"text",
-		render	:function(){ return {}; },
+		render:function(){ return {}; },
 		$inline:true
 	}
 };
 
 editors.color = extend({
-	focus	:function(){},
+	focus:function(){},
 	popupType:"color",
 	popupInit:function(popup){
 		popup.getChildViews()[0].attachEvent("onItemClick", function(value){
@@ -270,7 +270,7 @@ editors.color = extend({
 }, editors.popup);
 
 editors.date = extend({
-	focus	:function(){},
+	focus:function(){},
 	popupType:"date",
 	setValue:function(value){
 		this._is_string = this.config.stringResult || (value && typeof value == "string");
@@ -303,20 +303,24 @@ editors.combo = extend({
 		return id;
 	},
 	_shared_suggest:function(){
-		var e = editors.combo;
-		return (e._suggest = e._suggest || this._create_suggest(true));
+		const e = editors.combo;
+
+		if(e._suggest && $$(e._suggest))
+			return e._suggest;
+
+		return e._suggest = this._create_suggest(true);
 	},
 	render:function(){
-		var node = create("div", {
+		const node = create("div", {
 			"class":"webix_dt_editor"
 		}, "<input type='text' role='combobox' aria-label='"+getLabel(this.config)+"'>");
 
 		//save suggest id for future reference		
-		var suggest = this.config.suggest = this._create_suggest(this.config.suggest);
+		const suggest = this.config.suggest = this._create_suggest(this.config.suggest);
 
 		if (suggest){
 			$$(suggest).linkInput(node.firstChild, true);
-			_event(node.firstChild, "click", bind(this.showPopup, this));
+			_event(node.firstChild, "click", () => this.showPopup());
 		}
 		return node;
 	},
@@ -324,10 +328,10 @@ editors.combo = extend({
 		return $$(this.config.suggest);
 	},
 	showPopup:function(){
-		var popup = this.getPopup();
-		var list = popup.getList();
-		var input = this.getInputNode();
-		var value = this._initial_value;
+		const popup = this.getPopup();
+		const list = popup.getList();
+		const input = this.getInputNode();
+		const value = this._initial_value;
 
 		popup.show(input);
 		input.setAttribute("aria-expanded", "true");
@@ -349,8 +353,8 @@ editors.combo = extend({
 	setValue:function(value){
 		this._initial_value = value;
 		if (this.config.suggest){
-			var sobj = $$(this.config.suggest);
-			var data =  this.config.collection || this.config.options;
+			const sobj = $$(this.config.suggest);
+			const data = this.config.collection || this.config.options;
 			if (data)
 				sobj.getList().data.importData(data);
 
@@ -358,18 +362,16 @@ editors.combo = extend({
 		}
 	},
 	getValue:function(){
-		var value = this.getInputNode().value;
+		let value = this.getInputNode().value;
 		if (this.config.suggest){
-			var suggest = $$(this.config.suggest),
+			const suggest = $$(this.config.suggest),
 				list = suggest.getList();
 			if (value || (list.getSelectedId && list.getSelectedId()))	
 				value = suggest.getSuggestion(value);
 		}
-	
 		return value;
 	}
 }, editors.text);
-
 
 editors.richselect = extend({
 	focus:function(){},
@@ -377,7 +379,7 @@ editors.richselect = extend({
 		return this.getPopup().getValue();
 	},
 	setValue:function(value){
-		var suggest =  this.config.collection || this.config.options;
+		const suggest = this.config.collection || this.config.options;
 		this.getInputNode();
 		if (suggest)
 			this.getPopup().getList().data.importData(suggest);

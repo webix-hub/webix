@@ -5,6 +5,7 @@ import {protoUI} from "../ui/core";
 import template from "../webix/template";
 import promise from "../thirdparty/promiz";
 import {extend, bind, isUndefined} from "../webix/helpers";
+import {$active} from "../webix/skin";
 
 
 var google, script;
@@ -26,9 +27,13 @@ const api = {
 
 		this.data.provideApi(this, true);
 		this.$ready.push(this.render);
+		this._drawData();
 
 		this.data.attachEvent("onClearAll", bind(this._refreshColumns, this)); 
 		this.data.attachEvent("onStoreUpdated", bind(this._drawData, this));
+	},
+	$skin:function(){
+		this.defaults.chart.backgroundColor = $active.backColor;
 	},
 	getMap:function(waitMap){
 		return waitMap?this._waitMap:this._map;
@@ -87,7 +92,7 @@ const api = {
 				this._waitMap.then(bind(this._drawData, this));
 			return;
 		}
-			
+
 		var columns = this._columns&&this._columns.length?this._columns:this._defineColumns();
 		var data = [];
 		this.data.each(function(obj){
@@ -144,7 +149,7 @@ const api = {
 		this._drawData();
 	},
 	_getColumnType:function(item, key){
-		if (!item || isUndefined(item[key]))
+		if (isUndefined(item[key]))
 			return "string";
 
 		var type = typeof item[key];
@@ -155,19 +160,25 @@ const api = {
 	_defineColumns:function(){
 		var columns = this._settings.columns || [];
 		var item = this.data.pull[this.data.order[0]];
-		
+
 		//auto columns
-		if (!columns.length && item){
-			for (var key in item)
-				if (key !== "id") columns.push(key);
+		if (!columns.length){
+			if(item){
+				for (var key in item)
+					if (key !== "id") columns.push(key);
+			}
+			else return []; // wait any data
 		}
+
 		//["title", "area"]
 		for(var i=0; i<columns.length; i++){
 			if (typeof columns[i] !== "object"){
+				if(!item)
+					return [];
 				columns[i] = {type:this._getColumnType(item, columns[i]), label:columns[i]};
 			}
 		}
-		
+
 		if(this._settings.tooltip)
 			columns.push({type:"string", role:"tooltip", p:{"html": true}});
 

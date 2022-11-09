@@ -5,7 +5,7 @@ import DataDriver from "../load/drivers/index";
 
 import {ajax} from "../load/ajax";
 
-import {bind} from "../webix/helpers";
+import {copy, bind} from "../webix/helpers";
 import {callEvent} from "../webix/customevents";
 
 const silentErrorMarker = {};
@@ -143,9 +143,9 @@ const AtomDataLoader={
 			driver = this.data.driver;
 
 		record = driver.getRecords(data)[0];
-		parsed = record?driver.getDetails(record):{};
+		parsed = record ? copy(driver.getDetails(record)) : {};
 
-		if (this.setValues)
+		if(this.setValues)
 			this.setValues(parsed, false, "auto");
 		else
 			this.data = parsed;

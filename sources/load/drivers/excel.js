@@ -54,7 +54,8 @@ const excel = extend({
 				sheets: wb.Sheets,
 				names: wb.SheetNames,
 				options:options,
-				ranges:wb.Workbook?(wb.Workbook.Names ||[]):[]
+				ranges:wb.Workbook?(wb.Workbook.Names ||[]):[],
+				states: wb.Workbook.Sheets.map(s => ["visible", "hidden", "veryHidden"][s.Hidden])
 			};
 			return extend(this.getSheet(res, options), res);
 		}, this));

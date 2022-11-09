@@ -1,8 +1,7 @@
 import color from "../../webix/color";
 import {toExcel, toPDF} from "../../webix/export";
 import {create, remove} from "../../webix/html";
-import {extend, isUndefined} from "../../webix/helpers";
-
+import {extend, isUndefined, copy} from "../../webix/helpers";
 
 const Mixin = {
 	$exportView: function(options){
@@ -41,6 +40,8 @@ const Mixin = {
 			styles = this._getExportHStyles(options, "header", styles, type);
 
 		this.data.each(function(obj){
+			if(options.filter && !options.filter(obj))
+				return false;
 			const row = {};
 			for (let i = 0; i < columns.length; i++){
 				const cellCss = this.getCss(obj.id, columns[i].id);
@@ -97,21 +98,44 @@ const Mixin = {
 						const name = [node.className, (header.css||""), group];
 						hrow[i] = this._getExportCellStyle(node, name.join(":"), type);
 
-						if (header.colspan || header.rowspan)
-							hs.push([h, i, {colspan:header.colspan-1 || 0, rowspan:header.rowspan-1||0}, hrow[i]]);
+						if (header.colspan || header.rowspan){
+							//add border only to the last cell of the rowspan/colspan
+							const styles = copy(hrow[i]);
+
+							if(header.rowspan > 1)
+								this._clearBorder(type, "bottom", hrow[i]);
+							if(header.colspan > 1)
+								this._clearBorder(type, "right", hrow[i]);
+
+							hs.push([h, i, {colspan:header.colspan-1 || 0, rowspan:header.rowspan-1||0}, styles]);
+						}
 					}
 				}
 				else {
 					for (let s = 0; s < hs.length; s++){
 						const st = hs[s][2], hsc = hs[s][1], hsr = hs[s][0];
-						if (hsc + st.colspan >= i && hsr + st.rowspan >= h)
-							hrow[i] = hs[s][3];
+						if (hsc + st.colspan >= i && hsr + st.rowspan >= h){
+							//add border only to the last cell of the rowspan/colspan
+							const styles = copy(hs[s][3]);
+							if(hsr + st.rowspan != h)
+								this._clearBorder(type, "bottom", styles);
+							if(hsc + st.colspan != i)
+								this._clearBorder(type, "right", styles);
+							hrow[i] = styles;
+							break;
+						}
 					}
 				}
 			}
 			styles[styles.length] = hrow;
 		}
 		return styles;
+	},
+	_clearBorder(type, pos, obj){
+		if(type == "pdf")
+			obj["border" + pos[0].toUpperCase() + pos.substring(1) + "Color"] = obj.backgroundColor;
+		else
+			delete obj.border[pos];
 	},
 	_getBorderColor: function(styles, defaultColor, type){
 		return styles[`border-${type}-width`] == "0px" ? null : color.rgbToHex(styles[`border-${type}-color`]) || defaultColor;

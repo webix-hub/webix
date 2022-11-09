@@ -3,6 +3,8 @@ const ja = {
 	groupSize:3,
 	decimalDelimiter:".",
 	decimalSize:2,
+	minusPosition:"before",
+	minusSign:"-",
 
 	dateFormat:"%Y.%m.%d",
 	timeFormat:"%H:%i",
@@ -14,7 +16,9 @@ const ja = {
 		groupSize:3,
 		groupDelimiter:",",
 		decimalDelimiter:"",
-		decimalSize:0
+		decimalSize:0,
+		minusPosition:"before",
+		minusSign:"-"
 	},
 
 	calendar:{

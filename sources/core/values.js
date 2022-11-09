@@ -16,7 +16,7 @@ const Values = {
 			assert(this.elements[name],"unknown input name: "+name);
 			this._focus(this.elements[name]);
 		} else{
-			for(var n in this.elements){
+			for(let n in this.elements){
 				if(this._focus(this.elements[n]) !== false)
 					return true;
 			}
@@ -90,7 +90,7 @@ const Values = {
 		return this._values;
 	},
 	getValues:function(filter){
-		var data = this._inner_getValues(filter);
+		let data = this._inner_getValues(filter);
 		if (this._settings.complexData)
 			data = CodeParser.expandNames(data);
 
@@ -98,12 +98,13 @@ const Values = {
 	},
 	_inner_getValues:function(filter){
 		//get original data		
-		var success,
-			elem = null,
-			data = (this._values?copy(this._values):{});
+		let success,
+			elem = null;
+
+		const data = (this._values?copy(this._values):{});
 
 		//update properties from linked controls
-		for (var name in this.elements){
+		for (let name in this.elements){
 			elem = this.elements[name];
 			success = true;
 			if(filter){
@@ -125,8 +126,8 @@ const Values = {
 	},
 	clear:function(config){
 		this._is_form_dirty = false;
-		var data = {};
-		for (var name in this.elements)
+		const data = {};
+		for (let name in this.elements)
 			if (this.elements[name].$allowsClear)
 				data[name] = "";
 		
@@ -139,28 +140,39 @@ const Values = {
 		}
 		// add 'invalid' mark
 		else{
+			let messageChanged;
 			// set invalidMessage
 			if(typeof state == "string"){
-				var input = this.elements[name];
-				if(input)
+				const input = this.elements[name];
+				if(input && input._settings.invalidMessage != state){
 					input._settings.invalidMessage = state;
+					messageChanged = true;
+				}
 			}
 			//add mark to current validation process
 			if (this._validate_details)
 				this._validate_details[name] = true;
 
-			this._mark_invalid(name);
+			this._mark_invalid(name, messageChanged);
 		}
 	},
-	_mark_invalid:function(id){
+	_mark_invalid:function(id, messageChanged){
 		const input = this.elements[id];
-		if (input && !input._settings.invalid){
-			addCss(input._viewobj, "webix_invalid", true);
-			input._settings.invalid = true;
 
-			const message = input._settings.invalidMessage;
-			if (typeof message === "string" && input.setBottomText)
-				input.setBottomText();
+		if(input){
+			const config = input._settings;
+			const valid = !config.invalid;
+
+			if (valid || messageChanged){
+				if(valid){
+					addCss(input._viewobj, "webix_invalid", true);
+					config.invalid = true;
+				}
+
+				const message = config.invalidMessage;
+				if (typeof message === "string" && input.setBottomText)
+					input.setBottomText();
+			}
 		}
 	},
 	_clear_invalid:function(id){

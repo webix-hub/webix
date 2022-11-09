@@ -41,8 +41,6 @@
 @listItemHeight: 36px;
 @unitHeaderHeight:36px;
 @propertyItemHeight:28px;
-@timelineItemHeight:46px;
-@menuMargin: 0px;
 @menuHeight: 36px;
 @dataPadding: 12px;
 
@@ -72,7 +70,7 @@
 @barFontSize: 16px;
 @smallFontSize: 12px;
 @fontFamily: Roboto, sans-serif;
-@boldStyle:500;
+@boldStyle: 500;
 
 .fontStyle(@size:14px, @weight:400, @color:@fontColor, @space:0.2px){
 	font-family:@fontFamily;
@@ -88,12 +86,9 @@
 
 @buttonFontColor:@baseColor;
 .buttonFont{
-	.fontStyle(@barFontSize, 500, @buttonFontColor, 0px);
+	.fontStyle(@barFontSize, @boldStyle, @buttonFontColor, 0px);
 }
 @barFontColor:@fontColor;
-.barFont{
-	.fontStyle(@barFontSize, 500, @barFontColor, 0px);
-}
 
 //hover, focus, active css
 .darkActiveRule(@color){
@@ -131,14 +126,11 @@
 
 
 .layoutBarFont(){
-	.barFont();
+	.fontStyle(@barFontSize, @boldStyle, @barFontColor, 0px);
 	&.webix_dark{
 		color:@darkBarFontColor;
 	}
 }
-
-/*[L]*/ @darkerBG:darken(@backColor, 9);
-/*[L]*/ @darkestBG:darken(@backColor, 24);
 
 //-------------------------------------------------------//
 //    Inverted bars (toolbar, type header, accordion)    //
@@ -273,7 +265,7 @@
 		&:hover:before{
 			.darkHoverRule(@barButtonBgColor);
 		}
-		&:hover .webix_icon{
+		&:hover .webix_icon, &:focus .webix_icon{
 			opacity: 1;
 		}
 		.webix_icon{
@@ -374,7 +366,7 @@
 
 .layoutBarBG{
 	.webix_el_label .webix_el_box{
-		.barFont();
+		.fontStyle(@barFontSize, @boldStyle, @barFontColor, 0px);
 	}
 	&.webix_dark{
 		.layoutDarkBarBG;
@@ -566,7 +558,7 @@
 @selectFontColor: @fontColor;
 
 .dataHeaderFont{
-	.fontStyle(@fontSize, 500, @altFontColor, 0.2px);
+	.fontStyle(@fontSize, @boldStyle, @altFontColor, 0.2px);
 }
 .selectLine(){
 	color: @selectFontColor;
@@ -766,7 +758,7 @@
 @listPaddingX: 12px;
 @listPaddingY:  2px;
 @treeItemHeight: 24px;
-@treeIconSize:	25px;
+@treeIconSize:	24px;
 @listIconVAlign: middle;
 
 // datatree
@@ -920,10 +912,8 @@
 
 //Tabbar
 @tabbarBorderColor:	@borderColor;
-@tabbarSelectBorderColor:	#fff;
 @tabBorderRadius: @layoutRadius;
 @borderRadius: 2px;
-@tabBorderRadius: 2px;
 
 .webix_view button, .webix_view input[type=button]{
 	-webkit-appearance: none;
@@ -1094,7 +1084,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 }
 .webix_all_tabs{
 	.webix_item_tab{
-		.fontStyle(@barFontSize, 500, @baseColor, 0px);
+		.fontStyle(@barFontSize, @boldStyle, @baseColor, 0px);
 		border: none;
 		&:hover{
 			background-color: @selectColor;
@@ -1140,7 +1130,6 @@ div.webix_inp_static,.webix_el_textarea textarea {
 @tabbarBgColor: @backColor;
 @selectTabBgColor: @backColor;
 @selectTabFontColor: @baseColor;
-@bottomTabBorderColor: @backColor;
 .webixtype_bottom{
 	.webix_item_tab, .webix_item_tab.webix_selected{
 		background:  @tabbarBgColor;
@@ -1272,7 +1261,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 @formButtonColor: @baseColor;
 @formButtonFontColor: @backColor;
 
-.webix_remove_upload .cancel_icon{
+.webix_cancel_icon{
 	background-image: none;
 	font-family: @iconFamily;
 	font-size: 17px;
@@ -1286,7 +1275,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		content:"\F011";
 	}
 }
-.webix_upload_error .error_icon{
+.webix_error_icon{
 	background-image: none;
 	font-family: @iconFamily;
 	font-size: 20px;
@@ -1346,7 +1335,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	border-color: @buttonColor;
 	background-color:@buttonColor;
 	color:@buttonFontColor;
-	font-weight:500;
+	font-weight:@boldStyle;
 }
 .segmentActive(){
 	border-color: @buttonFontColor;
@@ -1515,7 +1504,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	}
 }
 .webix_cal_month_name, .webix_time_header .webix_cal_hours, .webix_time_header .webix_cal_minutes{
-	.fontStyle(@fontSize, 500, @altFontColor);
+	.fontStyle(@fontSize, @boldStyle, @altFontColor);
 }
 .webix_cal_month_name.webix_readonly:hover, .webix_cal_month_name.webix_readonly:focus{
 	color: @altFontColor;
@@ -1538,7 +1527,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 }
 
 .webix_time_header .webix_cal_hours, .webix_time_header .webix_cal_minutes, .webix_cal_body .webix_cal_block_empty{
-	font-weight: 500;
+	font-weight: @boldStyle;
 	border-bottom: none;
 }
 
@@ -1568,7 +1557,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	}
 
 	.webix_cal_event{
-		font-weight: 500;
+		font-weight: @boldStyle;
 		color: @baseColor;
 	}
 
@@ -1751,7 +1740,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	.webix_tree_item.webix_selected, .webix_tree_item.webix_sidebar_selected{
 		color: @baseColor;
 		background-color: @selectColor;
-		font-weight: 500;
+		font-weight: @boldStyle;
 		.webix_sidebar_icon, .webix_sidebar_dir_icon{
 			color: @baseColor;
 		}
@@ -1777,14 +1766,14 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	.webix_list_item.webix_sidebar_selected{
 		background-color: @selectColor;
 		color: @baseColor;
-		font-weight: 500;
+		font-weight: @boldStyle;
 		&:hover{
 			background-color: @selectColor !important;
 		}
 	}
 	.webix_list_item.webix_selected{
 		color: @baseColor;
-		font-weight: 500;
+		font-weight: @boldStyle;
 	}
 	.webix_tree_branch_1>.webix_tree_item{
 		height: @barHeight;
@@ -1822,7 +1811,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		}
 		&.webix_selected{
 			color: @baseColor;
-			font-weight: 500;
+			font-weight: @boldStyle;
 		}
 	}
 }
@@ -1937,7 +1926,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		transform: scale(0);
 		transition-property: transform, opacity;
 	}
-	&:hover .webix_icon{
+	&:hover .webix_icon, &:focus .webix_icon{
 		color: @fontColor;
 	}
 	&:hover:before{
@@ -1969,7 +1958,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	padding: 4px 8px;
 	background-color: @fontColor;
 	color: @backColor;
-	font-weight: 500;
+	font-weight: @boldStyle;
 	line-height: 20px;
 	border-radius: @skin_input_radius;
 	border: none;
@@ -1997,7 +1986,7 @@ div.webix_inp_static,.webix_el_textarea textarea {
 }
 
 .webix_inp_label, .webix_inp_top_label, legend.webix_forminput_label, .webix_el_label .webix_el_box{
-	.fontStyle(@fontSize, 500, @altFontColor);
+	.fontStyle(@fontSize, @boldStyle, @altFontColor);
 }
 .webix_inp_label, .webix_forminput_label{
 	padding-right: 8px;
@@ -2045,6 +2034,15 @@ div.webix_inp_static,.webix_el_textarea textarea {
 	.webix_axis_title_x, .webix_axis_title_y, .webix_canvas_text.webix_axis_radar_title{
 		color: @inactiveFontColor;
 	}
+}
+
+//bulletgraph
+.webix_bullet_scale{
+	fill: @inactiveFontColor;
+	font-size: @smallFontSize;
+}
+.webix_bullet_scale_lines{
+	stroke: @inactiveFontColor;
 }
 
 //pdf viewer
@@ -2172,5 +2170,5 @@ div.webix_inp_static,.webix_el_textarea textarea {
 
 //for skin autodetection
 .webix_skin_mark{
-	height: 240px;
+	height: 230px;
 }

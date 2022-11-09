@@ -2,12 +2,10 @@ import {extend, _to_array, uid, isUndefined, copy, isArray, bind} from "../webix
 import {$$} from "../ui/core";
 import {assert} from "../webix/debug";
 import {callEvent} from "../webix/customevents";
+import i18n from "../webix/i18n";
 
 import EventSystem from "./eventsystem";
 import DataDriver from "../load/drivers/index";
-
-
-
 
 /*
 	DataStore is not a behavior, it standalone object, which represents collection of data.
@@ -603,6 +601,8 @@ DataStore.prototype={
 			as - type of sortings
 
 		Sorting function will accept 2 parameters and must return 1,0,-1, based on desired order
+
+		returns true if sorting was successful, false otherwise
 	*/
 	sort:function(by, dir, as){
 		let parameters;
@@ -616,7 +616,7 @@ DataStore.prototype={
 			parameters = [sort.by, sort.dir, sort.as, sort];
 		}
 
-		if (!this.callEvent("onBeforeSort", parameters)) return;
+		if (!this.callEvent("onBeforeSort", parameters)) return false;
 		const sorter = this.sorting.create(sort);
 
 		this.order = this._sort_core(sorter, this.order);
@@ -625,8 +625,9 @@ DataStore.prototype={
 
 		//repaint self
 		this.refresh();
-		
+
 		this.callEvent("onAfterSort", parameters);
+		return true;
 	},
 	_sort_init:function(by, dir, as){
 		let sort = by;
@@ -898,6 +899,20 @@ DataStore.prototype={
 				a = a.toString().toLowerCase(); b = b.toString().toLowerCase();
 				return a>b?1:(a<b?-1:0);
 			},
+			"string_locale_strict":function(a,b){
+				if (!b) return 1;
+				if (!a) return -1;
+
+				a = a.toString(); b = b.toString();
+				return a.localeCompare(b, i18n.locale);
+			},
+			"string_locale":function(a,b){
+				if (!b) return 1;
+				if (!a) return -1;
+
+				a = a.toString().toLowerCase(); b = b.toString().toLowerCase();
+				return a.localeCompare(b, i18n.locale);
+			},
 			"raw":function(a,b){
 				return a>b?1:(a<b?-1:0);
 			}
@@ -914,14 +929,20 @@ DataStore.prototype={
 			};
 		},
 		_by:function(prop, method){
-			if (!prop)
-				return method;
+			let customMethod;
+
 			if (typeof method != "function")
 				method = this.as[method||"string"];
+			else
+				customMethod = true;
 
 			assert(method, "Invalid sorting method");
 			return function(a,b){
-				return method(a[prop],b[prop]);
+				if(!customMethod){
+					a = a[prop];
+					b = b[prop];
+				}
+				return method(a, b, prop);
 			};
 		},
 		_dir:function(prop, method){

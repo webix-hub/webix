@@ -88,6 +88,8 @@ const Mixin = {
 		start = start || (0 + options.xCorrection);
 		base = base || [];
 
+		const readySpans = {};
+
 		this.eachRow(bind(function(row){
 			var width = 0;
 			var rowItem = this.getItem(row);
@@ -111,46 +113,54 @@ const Mixin = {
 					if(options.data !=="selection" || (options.data=="selection" && this._findIndex(sel, function(obj){
 						return obj.column == column && obj.row == row;
 					})!==-1)){
-
-						var span;
+						let span;
 						if(this.getSpan)
 							span = this.getSpan(row, column);
-						
-						//check span from previous table
-						if(span && this.getColumnIndex(column) === start){
-							var spanStart = this.getColumnIndex(span[1]);
-							if(spanStart < start){
-								span[2] = span[2] - (start-spanStart);
-								span[4] = span[4] ? span[4] : (rowItem[span[1]] ? this.getText(row, span[1]) : null);
-								span[1] = column;
-							}
-						}
-							
-						if(!span  || (span && span[0] == row && span[1] == column)){
-							var cellValue = span && span[4] ? span[4] : (this._columns_pull[column] ? this.getText(row, column) : "");
-							var className = this.getCss(row, column)+" "+(columns[c].css || "")+(span? (" webix_dtable_span "+ (span[5] || "")):"" );
-							
-							var style  = {
-								height:span && span[3] > 1? "auto": ((rowItem.$height || this.config.rowHeight) + "px"),
-								width: span && span [2] > 1? "auto": columns[c].width + "px"
-							};
 
-							colrow.push({
-								txt: cellValue, className: className, style: style,
-								span: (span ? {colspan:span[2], spanStart:this.getColumnIndex(span[1]), rowspan:span[3]}:null)
-							});
-
-							if (cellValue || cellValue===0) {
+						if(span){
+							if(readySpans[span[0]] && readySpans[span[0]][span[1]]){
+								colrow.push({$inspan:true});
 								rightRestriction = Math.max(colIndex+1, rightRestriction);
 								bottomRestriction = Math.max(rowIndex+1, bottomRestriction);
+								continue;
 							}
-							datarow = datarow || !!cellValue;
+
+							if(this.data._filter_order)
+								for (let r = span[0]*1 + span[3] - 1; r >= span[0]; r--)
+									if(this.data.order.indexOf(r) == -1)
+										span[3]--;
+
+							const hiddenColumnOrder = this._hidden_column_order;
+							if(hiddenColumnOrder.length){
+								const ci = hiddenColumnOrder.find(span[1]);
+								for (let c = ci + span[2]; c >= ci; c--)
+									if(!this.isColumnVisible(hiddenColumnOrder[c]))
+										span[2]--;
+							}
+
+							if(!readySpans[span[0]])
+								readySpans[span[0]] = {};
+							readySpans[span[0]][span[1]] = 1;
 						}
-						else if(span){
-							colrow.push({$inspan:true});
+
+						var cellValue = span && span[4] ? span[4] : (this._columns_pull[column] ? this.getText(row, column) : "");
+						var className = this.getCss(row, column)+" "+(columns[c].css || "")+(span? (" webix_dtable_span "+ (span[5] || "")):"" );
+
+						var style  = {
+							height:span && span[3] > 1? "auto": ((rowItem.$height || this.config.rowHeight) + "px"),
+							width: span && span [2] > 1? "auto": columns[c].width + "px"
+						};
+
+						colrow.push({
+							txt: cellValue, className: className, style: style,
+							span: (span ? {colspan:span[2], spanStart:this.getColumnIndex(span[1]), rowspan:span[3]}:null)
+						});
+
+						if (cellValue || cellValue===0) {
 							rightRestriction = Math.max(colIndex+1, rightRestriction);
 							bottomRestriction = Math.max(rowIndex+1, bottomRestriction);
 						}
+						datarow = datarow || !!cellValue;
 					}
 				}
 			}

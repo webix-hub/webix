@@ -4,6 +4,8 @@ const es = {
 	groupSize:3,
 	decimalDelimiter:",",
 	decimalSize:2,
+	minusPosition:"before",
+	minusSign:"-",
 	dateFormat:"%d/%n/%Y",
 	timeFormat:"%G:%i",
 	longDateFormat:"%d %F %Y",
@@ -15,7 +17,9 @@ const es = {
 		groupDelimiter:".",
 		groupSize:3,
 		decimalDelimiter:",",
-		decimalSize:2
+		decimalSize:2,
+		minusPosition:"before",
+		minusSign:"-"
 	},
 	calendar:{
 		monthFull:["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],

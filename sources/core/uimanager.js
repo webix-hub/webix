@@ -44,12 +44,22 @@ const UIManager = {
 	_enable: function() {
 		// attaching events here
 		event(document, "keydown", this._keypress, { bind:this });
+		event(document, "compositionstart", ()=> this._startComposition());
+		event(document, "compositionend", ()=> this._endComposition());
 		event(document.body, "click", this._focus_click, { capture:true, bind:this });
 		event(document.body, "focus", this._focus_tab, { capture:true, bind:this });
 
 		state.destructors.push({obj:this});
 	},
-	destructor:function(){
+	_startComposition: function(){
+		clearTimeout(this._composition);
+		this._composition = true;
+	},
+	_endComposition: function(){
+		//in some browsers compositionEnd fires before the keyDown event
+		this._composition = delay(() => delete this._composition);
+	},
+	destructor: function(){
 		UIManager._view = null;
 	},
 	getFocus: function() {
@@ -443,6 +453,8 @@ ready(function() {
 	UIManager._enable();
 
 	UIManager.addHotKey("enter", function(view, ev){
+		if (UIManager._composition)
+			return false;
 		if (view && view.callEvent)
 			view.callEvent("onEnter", [ev]);
 		if (view && view.editStop && view._in_edit_mode){
@@ -464,6 +476,11 @@ ready(function() {
 			if (top && top.setPosition){
 				if(fullscreen._fullscreen == top)
 					fullscreen.exit();
+				if(top._editorMaster ){
+					const master = $$(top._editorMaster);
+					if (master.editCancel && master._in_edit_mode)
+						master.editCancel();
+				}
 				top._hide();
 			}
 		}

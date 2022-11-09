@@ -124,11 +124,12 @@ const HTMLOptions = {
 			const options = this._settings.options;
 
 			_power_array.removeAt.call(options, index);
-			this.refresh();
 
 			// if we remove a selected option
 			if (this._settings.value == id)
 				this._setNextVisible(options, index);
+
+			this.refresh();
 
 			this.callEvent("onOptionRemove", [id, this._settings.value]);
 		}

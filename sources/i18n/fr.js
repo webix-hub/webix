@@ -3,6 +3,8 @@ const fr = {
 	groupSize:3,
 	decimalDelimiter:",",
 	decimalSize:2,
+	minusPosition:"before",
+	minusSign:"-",
 
 	dateFormat:"%d/%m/%Y",
 	timeFormat:"%H:%i",

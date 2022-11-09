@@ -3,6 +3,8 @@ const ru = {
 	groupSize:3,
 	decimalDelimiter:",",
 	decimalSize:2,
+	minusPosition:"before",
+	minusSign:"-",
 
 	dateFormat:"%d.%m.%Y",
 	timeFormat:"%H:%i",
@@ -10,7 +12,14 @@ const ru = {
 	fullDateFormat:"%d.%m.%Y %H:%i",
 
 	price:"{obj} руб.",
-	priceSettings:null, //use number defaults
+	priceSettings:{
+		groupDelimiter:" ",
+		groupSize:3,
+		decimalDelimiter:",",
+		decimalSize:2,
+		minusPosition:"before",
+		minusSign:"-"
+	},
 	
 	calendar:{
 		monthFull:["Январь", "Февраль", "Март", "Апрель", "Maй", "Июнь", "Июль", "Август", "Сентябрь", "Oктябрь", "Ноябрь", "Декабрь"],

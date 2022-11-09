@@ -1,4 +1,5 @@
 import {getTextSize} from "../../webix/html";
+import {$active} from "../../webix/skin";
 
 const StackedBarChart = {
 	/**
@@ -61,7 +62,7 @@ const StackedBarChart = {
 		/*draws a black line if the horizontal scale isn't defined*/
 		if(!xax){
 			//scaleY = y-bottomPadding;
-			this._drawLine(ctx,point0.x,point1.y+0.5,point1.x,point1.y+0.5,"#edeff0",1); //hardcoded color!
+			this._drawLine(ctx,point0.x,point1.y+0.5,point1.x,point1.y+0.5,$active.dataBorderColor,1);
 		}
 
 		for(var i=0; i < data.length;i ++){

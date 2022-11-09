@@ -1,14 +1,21 @@
-.webix_bullet_name{
-	width:100;
-}
 .webix_bullet_header{
-	font-weight: bold;
-	font-size: 15px;
+	font-weight: @boldStyle;
 }
-.webix_bullet_subheader{
-	font-size: 15px;
+.webix_bullet_header, .webix_bullet_subheader{
+	font-size: @fontSize;
+	fill: @fontColor;
 }
 .webix_bullet_scale{
+	fill: lighten(@fontColor, 20%);
 	font-size: 12px;
-	font-weight: bold;
+	font-weight: @boldStyle;
+	stroke: none;
+	text-anchor: middle;
+}
+.webix_bullet_scale_lines{
+	stroke: lighten(@fontColor, 20%);
+}
+.webix_bullet_marker{
+	y: 5px;
+	width: 3px;
 }

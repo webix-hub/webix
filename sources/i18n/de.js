@@ -4,6 +4,9 @@ const de = {
 	groupSize:3,
 	decimalDelimiter:",",
 	decimalSize:2,
+	minusPosition:"before",
+	minusSign:"-",
+
 	dateFormat:"%d.%n.%Y",
 	timeFormat:"%H:%i",
 	longDateFormat:"%j. %F %Y",
@@ -15,7 +18,9 @@ const de = {
 		groupDelimiter:".",
 		groupSize:3,
 		decimalDelimiter:",",
-		decimalSize:2
+		decimalSize:2,
+		minusPosition:"before",
+		minusSign:"-"
 	},
 	calendar:{
 		monthFull:["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],

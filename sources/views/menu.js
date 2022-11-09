@@ -224,7 +224,7 @@ const api = {
 		if (menu) return list.api.isItemEnabled.apply(menu, arguments);
 	},
 	_set_item_hidden:function(id, state){
-		var menu = this.data;
+		const menu = this.data;
 		if (menu._hidden_items[id] != state){
 			menu._hidden_items[id] = state;
 			menu.filter(function(obj){
@@ -233,16 +233,18 @@ const api = {
 			this.resize();		
 		}
 	},
-	hideItem:function(id){
-		var menu = this.getMenu(id);
+	hideMenuItem:function(id){
+		const menu = this.getMenu(id);
 		if (menu) menu._set_item_hidden(id, true);
 	},
+	showMenuItem:function(id){
+		const menu = this.getMenu(id);
+		if (menu) menu._set_item_hidden(id, false);
+	},
 	showItem:function(id){
-		var menu = this.getMenu(id);
-		if (menu){
-			menu._set_item_hidden(id, false);
+		const menu = this.getMenu(id);
+		if (menu)
 			return list.api.showItem.call(menu, id);
-		}
 	},
 	_hide_sub_menu : function(mode){
 		if (this._open_sub_menu){

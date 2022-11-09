@@ -29,10 +29,10 @@ type(list.view, {
 		if (obj.status == "transfer")
 			return "<div style='width:60px; text-align:center; float:right'>"+obj.percent+"%</div>";
 		return "<div class='webix_upload_"+obj.status+"'><span class='" +
-			(obj.status =="error"?"error_icon":"webix_icon wxi-check")+"'></span></div>";
+			(obj.status =="error"?"webix_error_icon":"webix_icon wxi-check")+"'></span></div>";
 	},
 	removeIcon:function(){
-		return "<div class='webix_remove_upload'><span class='cancel_icon'></span></div>";
+		return "<div class='webix_remove_upload'><span class='webix_cancel_icon'></span></div>";
 	},
 	fileName:function(obj){
 		return "<div style='text-overflow:ellipsis; white-space:nowrap; overflow:hidden; padding-right:8px;'>"+obj.name+"</div>";

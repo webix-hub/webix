@@ -70,9 +70,9 @@ const AutoScroll = {
 		if (this.callEvent("onBeforeAutoScroll", [pos])){
 			this.scrollTo(x, y);
 			this.callEvent("onAfterAutoScroll", []);
-
 			const scroll = this.getScrollState();
-			return Math.abs((mode === "x" ? x : y) - scroll[mode]) < 1;
+			const diff = this._render_scroll_shift ? 0 : (this._render_scroll_diff||0);
+			return Math.abs((mode === "x" ? x : y) - scroll[mode] + diff) < 1;
 		}
 		return false;
 	}

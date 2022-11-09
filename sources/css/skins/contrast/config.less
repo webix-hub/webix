@@ -101,8 +101,6 @@
 @listItemHeight: 34px;
 @unitHeaderHeight:20px;
 @propertyItemHeight:28px;
-@timelineItemHeight:46px;
-@menuMargin: 0px;
 @menuHeight: 34px;
 @dataPadding: 10px;
 
@@ -124,11 +122,7 @@
 .layoutBarFont(){
 	color: @barFontColor;
 	font-size: @barFontSize;
-
 }
-
-/*[L]*/ @darkerBG:darken(@backColor, 9);
-/*[L]*/ @darkestBG:darken(@backColor, 24);
 
 @barButtonColor: @mainColor;//@backColor;
 @barButtonActiveColor: darken(@barButtonColor,4%);
@@ -440,7 +434,7 @@
 
 // dbllist
 @dblistSelColor: @fontColor;
-@dblistBg: @darkerBG;
+@dblistBg: darken(@backColor, 9);
 
 .webix_dbllist{
 	.dbllist_button{
@@ -623,7 +617,6 @@
 
 //Tabbar
 @tabbarBorderColor:	@borderColor;
-@tabbarSelectBorderColor:	#fff;
 @tabBorderRadius: @layoutRadius;
 @borderRadius: 4px;
 @tabBorderRadius: 4px;
@@ -1524,12 +1517,6 @@ span.webix_sidebar_dir_icon{
 	color: @lightenButtonColor;
 }
 
-
-//for skin autodetection
-.webix_skin_mark{
-	height: 230px;
-}
-
 //colorboard selection
 .webix_color_row .webix_color_selected {
 	&>*{
@@ -1538,4 +1525,9 @@ span.webix_sidebar_dir_icon{
 	&:focus>* {
 		box-shadow: #FFFFFF 0 0 0 2px;
 	}
+}
+
+//for skin autodetection
+.webix_skin_mark{
+	height: 220px;
 }

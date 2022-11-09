@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.9.4.0
+ * webix UI v.10.0.0
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -12,33 +12,25 @@
 }(this, (function (exports) { 'use strict';
 
   function _typeof(obj) {
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
+    "@babel/helpers - typeof";
 
-    return _typeof(obj);
+    return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
+      return typeof obj;
+    } : function (obj) {
+      return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    }, _typeof(obj);
   }
 
   function _slicedToArray(arr, i) {
-    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
+    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
   }
 
   function _toConsumableArray(arr) {
-    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
   }
 
   function _arrayWithoutHoles(arr) {
-    if (Array.isArray(arr)) {
-      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-
-      return arr2;
-    }
+    if (Array.isArray(arr)) return _arrayLikeToArray(arr);
   }
 
   function _arrayWithHoles(arr) {
@@ -46,17 +38,21 @@
   }
 
   function _iterableToArray(iter) {
-    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+    if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
 
   function _iterableToArrayLimit(arr, i) {
+    var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+
+    if (_i == null) return;
     var _arr = [];
     var _n = true;
     var _d = false;
-    var _e = undefined;
+
+    var _s, _e;
 
     try {
-      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+      for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) {
         _arr.push(_s.value);
 
         if (i && _arr.length === i) break;
@@ -75,12 +71,29 @@
     return _arr;
   }
 
+  function _unsupportedIterableToArray(o, minLen) {
+    if (!o) return;
+    if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+    var n = Object.prototype.toString.call(o).slice(8, -1);
+    if (n === "Object" && o.constructor) n = o.constructor.name;
+    if (n === "Map" || n === "Set") return Array.from(o);
+    if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+  }
+
+  function _arrayLikeToArray(arr, len) {
+    if (len == null || len > arr.length) len = arr.length;
+
+    for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+
+    return arr2;
+  }
+
   function _nonIterableSpread() {
-    throw new TypeError("Invalid attempt to spread non-iterable instance");
+    throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
   function _nonIterableRest() {
-    throw new TypeError("Invalid attempt to destructure non-iterable instance");
+    throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
   var global = window;
@@ -106,10 +119,10 @@
   function nextTick(fn) {
     if (global.setImmediate) global.setImmediate(fn); // if inside of web worker
     else if (global.importScripts || !global.addEventListener) setTimeout(fn);else {
-        queueId++;
-        queue[queueId] = fn;
-        global.postMessage(queueId, "*");
-      }
+      queueId++;
+      queue[queueId] = fn;
+      global.postMessage(queueId, "*");
+    }
   }
 
   Deferred.resolve = function (value) {
@@ -496,11 +509,11 @@
         if (isDate(from)) target[method] = new Date(from);
         /* jshint ignore:start */
         else if (esModern && (from instanceof Map || from instanceof Set || from instanceof WeakMap || from instanceof WeakSet)) target[method] = from;
-          /* jshint ignore:end */
-          else {
-              target[method] = isArray(from) ? [] : {};
-              copy(target[method], from);
-            }
+        /* jshint ignore:end */
+        else {
+          target[method] = isArray(from) ? [] : {};
+          copy(target[method], from);
+        }
       } else {
         target[method] = from;
       }
@@ -868,9 +881,9 @@
 
         try {
           if (typeof xml.selectNodes == "undefined") test = false;
-        } catch (e) {}
-        /*IE7 and below can't operate with xml object*/
-        //IE
+        } catch (e) {
+          /*IE7 and below can't operate with xml object*/
+        } //IE
 
 
         if (test) return xml.selectNodes(path);else {
@@ -1744,10 +1757,13 @@
     return className;
   }
   function setSelectionRange(node, start, end) {
-    start = start || 0;
-    end = end || start;
     node.focus();
-    node.setSelectionRange(start, end);
+
+    if (node.setSelectionRange) {
+      start = start || 0;
+      end = end || start;
+      node.setSelectionRange(start, end);
+    }
   }
   function getSelectionRange(node) {
     return {
@@ -1881,15 +1897,43 @@
   env.scrollSize = 17;
   env.strict = !!window.webix_strict;
   env.https = document.location.protocol === "https:";
-  var agent = navigator.userAgent;
-  env.isMac = agent.indexOf("Mac") != -1;
-  if (/iPad|iPhone|iPod/.test(agent)) env.isIOS = true;
-  if (agent.indexOf("Android") != -1) env.isAndroid = true;
-  if (env.isIOS || env.isAndroid || agent.indexOf("Mobile") != -1 || agent.indexOf("Windows Phone") != -1) env.mobile = true;
-  if (env.mobile || navigator.maxTouchPoints > 1) env.touch = true;
-  env.fastClick = !env.touch; //very rough detection, but it is enough for current goals
+  var agent = navigator.userAgentData;
+  var deprecatedAgent = agent ? null : navigator.userAgent;
+  var browsers = {
+    Chromium: "Chrom",
+    //in userAgent - Chrome, in userAgentData.brands - Chromium
+    IE: "Trident",
+    Edge: "Edg",
+    // in userAgent - Edg, in userAgentData.brands - Microsoft Edge
+    FF: "Firefox",
+    Safari: "Safari"
+  };
 
-  if (agent.indexOf("Trident") !== -1) env.isIE = true;else if (agent.indexOf("Edge") !== -1) env.isEdge = true;else if (agent.indexOf("Firefox") !== -1) env.isFF = true;else if (agent.indexOf("Chrome") !== -1) env.isChromium = true;else if (agent.indexOf("Safari") !== -1) env.isSafari = true; //maximum height/width for HTML elements in pixels (rough), bigger values will be ignored by browser
+  var _loop = function (browser) {
+    var checkBrowser = agent ? agent.brands.find(function (v) {
+      return v.brand.indexOf(browsers[browser]) != -1;
+    }) : deprecatedAgent.indexOf(browsers[browser]) != -1;
+
+    if (checkBrowser) {
+      env["is" + browser] = true; //Edge is a chromium-based browser (so we set isChromium:true and isEdge:true)
+
+      if (browser != "Chromium") return "break";
+    }
+  };
+
+  for (var browser in browsers) {
+    var _ret = _loop(browser);
+
+    if (_ret === "break") break;
+  }
+
+  var platform = agent ? agent.platform : deprecatedAgent;
+  env.isMac = platform.toLowerCase().indexOf("mac") != -1;
+  if (/iPad|iPhone|iPod/.test(platform)) env.isIOS = true;
+  if (platform.indexOf("Android") != -1) env.isAndroid = true;
+  if (agent) env.mobile = agent.mobile;else if (env.isIOS || env.isAndroid || deprecatedAgent.indexOf("Mobile") != -1 || deprecatedAgent.indexOf("Windows Phone") != -1) env.mobile = true;
+  if (env.mobile || navigator.maxTouchPoints > 1) env.touch = true;
+  env.fastClick = !env.touch; //maximum height/width for HTML elements in pixels (rough), bigger values will be ignored by browser
 
   if (env.isIE || env.isEdge || env.isFF) env.maxHTMLElementSize = 10000000;
   if (env.isSafari) env.maxHTMLElementSize = 100000000;
@@ -2087,7 +2131,10 @@
           sheets: wb.Sheets,
           names: wb.SheetNames,
           options: options,
-          ranges: wb.Workbook ? wb.Workbook.Names || [] : []
+          ranges: wb.Workbook ? wb.Workbook.Names || [] : [],
+          states: wb.Workbook.Sheets.map(function (s) {
+            return ["visible", "hidden", "veryHidden"][s.Hidden];
+          })
         };
         return exports.extend(this.getSheet(res, options), res);
       }, this));
@@ -2284,11 +2331,11 @@
         result = url.load(this, details);
       } //promize
       else if (typeof url === "function") {
-          result = url.call(this, details);
-        } //normal url
-        else {
-            result = ajax().bind(this).get(url);
-          } //we wrap plain data in promise to keep the same processing for it
+        result = url.call(this, details);
+      } //normal url
+      else {
+        result = ajax().bind(this).get(url);
+      } //we wrap plain data in promise to keep the same processing for it
 
 
       if (result && !result.then) {
@@ -2344,7 +2391,7 @@
           record,
           driver = this.data.driver;
       record = driver.getRecords(data)[0];
-      parsed = record ? driver.getDetails(record) : {};
+      parsed = record ? copy(driver.getDetails(record)) : {};
       if (this.setValues) this.setValues(parsed, false, "auto");else this.data = parsed;
     },
     _onLoadContinue: function (data, clear) {
@@ -2788,7 +2835,8 @@
         this.scrollTo(x, y);
         this.callEvent("onAfterAutoScroll", []);
         var scroll = this.getScrollState();
-        return Math.abs((mode === "x" ? x : y) - scroll[mode]) < 1;
+        var diff = this._render_scroll_shift ? 0 : this._render_scroll_diff || 0;
+        return Math.abs((mode === "x" ? x : y) - scroll[mode] + diff) < 1;
       }
 
       return false;
@@ -2998,15 +3046,15 @@
 
     if (multiset) views = target.getChildViews(); //replace content of window
     else if (target._body_cell) views = [target._body_cell]; //add cell in layout by number
-      else if (typeof id == "number") {
-          return id; //replace cell in layout by id
-        } else if (id) {
-          views = [$$(id)];
+    else if (typeof id == "number") {
+      return id; //replace cell in layout by id
+    } else if (id) {
+      views = [$$(id)];
 
-          _deleteIds(views);
+      _deleteIds(views);
 
-          return views[0].config.id;
-        }
+      return views[0].config.id;
+    }
 
     _deleteIds(views);
 
@@ -4099,9 +4147,17 @@
       "select": 1
     },
     _enable: function () {
+      var _this = this;
+
       // attaching events here
       event$1(document, "keydown", this._keypress, {
         bind: this
+      });
+      event$1(document, "compositionstart", function () {
+        return _this._startComposition();
+      });
+      event$1(document, "compositionend", function () {
+        return _this._endComposition();
       });
       event$1(document.body, "click", this._focus_click, {
         capture: true,
@@ -4113,6 +4169,18 @@
       });
       state.destructors.push({
         obj: this
+      });
+    },
+    _startComposition: function () {
+      clearTimeout(this._composition);
+      this._composition = true;
+    },
+    _endComposition: function () {
+      var _this2 = this;
+
+      //in some browsers compositionEnd fires before the keyDown event
+      this._composition = delay(function () {
+        return delete _this2._composition;
       });
     },
     destructor: function () {
@@ -4482,6 +4550,7 @@
     UIManager._enable();
 
     UIManager.addHotKey("enter", function (view, ev) {
+      if (UIManager._composition) return false;
       if (view && view.callEvent) view.callEvent("onEnter", [ev]);
 
       if (view && view.editStop && view._in_edit_mode) {
@@ -4503,6 +4572,11 @@
 
         if (top && top.setPosition) {
           if (fullscreen._fullscreen == top) fullscreen.exit();
+
+          if (top._editorMaster) {
+            var master = $$(top._editorMaster);
+            if (master.editCancel && master._in_edit_mode) master.editCancel();
+          }
 
           top._hide();
         }
@@ -5544,12 +5618,33 @@
       var text = this.renderText.call(this, x, y, t, c, w);
 
       if (text) {
+        var size;
+        if (document.body.contains(text)) size = {
+          width: text.offsetWidth,
+          height: text.offsetHeight
+        };else {
+          // inside window
+          var d = create("DIV", {
+            "class": "webix_chart",
+            style: "visibility:hidden; position:absolute; top:0px; left:0px;"
+          }, "");
+          var parentNode = text.parentNode;
+          document.body.appendChild(d);
+          d.appendChild(text);
+          size = {
+            width: text.offsetWidth,
+            height: text.offsetHeight
+          };
+          parentNode.appendChild(text);
+          remove(d);
+        }
+
         if (valign) {
-          if (valign == "middle") text.style.top = parseInt(y - text.offsetHeight / 2, 10) + "px";else text.style.top = y - text.offsetHeight + "px";
+          if (valign == "middle") text.style.top = parseInt(y - size.height / 2, 10) + "px";else text.style.top = y - size.height + "px";
         }
 
         if (align) {
-          if (align == "left") text.style.left = x - text.offsetWidth + "px";else text.style.left = parseInt(x - text.offsetWidth / 2, 10) + "px";
+          if (align == "left") text.style.left = x - size.width + "px";else text.style.left = parseInt(x - size.width / 2, 10) + "px";
         }
       }
 
@@ -5883,7 +5978,7 @@
     sliderBorder: 1,
     vSliderPadding: 15,
     vSliderHeight: 100,
-    switchHeight: 22,
+    switchHeight: 24,
     switchWidth: 50,
     //margin - distance between cells
     layoutMargin: {
@@ -5925,7 +6020,8 @@
     accordionType: "accordion",
     optionHeight: 32,
     timelineColor: "#1CA1C1",
-    backColor: "#ffffff",
+    backColor: "#FFFFFF",
+    dataBorderColor: "#EDEFF0",
     //colorboard
     colorPadding: 4
   };
@@ -5956,7 +6052,7 @@
     sliderBorder: 1,
     vSliderPadding: 13,
     vSliderHeight: 100,
-    switchHeight: 20,
+    switchHeight: 22,
     switchWidth: 40,
     //margin - distance between cells
     layoutMargin: {
@@ -5998,7 +6094,8 @@
     accordionType: "accordion",
     optionHeight: 24,
     timelineColor: "#1CA1C1",
-    backColor: "#ffffff",
+    backColor: "#FFFFFF",
+    dataBorderColor: "#EDEFF0",
     //colorboard
     colorPadding: 4
   };
@@ -6068,6 +6165,7 @@
     optionHeight: 32,
     timelineColor: "#3498db",
     backColor: "#ffffff",
+    dataBorderColor: "#ebebeb",
     //colorboard
     colorPadding: 4
   };
@@ -6137,6 +6235,7 @@
     optionHeight: 23,
     timelineColor: "#3498db",
     backColor: "#ffffff",
+    dataBorderColor: "#ebebeb",
     //colorboard
     colorPadding: 4
   };
@@ -6206,16 +6305,165 @@
     optionHeight: 32,
     timelineColor: "#b300b3",
     backColor: "#393939",
+    dataBorderColor: "#4d4d4d",
+    //colorboard
+    colorPadding: 4
+  };
+
+  var skin$5 = {
+    topLayout: "space",
+    //bar in accordion
+    barHeight: 46,
+    //!!!Set the same in skin.less!!!
+    tabbarHeight: 44,
+    sidebarTitleHeight: 46,
+    rowHeight: 36,
+    toolbarHeight: 46,
+    listItemHeight: 36,
+    //list, grouplist, dataview, etc.
+    inputHeight: 38,
+    buttonHeight: 38,
+    inputPadding: 3,
+    menuHeight: 36,
+    labelTopHeight: 22,
+    propertyItemHeight: 28,
+    timelineItemHeight: 64,
+    unitHeaderHeight: 36,
+    inputSpacing: 4,
+    borderWidth: 1,
+    sliderHandleWidth: 14,
+    sliderPadding: 10,
+    sliderBorder: 1,
+    vSliderPadding: 15,
+    vSliderHeight: 100,
+    switchHeight: 24,
+    switchWidth: 50,
+    //margin - distance between cells
+    layoutMargin: {
+      space: 10,
+      wide: 10,
+      clean: 0,
+      head: 4,
+      line: -1,
+      toolbar: 4,
+      form: 8,
+      accordion: 2
+    },
+    //padding - distance inside cell between cell border and cell content
+    layoutPadding: {
+      space: 10,
+      wide: 0,
+      clean: 0,
+      head: 0,
+      line: 0,
+      toolbar: 3,
+      form: 17,
+      accordion: 0
+    },
+    //space between tabs in tabbar
+    tabMargin: 0,
+    tabOffset: 0,
+    tabBottomOffset: 0,
+    tabTopOffset: 0,
+    tabBorder: true,
+    customCheckbox: true,
+    customRadio: true,
+    sidebarMarkAll: true,
+    popupNoPoint: true,
+    borderlessPopup: true,
+    popupPadding: 0,
+    dataPadding: 12,
+    calendarWeekHeaderHeight: 18,
+    padding: 0,
+    accordionType: "accordion",
+    optionHeight: 32,
+    timelineColor: "#37A9EF",
+    backColor: "#FFFFFF",
+    dataBorderColor: "#E6E6E6",
+    //colorboard
+    colorPadding: 4
+  };
+
+  var skin$6 = {
+    topLayout: "space",
+    //bar in accordion
+    barHeight: 46,
+    //!!!Set the same in skin.less!!!
+    tabbarHeight: 44,
+    sidebarTitleHeight: 46,
+    rowHeight: 36,
+    toolbarHeight: 46,
+    listItemHeight: 36,
+    //list, grouplist, dataview, etc.
+    inputHeight: 38,
+    buttonHeight: 38,
+    inputPadding: 3,
+    menuHeight: 36,
+    labelTopHeight: 22,
+    propertyItemHeight: 28,
+    timelineItemHeight: 64,
+    unitHeaderHeight: 36,
+    inputSpacing: 4,
+    borderWidth: 1,
+    sliderHandleWidth: 14,
+    sliderPadding: 10,
+    sliderBorder: 1,
+    vSliderPadding: 15,
+    vSliderHeight: 100,
+    switchHeight: 24,
+    switchWidth: 50,
+    //margin - distance between cells
+    layoutMargin: {
+      space: 10,
+      wide: 10,
+      clean: 0,
+      head: 4,
+      line: -1,
+      toolbar: 4,
+      form: 8,
+      accordion: 2
+    },
+    //padding - distance inside cell between cell border and cell content
+    layoutPadding: {
+      space: 10,
+      wide: 0,
+      clean: 0,
+      head: 0,
+      line: 0,
+      toolbar: 3,
+      form: 17,
+      accordion: 0
+    },
+    //space between tabs in tabbar
+    tabMargin: 0,
+    tabOffset: 0,
+    tabBottomOffset: 0,
+    tabTopOffset: 0,
+    tabBorder: true,
+    customCheckbox: true,
+    customRadio: true,
+    sidebarMarkAll: true,
+    popupNoPoint: true,
+    borderlessPopup: false,
+    popupPadding: 0,
+    dataPadding: 12,
+    calendarWeekHeaderHeight: 18,
+    padding: 0,
+    accordionType: "accordion",
+    optionHeight: 32,
+    timelineColor: "#7A67EB",
+    backColor: "#2A2B2D",
+    dataBorderColor: "#384047",
     //colorboard
     colorPadding: 4
   };
 
   var $active, $name;
   function set$1(name) {
-    assert(skin$5[name], "Incorrect skin name: " + name);
+    assert(skin$7[name], "Incorrect skin name: " + name);
     if ($name === name) return;
-    skin$5.$active = $active = skin$5[name];
-    skin$5.$name = $name = name;
+    skin$7.$active = $active = skin$7[name];
+    skin$7.$name = $name = name;
 
     if (ui) {
       for (var key in ui) {
@@ -6224,13 +6472,15 @@
       }
     }
   }
-  var skin$5 = {
+  var skin$7 = {
     set: set$1,
     material: skin,
     mini: skin$1,
     flat: skin$2,
     compact: skin$3,
-    contrast: skin$4
+    contrast: skin$4,
+    willow: skin$5,
+    dark: skin$6
   };
   set$1(window.webix_skin || "material"); //necessary for skin builder
 
@@ -9601,6 +9851,7 @@
     		dir - "asc" or "desc"
     		as - type of sortings
     		Sorting function will accept 2 parameters and must return 1,0,-1, based on desired order
+    		returns true if sorting was successful, false otherwise
     */
     sort: function (by, dir, as) {
       var _this = this;
@@ -9618,13 +9869,14 @@
         parameters = [sort.by, sort.dir, sort.as, sort];
       }
 
-      if (!this.callEvent("onBeforeSort", parameters)) return;
+      if (!this.callEvent("onBeforeSort", parameters)) return false;
       var sorter = this.sorting.create(sort);
       this.order = this._sort_core(sorter, this.order);
       if (this._filter_order) this._filter_order = this._sort_core(sorter, this._filter_order); //repaint self
 
       this.refresh();
       this.callEvent("onAfterSort", parameters);
+      return true;
     },
     _sort_init: function (by, dir, as) {
       var sort = by;
@@ -9911,6 +10163,20 @@
           b = b.toString().toLowerCase();
           return a > b ? 1 : a < b ? -1 : 0;
         },
+        "string_locale_strict": function (a, b) {
+          if (!b) return 1;
+          if (!a) return -1;
+          a = a.toString();
+          b = b.toString();
+          return a.localeCompare(b, i18n.locale);
+        },
+        "string_locale": function (a, b) {
+          if (!b) return 1;
+          if (!a) return -1;
+          a = a.toString().toLowerCase();
+          b = b.toString().toLowerCase();
+          return a.localeCompare(b, i18n.locale);
+        },
         "raw": function (a, b) {
           return a > b ? 1 : a < b ? -1 : 0;
         }
@@ -9933,11 +10199,16 @@
         };
       },
       _by: function (prop, method) {
-        if (!prop) return method;
-        if (typeof method != "function") method = this.as[method || "string"];
+        var customMethod;
+        if (typeof method != "function") method = this.as[method || "string"];else customMethod = true;
         assert(method, "Invalid sorting method");
         return function (a, b) {
-          return method(a[prop], b[prop]);
+          if (!customMethod) {
+            a = a[prop];
+            b = b[prop];
+          }
+
+          return method(a, b, prop);
         };
       },
       _dir: function (prop, method) {
@@ -10149,17 +10420,17 @@
             result = this._fetch(url + (url.indexOf("?") < 0 ? "?" : "&") + urldata, this._settings.datatype);
           } //js data feed
           else {
-              var filter = {};
-              filter[text] = filtervalue;
+            var filter = {};
+            filter[text] = filtervalue;
 
-              if (typeof url == "function") {
-                result = url.call(this, filtervalue, filter);
-              } else if (url.$proxy && url.load) {
-                result = url.load(this, {
-                  filter: filter
-                });
-              }
+            if (typeof url == "function") {
+              result = url.call(this, filtervalue, filter);
+            } else if (url.$proxy && url.load) {
+              result = url.load(this, {
+                filter: filter
+              });
             }
+          }
 
           if (result) {
             if (!result.then) result = Deferred.resolve(result);
@@ -10951,7 +11222,7 @@
       suggest._editor_initialized = true;
       suggest.attachEvent("onValueSuggest", function () {
         delay(function () {
-          callEvent("onEditEnd", []);
+          return callEvent("onEditEnd", []);
         });
       });
     }
@@ -11113,8 +11384,9 @@
         return this.getPopup().getChildViews()[0];
       },
       getPopup: function () {
-        if (!this.config.$popup) this.config.$popup = this.createPopup();
-        return $$(this.config.$popup);
+        var id = this.config.$popup;
+        if (!(id && $$(id))) id = this.config.$popup = this.createPopup();
+        return $$(id);
       },
       createPopup: function () {
         var popup = this.config.popup || this.config.suggest;
@@ -11137,38 +11409,38 @@
           return pobj;
         }
 
-        var type = editors.$popup[this.popupType];
+        var editor = editors.$popup[this.popupType];
+        var popupId = editor.$popup;
 
-        if (typeof type != "string" && !type.name) {
-          type = editors.$popup[this.popupType] = ui(type);
-          this.popupInit(type);
-          if (!type.linkInput) this.linkInput(document.body);
+        if (!(popupId && $$(popupId))) {
+          var _popup = ui(copy(editor));
+
+          if (!_popup.linkInput && !popupId) this.linkInput(document.body);
+          editor.$popup = popupId = _popup._settings.id;
+          this.popupInit(_popup);
         }
 
-        return type._settings.id;
+        return popupId;
       },
       linkInput: function (node) {
-        _event(toNode(node), "keydown", bind(function (e) {
+        var _this = this;
+
+        _event(toNode(node), "keydown", function (e) {
           //abort, when editor was not initialized yet
-          if (!this.config.$popup) return;
+          if (!_this.config.$popup) return;
+
           var code = e.which || e.keyCode,
-              list = this.getInputNode();
+              list = _this.getInputNode();
+
           if (!list.isVisible()) return;
 
           if (list.moveSelection && code < 41 && code > 32) {
             var dir;
-            if (code == 33) dir = "pgup";
-            if (code == 34) dir = "pgdown";
-            if (code == 35) dir = "bottom";
-            if (code == 36) dir = "top";
-            if (code == 37) dir = "left";
-            if (code == 38) dir = "up";
-            if (code == 39) dir = "right";
-            if (code == 40) dir = "down";
+            if (code == 33) dir = "pgup";else if (code == 34) dir = "pgdown";else if (code == 35) dir = "bottom";else if (code == 36) dir = "top";else if (code == 37) dir = "left";else if (code == 38) dir = "up";else if (code == 39) dir = "right";else if (code == 40) dir = "down";
             list.moveSelection(dir);
           } // shift+enter support for 'popup' editor
           else if (code === 13 && (e.target.nodeName !== "TEXTAREA" || !e.shiftKey)) callEvent("onEditEnd", []);
-        }, this));
+        });
       },
       popupInit: function () {},
       popupType: "text",
@@ -11220,9 +11492,12 @@
     },
     _shared_suggest: function () {
       var e = editors.combo;
-      return e._suggest = e._suggest || this._create_suggest(true);
+      if (e._suggest && $$(e._suggest)) return e._suggest;
+      return e._suggest = this._create_suggest(true);
     },
     render: function () {
+      var _this2 = this;
+
       var node = create("div", {
         "class": "webix_dt_editor"
       }, "<input type='text' role='combobox' aria-label='" + getLabel(this.config) + "'>"); //save suggest id for future reference		
@@ -11232,7 +11507,9 @@
       if (suggest) {
         $$(suggest).linkInput(node.firstChild, true);
 
-        _event(node.firstChild, "click", bind(this.showPopup, this));
+        _event(node.firstChild, "click", function () {
+          return _this2.showPopup();
+        });
       }
 
       return node;
@@ -11310,7 +11587,7 @@
   }, editors.popup);
   editors.password = exports.extend({
     render: function () {
-      var _this = this;
+      var _this3 = this;
 
       var node = create("div", {
         "class": "webix_dt_editor webix_password_editor"
@@ -11318,9 +11595,9 @@
       var icon = node.querySelector(".webix_icon");
 
       _event(icon, "click", function () {
-        _this.toggleInput();
+        _this3.toggleInput();
 
-        _this.getInputNode(_this.node).focus();
+        _this3.getInputNode(_this3.node).focus();
       });
 
       return node;
@@ -11561,8 +11838,9 @@
       type.setValue(value, item);
       type.value = value;
 
-      this._addEditor(id, type); //show it over cell
+      this._addEditor(id, type);
 
+      if (type.getPopup) type.getPopup()._editorMaster = this._settings.id; //show it over cell
 
       if (show !== false) this.showItem(id);
       if (!type.$inline) this._sizeToCell(id, node, true);
@@ -12323,11 +12601,11 @@
       if (index$$1 !== -1) {
         var options = this._settings.options;
 
-        _power_array.removeAt.call(options, index$$1);
+        _power_array.removeAt.call(options, index$$1); // if we remove a selected option
 
-        this.refresh(); // if we remove a selected option
 
         if (this._settings.value == id) this._setNextVisible(options, index$$1);
+        this.refresh();
         this.callEvent("onOptionRemove", [id, this._settings.value]);
       }
     },
@@ -13757,12 +14035,12 @@
       if (state$$1) this.addCss(id, "webix_selected", true);else this.removeCss(id, "webix_selected", true);
       if (refresh) refresh.push(id); //if we in the mass-select mode - collect all changed IDs
       else {
-          if (state$$1) this._selected.push(id); //then add to list of selected items
-          else this._selected.remove(id);
+        if (state$$1) this._selected.push(id); //then add to list of selected items
+        else this._selected.remove(id);
 
-          this._refresh_selection(id); //othervise trigger repainting
+        this._refresh_selection(id); //othervise trigger repainting
 
-        }
+      }
       var ename = state$$1 ? "onAfterSelect" : "onAfterUnSelect";
       this.callEvent(ename, [id]);
       return true;
@@ -13883,9 +14161,9 @@
 
       if (this._is_mass_selection(refresh)) this.data.refresh(); //many items was selected - repaint whole view
       else for (var i = 0; i < refresh.length; i++) {
-          //repaint only selected
-          this.render(refresh[i], this.data.getItem(refresh[i]), "update");
-        }
+        //repaint only selected
+        this.render(refresh[i], this.data.getItem(refresh[i]), "update");
+      }
       if (!this._silent_selection) this.callEvent("onSelectChange", [refresh]);
     }
   };
@@ -16690,8 +16968,8 @@
     _inner_getValues: function (filter) {
       //get original data		
       var success,
-          elem = null,
-          data = this._values ? copy(this._values) : {}; //update properties from linked controls
+          elem = null;
+      var data = this._values ? copy(this._values) : {}; //update properties from linked controls
 
       for (var name in this.elements) {
         elem = this.elements[name];
@@ -16725,26 +17003,39 @@
         this._clear_invalid(name);
       } // add 'invalid' mark
       else {
-          // set invalidMessage
-          if (typeof state == "string") {
-            var input = this.elements[name];
-            if (input) input._settings.invalidMessage = state;
-          } //add mark to current validation process
+        var messageChanged; // set invalidMessage
+
+        if (typeof state == "string") {
+          var input = this.elements[name];
+
+          if (input && input._settings.invalidMessage != state) {
+            input._settings.invalidMessage = state;
+            messageChanged = true;
+          }
+        } //add mark to current validation process
 
 
-          if (this._validate_details) this._validate_details[name] = true;
+        if (this._validate_details) this._validate_details[name] = true;
 
-          this._mark_invalid(name);
-        }
+        this._mark_invalid(name, messageChanged);
+      }
     },
-    _mark_invalid: function (id) {
+    _mark_invalid: function (id, messageChanged) {
       var input = this.elements[id];
 
-      if (input && !input._settings.invalid) {
-        addCss(input._viewobj, "webix_invalid", true);
-        input._settings.invalid = true;
-        var message = input._settings.invalidMessage;
-        if (typeof message === "string" && input.setBottomText) input.setBottomText();
+      if (input) {
+        var config = input._settings;
+        var valid = !config.invalid;
+
+        if (valid || messageChanged) {
+          if (valid) {
+            addCss(input._viewobj, "webix_invalid", true);
+            config.invalid = true;
+          }
+
+          var message = config.invalidMessage;
+          if (typeof message === "string" && input.setBottomText) input.setBottomText();
+        }
       }
     },
     _clear_invalid: function (id) {
@@ -17195,7 +17486,7 @@
     }
   };
 
-  var version = "9.4.0";
+  var version = "10.0.0";
   var name = "core";
 
   var errorMessage = "non-existing view for export";
@@ -17456,44 +17747,47 @@
 
         for (var _i7 = 0; _i7 < scheme.length; _i7++) {
           var column = scheme[_i7],
-              cell = null,
-              formula = void 0; //spreadsheet use muon to store data, get value via $getExportValue
+              cell = null; //spreadsheet use muon to store data, get value via $getExportValue
 
-          if (view.$getExportValue) cell = view.$getExportValue(item.id, column.id, options); //datatable math
-          else if (options.math && item["$" + column.id] && item["$" + column.id].charAt(0) == "=") {
+          if (view.$getExportValue) cell = view.$getExportValue(item.id, column.id, options);else {
+            //datatable math
+            var formula = void 0;
+
+            if (options.math && item["$" + column.id] && item["$" + column.id].charAt(0) == "=") {
               if (mode == "excel") formula = item["$" + column.id];else cell = item["$" + column.id];
             }
 
-          if (this._spans_pull) {
-            var span = this.getSpan(item.id, column.id);
+            if (this._spans_pull) {
+              var span = this.getSpan(item.id, column.id);
 
-            if (span && span[4] && span[0] == item.id && span[1] == column.id) {
-              cell = span[4];
-              if (filterHTML && typeof cell === "string") cell = cell.replace(htmlFilter, "");
+              if (span && span[4] && span[0] == item.id && span[1] == column.id) {
+                cell = span[4];
+                if (filterHTML && typeof cell === "string") cell = cell.replace(htmlFilter, "");
+              }
             }
-          }
 
-          if (!cell) {
-            cell = column.template(item, view.type, item[column.id], column, _i7);
-            if (!cell && cell !== 0) cell = "";
-            if (column.isTree && treeline) cell = " " + Array(item.$level).join(treeline) + " " + cell;
+            if (!cell) {
+              cell = column.template(item, view.type, item[column.id], column, _i7);
+              if (!cell && cell !== 0) cell = "";
+              if (column.isTree && treeline) cell = " " + Array(item.$level).join(treeline) + " " + cell;
 
-            if (filterHTML && typeof cell === "string") {
-              cell = cell.replace(htmlFilter, "");
-            } //remove end/start spaces(ex.hierarchy data)
+              if (filterHTML && typeof cell === "string") {
+                cell = cell.replace(htmlFilter, "");
+              } //remove end/start spaces(ex.hierarchy data)
 
 
-            if (typeof cell === "string" && mode === "csv") cell = cell.trim(); //for multiline data
+              if (typeof cell === "string" && mode === "csv") cell = cell.trim(); //for multiline data
 
-            if (typeof cell === "string" && (mode === "excel" || mode === "csv")) {
-              cell = cell.replace(/<br\s*\/?>/mg, "\n");
+              if (typeof cell === "string" && (mode === "excel" || mode === "csv")) {
+                cell = cell.replace(/<br\s*\/?>/mg, "\n");
+              }
             }
-          }
 
-          if (formula) cell = {
-            formula: formula,
-            value: cell
-          };
+            if (formula) cell = {
+              formula: formula,
+              value: cell
+            };
+          }
           line.push(cell);
         }
 
@@ -17747,7 +18041,7 @@
       }
 
       return new pdfjs.Image(bytes.buffer);
-    }).finally(function () {
+    })["finally"](function () {
       if (hidden) document.body.removeChild(node);
     });
   }
@@ -17995,7 +18289,8 @@
         Sheets: {},
         Workbook: {
           WBProps: {},
-          Names: []
+          Names: [],
+          Sheets: []
         }
       };
 
@@ -18020,6 +18315,9 @@
         wb.SheetNames.push(sname);
         wb.Sheets[sname] = data;
         wb.Workbook.Names = wb.Workbook.Names.concat(ranges);
+        wb.Workbook.Sheets.push({
+          state: views[_i].state || "visible"
+        });
       }
       /* global XLSX */
 
@@ -18054,7 +18352,7 @@
     number: "n",
     date: "n",
     string: "s",
-    boolean: "b"
+    "boolean": "b"
   };
   var table = "_table";
 
@@ -18275,6 +18573,8 @@
     groupSize: 3,
     decimalDelimiter: ".",
     decimalSize: 2,
+    minusPosition: "before",
+    minusSign: "-",
     dateFormat: "%m/%d/%Y",
     timeFormat: "%h:%i %A",
     longDateFormat: "%d %F %Y",
@@ -18286,7 +18586,9 @@
       groupDelimiter: ",",
       groupSize: 3,
       decimalDelimiter: ".",
-      decimalSize: 2
+      decimalSize: 2,
+      minusPosition: "before",
+      minusSign: "-"
     },
     fileSize: ["b", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb"],
     calendar: {
@@ -18868,9 +19170,31 @@
     },
     parse: function (value, config) {
       if (!value || typeof value !== "string") return value;
+      config = config || i18n;
       var initialValue = value;
       if (config.prefix) value = value.replace(config.prefix, "");
       if (config.sufix) value = value.replace(config.sufix, "");
+      var sign = 1;
+
+      switch (config.minusPosition) {
+        case "before":
+        case "after":
+          if (value.indexOf(config.minusSign) != -1) {
+            sign = -1;
+            value = value.replace(config.minusSign, "");
+          }
+
+          break;
+
+        case "parentheses":
+          if (value.indexOf(config.minusSign[0]) != -1 && value.indexOf(config.minusSign[1]) != -1) {
+            sign = -1;
+            value = value.replace(config.minusSign[0], "").replace(config.minusSign[1], "");
+          }
+
+          break;
+      }
+
       value = value.trim();
       var decimal = "";
 
@@ -18884,13 +19208,6 @@
           decimal = decimal.substr(0, Math.min(decimal.length, count));
           value = value.substr(0, ind);
         }
-      }
-
-      var sign = 1;
-
-      if (value[0] == "-") {
-        sign = -1;
-        value = value.substr(1);
       }
 
       if (config.groupSize) {
@@ -18930,7 +19247,24 @@
         } while (i > 0);
       } else int_value = str[0];
 
-      if (config.decimalSize || config.decimalOptional) str = sign + int_value + (str[1] ? config.decimalDelimiter + str[1] : "");else str = sign + int_value;
+      if (config.decimalSize || config.decimalOptional) str = int_value + (str[1] ? config.decimalDelimiter + str[1] : "");else str = int_value;
+
+      if (sign) {
+        switch (config.minusPosition) {
+          case "before":
+            str = config.minusSign + str;
+            break;
+
+          case "after":
+            str += config.minusSign;
+            break;
+
+          case "parentheses":
+            str = config.minusSign[0] + str + config.minusSign[1];
+            break;
+        }
+      }
+
       if (config.prefix) str = config.prefix + str;
       if (config.sufix) str += config.sufix;
       return str;
@@ -18957,7 +19291,10 @@
   var helpers = ["fullDateFormat", "timeFormat", "dateFormat", "longDateFormat", "parseFormat", "parseTimeFormat"];
 
   i18n.setLocale = function (locale) {
-    if (typeof locale == "string") locale = i18n.locales[locale];
+    if (typeof locale == "string") {
+      i18n.locale = locale;
+      locale = i18n.locales[locale];
+    }
 
     if (locale) {
       var origin = copy(en);
@@ -18986,7 +19323,29 @@
     });
 
     i18n.priceFormat = function (value) {
-      return _price_format(Number$1.format(value, _price_settings));
+      var sign = value < 0;
+      if (sign) value = Math.abs(value);
+      value = Number$1.format(value, _price_settings);
+
+      if (sign) {
+        switch (_price_settings.minusPosition) {
+          case "before":
+            return _price_settings.minusSign + _price_format(value);
+
+          case "parentheses":
+            return _price_settings.minusSign[0] + _price_format(value) + _price_settings.minusSign[1];
+
+          case "after":
+            value += _price_settings.minusSign;
+            break;
+
+          case "inside":
+            value = _price_settings.minusSign + value;
+            break;
+        }
+      }
+
+      return _price_format(value);
     };
 
     i18n.numberFormat = Number$1.format;
@@ -19944,9 +20303,11 @@
     var name = {
       200: "flat",
       210: "compact",
-      230: "contrast",
-      240: "material",
-      250: "mini"
+      220: "contrast",
+      230: "material",
+      240: "mini",
+      250: "willow",
+      260: "dark"
     }[Math.floor(div.offsetHeight / 10) * 10];
     document.body.removeChild(div);
     if (name) set$1(name);
@@ -19980,6 +20341,8 @@
     groupSize: 3,
     decimalDelimiter: ",",
     decimalSize: 2,
+    minusPosition: "before",
+    minusSign: "-",
     dateFormat: "%d.%n.%Y",
     timeFormat: "%H:%i",
     longDateFormat: "%j. %F %Y",
@@ -19991,7 +20354,9 @@
       groupDelimiter: ".",
       groupSize: 3,
       decimalDelimiter: ",",
-      decimalSize: 2
+      decimalSize: 2,
+      minusPosition: "before",
+      minusSign: "-"
     },
     calendar: {
       monthFull: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
@@ -20097,6 +20462,8 @@
     groupSize: 3,
     decimalDelimiter: ",",
     decimalSize: 2,
+    minusPosition: "before",
+    minusSign: "-",
     dateFormat: "%d/%n/%Y",
     timeFormat: "%G:%i",
     longDateFormat: "%d %F %Y",
@@ -20108,7 +20475,9 @@
       groupDelimiter: ".",
       groupSize: 3,
       decimalDelimiter: ",",
-      decimalSize: 2
+      decimalSize: 2,
+      minusPosition: "before",
+      minusSign: "-"
     },
     calendar: {
       monthFull: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
@@ -20213,6 +20582,8 @@
     groupSize: 3,
     decimalDelimiter: ",",
     decimalSize: 2,
+    minusPosition: "before",
+    minusSign: "-",
     dateFormat: "%d/%m/%Y",
     timeFormat: "%H:%i",
     longDateFormat: "%d %F %Y",
@@ -20324,6 +20695,8 @@
     groupSize: 3,
     decimalDelimiter: ",",
     decimalSize: 2,
+    minusPosition: "before",
+    minusSign: "-",
     dateFormat: "%d/%m/%Y",
     timeFormat: "%H:%i",
     longDateFormat: "%j %F %Y",
@@ -20335,7 +20708,9 @@
       groupDelimiter: ".",
       groupSize: 3,
       decimalDelimiter: ",",
-      decimalSize: 2
+      decimalSize: 2,
+      minusPosition: "before",
+      minusSign: "-"
     },
     calendar: {
       monthFull: ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"],
@@ -20440,6 +20815,8 @@
     groupSize: 3,
     decimalDelimiter: ".",
     decimalSize: 2,
+    minusPosition: "before",
+    minusSign: "-",
     dateFormat: "%Y.%m.%d",
     timeFormat: "%H:%i",
     longDateFormat: "%Y年%m月%d日",
@@ -20449,7 +20826,9 @@
       groupSize: 3,
       groupDelimiter: ",",
       decimalDelimiter: "",
-      decimalSize: 0
+      decimalSize: 0,
+      minusPosition: "before",
+      minusSign: "-"
     },
     calendar: {
       monthFull: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
@@ -20554,6 +20933,8 @@
     groupSize: 3,
     decimalDelimiter: ",",
     decimalSize: 2,
+    minusPosition: "before",
+    minusSign: "-",
     dateFormat: "%d/%m/%Y",
     timeFormat: "%G:%i",
     longDateFormat: "%d de %F de %Y",
@@ -20565,7 +20946,9 @@
       groupDelimiter: ".",
       groupSize: 3,
       decimalDelimiter: ",",
-      decimalSize: 2
+      decimalSize: 2,
+      minusPosition: "before",
+      minusSign: "-"
     },
     fileSize: ["b", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb"],
     calendar: {
@@ -20672,6 +21055,8 @@
     groupSize: 3,
     decimalDelimiter: ".",
     decimalSize: 2,
+    minusPosition: "before",
+    minusSign: "-",
     dateFormat: "%Y/%m/%j",
     timeFormat: "%G:%i",
     longDateFormat: "%Y'年'%m'月'%j'日'",
@@ -20683,7 +21068,9 @@
       groupDelimiter: ",",
       groupSize: 3,
       decimalDelimiter: ".",
-      decimalSize: 2
+      decimalSize: 2,
+      minusPosition: "inside",
+      minusSign: "-"
     },
     calendar: {
       monthFull: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
@@ -20788,13 +21175,21 @@
     groupSize: 3,
     decimalDelimiter: ",",
     decimalSize: 2,
+    minusPosition: "before",
+    minusSign: "-",
     dateFormat: "%d.%m.%Y",
     timeFormat: "%H:%i",
     longDateFormat: "%d %F %Y",
     fullDateFormat: "%d.%m.%Y %H:%i",
     price: "{obj} руб.",
-    priceSettings: null,
-    //use number defaults
+    priceSettings: {
+      groupDelimiter: " ",
+      groupSize: 3,
+      decimalDelimiter: ",",
+      decimalSize: 2,
+      minusPosition: "before",
+      minusSign: "-"
+    },
     calendar: {
       monthFull: ["Январь", "Февраль", "Март", "Апрель", "Maй", "Июнь", "Июль", "Август", "Сентябрь", "Oктябрь", "Ноябрь", "Декабрь"],
       monthShort: ["Янв", "Фев", "Maр", "Aпр", "Maй", "Июн", "Июл", "Aвг", "Сен", "Окт", "Ноя", "Дек"],
@@ -20898,6 +21293,8 @@
     groupSize: 3,
     decimalDelimiter: ",",
     decimalSize: 2,
+    minusPosition: "before",
+    minusSign: "-",
     dateFormat: "%d.%m.%Y",
     timeFormat: "%H:%i",
     longDateFormat: "%d %F %Y",
@@ -20906,8 +21303,10 @@
     priceSettings: {
       groupSize: 3,
       groupDelimiter: " ",
-      decimalDelimiter: "",
-      decimalSize: 0
+      decimalDelimiter: ",",
+      decimalSize: 0,
+      minusPosition: "before",
+      minusSign: "-"
     },
     calendar: {
       monthFull: ["Студзень", "Люты", "Сакавік", "Красавік", "Травень", "Чэрвень", "Ліпень", "Жнівень", "Верасень", "Кастрычнік", "Лістапад", "Снежань"],
@@ -23094,8 +23493,8 @@
       return next < active ? vx ? "bottom" : "right" : vx ? "top" : "left";
     },
     _show: function (obj, animation_options) {
-      var _this = this,
-          _arguments = arguments;
+      var _arguments = arguments,
+          _this = this;
 
       var parent = this.getParentView();
 
@@ -24400,7 +24799,8 @@
         return d.getDate();
       },
       width: 260,
-      height: 250
+      height: 250,
+      separator: ", "
     },
     dayTemplate_setter: template,
     calendarHeader_setter: wDate.dateToStr,
@@ -24573,7 +24973,6 @@
       var s = this._settings;
       var _columnsHeight = [];
       var _columnsWidth = [];
-      var min = Infinity;
       var containerWidth = this._content_width - (this._content_padding + $active.borderWidth) * 2;
       var containerHeight = this._content_height - (s.monthHeader ? s.headerHeight : 0) - (s.weekHeader ? $active.calendarWeekHeaderHeight : 0) - (s.timepicker || this._icons ? s.timepickerHeight : 0) - (this._content_padding + $active.borderWidth) * 2;
       var columnsNumber = s.weekNumber ? 8 : 7;
@@ -24581,7 +24980,6 @@
       for (var i = 0; i < columnsNumber; i++) {
         _columnsWidth[i] = Math.ceil(containerWidth / (columnsNumber - i));
         containerWidth -= _columnsWidth[i];
-        min = Math.min(min, _columnsWidth[i]);
       }
 
       var rowsNumber = bounds._rows;
@@ -24589,10 +24987,9 @@
       for (var k = 0; k < rowsNumber; k++) {
         _columnsHeight[k] = Math.ceil(containerHeight / (rowsNumber - k));
         containerHeight -= _columnsHeight[k];
-        min = Math.min(min, _columnsHeight[k]);
       }
 
-      return [_columnsWidth, _columnsHeight, min];
+      return [_columnsWidth, _columnsHeight];
     },
     icons_setter: function (value) {
       if (!value) this._icons = null;else if (_typeof(value) == "object") this._icons = value;else this._icons = this._icons2;
@@ -24650,7 +25047,7 @@
       }
 
       if (s.weekHeader) html += "<div class='webix_cal_header' style='margin:0 " + cpad + "' aria-hidden='true'>" + this._week_template(width) + "</div>";
-      html += "<div class='webix_cal_body' role='grid' style='margin:0 " + cpad + "'>" + this._body_template(width, height, bounds, sizes[2]) + "</div>";
+      html += "<div class='webix_cal_body' role='grid' style='margin:0 " + cpad + "'>" + this._body_template(width, height, bounds) + "</div>";
 
       if (s.timepicker || this._icons) {
         html += "<div class='webix_cal_footer' style='margin:0 " + cpad + "'>";
@@ -24749,13 +25146,14 @@
       css += " webix_cal_day";
       return css;
     },
-    _body_template: function (widths, heights, bounds, sqSize) {
+    _body_template: function (widths, heights, bounds) {
       var s = this._settings;
       var start = s.weekNumber ? 1 : 0;
       var day = wDate.datePart(wDate.copy(bounds._start));
       var weekNumber = wDate.getISOWeek(wDate.add(day, 2, "day", true));
       var html = "",
-          focusable;
+          focusable,
+          sqSize;
 
       for (var y = 0; y < heights.length; y++) {
         html += "<div class='webix_cal_row' role='row' style='height:" + heights[y] + "px;line-height:" + heights[y] + "px'>";
@@ -24784,6 +25182,7 @@
           var tabindex = sel && !isOutside ? "0" : "-1";
           if (day.getDate() == 1 && !isOutside) tabindex = "$webix_tabindex";
           if (tabindex == "0") focusable = true;
+          sqSize = Math.min(heights[y], widths[x]);
           html += "<div day='" + x + "' role='gridcell' " + (isOutside ? "aria-hidden='true'" : "") + " aria-label='" + alabel + "' tabindex='" + tabindex + "' aria-selected='" + (sel && !isOutside ? "true" : "false") + "' class='" + css + "' style='text-align:center; width:" + widths[x] + "px'><span aria-hidden='true' class='webix_cal_day_inner' style='display:inline-block; " + this._getCalSizesString(sqSize, sqSize) + "'>" + d + "</span></div>";
           day = wDate.add(day, 1, "day");
           if (day.getHours()) day = wDate.datePart(day);
@@ -25399,15 +25798,30 @@
       this.selectDate(date, true, false, config);
     },
     getValue: function (format) {
+      var _this2 = this;
+
       var date = this.getSelectedDate();
-      if (format) date = wDate.dateToStr(format)(date);
+
+      if (isArray(date)) {
+        date = date.map(function (date) {
+          return _this2._formatValue(date, format);
+        });
+        if (this._settings.stringResult) date = date.join(this._settings.separator);
+      } else date = this._formatValue(date, format);
+
+      return date;
+    },
+    _formatValue: function (date, format) {
+      if (format) date = wDate.dateToStr(format)(date);else if (this._settings.stringResult) {
+        if (this._settings.type == "time") date = i18n.parseTimeFormatStr(date);else date = i18n.parseFormatStr(date);
+      }
       return date;
     },
     selectDate: function (date, show, add, config) {
       if (!date || !add || !this.config.multiselect) this._selected_days = {};
 
       if (date) {
-        if (!isArray(date)) date = [date];
+        if (typeof date == "string") date = date.split(this._settings.separator);else if (!isArray(date)) date = [date];
 
         for (var i = 0; i < date.length; i++) {
           var days = this._string_to_date(date[i]);
@@ -25842,7 +26256,7 @@
       });
     },
     $skin: function () {
-      if ($name == "compact" || $name == "mini") this._inpHeight = 24;else this._inpHeight = 32;
+      this._inpHeight = $active.inputHeight - 2 * $active.inputPadding;
     },
     $setSize: function (x, y) {
       if (base$1.api.$setSize.call(this, x, y)) {
@@ -26054,9 +26468,9 @@
     render: function () {
       if (!this.isVisible(this._settings.id)) return;
       this.callEvent("onBeforeRender", []);
-      var inpWidth = (this.$width - $active.dataPadding * 3) / 2; //24 paddings, 32 color line, 12 padding
+      var inpWidth = (this.$width - $active.dataPadding * 3) / 2; //8+14 color line, 3(or 4) data paddings 
 
-      var bHeight = this.$height - 24 - 32 - this._inpHeight - (this._settings.button ? this._inpHeight + 12 : 0);
+      var bHeight = this.$height - 3 * $active.dataPadding - 22 - this._inpHeight - (this._settings.button ? this._inpHeight + $active.dataPadding : 0);
       var html = "<div class=\"webix_color_area\">";
       html += "\n\t\t\t<div ".concat(
       /*@attr*/
@@ -26671,14 +27085,16 @@
       var pos$$1 = getSelectionRange(node);
       var chr = "";
 
-      if (code == 8 || code == 46) {
-        if (pos$$1.start == pos$$1.end) {
-          if (code == 8) pos$$1.start--;else pos$$1.end++;
+      if (code) {
+        if (code == 8 || code == 46) {
+          if (pos$$1.start == pos$$1.end) {
+            if (code == 8) pos$$1.start--;else pos$$1.end++;
+          }
+        } else {
+          chr = String.fromCharCode(code);
+          var isCapsLock = e.getModifierState("CapsLock");
+          if (!e.shiftKey && !isCapsLock || e.shiftKey && isCapsLock) chr = chr.toLowerCase();
         }
-      } else {
-        chr = String.fromCharCode(code);
-        var isCapsLock = e.getModifierState("CapsLock");
-        if (!e.shiftKey && !isCapsLock || e.shiftKey && isCapsLock) chr = chr.toLowerCase();
       }
 
       value = value.substr(0, pos$$1.start) + chr + value.substr(pos$$1.end);
@@ -26798,10 +27214,10 @@
     },
     _toggleClearIcon: function (value) {
       var c = this._settings;
-      if (!c.clear || !this._clear_icon) return;
+      if (c.readonly || !c.clear || !this._clear_icon) return;
 
-      if (c.clear === "hover" || c.clear === "replace") {
-        var css = value ? "webix_clear_icon " + (c.clear === "hover" ? c.icon : "wxi-close") : c.icon;
+      if (c.clear == "hover" || c.clear == "replace") {
+        var css = value ? "webix_clear_icon " + (c.clear == "hover" ? c.icon : "wxi-close") : c.icon;
         this._clear_icon.className = "webix_input_icon " + css;
       } else {
         var state = value ? "" : "hidden";
@@ -26847,7 +27263,7 @@
         html += "<span style='right:" + right + "px;height:" + (height - padding) + "px;padding-top:" + padding + "px;' class='webix_input_icon " + c.icon + "'></span>";
       }
 
-      if (c.clear === true) {
+      if (!c.readonly && c.clear === true) {
         right += 24;
         html += "<span style='right:" + right + "px;height:" + (height - padding) + "px;padding-top:" + padding + "px;' class='webix_input_icon webix_clear_icon webix_icon_transparent wxi-close'></span>";
       }
@@ -27081,7 +27497,7 @@
     },
     $setValue: function (value) {
       value = this._pattern(value);
-      this.getInputNode().value = value;
+      if (this.getInputNode()) this.getInputNode().value = value;
 
       this._toggleClearIcon(value);
     },
@@ -27191,6 +27607,28 @@
         html += "</select>";
         return common.$renderInput(obj, html, id);
       }
+    },
+    $init: function () {
+      this.attachEvent("onAfterRender", function () {
+        var _this = this;
+
+        var input = this.getInputNode();
+
+        _event(input, env.mouse.down, function (e) {
+          return _this._checkReadOnly(e);
+        });
+
+        _event(input, "keydown", function (e) {
+          return _this._checkReadOnly(e, (e.which || e.keyCode) == 9);
+        });
+
+        if (env.touch) _event(input, env.touch.down, function (e) {
+          return _this._checkReadOnly(e);
+        });
+      });
+    },
+    _checkReadOnly: function (e, tab) {
+      if (!tab && this._settings.readonly) preventEvent(e);
     },
     options_setter: function (value) {
       if (value) {
@@ -27609,21 +28047,21 @@
 
       if (!this._rendered_input) value = this.$prepareValue(value) || null; //rendere and in edit mode
       else if (this._settings.editable) {
-          var formatDate = this._formatDate;
+        var formatDate = this._formatDate;
 
-          if (!formatDate) {
-            if (timeMode) formatDate = i18n.timeFormatDate;else if (this.config.timepicker) formatDate = i18n.fullDateFormatDate;else formatDate = i18n.dateFormatDate;
-          }
+        if (!formatDate) {
+          if (timeMode) formatDate = i18n.timeFormatDate;else if (this.config.timepicker) formatDate = i18n.fullDateFormatDate;else formatDate = i18n.dateFormatDate;
+        }
 
-          var time = formatDate(this.getInputNode().value);
+        var time = formatDate(this.getInputNode().value);
 
-          if (timeMode && value != "") {
-            value.setHours(time.getHours());
-            value.setMinutes(time.getMinutes());
-            value.setSeconds(time.getSeconds());
-            value.setMilliseconds(time.getMilliseconds());
-          } else value = time;
-        } //return string from getValue
+        if (timeMode && value != "") {
+          value.setHours(time.getHours());
+          value.setMinutes(time.getMinutes());
+          value.setSeconds(time.getSeconds());
+          value.setMilliseconds(time.getMilliseconds());
+        } else value = time;
+      } //return string from getValue
 
       if (this._settings.stringResult) {
         var formatStr = i18n.parseFormatStr;
@@ -27708,11 +28146,11 @@
       var right = this._inputSpacing / 2 + 5;
       var html = "<div class='webix_input_icon' style='top:" + (c.inputPadding + 4) + "px;right:" + right + "px;background-color:" + c.value + ";'></div>";
 
-      if (c.clear) {
+      if (!c.readonly && c.clear) {
         var height = c.aheight - 2 * c.inputPadding;
         var padding = (height - 18) / 2 - 1;
         right += 24;
-        html += "<span style='right:" + right + "px;height:" + (height - padding) + "px;padding-top:" + padding + "px;' class='webix_input_icon webix_clear_icon wxi-close'></span>";
+        html += "<span style='right:" + right + "px;height:" + (height - padding) + "px;padding-top:" + padding + "px;' class='webix_input_icon webix_clear_icon webix_icon_transparent wxi-close'></span>";
       }
 
       return html;
@@ -28125,7 +28563,7 @@
         var input = this.getInputNode();
         var cursorPos = pageUp ? 0 : input.value.length;
         var scrollPos = pageUp ? 0 : input.scrollHeight;
-        e.preventDefault();
+        preventEvent(e);
         input.setSelectionRange(cursorPos, cursorPos);
         input.scrollTo(0, scrollPos);
       }
@@ -28567,9 +29005,9 @@
       this._sliderBorder = $active.sliderBorder; //1px border
     },
     _handle_move_keyboard: function (e) {
-      var code = e.which || e.keyCode,
-          c = this._settings,
-          value = c.value;
+      var code = e.which || e.keyCode;
+      var c = this._settings;
+      var value = c.value;
 
       if (code > 32 && code < 41) {
         preventEvent(e);
@@ -28608,12 +29046,14 @@
     _on_mouse_down_start: function (e, pointer) {
       var _this2 = this;
 
+      var config = this._settings;
+      if (config.disabled || config.readonly) return;
       var trg = e.target;
       if (this._mouse_down_process) this._mouse_down_process(e);
-      var value = this._settings.value;
+      var value = config.value;
       if (isArray(value)) value = copy(value);
       this._start_value = value;
-      if (trg.className.indexOf("webix_slider") !== -1) this._settings.value = this._get_value_from_event(e);
+      if (trg.className.indexOf("webix_slider") !== -1) config.value = this._get_value_from_event(e);
       var passive = pointer === "touch" ? {
         passive: false
       } : null;
@@ -28757,33 +29197,29 @@
       defaults.tabMoreWidth = skin.tabMoreWidth || 40;
       defaults.borderless = !skin.tabBorder;
     },
-    _getTabbarSizes: function () {
-      var config = this._settings,
-          i,
-          len,
-          tabs = this._filterOptions(config.options),
-          totalWidth = this._input_width - config.tabOffset * 2,
-          limitWidth = config.optionWidth || config.tabMinWidth;
+    _getTabbarSizes: function (selected) {
+      var config = this._settings;
+      var inputWidth = this._input_width - config.tabOffset * 2;
 
-      len = tabs.length;
+      var tabs = this._filterOptions(config.options);
 
-      if (config.tabMinWidth && totalWidth / len < limitWidth) {
-        return {
-          max: parseInt(totalWidth / limitWidth, 10) || 1
+      var width = config.optionWidth || config.tabMinWidth; //the selected tab will be rendered anyway
+
+      var totalWidth = tabs.find(function (tab) {
+        return tab.id == selected;
+      }).width || width;
+      var max = 1;
+
+      for (var i = 0; i < tabs.length; i++) {
+        if (tabs[i].id == selected) continue;
+        if ((totalWidth += tabs[i].width || width) > inputWidth) return {
+          max: max
         };
-      }
-
-      if (!config.optionWidth) {
-        for (i = 0; i < len; i++) {
-          if (tabs[i].width) {
-            totalWidth -= tabs[i].width + (!i && !config.type ? config.tabMargin : 0);
-            len--;
-          }
-        }
+        max++;
       }
 
       return {
-        width: len ? totalWidth / len : config.tabMinWidth
+        width: inputWidth / tabs.length
       };
     },
     _init_popup: function () {
@@ -28870,7 +29306,7 @@
           contentWidth = common._input_width - obj.tabOffset * 2 - (!obj.type ? obj.tabMargin * (tabs.length - 1) : 0);
           verticalOffset = obj.topOffset + obj.bottomOffset;
 
-          var sizes = common._getTabbarSizes();
+          var sizes = common._getTabbarSizes(obj.value);
 
           if (sizes.max && sizes.max < tabs.length) {
             //we need popup
@@ -29291,14 +29727,16 @@
     },
     _auto_height_calc: function (count) {
       var value = this.data.$pagesize || this.count();
-
-      this._onoff_scroll(count && count < value, "y");
-
       if (this._settings.autoheight && value < (count || Infinity)) count = value;
       var height = this._one_height() * count + (this.type.margin || 0); //unitlist
 
       if (this.getUnits) height += this.getUnits().length * this.type.headerHeight;
-      return Math.max(height, this._settings.minHeight || 0);
+      var maxHeight = this._settings.maxHeight || Infinity;
+      height = Math.max(height, this._settings.minHeight || 0);
+
+      this._onoff_scroll(count && count < value || height > maxHeight, "y");
+
+      return Math.min(height, maxHeight);
     },
     _one_height: function () {
       return this.type.height + (this.type.margin || 0);
@@ -29405,10 +29843,10 @@
     template: "{common.removeIcon()}{common.percent()}<div style='float:right'>#sizetext#</div>{common.fileName()}",
     percent: function (obj) {
       if (obj.status == "transfer") return "<div style='width:60px; text-align:center; float:right'>" + obj.percent + "%</div>";
-      return "<div class='webix_upload_" + obj.status + "'><span class='" + (obj.status == "error" ? "error_icon" : "webix_icon wxi-check") + "'></span></div>";
+      return "<div class='webix_upload_" + obj.status + "'><span class='" + (obj.status == "error" ? "webix_error_icon" : "webix_icon wxi-check") + "'></span></div>";
     },
     removeIcon: function () {
-      return "<div class='webix_remove_upload'><span class='cancel_icon'></span></div>";
+      return "<div class='webix_remove_upload'><span class='webix_cancel_icon'></span></div>";
     },
     fileName: function (obj) {
       return "<div style='text-overflow:ellipsis; white-space:nowrap; overflow:hidden; padding-right:8px;'>" + obj.name + "</div>";
@@ -30040,7 +30478,8 @@
       };
     },
     _set_input_value: function (text) {
-      this._last_input_target.value = text;
+      var trg = this._last_input_target;
+      if (trg.getAttribute("contentEditable") == "true" || trg.getAttribute("contentEditable") == "") trg.innerText = text;else trg.value = text;
     },
     _preselectMasterOption: function (data) {
       var text = data.id ? this.getItemText(data.id) : data.text || data.value;
@@ -30189,7 +30628,7 @@
       } else node = toNode(input);
 
       _event(node, "keydown", function (e) {
-        if ((node != document.body || this.isVisible()) && (input.config ? !input.config.readonly : !node.getAttribute("readonly"))) this._suggestions(e);
+        if ((node != document.body || this.isVisible()) && (input.config ? !input.config.readonly : !node.getAttribute("readonly"))) this._suggestions(e, node);
       }, {
         bind: this
       });
@@ -30205,14 +30644,14 @@
 
       this._non_ui_mode = true;
     },
-    _suggestions: function (e) {
+    _suggestions: function (e, node) {
       //should be before tab and arrows handlers: IME can call keydown twice
       if (this._last_delay) this._last_delay = clearTimeout(this._last_delay);
       var list = this.getList();
       var trg = e.target;
       if (trg == document.body && !this.isVisible() || trg.className == "webix_clipbuffer") return;
-      this._last_input_target = trg;
       this._settings.master = trg.webix_master_id;
+      if (node != document.body) this._last_input_target = trg;
       var code = e.which || e.keyCode; //shift, ctrl, alt, meta
 
       if (code == 16 || code == 17 || code == 18 || code == 91) return; //move cursor via arrow
@@ -30234,10 +30673,9 @@
       if (ctrl && !(backspace || del || v || x || y || z)) return;
 
       if (backspace || del || ctrl && x) {
-        var input = $$(this._settings.master).getInputNode();
-        var selStart = input.selectionStart;
-        var selEnd = input.selectionEnd;
-        if (backspace && selStart == 0 || x && selStart == selEnd || del && selStart == input.value.length) return;
+        var selStart = trg.selectionStart;
+        var selEnd = trg.selectionEnd;
+        if (backspace && selStart == 0 || x && selStart == selEnd || del && selStart == (trg.value || trg.innerText).length) return;
       } // tab - hide popup and do nothing
 
 
@@ -30257,8 +30695,7 @@
       this._last_delay = delay(function () {
         //focus moved to the different control, suggest is not necessary
         if (!this._non_ui_mode && UIManager.getFocus() != $$(this._settings.master)) return;
-        this._resolve_popup = true; //spreadsheet use contentEditable div for cell highlighting
-
+        this._resolve_popup = true;
         var val = contentEditable ? trg.innerText : trg.value;
         if (this._before_filtering) this._before_filtering(); // used to prevent showing popup when it was initialized
 
@@ -30280,7 +30717,7 @@
         if (!this.isVisible()) this._dont_unfilter = true;
         this.show(this._last_input_target, null, true);
         this._dont_unfilter = false;
-      } else {
+      } else if (this._last_input_target) {
         this.hide();
         this._last_input_target = null;
       }
@@ -30292,6 +30729,17 @@
         var list = this.getList();
 
         if (list.filter && !this._dont_unfilter) {
+          // clear gridsuggest filters
+          if (list.eachColumn) {
+            list.eachColumn(function (id) {
+              var filter = list.getFilter(id);
+
+              if (filter) {
+                if (filter.setValue) filter.setValue("");else filter.value = "";
+              }
+            });
+          }
+
           list.filter("");
         }
 
@@ -30371,18 +30819,18 @@
           list.moveSelection(dir, false, false);
         } // other arrows
         else {
-            if (list.count || !list.count && !list.isVisible()) return false;
+          if (list.count || !list.count && !list.isVisible()) return false;
 
-            var _dir;
+          var _dir;
 
-            if (code == 33) _dir = "pgup";
-            if (code == 34) _dir = "pgdown";
-            if (code == 35) _dir = "bottom";
-            if (code == 36) _dir = "top";
-            if (code == 37) _dir = "left";
-            if (code == 39) _dir = "right";
-            list.moveSelection(_dir, false, false);
-          }
+          if (code == 33) _dir = "pgup";
+          if (code == 34) _dir = "pgdown";
+          if (code == 35) _dir = "bottom";
+          if (code == 36) _dir = "top";
+          if (code == 37) _dir = "left";
+          if (code == 39) _dir = "right";
+          list.moveSelection(_dir, false, false);
+        }
 
         if (list.count) data = list.getSelectedItem(false);else {
           if (list.getSelectedDate) data = list.getSelectedDate();else if (list.getValue) data = list.getValue();
@@ -30683,8 +31131,14 @@
       config.chart = exports.extend(config.chart || {}, this.defaults.chart);
       this.data.provideApi(this, true);
       this.$ready.push(this.render);
+
+      this._drawData();
+
       this.data.attachEvent("onClearAll", bind(this._refreshColumns, this));
       this.data.attachEvent("onStoreUpdated", bind(this._drawData, this));
+    },
+    $skin: function () {
+      this.defaults.chart.backgroundColor = $active.backColor;
     },
     getMap: function (waitMap) {
       return waitMap ? this._waitMap : this._map;
@@ -30807,7 +31261,7 @@
       this._drawData();
     },
     _getColumnType: function (item, key) {
-      if (!item || isUndefined(item[key])) return "string";
+      if (isUndefined(item[key])) return "string";
 
       var type = _typeof(item[key]);
 
@@ -30818,15 +31272,19 @@
       var columns = this._settings.columns || [];
       var item = this.data.pull[this.data.order[0]]; //auto columns
 
-      if (!columns.length && item) {
-        for (var key in item) {
-          if (key !== "id") columns.push(key);
-        }
+      if (!columns.length) {
+        if (item) {
+          for (var key in item) {
+            if (key !== "id") columns.push(key);
+          }
+        } else return []; // wait any data
+
       } //["title", "area"]
 
 
       for (var i = 0; i < columns.length; i++) {
         if (_typeof(columns[i]) !== "object") {
+          if (!item) return [];
           columns[i] = {
             type: this._getColumnType(item, columns[i]),
             label: columns[i]
@@ -31540,9 +31998,8 @@
       var css = !in_width || this._getFontCss(bgColor);
 
       var t = this.canvases[sIndex].renderText(0, 0, text, css, 1);
-      if (!t) return; // get existing width of text
-
-      var labelWidth = t.scrollWidth;
+      if (!t) return;
+      var labelWidth = getTextSize(text, css).width;
       t.style.width = labelWidth + "px"; //adjust text label to fit all text
 
       if (labelWidth > x0) labelWidth = x0; //the text can't be greater than half of view
@@ -31564,9 +32021,9 @@
       } // calculate position of text basically get point at center of pie sector
 
 
-      var offset = 0;
-      if (!in_width && ky < 1 && alpha > 0 && alpha < Math.PI) offset = (this._settings.height || Math.floor(r / 4)) / ky;
-      var y = (y0 + Math.floor((r + offset) * Math.sin(alpha))) * ky + corr_y;
+      var offset$$1 = 0;
+      if (!in_width && ky < 1 && alpha > 0 && alpha < Math.PI) offset$$1 = (this._settings.height || Math.floor(r / 4)) / ky;
+      var y = (y0 + Math.floor((r + offset$$1) * Math.sin(alpha))) * ky + corr_y;
       var x = x0 + Math.floor((r + width / 2) * Math.cos(alpha)) + corr_x; // if pie sector starts in left of right part pie,
       // related text	must be placed to the left of to the right of pie as well
 
@@ -31577,8 +32034,8 @@
         x = Math.max(x, x0 + 3); //right part of pie
       } else if (!left_start && !left_end) x = Math.min(x, x0 - labelWidth); //left part of pie
       else if (!in_width && (alpha >= Math.PI / 2 && alpha < Math.PI || alpha <= 3 * Math.PI / 2 && alpha >= Math.PI)) {
-          x += labelWidth / 3;
-        } //we need to set position of text manually, based on above calculations
+        x += labelWidth / 3;
+      } //we need to set position of text manually, based on above calculations
 
 
       t.style.top = y + "px";
@@ -31731,8 +32188,7 @@
 
 
       if (!xax) {
-        this._drawLine(ctx, point0.x, point1.y + 0.5, point1.x, point1.y + 0.5, "#edeff0", 1); //hardcoded color!
-
+        this._drawLine(ctx, point0.x, point1.y + 0.5, point1.x, point1.y + 0.5, $active.dataBorderColor, 1);
       }
 
       for (i = 0; i < data.length; i++) {
@@ -31758,12 +32214,12 @@
         if (!yax && !(this._settings.origin != "auto" && xax)) value += startValue / unit;
         /* don't draw borders and labels for not painted values (on y-Axis or lower) */
         else if (value == this._settings.origin || this._settings.origin == "auto" && this._settings.value(data[i]) == minValue) {
-            border = 0;
-            label = "";
-          } else if (value < 0 || this._settings.yAxis && value === 0 && !(this._settings.origin != "auto" && this._settings.origin > minValue)) {
-            value = border = 0;
-            label = "";
-          }
+          border = 0;
+          label = "";
+        } else if (value < 0 || this._settings.yAxis && value === 0 && !(this._settings.origin != "auto" && this._settings.origin > minValue)) {
+          value = border = 0;
+          label = "";
+        }
         /*drawing bar body*/
 
         ctx.globalAlpha = this._settings.alpha.call(this, data[i]);
@@ -32009,7 +32465,7 @@
 
 
             if (config.line && config.line.shadow) {
-              ctx.globalAlpha = 0.3;
+              ctx.globalAlpha = $name == "contrast" || $name == "dark" ? 0.1 : 0.3;
 
               this._drawLine(ctx, x1 + 2, y1 + config.line.width + 8, x2 + 2, y2 + config.line.width + 8, "#eeeeee", config.line.width + 3);
 
@@ -32272,8 +32728,7 @@
 
 
       if (!xax) {
-        this._drawLine(ctx, point0.x - 0.5, point0.y, point0.x - 0.5, point1.y, "#edeff0", 1); //hardcoded color!
-
+        this._drawLine(ctx, point0.x - 0.5, point0.y, point0.x - 0.5, point1.y, $active.dataBorderColor, 1);
       }
 
       for (i = 0; i < data.length; i++) {
@@ -32614,8 +33069,7 @@
 
       if (!xax) {
         //scaleY = y-bottomPadding;
-        this._drawLine(ctx, point0.x, point1.y + 0.5, point1.x, point1.y + 0.5, "#edeff0", 1); //hardcoded color!
-
+        this._drawLine(ctx, point0.x, point1.y + 0.5, point1.x, point1.y + 0.5, $active.dataBorderColor, 1);
       }
 
       for (var i = 0; i < data.length; i++) {
@@ -32818,8 +33272,7 @@
 
 
       if (!yax) {
-        this._drawLine(ctx, point0.x - 0.5, point0.y, point0.x - 0.5, point1.y, "#edeff0", 1); //hardcoded color!
-
+        this._drawLine(ctx, point0.x - 0.5, point0.y, point0.x - 0.5, point1.y, $active.dataBorderColor, 1);
       }
 
       var seriesNumber = 0;
@@ -34030,9 +34483,9 @@
         }
       } // animation for the right part (added item)
       else {
-          elem.style.left = "0px";
-          if (!skipRight && offset$$1 != cellWidth) ctx.clearRect(x0 + (data.length - 1) * cellWidth - cellWidth + offset$$1, 0, elem.offsetWidth, elem.offsetHeight);
-        } // show label for the last label after finishing animation
+        elem.style.left = "0px";
+        if (!skipRight && offset$$1 != cellWidth) ctx.clearRect(x0 + (data.length - 1) * cellWidth - cellWidth + offset$$1, 0, elem.offsetWidth, elem.offsetHeight);
+      } // show label for the last label after finishing animation
 
 
       if (labels.length > 1 && offset$$1 && offset$$1 != cellWidth) {
@@ -34605,8 +35058,8 @@
 
       this._mergeSettings(config, {
         title: "",
-        color: "#edeff0",
-        lineColor: "#edeff0",
+        color: $active.dataBorderColor,
+        lineColor: $active.dataBorderColor,
         template: "{obj}",
         lines: true
       });
@@ -34621,8 +35074,8 @@
     yAxis_setter: function (config) {
       this._mergeSettings(config, {
         title: "",
-        color: "#edeff0",
-        lineColor: "#edeff0",
+        color: $active.dataBorderColor,
+        lineColor: $active.dataBorderColor,
         template: "{obj}",
         lines: true,
         bg: $active.backColor
@@ -35093,7 +35546,7 @@
 
         if (legend.values && legend.values[i].$hidden) {
           disabled = true;
-          itemColor = legend.values[i].disableColor || "#edeff0";
+          itemColor = legend.values[i].disableColor || $active.dataBorderColor;
         } else {
           disabled = false;
           itemColor = legend.values ? legend.values[i].color : this._settings.color.call(this, data[i], i);
@@ -35232,8 +35685,8 @@
           } else if (legend.valign == "bottom") y1 -= legendHeight;else y += legendHeight;
         } // vertical scale
         else {
-            if (legend.align == "right") x1 -= legendWidth;else if (legend.align == "left") x += legendWidth;
-          }
+          if (legend.align == "right") x1 -= legendWidth;else if (legend.align == "left") x += legendWidth;
+        }
       }
 
       return {
@@ -35473,8 +35926,8 @@
       this._no_animation = false;
     },
     render: function (id, data, type$$1) {
-      var _this = this,
-          _arguments = arguments;
+      var _arguments = arguments,
+          _this = this;
 
       var i, lastChain; //start filtering processing=>
 
@@ -36515,7 +36968,7 @@
 
       if (type && type.type == "tiles") {
         this._tilesPadding = type.padding || this.type.padding;
-        this._viewobj.firstChild.style.float = "left";
+        this._viewobj.firstChild.style["float"] = "left";
         this._viewobj.firstChild.style.padding = this._tilesPadding / 2 + "px";
       }
 
@@ -37045,24 +37498,24 @@
         });
       } //normal parse
       else {
-          if (more && !list$$1.exists("$more")) {
-            more = {
-              id: "$more",
-              value: more,
-              $css: "webix_comments_more_item"
-            };
-            if (this._settings.mode == "chat") data.unshift(more);else data.push(more);
-          }
-
-          list$$1.parse(data);
-
-          if (this._settings.mode == "chat") {
-            //wait until rendered
-            list$$1.waitData.then(function () {
-              return list$$1.showItem(list$$1.getLastId());
-            });
-          }
+        if (more && !list$$1.exists("$more")) {
+          more = {
+            id: "$more",
+            value: more,
+            $css: "webix_comments_more_item"
+          };
+          if (this._settings.mode == "chat") data.unshift(more);else data.push(more);
         }
+
+        list$$1.parse(data);
+
+        if (this._settings.mode == "chat") {
+          //wait until rendered
+          list$$1.waitData.then(function () {
+            return list$$1.showItem(list$$1.getLastId());
+          });
+        }
+      }
 
       return true;
     },
@@ -38003,18 +38456,17 @@
         this.resize();
       }
     },
-    hideItem: function (id) {
+    hideMenuItem: function (id) {
       var menu = this.getMenu(id);
       if (menu) menu._set_item_hidden(id, true);
     },
+    showMenuItem: function (id) {
+      var menu = this.getMenu(id);
+      if (menu) menu._set_item_hidden(id, false);
+    },
     showItem: function (id) {
       var menu = this.getMenu(id);
-
-      if (menu) {
-        menu._set_item_hidden(id, false);
-
-        return list.api.showItem.call(menu, id);
-      }
+      if (menu) return list.api.showItem.call(menu, id);
     },
     _hide_sub_menu: function (mode) {
       if (this._open_sub_menu) {
@@ -38109,11 +38561,20 @@
       $getSize: function (dx, dy) {
         //we saving height and width, as list can hardcode new values
         var h = this._view._settings.height * 1;
-        var w = this._view._settings.width * 1;
+        var w = this._view._settings.width * 1; //to avoid duplicate borders, use "borderless" for inner size
+
+        var inner = this._view._settings._inner;
+        this._view._settings._inner = {
+          top: true,
+          left: true,
+          right: true,
+          bottom: true
+        };
         var size = menu.api.$getSize.call(this._view, dx, dy); //restoring
 
         this._view._settings.height = h;
         this._view._settings.width = w;
+        this._view._settings._inner = inner;
         return size;
       },
       $setSize: function (x, y) {
@@ -39736,7 +40197,8 @@
       if (this._bs_progress) delay(this._bs_select, this, [false, false]);
     },
     _bs_select: function (mode, theend, e) {
-      var cell = this._bs_ready[2] || this._locate_cell_xy(this._bs_ready[0], this._bs_ready[1]);
+      if (!this._bs_ready[2]) this._bs_ready[2] = this._locate_cell_xy(this._bs_ready[0], this._bs_ready[1]);
+      var cell = this._bs_ready[2];
 
       var start = {
         row: cell.row,
@@ -39800,8 +40262,11 @@
             starty = Math.min(startn.top, endn.top);
             endy = Math.max(startn.top + startn.height, endn.top + endn.height);
             if (this._settings.topSplit) starty += this._getTopSplitOffset(start);
-            if (this._auto_scroll_delay) this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
-            if (e && (!this._touch_scroll || this._settings.prerender)) this._auto_scroll_delay = delay(this._auto_scroll, this, [pos(e)], 250);
+
+            if (e) {
+              if (this._auto_scroll_delay) this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
+              if (!this._touch_scroll || this._settings.prerender) this._auto_scroll_delay = delay(this._auto_scroll, this, [pos(e)], 250);
+            }
           }
 
           var style = this._block_panel.style;
@@ -40435,7 +40900,9 @@
       this.data.each(function (obj) {
         var height;
         d.innerHTML = this._getValue(obj, config, 0);
-        height = Math.max(d.scrollHeight, this._settings.rowHeight, this._settings.minRowHeight || 0);
+        var spans = this._spans_pull;
+        if (spans && spans[obj.id] && spans[obj.id][id]) height = this._calcSpanAutoHeight(obj.id, id, d);else height = d.scrollHeight;
+        height = Math.max(height, this._settings.rowHeight, this._settings.minRowHeight || 0);
         height = Math.min(height, this._settings.maxRowHeight || 100000);
         if (size) size[obj.id] = Math.max(height, size[obj.id] || 0);else obj.$height = height;
       }, this);
@@ -40805,6 +41272,7 @@
 
       this._addEditor(id, type);
 
+      if (type.getPopup) type.getPopup()._editorMaster = this._settings.id;
       if (!type.$inline) type._editor_pos = this._sizeToCell(id, node, true);
       if (type.afterRender) type.afterRender();
 
@@ -41155,13 +41623,85 @@
       }
     },
     moveColumn: function (id, index) {
+      this._moveColumn(id, index);
+    },
+    _moveColumn: function (id, index, hrIndex) {
       var cindex = this.getColumnIndex(id);
       if (cindex == index || cindex == -1) return false; //already in place
 
-      var horder = this._hidden_column_order;
-      var columns = this._settings.columns; // remove from the previous place
+      var cols;
 
-      var hindex;
+      if (!isUndefined(hrIndex)) {
+        if (!this._check_source_span(cindex, index, hrIndex)) return false;
+        cols = this._get_span_columns(cindex, hrIndex, index);
+        index += this._get_target_span_shift(cindex, index);
+
+        if (cols) {
+          for (var i = 0; i < cols.length; i++) {
+            var inc = cindex > index ? i : 0;
+            var sId = cols[i];
+
+            if (this.getColumnIndex(sId) < 0 && i > 0) {
+              this._moveHiddenSpanColumn(sId, cols[0], i);
+            } else this._changeColumnIndex(cols[i], index + inc, hrIndex);
+          }
+        }
+      }
+
+      if (!cols) this._changeColumnIndex(id, index, hrIndex);
+
+      this._refresh_columns();
+    },
+    _changeColumnIndex: function (id, index, hrIndex) {
+      var cindex = this.getColumnIndex(id);
+      var horder = this._hidden_column_order;
+      var columns = this._settings.columns;
+      var hindex; // handle colspan in another header line
+
+      var header = columns[cindex].header;
+
+      if (!isUndefined(hrIndex) && header && header[hrIndex]) {
+        var sourceSpan = header[hrIndex].colspan || 1;
+        var batchChanged = false;
+
+        for (var i = 0; i < header.length; i++) {
+          if (i != hrIndex && header[i] && header[i].colspan) {
+            var hI = header[i];
+            var span = hI.colspan;
+
+            if (span > sourceSpan) {
+              var nextCol = columns[cindex + sourceSpan];
+
+              if (nextCol.batch && !columns[cindex].batch) {
+                batchChanged = true;
+                columns[cindex].batch = nextCol.batch;
+                delete nextCol.batch;
+              }
+
+              nextCol.header[i] = hI;
+            }
+          }
+        } // drop to column with colspan settings
+
+
+        var tIndex = index == columns.length ? index - 1 : index;
+        var tHeader = columns[tIndex].header;
+
+        for (var _i2 = 0; _i2 < tHeader.length; _i2++) {
+          var _span = tHeader[_i2] ? tHeader[_i2].colspan : 1;
+
+          if (_i2 != hrIndex && _span > 1 && cindex > tIndex && cindex < tIndex + _span) {
+            if (!batchChanged && columns[cindex].batch && !columns[tIndex].batch) {
+              columns[tIndex].batch = columns[cindex].batch;
+              delete columns[cindex].batch;
+            }
+
+            header[_i2] = tHeader[_i2];
+          }
+        }
+      } // remove from the previous place
+
+
       var col = columns.splice(cindex, 1)[0];
 
       if (horder.length) {
@@ -41179,14 +41719,100 @@
       var pos;
 
       if (horder.length) {
+        pos = 0;
         var prev = columns[nindex - 1];
-        pos = prev && prev.id ? horder.find(prev.id) + 1 : 0;
+
+        if (prev && prev.id) {
+          var pId = prev.id;
+          pos = this._getHiddenColumnIndex(pId);
+
+          do {
+            pos += 1;
+            pId = horder[pos];
+          } while (this.getColumnIndex(pId) < 0 && pos < horder.length);
+        }
+
         horder.insertAt(col.id, pos);
       }
 
       this._updateSplit(nindex, pos, 1);
+    },
+    _moveHiddenSpanColumn: function (id, prevId, inc) {
+      var horder = this._hidden_column_order; // remove from the previous place
 
-      this._refresh_columns();
+      var hindex = this._getHiddenColumnIndex(id);
+
+      horder.removeAt(hindex);
+
+      this._updateSplit(-1, hindex, -1); // paste into new
+
+
+      var index = this._getHiddenColumnIndex(prevId) + inc;
+      horder.insertAt(id, index);
+
+      this._updateSplit(-1, index, 1);
+    },
+    _check_source_span: function (indexFrom, indexTo, hrIndex) {
+      if (indexTo > indexFrom) indexTo--;
+      var fromSpan = (this._columns[indexFrom].header[hrIndex].colspan || 1) - 1;
+
+      for (var i = 0; i < this._columns.length; i++) {
+        var header = this._columns[i].header;
+
+        for (var j = 0; j < header.length; j++) {
+          if (i != indexFrom || j != hrIndex) {
+            var span = header[j] && header[j].colspan || 1;
+            var i1 = i + span - 1;
+            if (span > 1 && i <= indexFrom && i1 >= indexFrom + fromSpan && (i > indexTo || i1 < indexTo)) return false;
+          }
+        }
+      }
+
+      return true;
+    },
+    _get_target_span_shift: function (indexFrom, indexTo) {
+      for (var i = 0; i < this._columns.length; i++) {
+        var header = this._columns[i].header;
+
+        for (var j = 0; j < header.length; j++) {
+          if (i != indexFrom) {
+            var span = header[j] && header[j].colspan;
+
+            if (span) {
+              var i1 = i + span - 1;
+
+              if (i < indexTo && i1 >= indexTo && (i > indexFrom || i1 < indexFrom)) {
+                var newIndexTo = indexFrom > indexTo ? i : i1 + 1;
+                return newIndexTo - indexTo;
+              }
+            }
+          }
+        }
+      }
+
+      return 0;
+    },
+    _get_span_columns: function (cIndex, hrIndex) {
+      var columns,
+          h = this._columns[cIndex].header;
+      var span = h[hrIndex].colspan || 1;
+
+      for (var i = 0; i < h.length; i++) {
+        if (h[i] && h[i].$colspan && h[i].$colspan > h[i].colspan) span = Math.max(span, h[i].$colspan);
+      }
+
+      if (span > 1) {
+        var id = this.columnId(cIndex);
+        columns = [id];
+
+        var hIndex = this._getHiddenColumnIndex(id);
+
+        for (var _i3 = hIndex + 1; _i3 < hIndex + span; _i3++) {
+          columns.push(this._getHiddenColumnId(_i3));
+        }
+      }
+
+      return columns;
     },
     _init_horder: function (horder, cols) {
       if (!horder.length) {
@@ -41226,7 +41852,7 @@
 
         this._fixSplit(index, span, -1);
 
-        for (var _i2 = index + span - 1; _i2 >= index; _i2--) {
+        for (var _i4 = index + span - 1; _i4 >= index; _i4--) {
           this._hideColumn(index);
 
           column = cols.splice(index, 1)[0];
@@ -41245,30 +41871,30 @@
         var prev = null;
         var hindex = 0;
 
-        for (var _i3 = 0; _i3 < horder.length; _i3++) {
-          if (horder[_i3] == id) {
-            hindex = _i3;
+        for (var _i5 = 0; _i5 < horder.length; _i5++) {
+          if (horder[_i5] == id) {
+            hindex = _i5;
             break;
           }
 
-          if (!hhash[horder[_i3]]) prev = horder[_i3];
+          if (!hhash[horder[_i5]]) prev = horder[_i5];
         }
 
         if (opts.spans) {
           var _header = column.header;
 
-          for (var _i4 = 0; _i4 < _header.length; _i4++) {
-            if (_header[_i4]) {
-              _header[_i4].colspan = _header[_i4].$colspan || _header[_i4].colspan;
-              span = Math.max(span, _header[_i4].colspan || 1);
+          for (var _i6 = 0; _i6 < _header.length; _i6++) {
+            if (_header[_i6]) {
+              _header[_i6].colspan = _header[_i6].$colspan || _header[_i6].colspan;
+              span = Math.max(span, _header[_i6].colspan || 1);
             }
           }
         }
 
         var _index = prev ? this.getColumnIndex(prev) + 1 : 0;
 
-        for (var _i5 = hindex + span - 1; _i5 >= hindex; _i5--) {
-          var col = hhash[horder[_i5]];
+        for (var _i7 = hindex + span - 1; _i7 >= hindex; _i7--) {
+          var col = hhash[horder[_i7]];
 
           if (col) {
             //can be already shown by another action
@@ -41374,9 +42000,9 @@
         col.attached = col.node = null;
       }
 
-      for (var _i6 = 0; _i6 < 3; _i6++) {
-        this._header.childNodes[_i6].innerHTML = "";
-        this._body.childNodes[_i6].firstChild.innerHTML = "";
+      for (var _i8 = 0; _i8 < 3; _i8++) {
+        this._header.childNodes[_i8].innerHTML = "";
+        this._body.childNodes[_i8].firstChild.innerHTML = "";
       } //render new structure
 
 
@@ -41401,7 +42027,7 @@
       this.render();
     },
     showColumnBatch: function (batch, mode, silent) {
-      var preserve = typeof mode != "undefined";
+      var preserve = !isUndefined(mode);
       mode = mode !== false;
       var sub = [];
       this.eachColumn(function (id, col) {
@@ -41773,6 +42399,16 @@
       var nodeName = e.target.nodeName;
       return nodeName != "INPUT" && nodeName != "TEXTAREA";
     },
+    _getColumnDragText: function (id, rind) {
+      var header = this.getColumnConfig(id).header;
+      var text = header[rind] ? header[rind].text : null;
+
+      for (var i = 0; !text && i < header.length; i++) {
+        if (header[i] && header[i].text) text = header[i].text;
+      }
+
+      return text || "&nbsp;";
+    },
     dragColumn_setter: function (value) {
       var control; //will be defined below
 
@@ -41798,7 +42434,7 @@
 
             this._limit_column_drag = column.width;
             this._auto_scroll_force = true;
-            return "<div class='webix_dd_drag_column' style='width:" + column.width + "px'>" + (column.header[0].text || "&nbsp;") + "</div>";
+            return "<div class='webix_dd_drag_column' style='width:" + column.width + "px'>" + this._getColumnDragText(id.column, id.rind) + "</div>";
           }, this),
           $dragPos: bind(function (pos$$1, e, node) {
             var _this = this;
@@ -41823,7 +42459,8 @@
                   this.$view.parentNode.appendChild(this._dragTarget);
                 }
 
-                this.moveColumn(start, end_index + (start_index < end_index ? 1 : 0));
+                this._moveColumn(start, end_index + (start_index < end_index ? 1 : 0), context.start.rind);
+
                 this._last_sort_dnd_node = id.column;
                 this._column_dnd_temp_block = true;
               }
@@ -41870,18 +42507,8 @@
               start: id,
               custom: "column_dnd"
             };
-            var header = this.getColumnConfig(id.column).header;
-            var text = "&nbsp;";
-
-            for (var i = 0; i < header.length; i++) {
-              if (header[i]) {
-                text = header[i].text;
-                break;
-              }
-            }
-
             this._auto_scroll_force = true;
-            return "<div class='webix_dd_drag_column'>" + text + "</div>";
+            return "<div class='webix_dd_drag_column'>" + this._getColumnDragText(id.column, id.rind) + "</div>";
           }, this),
           $drop: bind(function (s, t, e) {
             var target = e; //on touch devices event doesn't point to the actual drop target
@@ -41889,14 +42516,17 @@
             if (e.touches && this._drag_column_last) target = this._drag_column_last;
             var id = this.locate(target);
             if (!id) return false;
-            var start = DragControl.getContext().start.column;
+            var start = DragControl.getContext().start;
+            var startId = start.column;
 
-            if (start != id.column) {
-              if (!this.callEvent("onBeforeColumnDrop", [start, id.column, e])) return;
-              var start_index = this.getColumnIndex(start);
+            if (startId != id.column) {
+              if (!this.callEvent("onBeforeColumnDrop", [startId, id.column, e])) return;
+              var start_index = this.getColumnIndex(startId);
               var end_index = this.getColumnIndex(id.column);
-              this.moveColumn(start, end_index + (start_index < end_index ? 1 : 0));
-              this.callEvent("onAfterColumnDrop", [start, id.column, e]);
+
+              this._moveColumn(startId, end_index + (start_index < end_index ? 1 : 0), start.rind);
+
+              this.callEvent("onAfterColumnDrop", [startId, id.column, e]);
             }
           }, this),
           $dragIn: bind(function (s, t, e) {
@@ -42085,6 +42715,7 @@
       var widths = [];
       start = start || 0 + options.xCorrection;
       base = base || [];
+      var readySpans = {};
       this.eachRow(bind(function (row) {
         var width = 0;
         var rowItem = this.getItem(row);
@@ -42109,50 +42740,59 @@
             if (options.data !== "selection" || options.data == "selection" && this._findIndex(sel, function (obj) {
               return obj.column == column && obj.row == row;
             }) !== -1) {
-              var span;
-              if (this.getSpan) span = this.getSpan(row, column); //check span from previous table
+              var span = void 0;
+              if (this.getSpan) span = this.getSpan(row, column);
 
-              if (span && this.getColumnIndex(column) === start) {
-                var spanStart = this.getColumnIndex(span[1]);
-
-                if (spanStart < start) {
-                  span[2] = span[2] - (start - spanStart);
-                  span[4] = span[4] ? span[4] : rowItem[span[1]] ? this.getText(row, span[1]) : null;
-                  span[1] = column;
-                }
-              }
-
-              if (!span || span && span[0] == row && span[1] == column) {
-                var cellValue = span && span[4] ? span[4] : this._columns_pull[column] ? this.getText(row, column) : "";
-                var className = this.getCss(row, column) + " " + (columns[c].css || "") + (span ? " webix_dtable_span " + (span[5] || "") : "");
-                var style = {
-                  height: span && span[3] > 1 ? "auto" : (rowItem.$height || this.config.rowHeight) + "px",
-                  width: span && span[2] > 1 ? "auto" : columns[c].width + "px"
-                };
-                colrow.push({
-                  txt: cellValue,
-                  className: className,
-                  style: style,
-                  span: span ? {
-                    colspan: span[2],
-                    spanStart: this.getColumnIndex(span[1]),
-                    rowspan: span[3]
-                  } : null
-                });
-
-                if (cellValue || cellValue === 0) {
+              if (span) {
+                if (readySpans[span[0]] && readySpans[span[0]][span[1]]) {
+                  colrow.push({
+                    $inspan: true
+                  });
                   rightRestriction = Math.max(colIndex + 1, rightRestriction);
                   bottomRestriction = Math.max(rowIndex + 1, bottomRestriction);
+                  continue;
                 }
 
-                datarow = datarow || !!cellValue;
-              } else if (span) {
-                colrow.push({
-                  $inspan: true
-                });
+                if (this.data._filter_order) for (var r = span[0] * 1 + span[3] - 1; r >= span[0]; r--) {
+                  if (this.data.order.indexOf(r) == -1) span[3]--;
+                }
+                var hiddenColumnOrder = this._hidden_column_order;
+
+                if (hiddenColumnOrder.length) {
+                  var ci = hiddenColumnOrder.find(span[1]);
+
+                  for (var _c = ci + span[2]; _c >= ci; _c--) {
+                    if (!this.isColumnVisible(hiddenColumnOrder[_c])) span[2]--;
+                  }
+                }
+
+                if (!readySpans[span[0]]) readySpans[span[0]] = {};
+                readySpans[span[0]][span[1]] = 1;
+              }
+
+              var cellValue = span && span[4] ? span[4] : this._columns_pull[column] ? this.getText(row, column) : "";
+              var className = this.getCss(row, column) + " " + (columns[c].css || "") + (span ? " webix_dtable_span " + (span[5] || "") : "");
+              var style = {
+                height: span && span[3] > 1 ? "auto" : (rowItem.$height || this.config.rowHeight) + "px",
+                width: span && span[2] > 1 ? "auto" : columns[c].width + "px"
+              };
+              colrow.push({
+                txt: cellValue,
+                className: className,
+                style: style,
+                span: span ? {
+                  colspan: span[2],
+                  spanStart: this.getColumnIndex(span[1]),
+                  rowspan: span[3]
+                } : null
+              });
+
+              if (cellValue || cellValue === 0) {
                 rightRestriction = Math.max(colIndex + 1, rightRestriction);
                 bottomRestriction = Math.max(rowIndex + 1, bottomRestriction);
               }
+
+              datarow = datarow || !!cellValue;
             }
           }
         }
@@ -42214,7 +42854,7 @@
       var headerCount = topSplitIndex > 6 ? hCount : topSplitIndex;
       tableData.forEach(function (table, i) {
         var tableHTML = create("table", {
-          class: "webix_table_print " + _this.$view.className + (options.borderless ? " borderless" : ""),
+          "class": "webix_table_print " + _this.$view.className + (options.borderless ? " borderless" : ""),
           style: "border-collapse:collapse",
           id: _this.$view.getAttribute("id")
         }, "<thead></thead><tbody></tbody><tfoot></tfoot>");
@@ -42230,7 +42870,7 @@
           row.forEach(function (cell) {
             if (!cell.$inspan) {
               var td = create("td", {
-                class: cell.className
+                "class": cell.className
               }, cell.txt);
 
               for (var key in cell.style) {
@@ -42251,7 +42891,7 @@
 
         if (i + 1 < tableData.length) {
           var br = create("DIV", {
-            class: "webix_print_pagebreak"
+            "class": "webix_print_pagebreak"
           });
           container.appendChild(br);
         }
@@ -42290,6 +42930,7 @@
       }];
       if (options.header !== false) styles = this._getExportHStyles(options, "header", styles, type);
       this.data.each(function (obj) {
+        if (options.filter && !options.filter(obj)) return false;
         var row = {};
 
         for (var i = 0; i < columns.length; i++) {
@@ -42360,17 +43001,34 @@
             if (node) {
               var name = [node.className, header.css || "", group];
               hrow[i] = this._getExportCellStyle(node, name.join(":"), type);
-              if (header.colspan || header.rowspan) hs.push([h, i, {
-                colspan: header.colspan - 1 || 0,
-                rowspan: header.rowspan - 1 || 0
-              }, hrow[i]]);
+
+              if (header.colspan || header.rowspan) {
+                //add border only to the last cell of the rowspan/colspan
+                var _styles = copy(hrow[i]);
+
+                if (header.rowspan > 1) this._clearBorder(type, "bottom", hrow[i]);
+                if (header.colspan > 1) this._clearBorder(type, "right", hrow[i]);
+                hs.push([h, i, {
+                  colspan: header.colspan - 1 || 0,
+                  rowspan: header.rowspan - 1 || 0
+                }, _styles]);
+              }
             }
           } else {
             for (var s = 0; s < hs.length; s++) {
               var st = hs[s][2],
                   hsc = hs[s][1],
                   hsr = hs[s][0];
-              if (hsc + st.colspan >= i && hsr + st.rowspan >= h) hrow[i] = hs[s][3];
+
+              if (hsc + st.colspan >= i && hsr + st.rowspan >= h) {
+                //add border only to the last cell of the rowspan/colspan
+                var _styles2 = copy(hs[s][3]);
+
+                if (hsr + st.rowspan != h) this._clearBorder(type, "bottom", _styles2);
+                if (hsc + st.colspan != i) this._clearBorder(type, "right", _styles2);
+                hrow[i] = _styles2;
+                break;
+              }
             }
           }
         }
@@ -42379,6 +43037,9 @@
       }
 
       return styles;
+    },
+    _clearBorder: function (type, pos$$1, obj) {
+      if (type == "pdf") obj["border" + pos$$1[0].toUpperCase() + pos$$1.substring(1) + "Color"] = obj.backgroundColor;else delete obj.border[pos$$1];
     },
     _getBorderColor: function (styles, defaultColor, type) {
       return styles["border-".concat(type, "-width")] == "0px" ? null : color.rgbToHex(styles["border-".concat(type, "-color")]) || defaultColor;
@@ -43445,7 +44106,11 @@
 
         if (cs.indexOf("webix_hcell") != -1) {
           pos$$1 = this._locate(node);
-          if (pos$$1) pos$$1.header = true;
+
+          if (pos$$1) {
+            pos$$1.header = true;
+            if (pos$$1.span) pos$$1.cind -= pos$$1.span - 1;
+          }
         }
 
         if (cs.indexOf("webix_drop_area") != -1) {
@@ -43473,7 +44138,7 @@
       "column") || cdiv.getAttribute(
       /*@attr*/
       "column")) * 1;
-      var rind = node.getAttribute("aria-rowindex");
+      var rind = node.getAttribute("aria-rowindex") * 1;
       var row = node.getAttribute(
       /*@attr*/
       "row") || (rind ? rind - 1 : 0);
@@ -44369,7 +45034,7 @@
       } else {
         var sign = create("div", {
           webix_sort_dir: direction,
-          class: "webix_ss_sort_".concat(direction)
+          "class": "webix_ss_sort_".concat(direction)
         }, "<div class=\"webix_ss_sort_num\">".concat(this._sort_signs_order.length + 1, "</div>"));
 
         this._render_single_mark(column, sign, direction);
@@ -44435,6 +45100,7 @@
     _sort: function (col_id, direction, type$$1, preserve) {
       var _this4 = this;
 
+      var sortSign = true;
       preserve = this._settings.sort === "multi" && preserve;
       direction = direction || "asc";
 
@@ -44444,10 +45110,7 @@
       }
 
       var col = this.getColumnConfig(col_id);
-      var config = typeof col.sort == "function" ? {
-        as: col.sort,
-        dir: direction
-      } : {
+      var config = {
         by: col.id,
         dir: direction,
         as: col.sort
@@ -44460,26 +45123,30 @@
         if (this._last_order.length > 1) params = [this._last_order.map(function (id) {
           return _this4._last_sorted[id];
         })];
-        this.callEvent("onBeforeSort", params);
-        if (!this._skip_server_op) this.loadNext(0, 0, 0, 0, true, true).then(function () {
-          return _this4._on_after_sort(params);
-        });else this._skip_server_op.$params = params; // save last parameters
-      } else {
-        if (type$$1 == "text") {
-          var new_id = "$text_" + col.id;
-          this.data.each(function (obj) {
-            obj[new_id] = this.getText(obj.id, col.id);
-          }, this);
-          config.as = "string";
-          config.by = new_id;
-        }
 
-        if (this._last_order.length > 1) this.data.sort(this._last_order.map(function (id) {
+        if (this.callEvent("onBeforeSort", params)) {
+          if (!this._skip_server_op) this.loadNext(0, 0, 0, 0, true, true).then(function () {
+            return _this4._on_after_sort(params);
+          });else this._skip_server_op.$params = params; // save last parameters
+        } else sortSign = false;
+      } else {
+        if (type$$1 == "text" || type$$1 == "text_locale") this._sort_text(config, col.id, type$$1);
+        if (this._last_order.length > 1) sortSign = this.data.sort(this._last_order.map(function (id) {
           return _this4._last_sorted[id];
-        }));else this.data.sort(config);
+        }));else sortSign = this.data.sort(config);
       }
 
-      this.markSorting(col.id, config.dir, preserve);
+      if (sortSign) this.markSorting(col.id, config.dir, preserve);
+    },
+    _sort_text: function (config, id, type$$1) {
+      var _this5 = this;
+
+      var new_id = "$".concat(type$$1, "_").concat(id);
+      this.data.each(function (obj) {
+        return obj[new_id] = _this5.getText(obj.id, id);
+      });
+      config.as = "string" + (type$$1.indexOf("locale") != -1 ? "_locale" : "");
+      config.by = new_id;
     },
     _on_after_sort: function (params) {
       this.callEvent("onAfterSort", params);
@@ -44563,7 +45230,9 @@
 
 
             res = this._mouseEventCall(css_call, e, id, trg);
-            if (res === false) return; //call inner handler
+            if (res === false) return; //selection removes trg
+
+            if (isBody && !this._body.contains(trg)) trg = this.getItemNode(id); //call inner handler
 
             if (isBody) {
               if (this.callEvent("on" + name, [id, e, trg]) && pair) {
@@ -44596,7 +45265,6 @@
         var node = e.target;
         var section = node;
         var pos$$1;
-        var cind = id.cind - (id.span ? id.span - 1 : 0);
         var rind = -1;
 
         while (section && !pos$$1) {
@@ -44610,7 +45278,7 @@
           node = node.parentNode;
         }
 
-        var config = this._columns[cind][pos$$1][rind];
+        var config = this._columns[id.cind][pos$$1][rind];
         if (config.tooltip) tooltip.type.template = template(config.tooltip === true ? "#text#" : config.tooltip);else return null;
         data = config;
       } else {
@@ -45212,7 +45880,7 @@
   exports.VirtualRenderStack = VirtualRenderStack;
   exports.VRenderStack = VRenderStack;
   exports.html = html$1;
-  exports.skin = skin$5;
+  exports.skin = skin$7;
   exports.debug = debug;
   exports.i18n = i18n;
   exports.ready = ready;

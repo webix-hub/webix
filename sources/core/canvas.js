@@ -54,17 +54,31 @@ const Canvas = proto({
 	renderTextAt:function(valign,align, x,y,t,c,w){
 		var text=this.renderText.call(this,x,y,t,c,w);
 		if (text){
+			let size;
+			if(document.body.contains(text))
+				size = { width: text.offsetWidth, height: text.offsetHeight };
+			else{
+				// inside window
+				const d = create("DIV",{class: "webix_chart", style: "visibility:hidden; position:absolute; top:0px; left:0px;"}, "");
+				const parentNode = text.parentNode;
+				document.body.appendChild(d);
+				d.appendChild(text);
+				size = { width: text.offsetWidth, height: text.offsetHeight };
+				parentNode.appendChild(text);
+				remove(d);
+			}
+
 			if (valign){
 				if(valign == "middle")
-					text.style.top = parseInt(y-text.offsetHeight/2,10) + "px";
+					text.style.top = parseInt(y-size.height/2,10) + "px";
 				else
-					text.style.top = y-text.offsetHeight + "px";
+					text.style.top = y-size.height + "px";
 			}
 			if (align){
 				if(align == "left")
-					text.style.left = x-text.offsetWidth + "px";
+					text.style.left = x-size.width + "px";
 				else
-					text.style.left = parseInt(x-text.offsetWidth/2,10) + "px";
+					text.style.left = parseInt(x-size.width/2,10) + "px";
 			}
 		}
 		return text;

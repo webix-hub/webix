@@ -117,16 +117,18 @@ const TextPattern = {
 		let value = node.value;
 		let pos = getSelectionRange(node);
 		let chr = "";
-
-		if (code == 8 || code == 46){
-			if(pos.start == pos.end){
-				if(code == 8) pos.start--;
-				else pos.end++;
+		
+		if(code){
+			if (code == 8 || code == 46){
+				if(pos.start == pos.end){
+					if(code == 8) pos.start--;
+					else pos.end++;
+				}
+			} else {
+				chr = String.fromCharCode(code);
+				const isCapsLock = e.getModifierState("CapsLock");
+				if (!e.shiftKey && !isCapsLock || e.shiftKey && isCapsLock) chr = chr.toLowerCase();
 			}
-		} else {
-			chr = String.fromCharCode(code);
-			const isCapsLock = e.getModifierState("CapsLock");
-			if (!e.shiftKey && !isCapsLock || e.shiftKey && isCapsLock) chr = chr.toLowerCase();
 		}
 
 		value = value.substr(0, pos.start) + chr +value.substr(pos.end);

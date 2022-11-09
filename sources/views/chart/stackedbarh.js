@@ -1,4 +1,4 @@
-
+import {$active} from "../../webix/skin";
 
 const StackedBarHChart = {
 /**
@@ -66,7 +66,7 @@ const StackedBarHChart = {
 		}
 		/*draws a black line if the horizontal scale isn't defined*/
 		if(!yax){
-			this._drawLine(ctx,point0.x-0.5,point0.y,point0.x-0.5,point1.y,"#edeff0",1); //hardcoded color!
+			this._drawLine(ctx,point0.x-0.5,point0.y,point0.x-0.5,point1.y,$active.dataBorderColor,1);
 		}
 
 		var seriesNumber = 0;

@@ -979,8 +979,12 @@ const api = {
 			}
 			if (cs.indexOf("webix_hcell")!=-1){
 				pos = this._locate(node);
-				if (pos)
+				if (pos){
 					pos.header = true;
+					if(pos.span)
+						pos.cind -= pos.span-1;
+				}
+
 			}
 			if (cs.indexOf("webix_drop_area")!=-1){
 				pos = this._locate(node);
@@ -1003,7 +1007,7 @@ const api = {
 		var cdiv = node.parentNode;
 		if (!cdiv) return null;
 		var column = (node.getAttribute(/*@attr*/"column") || cdiv.getAttribute(/*@attr*/"column"))*1;
-		var rind = node.getAttribute("aria-rowindex");
+		var rind = node.getAttribute("aria-rowindex")*1;
 		var row = node.getAttribute(/*@attr*/"row") || (rind ? rind-1 : 0);
 		var span = (node.getAttribute("colspan") || cdiv.getAttribute("colspan"))*1;
 
@@ -1953,6 +1957,8 @@ const api = {
 	_last_order:[],
 	_last_sorted:{},
 	_sort:function(col_id, direction, type, preserve){
+		let sortSign = true;
+
 		preserve = this._settings.sort === "multi" && preserve;
 		direction = direction || "asc";
 
@@ -1962,7 +1968,7 @@ const api = {
 		}
 
 		const col = this.getColumnConfig(col_id);
-		const config = (typeof col.sort == "function") ? { as:col.sort, dir:direction } : { by:col.id, dir:direction, as:col.sort };
+		const config = { by:col.id, dir:direction, as:col.sort };
 		if (!this._last_sorted[col.id])
 			this._last_order.push(col.id);
 		this._last_sorted[col.id] = config;
@@ -1972,23 +1978,31 @@ const api = {
 			if (this._last_order.length > 1)
 				params = [ this._last_order.map(id => this._last_sorted[id]) ];
 
-			this.callEvent("onBeforeSort", params);
-			if (!this._skip_server_op)
-				this.loadNext(0, 0, 0, 0, true, true).then(() => this._on_after_sort(params));
-			else this._skip_server_op.$params = params;			// save last parameters
-		} else {
-			if (type == "text"){
-				const new_id = "$text_" + col.id;
-				this.data.each(function(obj){ obj[new_id] = this.getText(obj.id, col.id); }, this);
-				config.as = "string"; config.by = new_id;
+			if(this.callEvent("onBeforeSort", params)){
+				if (!this._skip_server_op)
+					this.loadNext(0, 0, 0, 0, true, true).then(() => this._on_after_sort(params));
+				else this._skip_server_op.$params = params;			// save last parameters
 			}
+			else
+				sortSign = false;
+		} else {
+			if (type == "text" || type == "text_locale")
+				this._sort_text(config, col.id, type);
 
 			if (this._last_order.length > 1)
-				this.data.sort( this._last_order.map(id => this._last_sorted[id]) );
+				sortSign = this.data.sort( this._last_order.map(id => this._last_sorted[id]) );
 			else
-				this.data.sort( config );
+				sortSign = this.data.sort( config );
 		}
-		this.markSorting(col.id, config.dir, preserve);
+
+		if(sortSign)
+			this.markSorting(col.id, config.dir, preserve);
+	},
+	_sort_text: function(config, id, type){
+		const new_id = `$${type}_${id}`;
+		this.data.each(obj => obj[new_id] = this.getText(obj.id, id));
+		config.as = "string" + (type.indexOf("locale") != -1 ? "_locale" : "");
+		config.by = new_id;
 	},
 	_on_after_sort:function(params){
 		this.callEvent("onAfterSort", params);
@@ -2057,8 +2071,12 @@ const api = {
 					res = this._mouseEventCall(css_call, e, id, trg);
 					if (res===false) return;
 
+					//selection removes trg
+					if(isBody && !this._body.contains(trg))
+						trg = this.getItemNode(id);
+
 					//call inner handler
-					if (isBody ){
+					if (isBody){
 						if(this.callEvent("on"+name,[id,e,trg])&&pair){
 							this.callEvent("on"+pair,[id,e,trg]);
 						}
@@ -2088,7 +2106,6 @@ const api = {
 			let node = e.target;
 			let section = node;
 			let pos;
-			let cind = id.cind - (id.span?id.span-1:0);
 			let rind = -1;
 
 			while (section && !pos){
@@ -2103,7 +2120,7 @@ const api = {
 				node = node.parentNode;
 			}
 
-			let config = this._columns[cind][pos][rind];
+			let config = this._columns[id.cind][pos][rind];
 			if (config.tooltip)
 				tooltip.type.template = template(config.tooltip === true ? "#text#" : config.tooltip);
 			else return null;

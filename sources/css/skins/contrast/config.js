@@ -51,6 +51,7 @@ const skin = {
 	timelineColor:"#b300b3",
 
 	backColor:"#393939",
+	dataBorderColor:"#4d4d4d",
 
 	//colorboard
 	colorPadding: 4

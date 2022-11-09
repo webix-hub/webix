@@ -2,6 +2,7 @@ import {$active} from "../../webix/skin";
 import {extend, isUndefined} from "../../webix/helpers";
 import TreeStore from "../../core/treestore";
 import colorConverter from "../../webix/color";
+import {getTextSize} from "../../webix/html";
 
 const Pie = {
 	$render_pie:function(ctx,data,point0, point1,sIndex,map){
@@ -395,8 +396,7 @@ const Pie = {
 		const css = !in_width || this._getFontCss(bgColor);
 		var t = this.canvases[sIndex].renderText(0, 0, text, css, 1);
 		if (!t) return;
-		// get existing width of text
-		let labelWidth = t.scrollWidth;
+		let labelWidth = getTextSize(text, css).width;
 
 		t.style.width = labelWidth + "px";	//adjust text label to fit all text
 		if (labelWidth>x0) labelWidth = x0;	//the text can't be greater than half of view
