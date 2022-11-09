@@ -62,7 +62,7 @@ function _ui_creator(config, parent, id){
 	}
 
 	if (body_child && !top_node.setPosition && !top_node.$apiOnly)
-		use("_fixHeight")();
+		use("fixHeight")();
 
 	if (top_node._settings && top_node._settings._hidden && !node.$view){
 		top_node._settings._container = node;

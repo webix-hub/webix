@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.10.0.0
+ * webix UI v.10.0.1
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -2989,7 +2989,7 @@
       top_node = _view(config);
     }
 
-    if (body_child && !top_node.setPosition && !top_node.$apiOnly) use("_fixHeight")();
+    if (body_child && !top_node.setPosition && !top_node.$apiOnly) use("fixHeight")();
 
     if (top_node._settings && top_node._settings._hidden && !node.$view) {
       top_node._settings._container = node;
@@ -17486,7 +17486,7 @@
     }
   };
 
-  var version = "10.0.0";
+  var version = "10.0.1";
   var name = "core";
 
   var errorMessage = "non-existing view for export";
@@ -20325,7 +20325,7 @@
     fixed = true;
   }
 
-  define("_fixHeight", _fixHeight);
+  define("fixHeight", _fixHeight);
 
   ui.animate = animate$1;
   ui.animateView = animateView;

@@ -41,4 +41,4 @@ function _fixHeight(){
 	fixed = true;
 }
 
-define("_fixHeight", _fixHeight);
+define("fixHeight", _fixHeight);

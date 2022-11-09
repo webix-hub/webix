@@ -1,4 +1,4 @@
-// Type definitions for Webix UI 10.0
+// Type definitions for Webix UI 8.4
 // Project: https://webix.com
 
 declare namespace webix {
@@ -2564,12 +2564,15 @@ declare namespace webix {
 			labelWidth?: number;
 			layout?: string;
 			marker?: number|boolean;
+			markerColor?: string;
 			maxHeight?: number;
 			maxRange?: number;
 			maxWidth?: number;
+			minBarHeight?: number;
 			minHeight?: number;
 			minRange?: number;
 			minWidth?: number;
+			origin?: number;
 			placeholder?: any;
 			scale?: obj|boolean;
 			smoothFlow?: boolean;
@@ -4025,7 +4028,7 @@ declare namespace webix {
 			hasCss(id:string|number, css:string):boolean;
 			hasEvent(name:string):boolean;
 			hide():void;
-			hideItem(id:string|number):void;
+			hideMenuItem(id:string|number):void;
 			isEnabled():boolean;
 			isItemEnabled():boolean;
 			isSelected(id:string|number):boolean;
@@ -5465,6 +5468,80 @@ declare namespace webix {
 			config: dbllistConfig;
 			name: string;
 		}
+		interface desktopConfig{
+			view?: string;
+			animate?: boolean|obj;
+			appIconPath?: string;
+			apps?: any[];
+			barPosition?: string;
+			body?: obj;
+			borderless?: boolean;
+			container?: string|HTMLElement;
+			css?: string|obj;
+			disabled?: boolean;
+			gravity?: number;
+			grid?: boolean;
+			height?: number;
+			hidden?: boolean;
+			id?: string|number;
+			locale?: obj;
+			maxHeight?: number;
+			maxWidth?: number;
+			minHeight?: number;
+			minWidth?: number;
+			on?: EventHash;
+			override?: any[];
+			systemParams?: obj;
+			tileAlign?: string;
+			tileLayout?: string;
+			width?: number;
+		}
+		type desktopEventName ='onAfterScroll'|'onBlur'|'onDestruct'|'onEnter'|'onFocus'|'onInit'|'onLongTouch'|'onSwipeX'|'onSwipeY'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onViewResize'|'onViewShow';
+		class desktop implements webix.ui.baseview{
+			addApp(app:obj):void;
+			adjust():void;
+			app(app:obj):void;
+			attachEvent(type:desktopEventName, functor:WebixCallback, id?:string):string|number;
+			blockEvent():void;
+			callEvent(name:string, params:any[]):boolean;
+			define(property:string, value:any):void;
+			destructor():void;
+			detachEvent(id:string):void;
+			disable():void;
+			enable():void;
+			getChildViews():any[];
+			getFormView():webix.ui.baseview;
+			getNode():obj;
+			getParentView():obj;
+			getService(service:string):obj;
+			getState():obj;
+			getStateData():any[];
+			getTopParentView():webix.ui.baseview;
+			hasEvent(name:string):boolean;
+			hide():void;
+			isEnabled():boolean;
+			isVisible():boolean;
+			mapEvent(map:obj):void;
+			queryView(config:obj|WebixCallback|string, mode?:string):obj|any[];
+			resize():void;
+			setStateData(apps:any[]):void;
+			show(force?:boolean, animation?:boolean):void;
+			unblockEvent():void;
+		
+			bind(target:any, rule?:WebixCallback, format?:string):void;
+			unbind():void;
+			$app: obj;
+			$getSize():any[];
+			$height: number;
+			$scope: obj;
+			$setNode: any;
+			$setSize(x:number, y:number):boolean;
+			$skin: WebixCallback;
+			$view: HTMLElement;
+			$width: number;
+			config: desktopConfig;
+			name: string;
+		}
 		interface diagramConfig{
 			view?: string;
 			animate?: boolean|obj;
@@ -6482,6 +6559,8 @@ declare namespace webix {
 		interface ganttConfig{
 			view?: string;
 			animate?: boolean|obj;
+			baseline?: boolean;
+			body?: obj;
 			borderless?: boolean;
 			compact?: boolean;
 			compactWidth?: number;
@@ -8204,7 +8283,7 @@ declare namespace webix {
 			hasCss(id:string|number, css:string):boolean;
 			hasEvent(name:string):boolean;
 			hide():void;
-			hideItem(id:string|number):void;
+			hideMenuItem(id:string|number):void;
 			isEnabled():boolean;
 			isItemEnabled():boolean;
 			isSelected(id:string|number):boolean;
@@ -8233,6 +8312,7 @@ declare namespace webix {
 			setPage(page:number):void;
 			show(force?:boolean, animation?:boolean):void;
 			showItem(id:string|number):void;
+			showMenuItem(id:string|number):void;
 			sizeToContent():void;
 			sort(by:string, dir?:string, as?:string):void;
 			sync(source:obj, filter:WebixCallback, silent:boolean):void;
@@ -9060,6 +9140,7 @@ declare namespace webix {
 			datatable?: obj;
 			defaultOperation?: string;
 			disabled?: boolean;
+			externalProcessing?: boolean;
 			fields?: any[];
 			gravity?: number;
 			height?: number;
@@ -9077,6 +9158,7 @@ declare namespace webix {
 			predicates?: obj;
 			readonly?: boolean;
 			structure?: obj;
+			totalOperations?: obj;
 			url?: string;
 			width?: number;
 		}
@@ -11206,6 +11288,7 @@ declare namespace webix {
 			rowHeight?: number;
 			save?: string|obj;
 			sheetTabWidth?: number;
+			strict?: boolean;
 			subbar?: obj;
 			toolbar?: string|boolean;
 			type?: string;
@@ -11256,6 +11339,7 @@ declare namespace webix {
 			getSelectedId(asArray:boolean):obj|any[];
 			getSelectedRange():string;
 			getSheetData(sheet_name:string):void;
+			getSheetState(name:string):string;
 			getStyle(row:number, column:number):obj;
 			getTopParentView():webix.ui.baseview;
 			groupUndo(func:WebixCallback):void;
@@ -11300,9 +11384,12 @@ declare namespace webix {
 			setRangeStyle(rangeStr:string, style:obj):void;
 			setRangeValue(range:string, value:any, page:string):void;
 			setRowHeight(id:string|number|any[], height:number|string):void;
+			setSheetState(name:string, state:string):void;
 			setStyle(row:number, column:number, style:obj):void;
 			show(force?:boolean, animation?:boolean):void;
+			showCell(ref:string, silent:boolean):void;
 			showFormulas(state:boolean|string):void;
+			showPrintBorders(state:boolean|string):void;
 			showSheet(name:string):void;
 			sortRange(range?:string, dir?:string):void;
 			splitCell(row:number, column:number):void;
@@ -11458,7 +11545,7 @@ declare namespace webix {
 			hasCss(id:string|number, css:string):boolean;
 			hasEvent(name:string):boolean;
 			hide():void;
-			hideItem(id:string|number):void;
+			hideMenuItem(id:string|number):void;
 			isEnabled():boolean;
 			isItemEnabled():boolean;
 			isSelected(id:string|number):boolean;
@@ -12580,6 +12667,76 @@ declare namespace webix {
 			type: obj;
 			types: obj;
 			waitData: Promise<any>;
+		}
+		interface todoConfig{
+			view?: string;
+			animate?: boolean|obj;
+			body?: obj;
+			borderless?: boolean;
+			container?: string|HTMLElement;
+			css?: string|obj;
+			data?: any[];
+			disabled?: boolean;
+			gravity?: number;
+			hashtags?: boolean;
+			height?: number;
+			hidden?: boolean;
+			id?: string|number;
+			locale?: obj;
+			maxHeight?: number;
+			maxWidth?: number;
+			minHeight?: number;
+			minWidth?: number;
+			on?: EventHash;
+			override?: any[];
+			projects?: any[];
+			readonly?: boolean;
+			url?: string;
+			users?: any[];
+			width?: number;
+		}
+		type todoEventName ='onAfterScroll'|'onBlur'|'onDestruct'|'onEnter'|'onFocus'|'onInit'|'onLongTouch'|'onSwipeX'|'onSwipeY'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onViewResize'|'onViewShow';
+		class todo implements webix.ui.baseview{
+			adjust():void;
+			app(app:obj):void;
+			attachEvent(type:todoEventName, functor:WebixCallback, id?:string):string|number;
+			blockEvent():void;
+			callEvent(name:string, params:any[]):boolean;
+			define(property:string, value:any):void;
+			destructor():void;
+			detachEvent(id:string):void;
+			disable():void;
+			enable():void;
+			getChildViews():any[];
+			getFormView():webix.ui.baseview;
+			getNode():obj;
+			getParentView():obj;
+			getService(service:string):obj;
+			getState():obj;
+			getTopParentView():webix.ui.baseview;
+			hasEvent(name:string):boolean;
+			hide():void;
+			isEnabled():boolean;
+			isVisible():boolean;
+			mapEvent(map:obj):void;
+			queryView(config:obj|WebixCallback|string, mode?:string):obj|any[];
+			resize():void;
+			show(force?:boolean, animation?:boolean):void;
+			unblockEvent():void;
+		
+			bind(target:any, rule?:WebixCallback, format?:string):void;
+			unbind():void;
+			$app: obj;
+			$getSize():any[];
+			$height: number;
+			$scope: obj;
+			$setNode: any;
+			$setSize(x:number, y:number):boolean;
+			$skin: WebixCallback;
+			$view: HTMLElement;
+			$width: number;
+			config: todoConfig;
+			name: string;
 		}
 		interface toggleConfig{
 			view?: string;
