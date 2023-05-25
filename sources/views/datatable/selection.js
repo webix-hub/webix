@@ -282,6 +282,14 @@ const Mixin = {
 					else
 						this._select({ row: id.row, column:id.column }, preserve);
 				}
+
+				// don't change focus when inline editor is active
+				const editor = this.getEditor(id);
+				if (editor && editor.$inline && !editor.getPopup) return;
+
+				// restore focus
+				const node = this.getItemNode(id);
+				if (node) node.focus();
 			},
 			_mapSelection:function(callback, column, row){
 				var cols = this._settings.columns;

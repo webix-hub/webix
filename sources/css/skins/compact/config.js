@@ -15,6 +15,7 @@ const skin = {
 	inputPadding: 3,
 	menuHeight: 28,
 	labelTopHeight: 16,
+	fontSize: 13,
 
 	inputSpacing: 4,
 	borderWidth: 1,

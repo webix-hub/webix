@@ -2,7 +2,7 @@ const DataMarks = {
 	addCss:function(id, css, silent){
 		if (!this.addRowCss && !silent){
 			if (!this.hasCss(id, css)){
-				var node = this.getItemNode(id);
+				const node = this.getItemNode(id);
 				if (node){
 					node.className += " "+css;
 					silent = true;
@@ -14,9 +14,10 @@ const DataMarks = {
 	removeCss:function(id, css, silent){
 		if (!this.addRowCss && !silent){
 			if (this.hasCss(id, css)){
-				var node = this.getItemNode(id);
+				const node = this.getItemNode(id);
 				if (node){
-					node.className = node.className.replace(css,"").replace("  "," ");
+					const re = new RegExp("(\\s|^)"+css+"(\\s|$)");
+					node.className = node.className.replace(re, (v,b,a) => b && a ? " " : "");
 					silent = true;
 				}
 			}

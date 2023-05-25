@@ -41,7 +41,7 @@ const api = {
 	$init:function(config){
 		this.data = this._settings;
 		this._dataobj = this._viewobj;
-		this._viewobj.className += " webix_pager"+(config.autowidth?" webix_pager_auto":"");
+		this._viewobj.className += " webix_pager";
 
 		if(config.master===false||config.master === 0)
 			this.$ready.push(this._remove_master);
@@ -182,10 +182,9 @@ const api = {
 	_animate:function(old, id, config){
 		if (old == id) return false;
 		if (this._pgInAnimation){
-			if(this._pgAnimateTimeout){
+			if (this._pgAnimateTimeout)
 				window.clearTimeout(this._pgAnimateTimeout);
-			}
-			return (this._pgAnimateTimeout = delay(this._animate, this,[old, id, config],100));
+			return !!(this._pgAnimateTimeout = delay(this._animate, this,[old, id, config],100));
 		}
 		var direction = id > old ? "left" : "right";
 		if (config.direction == "top" || config.direction == "bottom")
@@ -232,7 +231,7 @@ const api = {
 		//run animation
 		line = animate.formLine(snode, onode, aniset);
 		animate([ snode, onode ], aniset );
-		this._pgInAnimation = true;
+		return this._pgInAnimation = true;
 	}
 };
 

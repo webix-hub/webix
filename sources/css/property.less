@@ -1,8 +1,7 @@
 .webix_property_line{
-	clear: both;
 	width: 100%;
-	min-height: @propertyItemHeight;
 	height: auto;
+	line-height: 0;
 }
 .webix_property_line.webix_focused,
 .webix_property_line:focus{
@@ -11,13 +10,11 @@
 	}
 }
 .webix_property_label, .webix_property_value{
-	height: @propertyItemHeight;
-	line-height: @propertyItemHeight;
+	display: inline-block;
 	padding-left: @dataPadding;
-	float:left;
 	border-bottom: 1px solid @dataBorderColor;
-	#box > .sizing;
 	overflow: hidden;
+	#box > .sizing;
 }
 .webix_property_label{
 	border-right:1px solid @dataBorderColor;
@@ -26,13 +23,13 @@
 	.webix_common_header;
 	padding-left: @dataPadding;
 	border-bottom: 1px solid @dataBorderColor;
-	line-height: @propertyItemHeight;
+	#box > .sizing;
 }
 
 .webix_property_col_ind{
 	float: right;
 	cursor: pointer;
-	margin: (@propertyItemHeight - 20)/2 8px 0 0;
+	margin: 0 8px 0 0;
 	border: 1px solid @borderColor;
 	background: #ffffff;
 	border-radius: 3px;

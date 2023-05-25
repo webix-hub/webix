@@ -22,7 +22,6 @@ const RenderStack ={
 			this.types = { "default" : this.type };
 			this.type.name = "default";
 		}
-
 		this.type = clone(this.type);
 	},
 	

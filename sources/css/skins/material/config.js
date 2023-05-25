@@ -15,6 +15,7 @@ const skin = {
 	propertyItemHeight: 28,
 	timelineItemHeight:70,
 	unitHeaderHeight:36,
+	fontSize: 14,
 
 	inputSpacing: 4,
 	borderWidth: 1,

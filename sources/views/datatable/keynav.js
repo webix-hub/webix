@@ -45,7 +45,6 @@ const Mixin = {
 		return null;
 	},
 	moveSelection:function(mode, details, focus){
-		this._delayRender();
 		if(this._settings.disabled) return;
 		details = details || {};
 
@@ -62,7 +61,6 @@ const Mixin = {
 			}, this));
 			if (mode == "up" || mode == "left" || mode =="top" || mode =="pgup")
 				index = 0;
-			
 		}
 		
 		if (index < 0 && this.count()){ //no selection
@@ -73,11 +71,13 @@ const Mixin = {
 			t =  [{ row:1, column:1 }];
 		}
 
-		
-
 		if (index>=0){
 			var row = t[index].row;
 			var column = t[index].column;
+
+			//delay render for smooth navigation
+			const cell = {};
+			this._delayRender(focus !== false ? cell : false);
 
 			if (mode == "top" || mode == "bottom") {
 				if (row) {
@@ -90,17 +90,21 @@ const Mixin = {
 				if (column) {
 					// first/last column setting
 					index = 0;
-					if(mode == "bottom")
-						index = this.config.columns.length-1;
+					if (mode == "bottom")
+						index = this.config.columns.length - 1;
 					column = this.columnId(index);
 				}
+			}else if (t.length == 1 && details.ctrl && !details.shift && (mode == "up" || mode== "down"|| mode == "left" || mode== "right")) {
+				const res = this._getNextCtrlSelection(t[0], mode);
+				row = res.row;
+				column = res.column;
 			} else if (mode == "up" || mode== "down" || mode == "pgup" || mode == "pgdown"){
 				if (row){
 					//it seems row's can be seleted
 					let index = this.getIndexById(row);
 					let step = 1;
 					if(mode == "pgup" || mode == "pgdown")
-						step = this._pager? this._pager.config.size : Math.round(this._dtable_offset_height/this._settings.rowHeight); 
+						step = this._pager ? this._pager.config.size : this.getVisibleCount();
 
 					//get new selection row
 					if (mode == "up" || mode == "pgup") index-=step;
@@ -108,7 +112,7 @@ const Mixin = {
 					//check that we in valid row range
 					if (index <0) index=0;
 					if (index >=this.data.order.length) index=this.data.order.length-1;
-
+					details.step = step;
 					row = this.getIdByIndex(index);
 					if (!row && this._settings.pager)
 						this.showItemByIndex(index);
@@ -136,7 +140,10 @@ const Mixin = {
 			}
 
 			if (row){
-				this.showCell(row, column);
+				cell.row = row;
+				cell.column = column;
+				this.callEvent("onMoveSelection", [cell, mode, details]);
+				this.showCell(cell.row, cell.column);
 
 				if(!this.select){ //switch on cell or row selection by default
 					extend(this, this._selections._commonselect, true);
@@ -144,24 +151,49 @@ const Mixin = {
 					extend(this, this._selections[this._settings.select], true);
 				}
 
-				var cell = { row:row, column:column };
-
+				cell.row = row;
+				cell.column = column;
 				if(preserve && this._settings.select == "area"){
 					var last = this._selected_areas[this._selected_areas.length-1];
 					this._extendAreaRange(cell, last, mode, details);
 				}
 				else
-					this._select(cell, preserve);
-
-				if(!this._settings.clipboard && focus !==false){
-					var node = this.getItemNode(cell);
-					if(node) node.focus();
-				}
-				
+					this._select(cell, preserve);			
 			}
 		}
 
 		return false;
+	},
+	_getNextCtrlSelection: function(cell, mode){
+		const {row, column} = cell,
+			dir = (mode == "up" || mode == "left")?-1:1,
+			isRowArr = (mode == "up" || mode == "down"),
+			arr = isRowArr ? this.data.order : this._columns.map(c => c.id),
+			id = isRowArr ? row : column;
+
+		let i = isRowArr ? this.getIndexById(row) : this.getColumnIndex(column);
+		const last = dir > 0 ? arr.length - 1 : 0;
+
+		let emptyId, prevId, next;
+
+		while(!next && arr[i]){
+			const iId = arr[i];
+			let r = isRowArr ? iId : row;
+			let c = isRowArr ? column : iId;
+			let value = this.$getExportValue? this.$getExportValue(r, c,  {}): this.getItem(r)[c];
+			if(iId != id && emptyId && value)
+				next = iId;
+			else if(!value){
+				if(prevId && prevId != id)
+					next = prevId;
+				emptyId = iId;
+			}
+			if(i == last && !next)
+				next = iId;
+			prevId = value ? iId : null;
+			i += dir;
+		}
+		return isRowArr ? {row: next, column} : {row, column: next};
 	}
 };
 

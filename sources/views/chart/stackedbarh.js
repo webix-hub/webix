@@ -53,7 +53,8 @@ const StackedBarHChart = {
 
 		/*a real bar width */
 		var barWidth = parseInt(this._settings.barWidth,10);
-		if((barWidth+4)>cellWidth) barWidth = cellWidth-4;
+		const minOffset = this._getMinBarOffset(cellWidth);
+		if((barWidth+minOffset)>cellWidth) barWidth = cellWidth-minOffset;
 		/*the half of distance between bars*/
 		var barOffset = (cellWidth - barWidth)/2;
 		/*the radius of rounding in the top part of each bar*/

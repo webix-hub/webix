@@ -1169,6 +1169,12 @@ const api = {
 	},
 	_addMapRect:function(map,id,points,bounds,sIndex){
 		map.addRect(id,[points[0].x-bounds.x,points[0].y-bounds.y,points[1].x-bounds.x,points[1].y-bounds.y],sIndex);
+	},
+	_getMinBarOffset: function(unitWidth){
+		let minOffset = this._settings.barOffset;
+		if(isUndefined(minOffset) || minOffset > (unitWidth - 1))
+			minOffset = Math.ceil(unitWidth/5);
+		return minOffset;
 	}
 };
 

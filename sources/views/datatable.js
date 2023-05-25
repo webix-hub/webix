@@ -214,16 +214,22 @@ const api = {
 	refresh:function(){
 		this.render();
 	},
-	_delayRender:function(){
+	_delayRender:function(cell){
 		clearTimeout(this._renderDelay);
-		this._renderDelay = delay(()=>{
+		this._renderDelay = delay((cell)=>{
 			this._renderDelay = 0;
 			if(!isUndefined(this._delayedLeftScroll)){
 				this._setLeftScroll(this._delayedLeftScroll);
 				delete this._delayedLeftScroll;
 			}
 			this.render();
-		});
+
+			//restore focus
+			if(!this._settings.clipboard && cell){
+				const node = this.getItemNode(cell);
+				if(node) node.focus();
+			}
+		}, this, [cell]);
 	},
 	render:function(id, data, mode){
 		//pure data saving call
@@ -963,30 +969,33 @@ const api = {
 	},
 	_id_to_string:function(){ return this.row; },
 	locate:function(node, idOnly){
-		if (this != $$(node)) return null;
+		const tview = $$(node);
+		if (this == tview) {
+			node = node.target || node;
+		} else if (tview && tview.config.container) {
+			node = tview.$view.parentNode;
+			if (this !== $$(node)) return null;
+		} else return null;
 
-		node = node.target||node;
 		while (node && node.getAttribute){
-			if (node === this.$view)
-				break;
-			var cs = _getClassName(node).toString();
-
-			var pos = null;
-			if (cs.indexOf("webix_cell")!=-1){
+			if (node === this.$view) break;
+			
+			let pos = null;
+			const css = _getClassName(node).toString();
+			if (css.indexOf("webix_cell") != -1){
 				pos = this._locate(node);
 				if (pos)
 					pos.row = this.data.order[pos.rind];
 			}
-			if (cs.indexOf("webix_hcell")!=-1){
+			if (css.indexOf("webix_hcell") != -1){
 				pos = this._locate(node);
 				if (pos){
 					pos.header = true;
-					if(pos.span)
+					if (pos.span)
 						pos.cind -= pos.span-1;
 				}
-
 			}
-			if (cs.indexOf("webix_drop_area")!=-1){
+			if (css.indexOf("webix_drop_area") != -1){
 				pos = this._locate(node);
 				if (pos)
 					pos.row = pos.rind = "$webix-drop";
@@ -1159,7 +1168,10 @@ const api = {
 
 		if (old_height != height){
 			item.$height = height;
-			this.config.fixedRowHeight = false;
+
+			this._settings.scrollAlignY = false;
+			this._settings.fixedRowHeight = false;
+
 			this.render();
 			this.callEvent("onRowResize", [rowId, height, old_height]);
 		}
@@ -1235,7 +1247,8 @@ const api = {
 		return [xind, xend];
 	},
 	getVisibleCount:function(){
-		return Math.floor((this._dtable_offset_height) / this.config.rowHeight);
+		const correction = (this._settings.autoheight || this._settings.yCount) ? 1 : 0;
+		return Math.floor((this._dtable_offset_height + correction) / this.config.rowHeight);
 	},
 	//returns info about y-scroll position
 	_get_y_range:function(full){
@@ -1941,16 +1954,16 @@ const api = {
 		const attr = /*@attr*/"column";
 		const cells = this._header.querySelectorAll(`div[${attr}="${column}"]`);
 		let maybe = null;
-		
-		for (var i = 0; i<cells.length; i++){
-			const activeId = cells[i].getAttribute(/*@attr*/"active_id");
 
-			if (activeId && !datafilter[ this._active_headers[activeId].content ].$icon)
-				return null;
-
-			if (!cells[i].innerHTML) continue;
-			maybe = cells[i];
-			if ((cells[i].colSpan||0) < 2) return maybe;
+		for (let i = cells.length-1; i>=0; i--){
+			const c = cells[i];
+			const activeId = c.getAttribute(/*@attr*/"active_id");
+			if(!activeId || datafilter[ this._active_headers[activeId].content ].$icon){
+				if(!c.getAttribute(/*@attr*/"colspan"))
+					return c;
+				else if(!maybe)
+					maybe = c;
+			}
 		}
 		return maybe;
 	},

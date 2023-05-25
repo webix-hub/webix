@@ -1,6 +1,6 @@
 import {protoUI, $$} from "../ui/core";
 import {$active} from "../webix/skin";
-import {isUndefined, bind} from "../webix/helpers";
+import {isUndefined} from "../webix/helpers";
 import {assert} from "../webix/debug";
 import {preventEvent} from "../webix/html";
 
@@ -59,7 +59,7 @@ const api = {
 		var suggest = (this._settings.popup = this._settings.suggest = text.api.suggest_setter.call(this, value));
 		var list = $$(suggest).getList();
 		if (list)
-			list.attachEvent("onAfterLoad", bind(this._reset_value, this));
+			list.attachEvent("onAfterLoad", ()=> this._reset_value());
 
 		return suggest;
 	},
@@ -69,10 +69,12 @@ const api = {
 		return suggest.getList();
 	},
 	_reset_value:function(){
-		// multiselect requires value as an array
-		const value = this._settings.value||[];
-		if (value.length && !this.getPopup().isVisible() && this.getInputNode() && !(this._settings.text || this.getText()))
+		const value = this._settings.value;
+		if(value){
 			this.$setValue(value);
+			if(this.getPopup().isVisible())
+				this.getPopup()._show_selection();
+		}
 	},
 	$skin:function(){
 		text.api.$skin.call(this);

@@ -122,7 +122,7 @@ const Mixin = {
 				if (this._x_scroll){
 					this._x_scroll._settings.scrollPos = -1;
 					this._x_scroll.scrollTo(this._scrollLeft);
-					this.callEvent("onScrollY",[]);
+					this.callEvent("onScrollX",[]);
 				}
 				if (this._y_scroll){
 					this._y_scroll._settings.scrollPos = -1;

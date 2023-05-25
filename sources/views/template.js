@@ -2,7 +2,7 @@ import {protoUI} from "../ui/core";
 
 import {extend,bind,toNode,delay} from "../webix/helpers";
 import {ajax} from "../load/ajax";
-import {create, getTextSize} from "../webix/html";
+import {create} from "../webix/html";
 import {$active} from "../webix/skin";
 
 
@@ -145,19 +145,12 @@ const api = {
 		}
 	},
 	_get_auto_height:function(){
-		var size;
-		var padding = $active.layoutPadding.space;
-		
-		this._probably_render_me();
+		let size = 0;
 
-		if(!this.isVisible()){ //try getting height of a hidden template
-			size = getTextSize(
-				this._toHTML(this.data) || this._dataobj.innerHTML, //check for config.content 
-				"webix_template",
-				(this.$width || (this.getParentView() ? this.getParentView().$width :0))-padding
-			).height;
-		}
-		else{ 
+		// visible and not collapsed
+		if (this.isVisible() && !this.queryView(v => v.config.collapsed, "parent")) {
+			this._probably_render_me();
+
 			this._dataobj.style.height = "auto";
 			size = this._dataobj.scrollHeight;
 			this._dataobj.style.height = "";

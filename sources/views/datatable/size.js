@@ -118,23 +118,20 @@ const Mixin = {
 	},
 	adjustRowHeight:function(id, silent){
 		if (id)
-			this._adjustRowHeight(id);
+			this._adjustRowHeight(id, true);
 		else {
-			const heights = {};
 			const cols = this._settings.columns;
-
 			for (let i = 0; i < cols.length; i++)
-				this._adjustRowHeight(cols[i].id, heights);			//adjust size for single columns
-
-			this.data.each(function(obj){
-				obj.$height = heights[obj.id];
-			});
+				this._adjustRowHeight(cols[i].id, !i);			//adjust size for single columns
 		}
+
+		this._settings.scrollAlignY = false;
+		this._settings.fixedRowHeight = false;
 
 		if (!silent)
 			this.refresh();
 	},
-	_adjustRowHeight:function(id, size){
+	_adjustRowHeight:function(id, first){
 		const config = this.getColumnConfig(id);
 		let container;
 		let d = create("DIV",{"class":"webix_table_cell webix_measure_size webix_cell"},"");
@@ -163,9 +160,7 @@ const Mixin = {
 			height = Math.max(height, this._settings.rowHeight, this._settings.minRowHeight||0);
 			height = Math.min(height, this._settings.maxRowHeight||100000);
 
-			if (size)
-				size[obj.id] = Math.max(height, size[obj.id]||0);
-			else obj.$height = height;
+			obj.$height = first ? height : Math.max(height, obj.$height);
 		}, this);
 
 		d = remove(d);

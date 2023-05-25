@@ -25,6 +25,7 @@ body {
 }
 .webix_abslayout > .webix_view {
   position: absolute !important;
+  z-index: 0;
 }
 .webix_layout_space {
   background-color: #DDDDDD;
@@ -383,6 +384,9 @@ button,
   position: absolute;
   z-index: 2;
   left: 0px;
+}
+.webix_resizer {
+  position: relative;
 }
 .webix_resizer.webix_disabled_view {
   cursor: default;
@@ -1822,12 +1826,13 @@ button,
   width: 13px;
 }
 .webix_indeterminate {
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gcCCSwfRyGesAAAAAxpVFh0Q29tbWVudAAAAAAAvK6ymQAAAExJREFUKM9jLCgo+M9AAmBhYGBgaGtrY+Tk5MSrsLCwkIGBgeE/EwOJgGQNLMgcJSUlBgYGBnQ/Md67d498G+jsB6hbGQfWSYykJg0AUMsPVoNrFX0AAAAASUVORK5CYII=");
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAZUlEQVR4nGPw8Mhldw9ObXAPTp1JBG4AqWcAawhNs2QgArgFp1q5haTVgzTNZCABuIekzSJdU3DqTOpoqq+vZ3IPSfsPwyD+INJECNBREzSeGkAxTYwG16B0a3CKICXtgTSA0h4ApZxpTQmN4jEAAAAASUVORK5CYII=");
   background-repeat: no-repeat;
   background-position: left center;
   height: 100%;
   width: 13px;
   margin-top: 0 !important;
+  display: inline-block;
 }
 .webix_measure_size {
   font-family: 'PT Sans', Tahoma;
@@ -2155,10 +2160,9 @@ button,
   background-color: #f7f7f7;
 }
 .webix_property_line {
-  clear: both;
   width: 100%;
-  min-height: 24px;
   height: auto;
+  line-height: 0;
 }
 .webix_property_line.webix_focused > div,
 .webix_property_line:focus > div {
@@ -2166,15 +2170,13 @@ button,
 }
 .webix_property_label,
 .webix_property_value {
-  height: 24px;
-  line-height: 24px;
+  display: inline-block;
   padding-left: 10px;
-  float: left;
   border-bottom: 1px solid #ebebeb;
+  overflow: hidden;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
-  overflow: hidden;
 }
 .webix_property_label {
   border-right: 1px solid #ebebeb;
@@ -2186,7 +2188,9 @@ button,
   line-height: 32px;
   padding-left: 10px;
   border-bottom: 1px solid #ebebeb;
-  line-height: 24px;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
 }
 .webix_property_label_line .webix_el_button,
 .webix_property_label_line .webix_el_label,
@@ -2331,7 +2335,7 @@ button,
 .webix_property_col_ind {
   float: right;
   cursor: pointer;
-  margin: 2px 8px 0 0;
+  margin: 0 8px 0 0;
   border: 1px solid #DDDDDD;
   background: #ffffff;
   border-radius: 3px;
@@ -2366,10 +2370,6 @@ button,
   pointer-events: none;
 }
 /*comments list*/
-.webix_comments .webix_list {
-  transition: all 0.5s ease;
-  transition-property: height;
-}
 .webix_comments .webix_list .webix_list_item {
   margin-top: 24px;
   border: none;
@@ -3833,6 +3833,17 @@ body:not(:-moz-handler-blocked) .webix_el_select select {
   display: table-cell;
   vertical-align: middle;
 }
+.webix_measure_size .webix_inp_radio_border,
+.webix_measure_size.webix_el_radio .webix_label_right {
+  display: table-cell !important;
+}
+.webix_measure_size .webix_radio_option {
+  display: table !important;
+  float: left !important;
+}
+.webix_measure_size .webix_line_break {
+  display: block !important;
+}
 .webix_invalid .webix_el_box input,
 .webix_invalid .webix_custom_radio,
 .webix_invalid .webix_el_box .webix_inp_static,
@@ -5005,9 +5016,11 @@ legend.webix_forminput_label_top {
 .webix_timeline_horizontal .webix_scroll_cont {
   white-space: nowrap;
   display: inline-block;
-  padding-top: unset;
   padding-left: 28px;
   height: 100%;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
 }
 .webix_timeline_horizontal .webix_timeline_item {
   display: inline-block;
@@ -5491,7 +5504,8 @@ span.webix_sidebar_dir_icon {
   fill: rgba(255, 255, 255, 0.3);
 }
 /* print css rules*/
-.webix_ui_print {
+.webix_ui_print,
+.webix_print_pdf {
   display: none;
 }
 body.webix_print {
@@ -5530,7 +5544,7 @@ body.webix_print {
   .webix_print_header,
   .webix_print_footer {
     display: block !important;
-    margin: 20px 0px;
+    padding: 20px 0px;
     text-align: center;
     height: auto !important;
     visibility: visible !important;

@@ -98,8 +98,11 @@ const api = {
 		this.resizeChildren();
 	},
 	showView: function(id){
-		const topPos = $$(id).$view.offsetTop-$$(id).$view.parentNode.offsetTop;
-		this.scrollTo(0, topPos);
+		const vnode = $$(id).$view;
+		this.scrollTo(
+			vnode.offsetLeft - vnode.parentNode.offsetLeft,
+			vnode.offsetTop - vnode.parentNode.offsetTop
+		);
 	}
 };
 

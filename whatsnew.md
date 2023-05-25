@@ -1,7 +1,21 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
+Version 10.1 (May 2023)
+=============================
+
+### Major features
+
+- Group calls in the Chat widget
+- Year view in the Scheduler widget
+- Improved UX in the ToDo list
+
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_10_1.html)
+
 Version 10.0 (November 2022)
 =============================
+
+### Major features
 
 - Willow and Dark skins
 - Desktop widget
@@ -11,6 +25,8 @@ Version 10.0 (November 2022)
 
 Version 9.4 (July 2022)
 =============================
+
+### Major features
 
 - Diagram: curved links
 - Pie and Donut charts with multiple levels and 3D

@@ -1,5 +1,6 @@
 import color from "../../webix/color";
 import {$active} from "../../webix/skin";
+import {isUndefined} from "../../webix/helpers";
 
 const BarChart = {
 	/**
@@ -11,23 +12,21 @@ const BarChart = {
 	*   @param: sIndex - index of drawing chart
 	*/
 	$render_bar:function(ctx, data, point0, point1, sIndex, map){
-		var barWidth, cellWidth,
-			i,
-			limits, maxValue, minValue,
+		let barWidth, i, maxValue, minValue,
 			relValue, valueFactor, relativeValues,
-			startValue, unit,
-			xax, yax,
-			totalHeight = point1.y-point0.y;
+			startValue, unit;
 
-		yax = !!this._settings.yAxis;
-		xax = !!this._settings.xAxis;
+		const limits = this._getLimits(),
+			totalHeight = point1.y-point0.y,
+			yax = !!this._settings.yAxis,
+			xax = !!this._settings.xAxis;
 
-		limits = this._getLimits();
+
 		maxValue = limits.max;
 		minValue = limits.min;
 
 		/*an available width for one bar*/
-		cellWidth = (point1.x-point0.x)/data.length;
+		const cellWidth = (point1.x-point0.x)/data.length;
 
 
 		/*draws x and y scales*/
@@ -48,20 +47,20 @@ const BarChart = {
 
 		unit = (relValue?totalHeight/relValue:relValue);
 
-		if(!yax&&!(this._settings.origin!="auto"&&xax)){
+		if(!yax && !(this._settings.origin != "auto" && xax)){
 			/*defines start value for better representation of small values*/
 			startValue = 10;
 			unit = (relValue?(totalHeight-startValue)/relValue:startValue);
 		}
 		/*if yAxis isn't set, but with custom origin */
-		if(!sIndex&&(this._settings.origin!="auto"&&!yax)&&this._settings.origin>minValue){
-			this._drawXAxis(ctx,data,point0,point1,cellWidth,point1.y-unit*(this._settings.origin-minValue));
+		if(!sIndex && (this._settings.origin != "auto" && !yax) && this._settings.origin > minValue){
+			this._drawXAxis(ctx, data, point0, point1, cellWidth, point1.y - unit * (this._settings.origin - minValue));
 		}
 
 		/*a real bar width */
 		barWidth = parseInt(this._settings.barWidth,10);
-		var seriesNumber = 0;
-		var seriesIndex = 0;
+		let seriesNumber = 0;
+		let seriesIndex = 0;
 		for(i=0; i<this._series.length; i++ ){
 			if(i == sIndex){
 				seriesIndex  = seriesNumber;
@@ -69,16 +68,20 @@ const BarChart = {
 			if(this._series[i].type == "bar")
 				seriesNumber++;
 		}
-		if(this._series&&(barWidth*seriesNumber+4)>cellWidth) barWidth = parseInt(cellWidth/seriesNumber-4,10);
+
+		const minOffset = this._getMinBarOffset(cellWidth);
+
+		if(this._series&&(barWidth*seriesNumber+minOffset)>cellWidth)
+			barWidth = (cellWidth - minOffset)/seriesNumber;
 
 		/*the half of distance between bars*/
-		var barOffset = (cellWidth - barWidth*seriesNumber)/2;
+		const barOffset = (cellWidth - barWidth*seriesNumber)/2;
 
 		/*the radius of rounding in the top part of each bar*/
-		var radius = (typeof this._settings.radius!="undefined"?parseInt(this._settings.radius,10):Math.round(barWidth/5));
+		const radius = (!isUndefined(this._settings.radius)?parseInt(this._settings.radius,10):Math.round(barWidth/5));
 
-		var inner_gradient = false;
-		var gradient = this._settings.gradient;
+		let inner_gradient = false;
+		let gradient = this._settings.gradient;
 
 		if(gradient && typeof(gradient) != "function"){
 			inner_gradient = gradient;
@@ -93,7 +96,7 @@ const BarChart = {
 		}
 
 		for(i=0; i < data.length;i ++){
-			var value =  parseFloat(this._settings.value(data[i])||0);
+			let value =  parseFloat(this._settings.value(data[i])||0);
 			if(this._logScaleCalc)
 				value = this._log10(value);
 
@@ -105,12 +108,12 @@ const BarChart = {
 			value *= valueFactor;
 
 			/*start point (bottom left)*/
-			var x0 = point0.x + barOffset + i*cellWidth+(barWidth+1)*seriesIndex;
-			var y0 = point1.y;
+			const x0 = point0.x + barOffset + i*cellWidth+(barWidth+1)*seriesIndex;
+			const y0 = point1.y;
 
-			var color = gradient||this._settings.color.call(this, data[i], i);
-			var border = this._settings.border?1:0;
-			var label = this._settings.label(data[i]);
+			const color = gradient||this._settings.color.call(this, data[i], i);
+			let border = this._settings.border?1:0;
+			let label = this._settings.label(data[i]);
 			
 			/*takes start value into consideration */
 			if(!yax&&!(this._settings.origin!="auto"&&xax)) 
@@ -127,7 +130,7 @@ const BarChart = {
 
 			/*drawing bar body*/
 			ctx.globalAlpha = this._settings.alpha.call(this,data[i]);
-			var points = this._drawBar(ctx,point0,x0,y0,barWidth,minValue,radius,unit,value,color,gradient,inner_gradient, border);
+			let points = this._drawBar(ctx,point0,x0,y0,barWidth,minValue,radius,unit,value,color,gradient,inner_gradient, border);
 			if (inner_gradient){
 				this._drawBarGradient(ctx,x0,y0,barWidth,minValue,radius,unit,value,color,inner_gradient, border);
 			}

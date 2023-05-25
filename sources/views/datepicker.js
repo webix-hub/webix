@@ -1,6 +1,6 @@
 import {protoUI, $$} from "../ui/core";
 import {$active} from "../webix/skin";
-import {isUndefined, isArray} from "../webix/helpers";
+import {isUndefined, isArray, isDate} from "../webix/helpers";
 
 import i18n from "../webix/i18n";
 import wDate from "../core/date";
@@ -88,7 +88,7 @@ const api = {
 		if (this._settings.multiselect){
 			if (typeof value === "string")
 				value = value.split(this._settings.separator);
-			else if (value instanceof Date)
+			else if (isDate(value))
 				value = [value];
 			else if (!value)
 				value = [];
@@ -216,7 +216,7 @@ const api = {
 		//rendere and in edit mode
 		else if (this._settings.editable){
 			let formatDate = this._formatDate;
-			if(!formatDate){
+			if (!formatDate){
 				if(timeMode)
 					formatDate = i18n.timeFormatDate;
 				else if(this.config.timepicker)
@@ -226,8 +226,8 @@ const api = {
 			}
 
 			const time = formatDate(this.getInputNode().value);
-
-			if(timeMode && value != ""){
+			if (timeMode && isDate(value) && isDate(time)){
+				value = wDate.copy(value);
 				value.setHours(time.getHours());
 				value.setMinutes(time.getMinutes());
 				value.setSeconds(time.getSeconds());

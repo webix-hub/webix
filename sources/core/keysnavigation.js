@@ -145,8 +145,15 @@ const KeysNavigation = {
 			UIManager.addHotKey("home", 	    this._navigation_helper("top"));
 			UIManager.addHotKey("end", 		this._navigation_helper("bottom"));
 
-			
+			UIManager.addHotKey("shift+pageup", 	this._navigation_helper("pgup"));
+			UIManager.addHotKey("shift+pagedown",   this._navigation_helper("pgdown"));
+			UIManager.addHotKey("shift+home", 	    this._navigation_helper("top"));
+			UIManager.addHotKey("shift+end", 		this._navigation_helper("bottom"));
 
+			UIManager.addHotKey("ctrl+up",   this._navigation_helper("up"));
+			UIManager.addHotKey("ctrl+down", this._navigation_helper("down"));
+			UIManager.addHotKey("ctrl+left",   this._navigation_helper("left"));
+			UIManager.addHotKey("ctrl+right", this._navigation_helper("right"));
 		}
 
 		return value;

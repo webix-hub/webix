@@ -432,9 +432,11 @@ const api = {
 				if (pView._vertical_orientation){
 					maxHeight = 0;
 					maxWidth = 100000;
+					dy = 0;
 				}else{
 					maxHeight = 100000;
 					maxWidth = 0;
+					dx = 0;
 				}
 			}
 		}

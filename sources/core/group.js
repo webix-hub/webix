@@ -8,9 +8,9 @@ const Group = {
 	},
 	group:function(config, target){
 		if (!target && target !== 0){
-			this.$blockRender=true;
+			this.$blockRender = true;
 			this.data.ungroup();
-			this.$blockRender=false;
+			this.$blockRender = false;
 		}
 		this.data.group(config, target);
 	},

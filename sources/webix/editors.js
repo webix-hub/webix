@@ -417,6 +417,9 @@ editors.password = extend({
 
 		const icon = input.nextSibling;
 		icon.className = `webix_icon wxi-eye${isPassword ? "-slash" : ""}`;
+	},
+	masterFormat: function(value){
+		return !value && value !== 0 ? "" : "&bull;".repeat(value.toString().length);
 	}
 }, editors.text);
 

@@ -8,7 +8,7 @@ env.strict = !!window.webix_strict;
 env.https = document.location.protocol === "https:";
 
 const agent = navigator.userAgentData;
-const deprecatedAgent = agent ? null : navigator.userAgent;
+const deprecatedAgent = agent && agent.platform && agent.brands.length ? null : navigator.userAgent;
 
 const browsers = {
 	Chromium: "Chrom", //in userAgent - Chrome, in userAgentData.brands - Chromium
@@ -19,9 +19,9 @@ const browsers = {
 };
 
 for(let browser in browsers){
-	const checkBrowser = agent ?
-		agent.brands.find(v => v.brand.indexOf(browsers[browser]) != -1) :
-		deprecatedAgent.indexOf(browsers[browser]) != -1;
+	const checkBrowser = deprecatedAgent ?
+		deprecatedAgent.indexOf(browsers[browser]) != -1 :
+		agent.brands.find(v => v.brand.indexOf(browsers[browser]) != -1);
 
 	if(checkBrowser){
 		env["is"+browser] = true;
@@ -31,15 +31,16 @@ for(let browser in browsers){
 	}
 }
 
-const platform = agent ? agent.platform : deprecatedAgent;
+const platform = deprecatedAgent || agent.platform;
 env.isMac = platform.toLowerCase().indexOf("mac") != -1;
 if (/iPad|iPhone|iPod/.test(platform)) env.isIOS = true;
 if (platform.indexOf("Android") != -1) env.isAndroid = true;
 
-if(agent)
+if(deprecatedAgent){
+	if(env.isIOS || env.isAndroid || deprecatedAgent.indexOf("Mobile") != -1 || deprecatedAgent.indexOf("Windows Phone") != -1)
+		env.mobile = true;
+} else
 	env.mobile = agent.mobile;
-else if(env.isIOS || env.isAndroid || deprecatedAgent.indexOf("Mobile") != -1 || deprecatedAgent.indexOf("Windows Phone") != -1)
-	env.mobile = true;
 
 if (env.mobile || navigator.maxTouchPoints > 1)
 	env.touch = true;

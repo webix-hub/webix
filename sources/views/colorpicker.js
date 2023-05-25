@@ -53,7 +53,7 @@ const api = {
 
 		const node = this.getInputNode();
 		if(isUndefined(node.value))
-			node.innerHTML = value;
+			node.innerHTML = value || this._get_div_placeholder();
 		else
 			node.value = value;
 	},

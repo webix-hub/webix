@@ -15,7 +15,7 @@ import {uid, extend, clone, isUndefined} from "../webix/helpers";
 import {addCss, removeCss} from "../webix/html";
 import RenderStack from "../core/renderstack";
 import CodeParser from "../core/codeparser";
-
+import editors from "../webix/editors";
 
 const api = {
 	name:"property",
@@ -32,20 +32,25 @@ const api = {
 			var node = this.getItemNode(editor.config.id);
 			removeCss(node, "webix_focused");
 		});
+
+		if (!this.types){
+			this.types = { "default" : this.type };
+			this.type.name = "default";
+		}
+		this.type = clone(this.type);
 	},
 	defaults:{
 		nameWidth:100,
 		editable:true
 	},
 	on_render:{
-		password:function(value){
-			return !value && value !== 0 ? "" : "&bull;".repeat(value.toString().length);
-		},
+		password: editors.password.masterFormat,
 		checkbox:function(value){
 			return "<input type='checkbox' class='webix_property_check' "+(value?"checked":"")+">";
 		},
 		color:function(value){
-			return "<div class='webix_property_col_ind' style='background-color:"+(value||"#FFFFFF")+";'></div>" + value;
+			const margin = (this.type.height - 20) / 2;
+			return "<div class='webix_property_col_ind' style='margin-top:"+margin+"px;background-color:"+(value||"#FFFFFF")+";'></div>" + value;
 		}
 	},
 	on_edit:{
@@ -89,6 +94,12 @@ const api = {
 	},
 	showItem:function(id){
 		RenderStack.showItem.call(this, id);
+	},
+	item_setter:function(value){
+		return this.type_setter(value);
+	},
+	type_setter:function(value){
+		return RenderStack.type_setter.call(this, value);
 	},
 	locate:function(){
 		return locate(arguments[0], this._id);
@@ -196,21 +207,23 @@ const api = {
 		return base.api.$getSize.call(this, dx, dy);
 	},
 	_toHTML:function(){
-		var html = [];
-		var els = this._settings.elements;
-		if (els)
-			for (var i=0; i<els.length; i++){
-				var data = els[i];
+		const html = [];
+		const els = this._settings.elements;
+		if (els) {
+			const height = `height:${this.type.height}px;line-height:${this.type.height}px;`;
+			for (let i=0; i<els.length; i++){
+				const data = els[i];
 				if (data.css && typeof data.css == "object")
 					data.css = createCss(data.css);
 
-				var pre = "<div "+/*@attr*/"webix_f_id"+"=\""+data.id+"\""+(data.type!=="label"?"role=\"option\" tabindex=\"0\"":"")+" class=\"webix_property_line "+(data.css||"")+"\">";
+				const pre = "<div "+/*@attr*/"webix_f_id"+"=\""+data.id+"\""+(data.type!=="label"?"role=\"option\" tabindex=\"0\"":"")+" class=\"webix_property_line "+(data.css||"")+"\">";
 				if (data.type == "label")
-					html[i] = pre+"<div class='webix_property_label_line'>"+data.label+"</div></div>";
+					html[i] = pre+"<div class='webix_property_label_line' style='"+height+"'>"+data.label+"</div></div>";
 				else {
-					var render = this.on_render[data.type],
-						content;
-					var post = "<div class='webix_property_label' style='width:"+this._settings.nameWidth+"px'>"+data.label+"</div><div class='webix_property_value' style='width:"+this._data_width+"px'>";
+					const render = this.on_render[data.type];
+					const post = "<div class='webix_property_label' style='"+height+"width:"+this._settings.nameWidth+"px'>"+data.label+"</div><div class='webix_property_value' style='"+height+"width:"+this._data_width+"px'>";
+
+					let content;
 					if (data.collection || data.options){
 						content = data.template(data, this.type, data.value, data);
 					} else if(data.format){
@@ -222,6 +235,7 @@ const api = {
 					html[i] = pre+post+content+"</div></div>";
 				}
 			}
+		}
 		return html.join("");
 	},
 	type:{

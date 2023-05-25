@@ -391,7 +391,8 @@ const DragControl ={
 
 //global touch-drag handler
 attachEvent("onLongTouch", function(ev){
-	if(DragControl._active && !DragControl._touch_animation)
+	const active = DragControl._active;
+	if(!DragControl._touch_animation && active && active.contains(ev.target))
 		DragControl._createTouchDrag(ev, "touch");
 });
 

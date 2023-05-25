@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.10.0.1
+ * webix UI v.10.1.0
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -1898,7 +1898,7 @@
   env.strict = !!window.webix_strict;
   env.https = document.location.protocol === "https:";
   var agent = navigator.userAgentData;
-  var deprecatedAgent = agent ? null : navigator.userAgent;
+  var deprecatedAgent = agent && agent.platform && agent.brands.length ? null : navigator.userAgent;
   var browsers = {
     Chromium: "Chrom",
     //in userAgent - Chrome, in userAgentData.brands - Chromium
@@ -1910,9 +1910,9 @@
   };
 
   var _loop = function (browser) {
-    var checkBrowser = agent ? agent.brands.find(function (v) {
+    var checkBrowser = deprecatedAgent ? deprecatedAgent.indexOf(browsers[browser]) != -1 : agent.brands.find(function (v) {
       return v.brand.indexOf(browsers[browser]) != -1;
-    }) : deprecatedAgent.indexOf(browsers[browser]) != -1;
+    });
 
     if (checkBrowser) {
       env["is" + browser] = true; //Edge is a chromium-based browser (so we set isChromium:true and isEdge:true)
@@ -1927,11 +1927,15 @@
     if (_ret === "break") break;
   }
 
-  var platform = agent ? agent.platform : deprecatedAgent;
+  var platform = deprecatedAgent || agent.platform;
   env.isMac = platform.toLowerCase().indexOf("mac") != -1;
   if (/iPad|iPhone|iPod/.test(platform)) env.isIOS = true;
   if (platform.indexOf("Android") != -1) env.isAndroid = true;
-  if (agent) env.mobile = agent.mobile;else if (env.isIOS || env.isAndroid || deprecatedAgent.indexOf("Mobile") != -1 || deprecatedAgent.indexOf("Windows Phone") != -1) env.mobile = true;
+
+  if (deprecatedAgent) {
+    if (env.isIOS || env.isAndroid || deprecatedAgent.indexOf("Mobile") != -1 || deprecatedAgent.indexOf("Windows Phone") != -1) env.mobile = true;
+  } else env.mobile = agent.mobile;
+
   if (env.mobile || navigator.maxTouchPoints > 1) env.touch = true;
   env.fastClick = !env.touch; //maximum height/width for HTML elements in pixels (rough), bigger values will be ignored by browser
 
@@ -2115,17 +2119,12 @@
       var ext = (options.ext || options).toLowerCase();
       if (ext != "xls") ext = "xlsx";
       return require(env.cdn + "/extras/xlsx.core.styles.min.js").then(bind(function () {
-        var cellDates = isUndefined(options.cellDates) ? true : options.cellDates;
         /* global XLS, XLSX */
-
-        var wb = ext == "xls" ? XLS.read(arr.join(""), {
+        var wb = (ext == "xls" ? XLS : XLSX).read(arr.join(""), {
           type: "binary",
           cellStyles: true,
-          cellDates: cellDates
-        }) : XLSX.read(arr.join(""), {
-          type: "binary",
-          cellStyles: true,
-          cellDates: cellDates
+          cellDates: isUndefined(options.cellDates) ? true : options.cellDates,
+          sheetStubs: options.sheetStubs
         });
         var res = {
           sheets: wb.Sheets,
@@ -2947,18 +2946,23 @@
     var res;
     state._ui_creation++; // save old value of global scope
 
-    var temp = state._global_scope; // set global scope to the scope of new UI or to previous value
+    var temp_scope = state._global_scope; // save old value of global collection
+
+    var temp_collection = state._global_collection; // set global scope to the scope of new UI or to previous value
     // as result inner webix.ui calls will have access the scope of master view
     // mainly necessary for suggests
 
-    state._global_scope = config.$scope || temp;
+    state._global_scope = config.$scope || temp_scope;
 
     try {
       res = _ui_creator(config, parent, id);
     } finally {
       state._ui_creation--; // restore global scope
 
-      state._global_scope = temp;
+      state._global_scope = temp_scope; // restore global collection
+      // if an error occurred while creating the isolated layout
+
+      state._global_collection = temp_collection;
     }
 
     return res;
@@ -5971,6 +5975,7 @@
     propertyItemHeight: 28,
     timelineItemHeight: 70,
     unitHeaderHeight: 36,
+    fontSize: 14,
     inputSpacing: 4,
     borderWidth: 1,
     sliderHandleWidth: 14,
@@ -6045,6 +6050,7 @@
     propertyItemHeight: 24,
     unitHeaderHeight: 28,
     timelineItemHeight: 50,
+    fontSize: 12,
     inputSpacing: 4,
     borderWidth: 1,
     sliderHandleWidth: 12,
@@ -6119,6 +6125,7 @@
     unitHeaderHeight: 20,
     propertyItemHeight: 28,
     timelineItemHeight: 70,
+    fontSize: 15,
     inputSpacing: 4,
     borderWidth: 1,
     sliderHandleWidth: 14,
@@ -6189,6 +6196,7 @@
     inputPadding: 3,
     menuHeight: 28,
     labelTopHeight: 16,
+    fontSize: 13,
     inputSpacing: 4,
     borderWidth: 1,
     sliderHandleWidth: 10,
@@ -6259,6 +6267,7 @@
     labelTopHeight: 22,
     propertyItemHeight: 28,
     timelineItemHeight: 70,
+    fontSize: 15,
     inputSpacing: 4,
     borderWidth: 1,
     sliderHandleWidth: 14,
@@ -6329,6 +6338,7 @@
     propertyItemHeight: 28,
     timelineItemHeight: 64,
     unitHeaderHeight: 36,
+    fontSize: 14,
     inputSpacing: 4,
     borderWidth: 1,
     sliderHandleWidth: 14,
@@ -6403,6 +6413,7 @@
     propertyItemHeight: 28,
     timelineItemHeight: 64,
     unitHeaderHeight: 36,
+    fontSize: 14,
     inputSpacing: 4,
     borderWidth: 1,
     sliderHandleWidth: 14,
@@ -6546,28 +6557,31 @@
     _touchend: function (e) {
       if (Touch._start_context) {
         if (!Touch._scroll_mode) {
-          if (!Touch._long_touched) {
-            if (Touch._axis_y && !Touch._axis_x) {
+          if (!Touch._long_touched && !(Touch._axis_x * Touch._axis_y)) {
+            var delta = Touch._get_delta(e);
+
+            if (!Touch._axis_x && delta._x / (delta._y || 1) > 4) {
               Touch._translate_event("onSwipeX");
-            } else if (Touch._axis_x && !Touch._axis_y) {
+            } else if (!Touch._axis_y && delta._y / (delta._x || 1) > 4) {
               Touch._translate_event("onSwipeY");
             }
           }
         } else {
+          var finish = Touch.config.finish;
+
           var temp = Touch._get_matrix(Touch._scroll_node);
 
           var x = temp.e;
           var y = temp.f;
-          var finish = Touch.config.finish;
 
-          var delta = Touch._get_delta(e);
+          var _delta = Touch._get_delta(e);
 
           var view = $$(Touch._scroll_node);
           var gravity = view && view.$scroll ? view.$scroll.gravity : Touch.config.gravity;
 
-          if (delta._time) {
-            var nx = x + gravity * delta._x_moment / delta._time;
-            var ny = y + gravity * delta._y_moment / delta._time;
+          if (_delta._time) {
+            var nx = x + gravity * _delta._x_moment / _delta._time;
+            var ny = y + gravity * _delta._y_moment / _delta._time;
             var cnx = Touch._scroll[0] ? Touch._correct_minmax(nx, false, false, Touch._scroll_stat.dx, Touch._scroll_stat.px) : x;
             var cny = Touch._scroll[1] ? Touch._correct_minmax(ny, false, false, Touch._scroll_stat.dy, Touch._scroll_stat.py) : y;
             var size = Math.max(Math.abs(cnx - x), Math.abs(cny - y));
@@ -6577,7 +6591,6 @@
               e: cnx,
               f: cny
             };
-            view = $$(Touch._scroll_node);
             if (view && view.adjustScroll) view.adjustScroll(result);
             finish = Math.min(Touch.config.finish, Math.max(100, finish));
 
@@ -7335,7 +7348,8 @@
   }; //global touch-drag handler
 
   attachEvent("onLongTouch", function (ev) {
-    if (DragControl._active && !DragControl._touch_animation) DragControl._createTouchDrag(ev, "touch");
+    var active = DragControl._active;
+    if (!DragControl._touch_animation && active && active.contains(ev.target)) DragControl._createTouchDrag(ev, "touch");
   });
 
   var Movable = {
@@ -8603,7 +8617,10 @@
           var node = this.getItemNode(id);
 
           if (node) {
-            node.className = node.className.replace(css, "").replace("  ", " ");
+            var re = new RegExp("(\\s|^)" + css + "(\\s|$)");
+            node.className = node.className.replace(re, function (v, b, a) {
+              return b && a ? " " : "";
+            });
             silent = true;
           }
         }
@@ -8678,8 +8695,8 @@
 
       var nid = sid; //id after moving
 
-      var data = this.getItem(sid);
-      assert(data, "Incorrect ID in DataMove::move");
+      var item = this.getItem(sid);
+      assert(item, "Incorrect ID in DataMove::move");
 
       if (!tobj || tobj == this) {
         if (tindex < 0) tindex = this.data.order.length - 1;
@@ -8688,7 +8705,7 @@
         this.data.callEvent("onDataMove", [sid, tindex, null, this.data.order[tindex + 1]]);
       } else {
         //copy to the new object
-        nid = tobj.data.add(tobj._externalData(data, new_id), tindex, details.parent || 0);
+        nid = tobj.data.add(tobj._externalData(item, new_id), tindex, details.parent || 0);
         this.data.remove(sid); //delete in old object
       }
 
@@ -9607,16 +9624,16 @@
           var oldpull = this.pull;
           this.pull = {};
 
-          for (var _key in data.pull) {
-            var old = oldpull[_key];
-            this.pull[_key] = copy(data.pull[_key]);
-            if (old && old.open) this.pull[_key].open = true;
+          for (var key in data.pull) {
+            var old = oldpull[key];
+            this.pull[key] = copy(data.pull[key]);
+            if (old && old.open) this.pull[key].open = true;
           }
         } else {
           this.pull = {};
 
-          for (var _key2 in data.pull) {
-            this.pull[_key2] = data.pull[_key2];
+          for (var _key in data.pull) {
+            this.pull[_key] = data.pull[_key];
           }
         }
 
@@ -9628,8 +9645,8 @@
         this.order = _to_array();
         this.pull = {};
         var id, obj;
-        if (isArray(target)) for (var _key3 = 0; _key3 < target.length; _key3++) {
-          obj = id = target[_key3];
+        if (isArray(target)) for (var _key2 = 0; _key2 < target.length; _key2++) {
+          obj = id = target[_key2];
           if (_typeof(obj) == "object") obj.id = obj.id || uid();else obj = {
             id: id,
             value: id
@@ -9637,11 +9654,11 @@
           this.order.push(obj.id);
           if (this._scheme_init) this._scheme_init(obj);
           this.pull[obj.id] = obj;
-        } else for (var _key4 in data) {
-          this.order.push(_key4);
-          this.pull[_key4] = {
-            id: _key4,
-            value: data[_key4]
+        } else for (var _key3 in data) {
+          this.order.push(_key3);
+          this.pull[_key3] = {
+            id: _key3,
+            value: data[_key3]
           };
         }
       }
@@ -9653,9 +9670,9 @@
         if (!this._datadriver_child) this._set_child_scheme("data");
 
         for (var i = 0; i < this.order.length; i++) {
-          var key = this.order[i];
+          var _key4 = this.order[i];
 
-          this._extraParser(this.pull[key], 0, 0, false);
+          this._extraParser(this.pull[_key4], 0, 0, false);
         }
       }
 
@@ -9872,7 +9889,9 @@
       if (!this.callEvent("onBeforeSort", parameters)) return false;
       var sorter = this.sorting.create(sort);
       this.order = this._sort_core(sorter, this.order);
-      if (this._filter_order) this._filter_order = this._sort_core(sorter, this._filter_order); //repaint self
+      if (this._filter_order) this._filter_order = this._sort_core(sorter, this._filter_order);
+      if (this._filter_branch) //treestore
+        this._sort_core(sorter, this.order, this._filter_branch); //repaint self
 
       this.refresh();
       this.callEvent("onAfterSort", parameters);
@@ -9919,7 +9938,7 @@
     	
     	or
     	
-    	text  - filter method
+    	text - filter method
     	
     	Filter method will receive data object and must return true or false
     */
@@ -10081,7 +10100,10 @@
           var current_css = obj.$css;
 
           if (current_css) {
-            obj.$css = current_css.replace(mark, "").replace("  ", " ");
+            var re = new RegExp("(\\s|^)" + mark + "(\\s|$)");
+            obj.$css = current_css.replace(re, function (v, b, a) {
+              return b && a ? " " : "";
+            });
           }
         }
 
@@ -10098,7 +10120,14 @@
 
         if (obj[name]) {
           delete obj[name];
-          if (css && obj.$css) obj.$css = obj.$css.replace(name, "").replace("  ", " ");
+
+          if (css && obj.$css) {
+            var re = new RegExp("(\\s|^)" + name + "(\\s|$)");
+            obj.$css = obj.$css.replace(re, function (v, b, a) {
+              return b && a ? " " : "";
+            });
+          }
+
           if (!silent) this.refresh(id);
         }
       }
@@ -10150,29 +10179,29 @@
           return a > b ? 1 : a < b ? -1 : 0;
         },
         "string_strict": function (a, b) {
-          if (!b) return 1;
-          if (!a) return -1;
+          if (!b && b !== "") return 1;
+          if (!a && a !== "") return -1;
           a = a.toString();
           b = b.toString();
           return a > b ? 1 : a < b ? -1 : 0;
         },
         "string": function (a, b) {
-          if (!b) return 1;
-          if (!a) return -1;
+          if (!b && b !== "") return 1;
+          if (!a && a !== "") return -1;
           a = a.toString().toLowerCase();
           b = b.toString().toLowerCase();
           return a > b ? 1 : a < b ? -1 : 0;
         },
         "string_locale_strict": function (a, b) {
-          if (!b) return 1;
-          if (!a) return -1;
+          if (!b && b !== "") return 1;
+          if (!a && a !== "") return -1;
           a = a.toString();
           b = b.toString();
           return a.localeCompare(b, i18n.locale);
         },
         "string_locale": function (a, b) {
-          if (!b) return 1;
-          if (!a) return -1;
+          if (!b && b !== "") return 1;
+          if (!a && a !== "") return -1;
           a = a.toString().toLowerCase();
           b = b.toString().toLowerCase();
           return a.localeCompare(b, i18n.locale);
@@ -11608,6 +11637,9 @@
       input.setAttribute("type", isPassword ? "text" : "password");
       var icon = input.nextSibling;
       icon.className = "webix_icon wxi-eye".concat(isPassword ? "-slash" : "");
+    },
+    masterFormat: function (value) {
+      return !value && value !== 0 ? "" : "&bull;".repeat(value.toString().length);
     }
   }, editors.text);
   editors.$popup = {
@@ -11674,15 +11706,12 @@
       if (this._settings.editable) this._init_edit_events_once();
       exports.extend(this, Undo);
     },
-    _refocus_try: function (newnode) {
+    _try_reselecting_text: function (input, start) {
       try {
         //Chrome throws an error if selectionStart is not accessible
-        if (typeof newnode.selectionStart == "number") {
-          newnode.selectionStart = newnode.selectionEnd = newnode.value.length;
-        } else if (typeof newnode.createTextRange != "undefined") {
-          var range = newnode.createTextRange();
-          range.collapse(false);
-          range.select();
+        if (typeof input.selectionStart === "number") {
+          input.selectionStart = start >= 0 ? start : input.value.length;
+          input.selectionEnd = input.value.length;
         }
       } catch (e) {} // eslint-disable-line
 
@@ -11694,13 +11723,12 @@
         var newnode = this._locateInput(editor);
 
         if (newnode && newnode != editor.node) {
-          var text = editor.node.value;
           editor.node = newnode;
-          newnode.value = text;
           newnode.focus();
+          var justOpened = new Date() - this._edit_open_time > 200;
 
-          this._refocus_try(newnode);
-        } else this.editStop();
+          this._try_reselecting_text(newnode, justOpened ? -1 : 0);
+        }
       }
     },
     editable_setter: function (value) {
@@ -12203,12 +12231,16 @@
       });
     },
     ungroup: function (target) {
+      // reset filters before ungrouping
+      if (this._filter_reset) this._filter_reset(false);
+
       if (this.getBranchIndex) {
         if (!this._ungroupLevel(target)) return;
       } else {
         if (!this._not_grouped_order) return;
         this.order = this._not_grouped_order;
         this.pull = this._not_grouped_pull;
+        this._not_grouped_order = this._not_grouped_pull = null;
       }
 
       this.callEvent("onStoreUpdated", []);
@@ -12288,7 +12320,9 @@
 
       config.map = config.map || {};
       if (input && !config.map[input]) config.map[input] = [input];
-      config.missing = config.missing === undefined ? true : config.missing;
+      config.missing = config.missing === undefined ? true : config.missing; // reset filters before grouping
+
+      if (this._filter_reset) this._filter_reset(false);
       if (this.getBranchIndex) return this._group_tree(config, target);
 
       if (!this._not_grouped_order) {
@@ -12967,6 +13001,14 @@
         UIManager.addHotKey("pagedown", this._navigation_helper("pgdown"));
         UIManager.addHotKey("home", this._navigation_helper("top"));
         UIManager.addHotKey("end", this._navigation_helper("bottom"));
+        UIManager.addHotKey("shift+pageup", this._navigation_helper("pgup"));
+        UIManager.addHotKey("shift+pagedown", this._navigation_helper("pgdown"));
+        UIManager.addHotKey("shift+home", this._navigation_helper("top"));
+        UIManager.addHotKey("shift+end", this._navigation_helper("bottom"));
+        UIManager.addHotKey("ctrl+up", this._navigation_helper("up"));
+        UIManager.addHotKey("ctrl+down", this._navigation_helper("down"));
+        UIManager.addHotKey("ctrl+left", this._navigation_helper("left"));
+        UIManager.addHotKey("ctrl+right", this._navigation_helper("right"));
       }
 
       return value;
@@ -13047,6 +13089,8 @@
         if (col.map) this._scheme_init_order.push(this._process_single_map(col.id, col.map, columns[i]));
 
         this._map_options(columns[i]);
+
+        if (col.editor && !col.template && !col.format) this._map_editor(col.id, columns[i]);
       }
     },
     _create_collection: function (options) {
@@ -13186,6 +13230,10 @@
           return "";
         };
       }
+    },
+    _map_editor: function (id, config) {
+      var editor = editors[config.editor];
+      if (editor && editor.masterFormat) config.format = editor.masterFormat;
     }
   };
 
@@ -14093,9 +14141,7 @@
 
       range.each(function (obj) {
         if (!this.data.getMark(obj.id, "webix_selected")) {
-          this._selected.push(obj.id);
-
-          this._select_mark(obj.id, true, refresh);
+          if (this._select_mark(obj.id, true, refresh)) this._selected.push(obj.id);
         }
       }, this); //repaint self
 
@@ -15608,15 +15654,21 @@
 
         for (var i = 0; i < sid.length; i++) {
           //increase index for each next item in the set, so order of insertion will be equal to order in the array
-          var nid = this.move(sid[i], tindex, tobj, details);
-          tindex = tobj._next_move_index(nid, sid[i + 1], this);
+          var _nid = this.move(sid[i], tindex, tobj, details);
+
+          tindex = tobj._next_move_index(_nid, sid[i + 1], this);
         }
 
         return;
       }
 
+      var nid = sid; //id after moving
+
+      var item = this.getItem(sid);
+      assert(item, "Incorrect ID in TreeDataMove::move");
+
       if (this != tobj || details.copy) {
-        new_id = tobj.data.add(tobj._externalData(this.getItem(sid), new_id), tindex, target_parent || 0);
+        nid = tobj.data.add(tobj._externalData(item, new_id), tindex, target_parent || 0);
 
         if (this.data.branch[sid] && tobj.getBranchIndex) {
           var temp = this.data._scheme_serialize;
@@ -15632,7 +15684,7 @@
 
           var copy_data = {
             data: this.serialize(sid, true),
-            parent: new_id
+            parent: nid
           };
           this.data._scheme_serialize = temp;
           tobj.parse(copy_data);
@@ -15642,37 +15694,36 @@
       } else {
         //move in self
         if (sid == target_parent || this._check_branch_child(sid, target_parent)) return;
-        var source = this.getItem(sid);
         var tbranch = this.data.branch[target_parent];
         if (!tbranch) tbranch = this.data.branch[target_parent] = [];
-        var sbranch = this.data.branch[source.$parent];
+        var sbranch = this.data.branch[item.$parent];
 
         var sindex = _power_array.find.call(sbranch, sid);
 
         if (tindex < 0) tindex = tbranch.length; //in the same branch and same position
 
-        if (sbranch === tbranch && tindex === sindex) return new_id; //return ID
+        if (sbranch === tbranch && tindex === sindex) return nid; //return ID
 
         _power_array.removeAt.call(sbranch, sindex);
 
         _power_array.insertAt.call(tbranch, sid, Math.min(tbranch.length, tindex));
 
-        if (!sbranch.length) delete this.data.branch[source.$parent];
-        if (source.$parent && source.$parent != "0") this.getItem(source.$parent).$count--;
+        if (!sbranch.length) delete this.data.branch[item.$parent];
+        if (item.$parent && item.$parent != "0") this.getItem(item.$parent).$count--;
 
         if (target_parent && target_parent != "0") {
           var target = tobj.getItem(target_parent);
           target.$count++;
 
-          this._set_level_rec(source, target.$level + 1);
-        } else this._set_level_rec(source, 1);
+          this._set_level_rec(item, target.$level + 1);
+        } else this._set_level_rec(item, 1);
 
-        source.$parent = target_parent;
+        item.$parent = target_parent;
         tobj.data.callEvent("onDataMove", [sid, tindex, target_parent, tbranch[tindex + 1]]);
       }
 
       this.refresh();
-      return new_id; //return ID of item after moving
+      return nid; //return ID of item after moving
     },
     _set_level_rec: function (item, value) {
       item.$level = value;
@@ -15680,6 +15731,28 @@
       if (branch) for (var i = 0; i < branch.length; i++) {
         this._set_level_rec(this.getItem(branch[i]), value + 1);
       }
+    },
+    moveUp: function (id, step) {
+      var index = this.getBranchIndex(id) - (step || 1);
+      return this.move(id, index < 0 ? 0 : index, this, {
+        parent: this.data.getParentId(id)
+      });
+    },
+    moveDown: function (id, step) {
+      return this.moveUp(id, (step || 1) * -1);
+    },
+    moveTop: function (id, parent) {
+      parent = isUndefined(parent) ? this.getParentId(id) : parent;
+      return this.move(id, 0, this, {
+        parent: parent
+      });
+    },
+    moveBottom: function (id, parent) {
+      parent = isUndefined(parent) ? this.getParentId(id) : parent;
+      var index = this.isBranch(parent) ? this.data.branch[parent].length : 0;
+      return this.move(id, index, this, {
+        parent: parent
+      });
     },
     //reaction on pause during dnd
     _drag_pause: function (id) {
@@ -16399,22 +16472,21 @@
         } else functor.call(this, this.getItem(key), false);
       }
     },
-    _sort_core: function (sorter, order) {
-      for (var key in this.branch) {
-        var bset = this.branch[key];
-        var data = [];
+    _sort_core: function (sorter, order, branch) {
+      branch = branch || this.branch;
 
-        for (var i = 0; i < bset.length; i++) {
-          data.push(this.pull[bset[i]]);
+      for (var key in branch) {
+        var bset = branch[key];
+        var newbranch = [];
+
+        for (var i = bset.length - 1; i >= 0; i--) {
+          newbranch[i] = this.pull[bset[i]];
         }
 
-        data.sort(sorter);
-
-        for (var _i = 0; _i < bset.length; _i++) {
-          data[_i] = data[_i].id;
-        }
-
-        this.branch[key] = data;
+        newbranch.sort(sorter);
+        branch[key] = newbranch.map(function (a) {
+          return a.id;
+        });
       }
 
       return order;
@@ -17486,7 +17558,7 @@
     }
   };
 
-  var version = "10.0.1";
+  var version = "10.1.0";
   var name = "core";
 
   var errorMessage = "non-existing view for export";
@@ -19133,6 +19205,8 @@
       var config = {
         decimalSize: 0,
         groupSize: 999,
+        minusSign: i18n.minusSign,
+        minusPosition: i18n.minusPosition,
         prefix: "",
         sufix: ""
       };
@@ -19479,12 +19553,24 @@
   };
 
   env.printPPI = 96;
-  env.printMargin = 0.75 * env.printPPI;
-  var papers = {
-    "a4": "A4",
-    "a3": "A3",
-    "letter": "letter"
-  };
+  env.printMargin = 0.75 * env.printPPI; //inches, real size is value*ppi
+
+  env.printSizes = [{
+    id: "a3",
+    preset: "A3",
+    width: 11.7,
+    height: 16.5
+  }, {
+    id: "a4",
+    preset: "A4",
+    width: 8.27,
+    height: 11.7
+  }, {
+    id: "letter",
+    preset: "letter",
+    width: 8.5,
+    height: 11
+  }];
   var fits = {
     page: true,
     data: true
@@ -19492,21 +19578,6 @@
   var modes = {
     portrait: true,
     landscape: true
-  };
-  var sizes = {
-    //inches, real size is value*ppi
-    "A3": {
-      width: 11.7,
-      height: 16.5
-    },
-    "A4": {
-      width: 8.27,
-      height: 11.7
-    },
-    "letter": {
-      width: 8.5,
-      height: 11
-    }
   };
 
   var print = function (id, options) {
@@ -19541,11 +19612,19 @@
 
   function _checkOptions(options) {
     options = options || {};
-    options.paper = papers[(options.paper || "").toLowerCase()] || "A4";
+    options.paper = options.paper || "a4";
+    options.size = env.printSizes.find(function (size) {
+      return size.id == options.paper;
+    });
+
+    if (!options.size) {
+      options.size = env.printSizes[0];
+      options.paper = options.size.id;
+    }
+
     options.mode = modes[options.mode] ? options.mode : "portrait";
     options.fit = fits[options.fit] ? options.fit : "page";
     options.scroll = options.scroll || false;
-    options.size = sizes[options.paper];
     options.margin = options.margin || options.margin === 0 ? options.margin : {};
     var margin = isNaN(options.margin * 1) ? env.printMargin : options.margin;
     options.margin = {
@@ -19565,7 +19644,9 @@
     if (options.docFooter) _getHeaderFooter("Footer", options);
     /* static print styles are located at 'css/print.less'*/
 
-    var cssString = "@media print { " + "@page{ size:" + options.paper + " " + options.mode + ";" + "margin-top:" + options.margin.top + "px;margin-bottom:" + options.margin.bottom + "px;margin-right:" + options.margin.right + "px;margin-left:" + options.margin.left + "px;}" + "}";
+    var size = options.size;
+    var pageSize = size.preset ? size.preset + " " + options.mode : options.mode == "portrait" ? "".concat(size.width, "in ").concat(size.height, "in") : "".concat(size.height, "in ").concat(size.width, "in");
+    var cssString = "@media print { " + "@page{ size:" + pageSize + ";" + "margin-top:" + options.margin.top + "px;margin-bottom:" + options.margin.bottom + "px;margin-right:" + options.margin.right + "px;margin-left:" + options.margin.left + "px;}" + "}";
     addStyle(cssString, "print");
   }
   /*cleaning environment*/
@@ -20007,7 +20088,10 @@
 
   if (env.mobile) {
     state.orientation = get_orientation();
-    event$1(window, "resize", orientation_handler);
+
+    if (window.screen.orientation) {
+      event$1(window.screen.orientation, "change", orientation_handler);
+    } else event$1(window, "orientationchange", orientation_handler);
   }
 
   function fullScreen() {
@@ -20562,7 +20646,7 @@
       greater: "mayor",
       greaterOrEqual: "mayor o igual",
       contains: "contiene",
-      notContains: "not contiene",
+      notContains: "no contiene",
       equal: "igual",
       notEqual: "no es igual",
       beginsWith: "comienza con",
@@ -21820,9 +21904,11 @@
           if (pView._vertical_orientation) {
             maxHeight = 0;
             maxWidth = 100000;
+            dy = 0;
           } else {
             maxHeight = 100000;
             maxWidth = 0;
+            dx = 0;
           }
         }
       } else delete this._hiddenByCells;
@@ -22169,16 +22255,13 @@
       }
     },
     _get_auto_height: function () {
-      var size;
-      var padding = $active.layoutPadding.space;
+      var size = 0; // visible and not collapsed
 
-      this._probably_render_me();
+      if (this.isVisible() && !this.queryView(function (v) {
+        return v.config.collapsed;
+      }, "parent")) {
+        this._probably_render_me();
 
-      if (!this.isVisible()) {
-        //try getting height of a hidden template
-        size = getTextSize(this._toHTML(this.data) || this._dataobj.innerHTML, //check for config.content 
-        "webix_template", (this.$width || (this.getParentView() ? this.getParentView().$width : 0)) - padding).height;
-      } else {
         this._dataobj.style.height = "auto";
         size = this._dataobj.scrollHeight;
         this._dataobj.style.height = "";
@@ -22290,8 +22373,8 @@
       this.resizeChildren();
     },
     showView: function (id) {
-      var topPos = $$(id).$view.offsetTop - $$(id).$view.parentNode.offsetTop;
-      this.scrollTo(0, topPos);
+      var vnode = $$(id).$view;
+      this.scrollTo(vnode.offsetLeft - vnode.parentNode.offsetLeft, vnode.offsetTop - vnode.parentNode.offsetTop);
     }
   };
   var view$7 = exports.protoUI(api$7, Scrollable, EventSystem, base$1.view);
@@ -24575,20 +24658,28 @@
         var node = this.getItemNode(editor.config.id);
         removeCss(node, "webix_focused");
       });
+
+      if (!this.types) {
+        this.types = {
+          "default": this.type
+        };
+        this.type.name = "default";
+      }
+
+      this.type = clone(this.type);
     },
     defaults: {
       nameWidth: 100,
       editable: true
     },
     on_render: {
-      password: function (value) {
-        return !value && value !== 0 ? "" : "&bull;".repeat(value.toString().length);
-      },
+      password: editors.password.masterFormat,
       checkbox: function (value) {
         return "<input type='checkbox' class='webix_property_check' " + (value ? "checked" : "") + ">";
       },
       color: function (value) {
-        return "<div class='webix_property_col_ind' style='background-color:" + (value || "#FFFFFF") + ";'></div>" + value;
+        var margin = (this.type.height - 20) / 2;
+        return "<div class='webix_property_col_ind' style='margin-top:" + margin + "px;background-color:" + (value || "#FFFFFF") + ";'></div>" + value;
       }
     },
     on_edit: {
@@ -24632,6 +24723,12 @@
     },
     showItem: function (id) {
       RenderStack.showItem.call(this, id);
+    },
+    item_setter: function (value) {
+      return this.type_setter(value);
+    },
+    type_setter: function (value) {
+      return RenderStack.type_setter.call(this, value);
     },
     locate: function () {
       return locate(arguments[0], this._id);
@@ -24742,27 +24839,33 @@
     _toHTML: function () {
       var html = [];
       var els = this._settings.elements;
-      if (els) for (var i = 0; i < els.length; i++) {
-        var data = els[i];
-        if (data.css && _typeof(data.css) == "object") data.css = createCss(data.css);
-        var pre = "<div " +
-        /*@attr*/
-        "webix_f_id" + "=\"" + data.id + "\"" + (data.type !== "label" ? "role=\"option\" tabindex=\"0\"" : "") + " class=\"webix_property_line " + (data.css || "") + "\">";
-        if (data.type == "label") html[i] = pre + "<div class='webix_property_label_line'>" + data.label + "</div></div>";else {
-          var render = this.on_render[data.type],
-              content;
-          var post = "<div class='webix_property_label' style='width:" + this._settings.nameWidth + "px'>" + data.label + "</div><div class='webix_property_value' style='width:" + this._data_width + "px'>";
 
-          if (data.collection || data.options) {
-            content = data.template(data, this.type, data.value, data);
-          } else if (data.format) {
-            content = data.format(data.value);
-          } else content = data.value;
+      if (els) {
+        var height = "height:".concat(this.type.height, "px;line-height:").concat(this.type.height, "px;");
 
-          if (render) content = render.call(this, data.value, data);
-          html[i] = pre + post + content + "</div></div>";
+        for (var i = 0; i < els.length; i++) {
+          var data = els[i];
+          if (data.css && _typeof(data.css) == "object") data.css = createCss(data.css);
+          var pre = "<div " +
+          /*@attr*/
+          "webix_f_id" + "=\"" + data.id + "\"" + (data.type !== "label" ? "role=\"option\" tabindex=\"0\"" : "") + " class=\"webix_property_line " + (data.css || "") + "\">";
+          if (data.type == "label") html[i] = pre + "<div class='webix_property_label_line' style='" + height + "'>" + data.label + "</div></div>";else {
+            var render = this.on_render[data.type];
+            var post = "<div class='webix_property_label' style='" + height + "width:" + this._settings.nameWidth + "px'>" + data.label + "</div><div class='webix_property_value' style='" + height + "width:" + this._data_width + "px'>";
+            var content = void 0;
+
+            if (data.collection || data.options) {
+              content = data.template(data, this.type, data.value, data);
+            } else if (data.format) {
+              content = data.format(data.value);
+            } else content = data.value;
+
+            if (render) content = render.call(this, data.value, data);
+            html[i] = pre + post + content + "</div></div>";
+          }
         }
       }
+
       return html.join("");
     },
     type: {
@@ -27631,15 +27734,26 @@
       if (!tab && this._settings.readonly) preventEvent(e);
     },
     options_setter: function (value) {
+      var _this2 = this;
+
       if (value) {
         if (typeof value == "string") {
-          var collection = new DataCollection({
+          this._loading_data = true;
+          value = new DataCollection({
             url: value
           });
-          collection.data.attachEvent("onStoreLoad", bind(this.refresh, this));
-          return collection;
-        } else return value;
+          value.data.attachEvent("onStoreLoad", function () {
+            delete _this2._loading_data;
+
+            _this2.refresh();
+          });
+        }
+
+        return value;
       }
+    },
+    getValue: function () {
+      return this._loading_data ? this._settings.value : text.api.getValue.call(this);
     },
     $renderIcon: function () {
       return "";
@@ -27740,47 +27854,58 @@
     name: "radio",
     defaults: {
       template: function (config, common) {
-        common._check_options(config.options);
+        var id = common._radioId();
 
-        var options = common._filterOptions(config.options);
+        var html = common._optionsTemplate(id);
 
-        var active = common._getFirstActive();
-
-        var id, eachid, isChecked, isDisabled, label, tooltip, customRadio, optlabel, rd, input, focusable;
-        var html = [];
-
-        for (var i = 0; i < options.length; i++) {
-          eachid = "x" + uid();
-          id = id || eachid;
-          if (i && (options[i].newline || config.vertical)) html.push("<div class='webix_line_break'></div>");
-          isChecked = options[i].id == config.value;
-          focusable = isChecked || !config.value && options[i].id === active;
-          isDisabled = !!options[i].disabled;
-          label = options[i].value || "";
-          tooltip = config.tooltip ? " webix_t_id='" + options[i].id + "'" : "";
-          customRadio = config.customRadio || "";
-
-          if (customRadio) {
-            optlabel = (i === 0 ? config.label + " " : "") + label;
-            customRadio = customRadio.replace(/(aria-label=')\w*(?=')/, "$1" + template.escape(optlabel));
-            customRadio = customRadio.replace(/(aria-checked=')\w*(?=')/, "$1" + (isChecked ? "true" : "false"));
-            customRadio = customRadio.replace(/(tabindex=')\w*(?=')/, "$1" + (!isDisabled && focusable ? "0" : "-1"));
-            customRadio = customRadio.replace(/(aria-invalid=')\w*(?=')/, "$1" + (config.invalid ? "true" : "false"));
-            customRadio = customRadio.replace(/(button_id=')\w*(?=')/, "$1" + options[i].id);
-            if (isDisabled) customRadio = customRadio.replace("role='radio'", "role='radio' webix_disabled='true'");
-          }
-
-          rd = common._baseInputHTML("input") + " name='" + (config.name || config.id) + "' type='radio' " + (isChecked ? "checked='1'" : "") + "tabindex=" + (!isDisabled && focusable ? "0" : "-1") + " value='" + options[i].id + "' id='" + eachid + "'" + (isDisabled ? " disabled='true'" : "") + " style='" + (customRadio ? "display:none" : "") + "' />";
-          input = "<div " +
-          /*@attr*/
-          "radio_id" + "='" + options[i].id + "' class='webix_inp_radio_border webix_radio_" + (isChecked ? "1" : "0") + "' role='presentation'>" + rd + customRadio + "</div>";
-          if (label) label = "<label for='" + eachid + "' class='webix_label_right'>" + label + "</label>";
-          html.push("<div style=\"height:".concat(config.optionHeight, "px;\" class=\"webix_radio_option").concat(isDisabled ? " webix_disabled" : "", "\" role=\"presentation\"").concat(tooltip, ">").concat(input + label, "</div>"));
-        }
-
-        html = "<div class='webix_el_group' role='radiogroup' style='margin-left:" + (config.label ? config.labelWidth : 0) + "px;'>" + html.join("") + "</div>";
+        html = "<div class='webix_el_group' role='radiogroup' style='margin-left:" + (config.label ? config.labelWidth : 0) + "px;'>" + html + "</div>";
         return common.$renderInput(config, html, id);
       }
+    },
+    _radioId: function () {
+      return "x" + uid();
+    },
+    _optionsTemplate: function (id) {
+      var config = this._settings;
+
+      this._check_options(config.options);
+
+      var options = this._filterOptions(config.options);
+
+      var active = this._getFirstActive();
+
+      var eachid, isChecked, isDisabled, label, tooltip, customRadio, optlabel, rd, input, focusable;
+      var html = [];
+
+      for (var i = 0; i < options.length; i++) {
+        eachid = i ? this._radioId() : id;
+        if (i && (options[i].newline || config.vertical)) html.push("<div class='webix_line_break'></div>");
+        isChecked = options[i].id == config.value;
+        focusable = isChecked || !config.value && options[i].id === active;
+        isDisabled = !!options[i].disabled;
+        label = options[i].value || "";
+        tooltip = config.tooltip ? " webix_t_id='" + options[i].id + "'" : "";
+        customRadio = config.customRadio || "";
+
+        if (customRadio) {
+          optlabel = (i === 0 ? config.label + " " : "") + label;
+          customRadio = customRadio.replace(/(aria-label=')\w*(?=')/, "$1" + template.escape(optlabel));
+          customRadio = customRadio.replace(/(aria-checked=')\w*(?=')/, "$1" + (isChecked ? "true" : "false"));
+          customRadio = customRadio.replace(/(tabindex=')\w*(?=')/, "$1" + (!isDisabled && focusable ? "0" : "-1"));
+          customRadio = customRadio.replace(/(aria-invalid=')\w*(?=')/, "$1" + (config.invalid ? "true" : "false"));
+          customRadio = customRadio.replace(/(button_id=')\w*(?=')/, "$1" + options[i].id);
+          if (isDisabled) customRadio = customRadio.replace("role='radio'", "role='radio' webix_disabled='true'");
+        }
+
+        rd = this._baseInputHTML("input") + " name='" + (config.name || config.id) + "' type='radio' " + (isChecked ? "checked='1'" : "") + "tabindex=" + (!isDisabled && focusable ? "0" : "-1") + " value='" + options[i].id + "' id='" + eachid + "'" + (isDisabled ? " disabled='true'" : "") + " style='" + (customRadio ? "display:none" : "") + "' />";
+        input = "<div " +
+        /*@attr*/
+        "radio_id" + "='" + options[i].id + "' class='webix_inp_radio_border webix_radio_" + (isChecked ? "1" : "0") + "' role='presentation'>" + rd + customRadio + "</div>";
+        if (label) label = "<label for='" + eachid + "' class='webix_label_right'>" + label + "</label>";
+        html.push("<div style=\"height:".concat(config.optionHeight, "px;\" class=\"webix_radio_option").concat(isDisabled ? " webix_disabled" : "", "\" role=\"presentation\"").concat(tooltip, ">").concat(input + label, "</div>"));
+      }
+
+      return html.join("");
     },
     refresh: function () {
       this.render();
@@ -27789,23 +27914,25 @@
     $getSize: function (dx, dy) {
       var size = button$1.api.$getSize.call(this, dx, dy);
 
-      var options = this._filterOptions(this._settings.options);
+      if (!this._settings.autoheight) {
+        var options = this._filterOptions(this._settings.options);
 
-      if (options) {
-        var count = this._settings.vertical ? 0 : 1;
+        if (options) {
+          var count = this._settings.vertical ? 0 : 1;
 
-        for (var i = 0; i < options.length; i++) {
-          if (this._settings.vertical || options[i].newline) count++;
+          for (var i = 0; i < options.length; i++) {
+            if (this._settings.vertical || options[i].newline) count++;
+          }
+
+          size[3] = size[2] = Math.max(size[2], (this._settings.optionHeight || 25) * count + this._settings.inputPadding * 2 + (this._settings.labelPosition == "top" ? this._labelTopHeight : 0));
         }
 
-        size[3] = size[2] = Math.max(size[2], (this._settings.optionHeight || 25) * count + this._settings.inputPadding * 2 + (this._settings.labelPosition == "top" ? this._labelTopHeight : 0));
-      }
+        var heightInc = this.config.bottomPadding;
 
-      var heightInc = this.config.bottomPadding;
-
-      if (heightInc) {
-        size[2] += heightInc;
-        size[3] += heightInc;
+        if (heightInc) {
+          size[2] += heightInc;
+          size[3] += heightInc;
+        }
       }
 
       return size;
@@ -27863,6 +27990,27 @@
       text.api.$skin.call(this);
       this.defaults.customRadio = !!$active.customRadio;
       if ($active.optionHeight) this.defaults.optionHeight = $active.optionHeight;
+    },
+    _set_inner_size: function () {
+      var _this = this;
+
+      if (this._settings.autoheight) {
+        var h = this._getOptionsHeight() + (this._settings.bottomPadding || 0) + 2 * $active.inputPadding;
+        if (this._settings.labelPosition == "top") h += this._labelTopHeight;
+
+        if (this._last_size[1] != h) {
+          this._settings.height = h;
+          var topView = this.getTopParentView();
+          clearTimeout(topView._template_resize_timer);
+          topView._template_resize_timer = delay(function () {
+            if (!_this.$destructed) _this.resize();
+          });
+        }
+      }
+    },
+    _getOptionsHeight: function () {
+      var w = this.$view.querySelector(".webix_el_group").offsetWidth;
+      return getTextSize(this._optionsTemplate(), "webix_el_radio webix_el_group", w).height;
     }
   };
   var view$A = exports.protoUI(api$A, text.view, HTMLOptions);
@@ -27943,7 +28091,7 @@
     },
     $prepareValue: function (value) {
       if (this._settings.multiselect) {
-        if (typeof value === "string") value = value.split(this._settings.separator);else if (value instanceof Date) value = [value];else if (!value) value = [];
+        if (typeof value === "string") value = value.split(this._settings.separator);else if (isDate(value)) value = [value];else if (!value) value = [];
 
         for (var i = 0; i < value.length; i++) {
           value[i] = this._prepareSingleValue(value[i]);
@@ -28055,7 +28203,8 @@
 
         var time = formatDate(this.getInputNode().value);
 
-        if (timeMode && value != "") {
+        if (timeMode && isDate(value) && isDate(time)) {
+          value = wDate.copy(value);
           value.setHours(time.getHours());
           value.setMinutes(time.getMinutes());
           value.setSeconds(time.getSeconds());
@@ -28140,7 +28289,7 @@
       this._toggleClearIcon(value);
 
       var node = this.getInputNode();
-      if (isUndefined(node.value)) node.innerHTML = value;else node.value = value;
+      if (isUndefined(node.value)) node.innerHTML = value || this._get_div_placeholder();else node.value = value;
     },
     $renderIcon: function (c) {
       var right = this._inputSpacing / 2 + 5;
@@ -28195,10 +28344,14 @@
       return this.options_setter(value);
     },
     options_setter: function (value) {
+      var _this = this;
+
       value = this._suggest_config ? this._suggest_config(value) : value;
       var suggest = this._settings.popup = this._settings.suggest = text.api.suggest_setter.call(this, value);
       var list = $$(suggest).getList();
-      if (list) list.attachEvent("onAfterLoad", bind(this._reset_value, this));
+      if (list) list.attachEvent("onAfterLoad", function () {
+        return _this._reset_value();
+      });
       return suggest;
     },
     getList: function () {
@@ -28207,9 +28360,12 @@
       return suggest.getList();
     },
     _reset_value: function () {
-      // multiselect requires value as an array
-      var value = this._settings.value || [];
-      if (value.length && !this.getPopup().isVisible() && this.getInputNode() && !(this._settings.text || this.getText())) this.$setValue(value);
+      var value = this._settings.value;
+
+      if (value) {
+        this.$setValue(value);
+        if (this.getPopup().isVisible()) this.getPopup()._show_selection();
+      }
     },
     $skin: function () {
       text.api.$skin.call(this);
@@ -32098,28 +32254,18 @@
     *   @param: sIndex - index of drawing chart
     */
     $render_bar: function (ctx, data, point0, point1, sIndex, map) {
-      var barWidth,
-          cellWidth,
-          i,
-          limits,
-          maxValue,
-          minValue,
-          relValue,
-          valueFactor,
-          relativeValues,
-          startValue,
-          unit,
-          xax,
-          yax,
-          totalHeight = point1.y - point0.y;
-      yax = !!this._settings.yAxis;
-      xax = !!this._settings.xAxis;
-      limits = this._getLimits();
+      var barWidth, i, maxValue, minValue, relValue, valueFactor, relativeValues, startValue, unit;
+
+      var limits = this._getLimits(),
+          totalHeight = point1.y - point0.y,
+          yax = !!this._settings.yAxis,
+          xax = !!this._settings.xAxis;
+
       maxValue = limits.max;
       minValue = limits.min;
       /*an available width for one bar*/
 
-      cellWidth = (point1.x - point0.x) / data.length;
+      var cellWidth = (point1.x - point0.x) / data.length;
       /*draws x and y scales*/
 
       if (!sIndex && !(this._settings.origin != "auto" && !yax)) {
@@ -32166,13 +32312,15 @@
         if (this._series[i].type == "bar") seriesNumber++;
       }
 
-      if (this._series && barWidth * seriesNumber + 4 > cellWidth) barWidth = parseInt(cellWidth / seriesNumber - 4, 10);
+      var minOffset = this._getMinBarOffset(cellWidth);
+
+      if (this._series && barWidth * seriesNumber + minOffset > cellWidth) barWidth = (cellWidth - minOffset) / seriesNumber;
       /*the half of distance between bars*/
 
       var barOffset = (cellWidth - barWidth * seriesNumber) / 2;
       /*the radius of rounding in the top part of each bar*/
 
-      var radius = typeof this._settings.radius != "undefined" ? parseInt(this._settings.radius, 10) : Math.round(barWidth / 5);
+      var radius = !isUndefined(this._settings.radius) ? parseInt(this._settings.radius, 10) : Math.round(barWidth / 5);
       var inner_gradient = false;
       var gradient = this._settings.gradient;
 
@@ -32203,7 +32351,7 @@
         var x0 = point0.x + barOffset + i * cellWidth + (barWidth + 1) * seriesIndex;
         var y0 = point1.y;
 
-        var color$$1 = gradient || this._settings.color.call(this, data[i], i);
+        var _color = gradient || this._settings.color.call(this, data[i], i);
 
         var border = this._settings.border ? 1 : 0;
 
@@ -32224,15 +32372,15 @@
 
         ctx.globalAlpha = this._settings.alpha.call(this, data[i]);
 
-        var points = this._drawBar(ctx, point0, x0, y0, barWidth, minValue, radius, unit, value, color$$1, gradient, inner_gradient, border);
+        var points = this._drawBar(ctx, point0, x0, y0, barWidth, minValue, radius, unit, value, _color, gradient, inner_gradient, border);
 
         if (inner_gradient) {
-          this._drawBarGradient(ctx, x0, y0, barWidth, minValue, radius, unit, value, color$$1, inner_gradient, border);
+          this._drawBarGradient(ctx, x0, y0, barWidth, minValue, radius, unit, value, _color, inner_gradient, border);
         }
         /*drawing the gradient border of a bar*/
 
 
-        if (border) this._drawBarBorder(ctx, x0, y0, barWidth, minValue, radius, unit, value, color$$1);
+        if (border) this._drawBarBorder(ctx, x0, y0, barWidth, minValue, radius, unit, value, _color);
         ctx.globalAlpha = 1;
         /*sets a bar label*/
 
@@ -32706,7 +32854,10 @@
 
 
       barWidth = parseInt(this._settings.barWidth, 10);
-      if (barWidth * this._series.length + 4 > cellWidth) barWidth = cellWidth / this._series.length - 4;
+
+      var minOffset = this._getMinBarOffset(cellWidth);
+
+      if (barWidth * this._series.length + minOffset > cellWidth) barWidth = (cellWidth - minOffset) / this._series.length;
       /*the half of distance between bars*/
 
       barOffset = Math.floor((cellWidth - barWidth * this._series.length) / 2);
@@ -33017,7 +33168,7 @@
     *   @param: sIndex - index of drawing chart
     */
     $render_stackedBar: function (ctx, data, point0, point1, sIndex, map) {
-      var maxValue, minValue, xAxisY, x0, y0;
+      var maxValue, minValue, x0, y0;
       /*necessary if maxValue - minValue < 0*/
 
       var valueFactor;
@@ -33039,11 +33190,8 @@
       var cellWidth = Math.floor((point1.x - point0.x) / data.length);
       /*draws x and y scales*/
 
-      if (!sIndex) {
-        xAxisY = this._drawScales(data, point0, point1, minValue, maxValue, cellWidth);
-      }
+      if (!sIndex) this._drawScales(data, point0, point1, minValue, maxValue, cellWidth);
       /*necessary for automatic scale*/
-
 
       if (yax) {
         maxValue = parseFloat(config.yAxis.end);
@@ -33060,7 +33208,10 @@
       /*a real bar width */
 
       var barWidth = parseInt(config.barWidth, 10);
-      if (barWidth + 4 > cellWidth) barWidth = cellWidth - 4;
+
+      var minOffset = this._getMinBarOffset(cellWidth);
+
+      if (barWidth + minOffset > cellWidth) barWidth = cellWidth - minOffset;
       /*the half of distance between bars*/
 
       var barOffset = Math.floor((cellWidth - barWidth) / 2);
@@ -33081,6 +33232,9 @@
         var negValue = origin && value < 0;
 
         if (!sIndex) {
+          var xAxisY = point1.y + 0.5;
+          /* canvas line fix */
+
           y0 = xAxisY - 1;
           data[i].$startY = y0;
 
@@ -33255,7 +33409,10 @@
 
 
       var barWidth = parseInt(this._settings.barWidth, 10);
-      if (barWidth + 4 > cellWidth) barWidth = cellWidth - 4;
+
+      var minOffset = this._getMinBarOffset(cellWidth);
+
+      if (barWidth + minOffset > cellWidth) barWidth = cellWidth - minOffset;
       /*the half of distance between bars*/
 
       var barOffset = (cellWidth - barWidth) / 2;
@@ -35810,6 +35967,11 @@
     },
     _addMapRect: function (map, id, points, bounds, sIndex) {
       map.addRect(id, [points[0].x - bounds.x, points[0].y - bounds.y, points[1].x - bounds.x, points[1].y - bounds.y], sIndex);
+    },
+    _getMinBarOffset: function (unitWidth) {
+      var minOffset = this._settings.barOffset;
+      if (isUndefined(minOffset) || minOffset > unitWidth - 1) minOffset = Math.ceil(unitWidth / 5);
+      return minOffset;
     }
   };
   var view$10 = exports.protoUI(api$10, Pie$1, BarChart, LineChart, BarHChart, StackedBarChart, StackedBarHChart, Spline$1, AreaChart, Radar$1, Scatter, Presets, SplineArea$1, DynamicChart, Group, AutoTooltip, DataLoader, MouseEvents, EventSystem, base$1.view);
@@ -37146,7 +37308,7 @@
     $init: function (config) {
       this.data = this._settings;
       this._dataobj = this._viewobj;
-      this._viewobj.className += " webix_pager" + (config.autowidth ? " webix_pager_auto" : "");
+      this._viewobj.className += " webix_pager";
       if (config.master === false || config.master === 0) this.$ready.push(this._remove_master);
     },
     _remove_master: function () {
@@ -37329,11 +37491,8 @@
       if (old == id) return false;
 
       if (this._pgInAnimation) {
-        if (this._pgAnimateTimeout) {
-          window.clearTimeout(this._pgAnimateTimeout);
-        }
-
-        return this._pgAnimateTimeout = delay(this._animate, this, [old, id, config], 100);
+        if (this._pgAnimateTimeout) window.clearTimeout(this._pgAnimateTimeout);
+        return !!(this._pgAnimateTimeout = delay(this._animate, this, [old, id, config], 100));
       }
 
       var direction = id > old ? "left" : "right";
@@ -37374,7 +37533,7 @@
 
       line = animate.formLine(snode, onode, aniset);
       animate([snode, onode], aniset);
-      this._pgInAnimation = true;
+      return this._pgInAnimation = true;
     }
   };
   var view$17 = exports.protoUI(api$17, MouseEvents, SingleRender, base$1.view, EventSystem);
@@ -37444,12 +37603,21 @@
         });
         this.attachEvent("onDestruct", function () {
           detachEvent(this._clickHandler);
+          eventRemove(this._transitionEv);
         });
 
         this._list.attachEvent("onAfterScroll", function () {
           _this._listMenu.hide();
         });
-      }
+      } //define transition
+
+
+      this._list.$view.style.transition = "height 0.5s ease";
+      this._transitionEv = event$1(this._list.$view, "transitionend", function () {
+        if (env.$customScroll) temp$1.resize();
+
+        _this.callEvent("onTransitionEnd", []);
+      });
     },
     $onLoad: function (data, driver) {
       return this._fillList(data, driver);
@@ -39784,7 +39952,14 @@
               row: id.row,
               column: id.column
             }, preserve);
-          }
+          } // don't change focus when inline editor is active
+
+
+          var editor = this.getEditor(id);
+          if (editor && editor.$inline && !editor.getPopup) return; // restore focus
+
+          var node = this.getItemNode(id);
+          if (node) node.focus();
         },
         _mapSelection: function (callback, column, row) {
           var cols = this._settings.columns; //selected columns only
@@ -40206,7 +40381,7 @@
       },
           end = this._locate_cell_xy(this._bs_progress[0], this._bs_progress[1], true);
 
-      if (!this.callEvent("onBeforeBlockSelect", [start, end, theend, e])) return;
+      if (!this._bs_do_select && !this.callEvent("onBeforeBlockSelect", [start, end, theend, e])) return;
 
       if ((!this._bs_do_select || this._bs_do_select(start, end, theend, e) !== false) && start.row && end.row) {
         if (mode === "select") {
@@ -40222,46 +40397,29 @@
             starty = Math.min(this._bs_ready[1], this._bs_progress[1]);
             endy = Math.max(this._bs_ready[1], this._bs_progress[1]);
           } else {
-            var startn = this._cellPosition(start.row, start.column);
+            var i0 = this.getIndexById(start.row),
+                i1 = this.getIndexById(end.row),
+                j0 = this.getColumnIndex(start.column),
+                j1 = this.getColumnIndex(end.column);
+            var sri = Math.min(i0, i1),
+                eri = Math.max(i0, i1),
+                sci = Math.min(j0, j1),
+                eci = Math.max(j0, j1);
 
-            var endn = this._cellPosition(end.row, end.column);
+            var startPos = this._bs_cell_position(sri, sci, false);
 
-            var scroll = this.getScrollState();
-            var startWidth = startn.width;
-            var endWidth = endn.width;
-
-            if (this._right_width && this._bs_ready[0] > this._left_width + this._center_width) {
-              startn.left += this._left_width + this._center_width;
-            } else if (this._left_width) {
-              if (this._bs_ready[0] > this._left_width) {
-                if (startn.left < scroll.x) {
-                  startWidth -= scroll.x - startn.left;
-                  startn.left = this._left_width;
-                } else startn.left += this._left_width - scroll.x;
-              }
-            } else startn.left -= scroll.x;
-
-            if (this._right_width && this._bs_progress[0] > this._left_width + this._center_width) {
-              endn.left += this._left_width + this._center_width;
-            } else if (this._left_width) {
-              if (this._bs_progress[0] > this._left_width) {
-                if (endn.left < scroll.x) {
-                  endWidth -= scroll.x - endn.left;
-                  endn.left = this._left_width;
-                } else endn.left += this._left_width - scroll.x;
-              }
-            } else endn.left -= scroll.x;
+            var endPos = this._bs_cell_position(eri, eci, true);
 
             if (this._settings.prerender) {
-              startn.top -= this._scrollTop;
-              endn.top -= this._scrollTop;
+              startPos.top -= this._scrollTop;
+              endPos.top -= this._scrollTop;
             }
 
-            startx = Math.min(startn.left, endn.left);
-            endx = Math.max(startn.left + startWidth, endn.left + endWidth);
-            starty = Math.min(startn.top, endn.top);
-            endy = Math.max(startn.top + startn.height, endn.top + endn.height);
-            if (this._settings.topSplit) starty += this._getTopSplitOffset(start);
+            if (this._settings.topSplit) startPos.top += this._getTopSplitOffset(start);
+            startx = startPos.left;
+            endx = endPos.left;
+            starty = startPos.top;
+            endy = endPos.top;
 
             if (e) {
               if (this._auto_scroll_delay) this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
@@ -40278,6 +40436,34 @@
       }
 
       if (theend) this.callEvent("onAfterBlockSelect", [start, end]);
+    },
+    _bs_cell_position: function (iRow, iCol, isEnd) {
+      var pos$$1 = this._cellPosition(this.getIdByIndex(iRow), this.columnId(iCol));
+
+      var scroll = this.getScrollState();
+      var left = pos$$1.left;
+
+      if (this.config.rightSplit && iCol > this._columns.length - 1 - this.config.rightSplit) {
+        left += this._left_width + this._center_width;
+      } else if (this.config.leftSplit) {
+        if (iCol + 1 > this.config.leftSplit) {
+          if (left < scroll.x) {
+            pos$$1.width -= scroll.x - left;
+            left = this._left_width;
+          } else left += this._left_width - scroll.x;
+        }
+      } else left -= scroll.x;
+
+      if (isEnd) {
+        left += pos$$1.width;
+        pos$$1.top += pos$$1.height;
+        if (this.config.rightSplit && iCol < this._columns.length - this.config.rightSplit) left = Math.min(left, this._left_width + this._center_width);
+      }
+
+      return {
+        left: left,
+        top: pos$$1.top
+      };
     },
     _bs_start: function (handleStart) {
       this._block_panel = create("div", {
@@ -40702,7 +40888,7 @@
 
             this._x_scroll.scrollTo(this._scrollLeft);
 
-            this.callEvent("onScrollY", []);
+            this.callEvent("onScrollX", []);
           }
 
           if (this._y_scroll) {
@@ -40865,22 +41051,19 @@
       this._adjustColumn(this.getColumnIndex(id), headers);
     },
     adjustRowHeight: function (id, silent) {
-      if (id) this._adjustRowHeight(id);else {
-        var heights = {};
+      if (id) this._adjustRowHeight(id, true);else {
         var cols = this._settings.columns;
 
         for (var i = 0; i < cols.length; i++) {
-          this._adjustRowHeight(cols[i].id, heights);
+          this._adjustRowHeight(cols[i].id, !i);
         } //adjust size for single columns
 
-
-        this.data.each(function (obj) {
-          obj.$height = heights[obj.id];
-        });
       }
+      this._settings.scrollAlignY = false;
+      this._settings.fixedRowHeight = false;
       if (!silent) this.refresh();
     },
-    _adjustRowHeight: function (id, size) {
+    _adjustRowHeight: function (id, first) {
       var config = this.getColumnConfig(id);
       var container;
       var d = create("DIV", {
@@ -40904,7 +41087,7 @@
         if (spans && spans[obj.id] && spans[obj.id][id]) height = this._calcSpanAutoHeight(obj.id, id, d);else height = d.scrollHeight;
         height = Math.max(height, this._settings.rowHeight, this._settings.minRowHeight || 0);
         height = Math.min(height, this._settings.maxRowHeight || 100000);
-        if (size) size[obj.id] = Math.max(height, size[obj.id] || 0);else obj.$height = height;
+        obj.$height = first ? height : Math.max(height, obj.$height);
       }, this);
       d = remove(d);
       if (container) remove(container);
@@ -42114,8 +42297,6 @@
       return null;
     },
     moveSelection: function (mode, details, focus) {
-      this._delayRender();
-
       if (this._settings.disabled) return;
       details = details || {}; //get existing selection as array
 
@@ -42142,7 +42323,11 @@
 
       if (index$$1 >= 0) {
         var row = t[index$$1].row;
-        var column = t[index$$1].column;
+        var column = t[index$$1].column; //delay render for smooth navigation
+
+        var cell = {};
+
+        this._delayRender(focus !== false ? cell : false);
 
         if (mode == "top" || mode == "bottom") {
           if (row) {
@@ -42156,18 +42341,24 @@
             if (mode == "bottom") index$$1 = this.config.columns.length - 1;
             column = this.columnId(index$$1);
           }
+        } else if (t.length == 1 && details.ctrl && !details.shift && (mode == "up" || mode == "down" || mode == "left" || mode == "right")) {
+          var res = this._getNextCtrlSelection(t[0], mode);
+
+          row = res.row;
+          column = res.column;
         } else if (mode == "up" || mode == "down" || mode == "pgup" || mode == "pgdown") {
           if (row) {
             //it seems row's can be seleted
             var _index = this.getIndexById(row);
 
             var step = 1;
-            if (mode == "pgup" || mode == "pgdown") step = this._pager ? this._pager.config.size : Math.round(this._dtable_offset_height / this._settings.rowHeight); //get new selection row
+            if (mode == "pgup" || mode == "pgdown") step = this._pager ? this._pager.config.size : this.getVisibleCount(); //get new selection row
 
             if (mode == "up" || mode == "pgup") _index -= step;else if (mode == "down" || mode == "pgdown") _index += step; //check that we in valid row range
 
             if (_index < 0) _index = 0;
             if (_index >= this.data.order.length) _index = this.data.order.length - 1;
+            details.step = step;
             row = this.getIdByIndex(_index);
             if (!row && this._settings.pager) this.showItemByIndex(_index);
           }
@@ -42193,7 +42384,10 @@
         }
 
         if (row) {
-          this.showCell(row, column);
+          cell.row = row;
+          cell.column = column;
+          this.callEvent("onMoveSelection", [cell, mode, details]);
+          this.showCell(cell.row, cell.column);
 
           if (!this.select) {
             //switch on cell or row selection by default
@@ -42202,25 +42396,53 @@
             exports.extend(this, this._selections[this._settings.select], true);
           }
 
-          var cell = {
-            row: row,
-            column: column
-          };
+          cell.row = row;
+          cell.column = column;
 
           if (preserve && this._settings.select == "area") {
             var last = this._selected_areas[this._selected_areas.length - 1];
 
             this._extendAreaRange(cell, last, mode, details);
           } else this._select(cell, preserve);
-
-          if (!this._settings.clipboard && focus !== false) {
-            var node = this.getItemNode(cell);
-            if (node) node.focus();
-          }
         }
       }
 
       return false;
+    },
+    _getNextCtrlSelection: function (cell, mode) {
+      var row = cell.row,
+          column = cell.column,
+          dir = mode == "up" || mode == "left" ? -1 : 1,
+          isRowArr = mode == "up" || mode == "down",
+          arr = isRowArr ? this.data.order : this._columns.map(function (c) {
+        return c.id;
+      }),
+          id = isRowArr ? row : column;
+      var i = isRowArr ? this.getIndexById(row) : this.getColumnIndex(column);
+      var last = dir > 0 ? arr.length - 1 : 0;
+      var emptyId, prevId, next;
+
+      while (!next && arr[i]) {
+        var iId = arr[i];
+        var r = isRowArr ? iId : row;
+        var c = isRowArr ? column : iId;
+        var value = this.$getExportValue ? this.$getExportValue(r, c, {}) : this.getItem(r)[c];
+        if (iId != id && emptyId && value) next = iId;else if (!value) {
+          if (prevId && prevId != id) next = prevId;
+          emptyId = iId;
+        }
+        if (i == last && !next) next = iId;
+        prevId = value ? iId : null;
+        i += dir;
+      }
+
+      return isRowArr ? {
+        row: next,
+        column: column
+      } : {
+        row: row,
+        column: next
+      };
     }
   };
 
@@ -42604,7 +42826,9 @@
 
       if (mark) {
         for (var key in mark) {
-          mark[key] = mark[key].replace("webix_invalid_cell", "").replace("  ", " ");
+          mark[key] = mark[key].replace(/(\s|^)webix_invalid_cell(\s|$)/, function (v, b, a) {
+            return b && a ? " " : "";
+          });
         }
       }
     },
@@ -42617,19 +42841,45 @@
     addCellCss: function (id, name, css, silent) {
       var mark = this.data.getMark(id, "$cellCss");
       var newmark = mark || {};
-      var style = newmark[name] || "";
-      newmark[name] = style.replace(css, "").replace("  ", " ") + " " + css;
-      if (!mark) this.data.addMark(id, "$cellCss", false, newmark, true);
-      if (!silent) this.refresh(id);
+      var re = new RegExp("\\b" + css + "\\b");
+      var style = newmark[name] || "",
+          refresh;
+
+      if (!style || !re.test(style)) {
+        newmark[name] = !style ? css : style.trim() + " " + css;
+        if (!mark) this.data.addMark(id, "$cellCss", false, newmark, true);
+        refresh = true;
+      }
+
+      var span = this._getCellSpan(id, name);
+
+      if (span && (!span[3] || !re.test(span[3]))) {
+        span[3] = !span[3] ? css : span[3].trim() + " " + css;
+        refresh = true;
+      }
+
+      if (!silent && refresh) this.refresh(id);
     },
     removeCellCss: function (id, name, css, silent) {
       var mark = this.data.getMark(id, "$cellCss");
 
       if (mark) {
         var style = mark[name] || "";
-        if (style) mark[name] = style.replace(css, "").replace("  ", " ");
+        var re = new RegExp("(\\s|^)" + css + "(\\s|$)");
+        if (style) mark[name] = style.replace(re, function (v, b, a) {
+          return b && a ? " " : "";
+        });
+
+        var span = this._getCellSpan(id, name);
+
+        if (span && span[3]) span[3] = span[3].replace(re, function (v, b, a) {
+          return b && a ? " " : "";
+        });
         if (!silent) this.refresh(id);
       }
+    },
+    _getCellSpan: function (id, name) {
+      return this.config.spans && this._spans_pull[id] && this._spans_pull[id][name];
     }
   };
 
@@ -42650,13 +42900,15 @@
       return result;
     },
     _getTableHeader: function (base, columns, group) {
+      var _this = this;
+
       var spans = {},
           start = 0;
-      base.forEach(bind(function (tableArray, tid) {
+      base.forEach(function (tableArray, tid) {
         var row = tableArray[0],
             headerArray = [],
             length = row.length;
-        row.forEach(bind(function (cell, cid) {
+        row.forEach(function (cell, cid) {
           var column = columns[cid + start];
 
           for (var h = 0; h < column[group].length; h++) {
@@ -42679,15 +42931,15 @@
             }
 
             if (header.rowspan) {
-              header.height = (header.height || this.config.headerRowHeight) * header.rowspan;
+              header.height = (header.height || _this.config.headerRowHeight) * header.rowspan;
               header.rowspan = null;
             }
 
             var hcell = {
-              txt: header.rotate ? this.getHeaderNode(column.id, h).innerHTML : header.text || (header.contentId ? this.getHeaderContent(header.contentId).getValue() : ""),
+              txt: header.rotate ? _this.getHeaderNode(column.id, h).innerHTML : header.text || (header.contentId ? _this.getHeaderContent(header.contentId).getValue() : ""),
               className: "webix_hcell " + "webix_" + group + "_cell " + (header.css || ""),
               style: {
-                height: (header.height || this.config.headerRowHeight) + "px",
+                height: (header.height || _this.config.headerRowHeight) + "px",
                 width: header.colspan ? "auto" : column.width + "px"
               },
               span: header.colspan || header.rowspan ? {
@@ -42698,13 +42950,15 @@
             headerArray[h] = headerArray[h] || [];
             headerArray[h][cid] = hcell;
           }
-        }, this));
+        });
         if (group == "header") base[tid] = headerArray.concat(tableArray);else base[tid] = tableArray.concat(headerArray);
         start += length;
-      }, this));
+      });
       return base;
     },
     _getTableArray: function (options, base, start) {
+      var _this2 = this;
+
       var columns = this.config.columns;
       var sel = this.getSelectedId(true);
       var maxWidth = options.fit == "page" ? Infinity : this._getPageWidth(options);
@@ -42715,17 +42969,57 @@
       var widths = [];
       start = start || 0 + options.xCorrection;
       base = base || [];
+      var spans = this._spans_pull;
       var readySpans = {};
-      this.eachRow(bind(function (row) {
+      if (spans) for (var row in spans) {
+        for (var column in spans[row]) {
+          var span = spans[row][column];
+          var hiddenRowOrder = this.data._filter_order;
+          var hiddenColumnOrder = this._hidden_column_order;
+          var startRowIndex = hiddenRowOrder ? hiddenRowOrder.find(row) : this.getIndexById(row);
+          var startColIndex = hiddenColumnOrder.length ? hiddenColumnOrder.find(column) : this.getColumnIndex(column);
+          var printSpan = {
+            rowspan: 0,
+            colspan: 0,
+            css: span[5] || ""
+          };
+          var firstVisibleRow = true;
+
+          for (var r = startRowIndex; r < startRowIndex + span[1]; r++) {
+            if (this.getIdByIndex(r)) {
+              printSpan.rowspan++;
+
+              for (var c = startColIndex; c < startColIndex + span[0]; c++) {
+                if (this.columnId(c)) {
+                  if (firstVisibleRow) printSpan.colspan++;
+                  if (!readySpans[r]) readySpans[r] = {};
+                  if (printSpan.$ready) readySpans[r][c] = {
+                    $inspan: true
+                  };else {
+                    readySpans[r][c] = printSpan;
+                    printSpan.$ready = true;
+                  }
+                }
+              }
+
+              firstVisibleRow = false;
+            }
+          }
+        }
+      }
+      this.eachRow(function (row) {
         var width = 0;
-        var rowItem = this.getItem(row);
-        var rowIndex = this.getIndexById(row);
+
+        var rowItem = _this2.getItem(row);
+
+        var rowIndex = _this2.getIndexById(row);
+
         var colrow = [];
         var datarow = false;
 
         for (var c = start; c < columns.length; c++) {
           var column = columns[c].id;
-          var colIndex = this.getColumnIndex(column) - start;
+          var colIndex = _this2.getColumnIndex(column) - start;
 
           if (columns[c]) {
             width += columns[c].width;
@@ -42737,68 +43031,48 @@
               break;
             }
 
-            if (options.data !== "selection" || options.data == "selection" && this._findIndex(sel, function (obj) {
+            if (options.data !== "selection" || options.data == "selection" && _this2._findIndex(sel, function (obj) {
               return obj.column == column && obj.row == row;
             }) !== -1) {
-              var span = void 0;
-              if (this.getSpan) span = this.getSpan(row, column);
+              var _span = void 0;
 
-              if (span) {
-                if (readySpans[span[0]] && readySpans[span[0]][span[1]]) {
-                  colrow.push({
-                    $inspan: true
-                  });
+              if (spans && readySpans[rowIndex] && readySpans[rowIndex][colIndex + start]) {
+                _span = readySpans[rowIndex][colIndex + start];
+
+                if (_span.$inspan) {
+                  colrow.push(_span);
                   rightRestriction = Math.max(colIndex + 1, rightRestriction);
                   bottomRestriction = Math.max(rowIndex + 1, bottomRestriction);
                   continue;
                 }
-
-                if (this.data._filter_order) for (var r = span[0] * 1 + span[3] - 1; r >= span[0]; r--) {
-                  if (this.data.order.indexOf(r) == -1) span[3]--;
-                }
-                var hiddenColumnOrder = this._hidden_column_order;
-
-                if (hiddenColumnOrder.length) {
-                  var ci = hiddenColumnOrder.find(span[1]);
-
-                  for (var _c = ci + span[2]; _c >= ci; _c--) {
-                    if (!this.isColumnVisible(hiddenColumnOrder[_c])) span[2]--;
-                  }
-                }
-
-                if (!readySpans[span[0]]) readySpans[span[0]] = {};
-                readySpans[span[0]][span[1]] = 1;
               }
 
-              var cellValue = span && span[4] ? span[4] : this._columns_pull[column] ? this.getText(row, column) : "";
-              var className = this.getCss(row, column) + " " + (columns[c].css || "") + (span ? " webix_dtable_span " + (span[5] || "") : "");
+              var txt = _this2.getText(row, column);
+
+              var className = _this2.getCss(row, column) + " " + (columns[c].css || "") + (_span ? " webix_dtable_span " + _span.css : "");
               var style = {
-                height: span && span[3] > 1 ? "auto" : (rowItem.$height || this.config.rowHeight) + "px",
-                width: span && span[2] > 1 ? "auto" : columns[c].width + "px"
+                height: _span && _span.rowspan > 1 ? "auto" : (rowItem.$height || _this2.config.rowHeight) + "px",
+                width: _span && _span.colspan > 1 ? "auto" : columns[c].width + "px"
               };
               colrow.push({
-                txt: cellValue,
+                txt: txt,
                 className: className,
                 style: style,
-                span: span ? {
-                  colspan: span[2],
-                  spanStart: this.getColumnIndex(span[1]),
-                  rowspan: span[3]
-                } : null
+                span: _span
               });
 
-              if (cellValue || cellValue === 0) {
+              if (txt || txt === 0) {
                 rightRestriction = Math.max(colIndex + 1, rightRestriction);
                 bottomRestriction = Math.max(rowIndex + 1, bottomRestriction);
               }
 
-              datarow = datarow || !!cellValue;
+              datarow = datarow || !!txt;
             }
           }
         }
 
         if (!options.skiprows || datarow) tableArray.push(colrow);
-      }, this));
+      });
 
       if (bottomRestriction && rightRestriction) {
         if (options.trim) {
@@ -42843,7 +43117,7 @@
       });
     },
     _getTableHTML: function (tableData, options) {
-      var _this = this;
+      var _this3 = this;
 
       var container = create("div");
       var sCount = this.config.topSplit || 0;
@@ -42854,9 +43128,9 @@
       var headerCount = topSplitIndex > 6 ? hCount : topSplitIndex;
       tableData.forEach(function (table, i) {
         var tableHTML = create("table", {
-          "class": "webix_table_print " + _this.$view.className + (options.borderless ? " borderless" : ""),
+          "class": "webix_table_print " + _this3.$view.className + (options.borderless ? " borderless" : ""),
           style: "border-collapse:collapse",
-          id: _this.$view.getAttribute("id")
+          id: _this3.$view.getAttribute("id")
         }, "<thead></thead><tbody></tbody><tfoot></tfoot>");
         container.appendChild(tableHTML);
 
@@ -43305,11 +43579,11 @@
     refresh: function () {
       this.render();
     },
-    _delayRender: function () {
+    _delayRender: function (cell) {
       var _this2 = this;
 
       clearTimeout(this._renderDelay);
-      this._renderDelay = delay(function () {
+      this._renderDelay = delay(function (cell) {
         _this2._renderDelay = 0;
 
         if (!isUndefined(_this2._delayedLeftScroll)) {
@@ -43318,8 +43592,15 @@
           delete _this2._delayedLeftScroll;
         }
 
-        _this2.render();
-      });
+        _this2.render(); //restore focus
+
+
+        if (!_this2._settings.clipboard && cell) {
+          var node = _this2.getItemNode(cell);
+
+          if (node) node.focus();
+        }
+      }, this, [cell]);
     },
     render: function (id, data, mode) {
       //pure data saving call
@@ -44089,22 +44370,27 @@
       return this.row;
     },
     locate: function (node, idOnly) {
-      if (this != $$(node)) return null;
-      node = node.target || node;
+      var tview = $$(node);
+
+      if (this == tview) {
+        node = node.target || node;
+      } else if (tview && tview.config.container) {
+        node = tview.$view.parentNode;
+        if (this !== $$(node)) return null;
+      } else return null;
 
       while (node && node.getAttribute) {
         if (node === this.$view) break;
-
-        var cs = _getClassName(node).toString();
-
         var pos$$1 = null;
 
-        if (cs.indexOf("webix_cell") != -1) {
+        var css = _getClassName(node).toString();
+
+        if (css.indexOf("webix_cell") != -1) {
           pos$$1 = this._locate(node);
           if (pos$$1) pos$$1.row = this.data.order[pos$$1.rind];
         }
 
-        if (cs.indexOf("webix_hcell") != -1) {
+        if (css.indexOf("webix_hcell") != -1) {
           pos$$1 = this._locate(node);
 
           if (pos$$1) {
@@ -44113,7 +44399,7 @@
           }
         }
 
-        if (cs.indexOf("webix_drop_area") != -1) {
+        if (css.indexOf("webix_drop_area") != -1) {
           pos$$1 = this._locate(node);
           if (pos$$1) pos$$1.row = pos$$1.rind = "$webix-drop";
         }
@@ -44300,7 +44586,8 @@
 
       if (old_height != height) {
         item.$height = height;
-        this.config.fixedRowHeight = false;
+        this._settings.scrollAlignY = false;
+        this._settings.fixedRowHeight = false;
         this.render();
         this.callEvent("onRowResize", [rowId, height, old_height]);
       }
@@ -44368,7 +44655,8 @@
       return [xind, xend];
     },
     getVisibleCount: function () {
-      return Math.floor(this._dtable_offset_height / this.config.rowHeight);
+      var correction = this._settings.autoheight || this._settings.yCount ? 1 : 0;
+      return Math.floor((this._dtable_offset_height + correction) / this.config.rowHeight);
     },
     //returns info about y-scroll position
     _get_y_range: function (full) {
@@ -45083,14 +45371,17 @@
 
       var maybe = null;
 
-      for (var i = 0; i < cells.length; i++) {
-        var activeId = cells[i].getAttribute(
+      for (var i = cells.length - 1; i >= 0; i--) {
+        var c = cells[i];
+        var activeId = c.getAttribute(
         /*@attr*/
         "active_id");
-        if (activeId && !datafilter[this._active_headers[activeId].content].$icon) return null;
-        if (!cells[i].innerHTML) continue;
-        maybe = cells[i];
-        if ((cells[i].colSpan || 0) < 2) return maybe;
+
+        if (!activeId || datafilter[this._active_headers[activeId].content].$icon) {
+          if (!c.getAttribute(
+          /*@attr*/
+          "colspan")) return c;else if (!maybe) maybe = c;
+        }
       }
 
       return maybe;

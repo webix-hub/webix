@@ -1,4 +1,4 @@
-Webix UI v.10.0.1
+Webix UI v.10.1.0
 ================
 
 [![npm version](https://badge.fury.io/js/webix.svg)](https://badge.fury.io/js/webix)
@@ -46,4 +46,4 @@ you can get help at https://forum.webix.com
 
 
 
-(c) XB Software Ltd. 2022
+(c) XB Software Ltd. 2023

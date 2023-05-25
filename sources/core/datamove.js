@@ -34,7 +34,7 @@ const DataMove ={
 	//move item to the new position
 	move:function(sid,tindex,tobj, details){
 		details = details || {};
-		var new_id = details.newId || sid;
+		const new_id = details.newId || sid;
 
 		tobj = tobj||this;
 		assert(tobj.data, "moving attempt to component without datastore");
@@ -46,7 +46,7 @@ const DataMove ={
 			if (sid.length > 3) //heuristic value, duplicated below
 				this.$blockRender = tobj.$blockRender = true;
 
-			for (var i=0; i < sid.length; i++) {
+			for (let i=0; i<sid.length; i++) {
 				//increase index for each next item in the set, so order of insertion will be equal to order in the array
 				const nid = this.move(sid[i], tindex, tobj, details);
 				tindex = tobj._next_move_index(nid, sid[i+1], this);
@@ -63,9 +63,8 @@ const DataMove ={
 		}
 		
 		let nid = sid; //id after moving
-
-		var data = this.getItem(sid);
-		assert(data,"Incorrect ID in DataMove::move");
+		const item = this.getItem(sid);
+		assert(item, "Incorrect ID in DataMove::move");
 		
 		if (!tobj || tobj == this){
 			if (tindex < 0) tindex = this.data.order.length - 1;
@@ -73,7 +72,7 @@ const DataMove ={
 			this.data.callEvent("onDataMove", [sid, tindex, null, this.data.order[tindex+1]]);
 		} else {
 			//copy to the new object
-			nid = tobj.data.add(tobj._externalData(data,new_id),tindex, (details.parent || 0));
+			nid = tobj.data.add(tobj._externalData(item,new_id),tindex, (details.parent || 0));
 			this.data.remove(sid);//delete in old object
 		}
 		return nid;	//return ID of item after moving

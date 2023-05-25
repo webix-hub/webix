@@ -1,4 +1,4 @@
-import {isArray, copy as makeCopy, uid, _power_array} from "../webix/helpers";
+import {isArray, isUndefined, copy as makeCopy, uid, _power_array} from "../webix/helpers";
 import {assert} from "../webix/debug";
 import DataMove from "../core/datamove";
 import DragControl from "../core/dragcontrol";
@@ -56,8 +56,8 @@ const TreeDataMove ={
 	move:function(sid,tindex,tobj, details){
 		details = details || {};
 		tindex = tindex || 0;
-		var new_id = details.newId || sid;
-		var target_parent = details.parent || 0;
+		const new_id = details.newId || sid;
+		const target_parent = details.parent || 0;
 		
 		tobj = tobj||this;
 		assert(tobj.data, "moving attempt to component without datastore");
@@ -65,26 +65,30 @@ const TreeDataMove ={
 
 		if (isArray(sid)){
 			this._remove_childs(sid);
-			for (var i=0; i < sid.length; i++) {
+			for (let i=0; i<sid.length; i++) {
 				//increase index for each next item in the set, so order of insertion will be equal to order in the array
-				var nid = this.move(sid[i], tindex, tobj, details);
+				const nid = this.move(sid[i], tindex, tobj, details);
 				tindex = tobj._next_move_index(nid, sid[i+1], this);
 			}
 			return;
 		}
-		
+
+		let nid = sid; //id after moving
+		const item = this.getItem(sid);
+		assert(item, "Incorrect ID in TreeDataMove::move");
+
 		if (this != tobj || details.copy){
-			new_id = tobj.data.add(tobj._externalData(this.getItem(sid),new_id), tindex, (target_parent || 0));
+			nid = tobj.data.add(tobj._externalData(item,new_id), tindex, (target_parent || 0));
 			if (this.data.branch[sid] && tobj.getBranchIndex){
-				var temp = this.data._scheme_serialize;
+				const temp = this.data._scheme_serialize;
 				this.data._scheme_serialize = function(obj){
-					var copy = makeCopy(obj);
+					const copy = makeCopy(obj);
 					delete copy.$parent; delete copy.$level; delete copy.$child;
 					if (tobj.data.pull[copy.id])
 						copy.id = uid();
 					return copy;
 				};
-				var copy_data = { data:this.serialize(sid, true), parent:new_id };
+				const copy_data = { data:this.serialize(sid, true), parent:nid };
 				this.data._scheme_serialize = temp;
 				tobj.parse(copy_data);
 			}
@@ -94,40 +98,39 @@ const TreeDataMove ={
 			//move in self
 			if (sid == target_parent || this._check_branch_child(sid,target_parent)) return;
 
-			var source = this.getItem(sid);
-			var tbranch = this.data.branch[target_parent];
-			if (!tbranch) 
+			let tbranch = this.data.branch[target_parent];
+			if (!tbranch)
 				tbranch = this.data.branch[target_parent] = [];
-			var sbranch = this.data.branch[source.$parent];
+			const sbranch = this.data.branch[item.$parent];
 
-			var sindex = _power_array.find.call(sbranch, sid);
+			const sindex = _power_array.find.call(sbranch, sid);
 			if (tindex < 0) tindex = tbranch.length;
 			//in the same branch and same position
-			if (sbranch === tbranch && tindex === sindex) return new_id; //return ID
+			if (sbranch === tbranch && tindex === sindex) return nid; //return ID
 
 			_power_array.removeAt.call(sbranch, sindex);
 			_power_array.insertAt.call(tbranch, sid, Math.min(tbranch.length, tindex));
 
 			if (!sbranch.length)
-				delete this.data.branch[source.$parent];
+				delete this.data.branch[item.$parent];
 			
 
-			if(source.$parent && source.$parent != "0")
-				this.getItem(source.$parent).$count--;
+			if(item.$parent && item.$parent != "0")
+				this.getItem(item.$parent).$count--;
 
 			if (target_parent && target_parent != "0"){
-				var target = tobj.getItem(target_parent);
+				const target = tobj.getItem(target_parent);
 				target.$count++;
-				this._set_level_rec(source, target.$level+1);
+				this._set_level_rec(item, target.$level+1);
 			} else 
-				this._set_level_rec(source, 1);
+				this._set_level_rec(item, 1);
 
-			source.$parent = target_parent;
+			item.$parent = target_parent;
 			tobj.data.callEvent("onDataMove", [sid, tindex, target_parent, tbranch[tindex+1]]);
 		}
 
 		this.refresh();
-		return new_id;	//return ID of item after moving
+		return nid;	//return ID of item after moving
 	},
 	_set_level_rec:function(item, value){
 		item.$level = value;
@@ -135,6 +138,22 @@ const TreeDataMove ={
 		if (branch)
 			for (var i=0; i<branch.length; i++)
 				this._set_level_rec(this.getItem(branch[i]), value+1);
+	},
+	moveUp:function(id,step){
+		const index = this.getBranchIndex(id)-(step||1);
+		return this.move(id, (index<0)?0:index, this, {parent:this.data.getParentId(id)});
+	},
+	moveDown:function(id,step){
+		return this.moveUp(id, (step||1)*-1);
+	},
+	moveTop:function(id,parent){
+		parent = isUndefined(parent) ? this.getParentId(id) : parent;
+		return this.move(id, 0, this, {parent});
+	},
+	moveBottom:function(id,parent){
+		parent = isUndefined(parent) ? this.getParentId(id) : parent;
+		const index = this.isBranch(parent) ? this.data.branch[parent].length : 0;
+		return this.move(id, index, this, {parent});
 	},
 	//reaction on pause during dnd
 	_drag_pause:function(id){

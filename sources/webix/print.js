@@ -7,15 +7,15 @@ import {assert} from "../webix/debug";
 env.printPPI = 96;
 env.printMargin = 0.75*env.printPPI;
 
-var papers = { "a4":"A4", "a3":"A3", "letter":"letter"};
+//inches, real size is value*ppi
+env.printSizes = [
+	{ id:"a3", preset:"A3", width: 11.7, height: 16.5 },
+	{ id:"a4", preset:"A4", width: 8.27, height: 11.7 },
+	{ id: "letter", preset:"letter", width: 8.5, height:11 }
+];
+
 var fits = { page:true, data:true};
 var modes = { portrait:true, landscape:true};
-
-var sizes = {//inches, real size is value*ppi
-	"A3": { width: 11.7, height: 16.5 },
-	"A4": { width: 8.27, height:11.7 },
-	"letter": { width: 8.5, height:11 }
-};
 
 const print = function(id, options){
 	let view = $$(id);
@@ -49,15 +49,21 @@ const print = function(id, options){
 
 /*processing print options*/
 function _checkOptions(options){
-	
 	options = options || {};
-	options.paper = papers[(options.paper || "").toLowerCase()] || "A4";
+
+	options.paper = options.paper || "a4";
+	options.size = env.printSizes.find(size => size.id == options.paper);
+	if(!options.size){
+		options.size = env.printSizes[0];
+		options.paper = options.size.id;
+	}
+
 	options.mode = modes[options.mode] ? options.mode : "portrait";
 	options.fit = fits[options.fit] ? options.fit: "page";
 	options.scroll = options.scroll || false;
-	options.size = sizes[options.paper];
+
 	options.margin = (options.margin || options.margin === 0) ? options.margin : {};
-	
+
 	const margin = isNaN(options.margin*1) ? env.printMargin : options.margin;
 	options.margin = {
 		top:(options.margin.top || options.margin.top === 0) ? options.margin.top: margin, 
@@ -77,12 +83,20 @@ function _beforePrint(options){
 	if(options.docFooter) _getHeaderFooter("Footer", options);
 
 	/* static print styles are located at 'css/print.less'*/
-	var cssString = "@media print { "+
-		"@page{ size:"+options.paper+" "+options.mode+";"+
+
+	const size = options.size;
+	const pageSize =
+		size.preset ?
+			size.preset + " " + options.mode :
+			options.mode == "portrait" ? `${size.width}in ${size.height}in` : `${size.height}in ${size.width}in`;
+
+	const cssString = "@media print { "+
+		"@page{ size:"+pageSize+";"+
 			"margin-top:"+options.margin.top+"px;margin-bottom:"+options.margin.bottom+
 			"px;margin-right:"+options.margin.right+"px;margin-left:"+options.margin.left+
 		"px;}"+
 	"}";
+
 	addStyle(cssString, "print");
 }
 

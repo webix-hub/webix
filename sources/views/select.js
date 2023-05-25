@@ -1,12 +1,11 @@
 import {protoUI, $$} from "../ui/core";
-import {uid, bind} from "../webix/helpers";
+import {uid} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 import {preventEvent} from "../webix/html";
 import env from "../webix/env";
 
 import text from "./text";
 import DataCollection from "../core/datacollection";
-
 
 const api = {
 	name:"select",
@@ -44,13 +43,19 @@ const api = {
 	},
 	options_setter:function(value){
 		if (value){
-			if (typeof value =="string"){
-				const collection = new DataCollection({url:value});
-				collection.data.attachEvent("onStoreLoad", bind(this.refresh, this));
-				return collection;
-			} else
-				return value;
+			if (typeof value == "string"){
+				this._loading_data = true;
+				value = new DataCollection({url:value});
+				value.data.attachEvent("onStoreLoad", ()=>{
+					delete this._loading_data;
+					this.refresh();
+				});
+			}
+			return value;
 		}
+	},
+	getValue:function(){
+		return this._loading_data ? this._settings.value : text.api.getValue.call(this);
 	},
 	$renderIcon:function(){
 		return "";

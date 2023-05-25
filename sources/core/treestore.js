@@ -351,20 +351,18 @@ const TreeStore = {
 					functor.call(this, this.getItem(key), false);
 			}
 	},
-	_sort_core:function(sorter, order){
-		for (var key in this.branch){
-			var bset =  this.branch[key];
-			var data = [];
+	_sort_core:function(sorter, order, branch){
+		branch = branch || this.branch;
 
-			for (let i=0; i<bset.length; i++)
-				data.push(this.pull[bset[i]]);
+		for (let key in branch){
+			const bset = branch[key];
 
-			data.sort(sorter);
+			const newbranch = [];
+			for (let i = bset.length-1; i>=0; i--)
+				newbranch[i] = this.pull[bset[i]];
 
-			for (let i=0; i<bset.length; i++)
-				data[i] = data[i].id;
-
-			this.branch[key] = data;
+			newbranch.sort(sorter);
+			branch[key] = newbranch.map(a => a.id);
 		}
 		return order;
 	},

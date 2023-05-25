@@ -48,12 +48,14 @@ const BarHChart = {
 			unit = (relValue?(totalWidth-startValue)/relValue:10);
 		}
 
-
 		/*a real bar width */
 		barWidth = parseInt(this._settings.barWidth,10);
-		if((barWidth*this._series.length+4)>cellWidth) barWidth = cellWidth/this._series.length-4;
+		const minOffset = this._getMinBarOffset(cellWidth);
+		if((barWidth*this._series.length+minOffset)>cellWidth) barWidth = (cellWidth- minOffset)/this._series.length;
+
 		/*the half of distance between bars*/
 		barOffset = Math.floor((cellWidth - barWidth*this._series.length)/2);
+
 		/*the radius of rounding in the top part of each bar*/
 		radius = (typeof this._settings.radius!="undefined"?parseInt(this._settings.radius,10):Math.round(barWidth/5));
 

@@ -1,12 +1,12 @@
 const Mixin = {
 	clearValidation:function(){
-		for(var i in this.data._marks)
+		for(let i in this.data._marks)
 			this._clear_invalid_css(i);
 		this.data.clearMark("webix_invalid", true);
 	},
 	_mark_invalid:function(id, details){
 		this._clear_invalid_css(id);
-		for (var key in details)
+		for (let key in details)
 			this.addCellCss(id, key, "webix_invalid_cell");
 
 		this.addCss(id, "webix_invalid");
@@ -16,10 +16,10 @@ const Mixin = {
 		this.removeCss(id, "webix_invalid");
 	},
 	_clear_invalid_css:function(id){
-		var mark = this.data.getMark(id, "$cellCss");
+		const mark = this.data.getMark(id, "$cellCss");
 		if (mark){
-			for (var key in mark)
-				mark[key] = mark[key].replace("webix_invalid_cell", "").replace("  "," ");
+			for (let key in mark)
+				mark[key] = mark[key].replace(/(\s|^)webix_invalid_cell(\s|$)/, (v,b,a) => b && a ? " " : "");
 		}
 	},
 
@@ -30,25 +30,45 @@ const Mixin = {
 		this.removeCss(id, css, silent);
 	},
 	addCellCss:function(id, name, css, silent){
-		var mark = this.data.getMark(id, "$cellCss");
-		var newmark = mark || {};
+		let mark = this.data.getMark(id, "$cellCss");
+		let newmark = mark || {};
 
-		var style = newmark[name]||"";
-		newmark[name] = style.replace(css, "").replace("  "," ")+" "+css;
+		const re = new RegExp("\\b"+css+"\\b");
+		let style = newmark[name]||"",
+			refresh;
+		if(!style || !re.test(style)){
+			newmark[name] = !style ? css : (style.trim() + " " + css);
+			if (!mark) this.data.addMark(id, "$cellCss", false, newmark, true);
+			refresh = true;
+		}
 
-		if (!mark) this.data.addMark(id, "$cellCss", false, newmark, true);
-		if (!silent)
+		const span = this._getCellSpan(id, name);
+		if(span && (!span[3] || !re.test(span[3]))){
+			span[3] = !span[3] ? css : (span[3].trim() + " "+css);
+			refresh = true;
+		}
+
+		if (!silent && refresh)
 			this.refresh(id);
 	},
 	removeCellCss:function(id, name, css, silent){
-		var mark = this.data.getMark(id, "$cellCss");
+		const mark = this.data.getMark(id, "$cellCss");
 		if (mark){
-			var style = mark[name]||"";
+			const style = mark[name] || "";
+			const re = new RegExp("(\\s|^)"+css+"(\\s|$)");
 			if (style)
-				mark[name] = style.replace(css, "").replace("  "," ");
+				mark[name] = style.replace(re, (v,b,a) => b && a ? " " : "");
+
+			const span = this._getCellSpan(id, name);
+			if(span && span[3])
+				span[3] = span[3].replace(re, (v,b,a) => b && a ? " " : "");
+
 			if (!silent)
 				this.refresh(id);
 		}
+	},
+	_getCellSpan: function(id, name){
+		return this.config.spans && this._spans_pull[id] && this._spans_pull[id][name];
 	}
 };
 

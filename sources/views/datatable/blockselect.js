@@ -83,7 +83,7 @@ const Mixin = {
 		const start = {row: cell.row, column: cell.column},
 			end = this._locate_cell_xy(this._bs_progress[0],this._bs_progress[1],true);
 
-		if (!this.callEvent("onBeforeBlockSelect", [start, end, theend, e]))
+		if (!this._bs_do_select && !this.callEvent("onBeforeBlockSelect", [start, end, theend, e]))
 			return;
 
 		if ((!this._bs_do_select || this._bs_do_select(start, end, theend, e) !== false) && (start.row && end.row)){
@@ -100,59 +100,29 @@ const Mixin = {
 					starty = Math.min(this._bs_ready[1],this._bs_progress[1]);
 					endy = Math.max(this._bs_ready[1],this._bs_progress[1]);
 				} else {
-					const startn = this._cellPosition(start.row, start.column);
-					const endn = this._cellPosition(end.row, end.column);
-					const scroll = this.getScrollState();
-
-					let startWidth = startn.width;
-					let endWidth = endn.width;
-
-					if (this._right_width && this._bs_ready[0] > this._left_width+this._center_width){
-						startn.left += this._left_width+this._center_width;
-					} else if (this._left_width){
-
-						if (this._bs_ready[0] > this._left_width){
-							if(startn.left < scroll.x){
-								startWidth -= scroll.x-startn.left;
-								startn.left = this._left_width;
-							}
-							else
-								startn.left+=this._left_width-scroll.x;
-
-						}
-
-					} else startn.left -= scroll.x;
-
-
-
-					if (this._right_width && this._bs_progress[0] > this._left_width+this._center_width){
-						endn.left += this._left_width+this._center_width;
-					} else if (this._left_width){
-						if (this._bs_progress[0] > this._left_width){
-							if(endn.left < scroll.x){
-								endWidth -= scroll.x-endn.left;
-								endn.left = this._left_width;
-							}
-
-							else
-								endn.left+=this._left_width-scroll.x;
-						}
-					} else endn.left -= scroll.x;
+					const i0 = this.getIndexById(start.row),
+						i1 = this.getIndexById(end.row),
+						j0 = this.getColumnIndex(start.column),
+						j1 = this.getColumnIndex(end.column);
+					const sri = Math.min(i0, i1),
+						eri = Math.max(i0, i1),
+						sci = Math.min(j0, j1),
+						eci = Math.max(j0, j1);
+					const startPos = this._bs_cell_position(sri, sci, false);
+					const endPos = this._bs_cell_position(eri, eci, true);
 
 					if(this._settings.prerender){
-						startn.top -= this._scrollTop;
-						endn.top -= this._scrollTop;
+						startPos.top -= this._scrollTop;
+						endPos.top -= this._scrollTop;
 					}
-
-
-					startx = Math.min(startn.left, endn.left);
-					endx = Math.max(startn.left+startWidth, endn.left+endWidth);
-
-					starty = Math.min(startn.top, endn.top) ;
-					endy = Math.max(startn.top+startn.height, endn.top+endn.height) ;
-
 					if (this._settings.topSplit)
-						starty += this._getTopSplitOffset(start);
+						startPos.top += this._getTopSplitOffset(start);
+
+					startx = startPos.left;
+					endx = endPos.left;
+					starty = startPos.top;
+					endy = endPos.top;
+
 					if(e){
 						if (this._auto_scroll_delay)
 							this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
@@ -173,7 +143,31 @@ const Mixin = {
 		if (theend)
 			this.callEvent("onAfterBlockSelect", [start, end]);
 	},
+	_bs_cell_position: function(iRow, iCol, isEnd){
+		const pos = this._cellPosition(this.getIdByIndex(iRow), this.columnId(iCol));
+		const scroll = this.getScrollState();
+		let left = pos.left;
+		if (this.config.rightSplit && iCol > (this._columns.length - 1 - this.config.rightSplit)){
+			left += this._left_width + this._center_width;
+		} else if (this.config.leftSplit){
+			if (iCol + 1 > this.config.leftSplit){
+				if(left < scroll.x){
+					pos.width -= scroll.x - left;
+					left = this._left_width;
+				}
+				else
+					left += this._left_width - scroll.x;
+			}
+		} else left -= scroll.x;
 
+		if(isEnd){
+			left += pos.width;
+			pos.top += pos.height;
+			if(this.config.rightSplit && iCol < this._columns.length - this.config.rightSplit)
+				left = Math.min(left, this._left_width + this._center_width);
+		}
+		return {left, top: pos.top};
+	},
 	_bs_start:function(handleStart){
 		this._block_panel = create("div", {"class":"webix_block_selection"},"");
 		this._body.appendChild(this._block_panel);

@@ -38,30 +38,25 @@ const EditAbility ={
 
 		extend(this,Undo);
 	},
-	_refocus_try:function(newnode){
-		try{ //Chrome throws an error if selectionStart is not accessible
-			if (typeof newnode.selectionStart == "number") {
-				newnode.selectionStart = newnode.selectionEnd = newnode.value.length;
-			} else if (typeof newnode.createTextRange != "undefined") {
-				var range = newnode.createTextRange();
-				range.collapse(false);
-				range.select();
+	_try_reselecting_text:function(input, start){
+		try {			//Chrome throws an error if selectionStart is not accessible
+			if (typeof input.selectionStart === "number") {
+				input.selectionStart = start >= 0 ? start : input.value.length;
+				input.selectionEnd = input.value.length;
 			}
-		} catch(e){} // eslint-disable-line
+		} catch(e){}	// eslint-disable-line
 	},
 	_refocus_inline_editor:function(){
-		var editor = this.getEditor();
+		const editor = this.getEditor();
 		if (editor && editor.$inline && !editor.getPopup){
-			var newnode = this._locateInput(editor);
+			const newnode = this._locateInput(editor);
 			if (newnode && newnode != editor.node){
-				var text = editor.node.value;
 				editor.node = newnode;
-				newnode.value = text;
 				newnode.focus();
 
-				this._refocus_try(newnode);
-			} else 
-				this.editStop();
+				const justOpened = (new Date())-this._edit_open_time > 200;
+				this._try_reselecting_text(newnode, justOpened ? -1 : 0);
+			}
 		}
 	},
 	editable_setter:function(value){

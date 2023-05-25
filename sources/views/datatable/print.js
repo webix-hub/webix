@@ -1,5 +1,5 @@
 import {create} from "../../webix/html";
-import {isUndefined, bind, copy} from "../../webix/helpers";
+import {isUndefined, copy} from "../../webix/helpers";
 
 
 const Mixin = {
@@ -22,10 +22,10 @@ const Mixin = {
 
 		var spans = {}, start = 0;
 
-		base.forEach(bind(function(tableArray, tid){
+		base.forEach((tableArray, tid)=>{
 			var row = tableArray[0], headerArray = [], length = row.length;
 
-			row.forEach(bind(function(cell, cid){
+			row.forEach((cell, cid)=>{
 				var column = columns[cid+start];
 
 				for(var h  = 0; h< column[group].length; h++){
@@ -64,13 +64,13 @@ const Mixin = {
 					headerArray[h] = headerArray[h] || [];
 					headerArray[h][cid] = hcell;
 				}
-			}, this));
+			});
 			if(group =="header")
 				base[tid] = headerArray.concat(tableArray);
 			else
 				base[tid] = tableArray.concat(headerArray);
 			start+=length;
-		}, this));
+		});
 
 		return base;
 	},
@@ -88,9 +88,46 @@ const Mixin = {
 		start = start || (0 + options.xCorrection);
 		base = base || [];
 
+		const spans = this._spans_pull;
 		const readySpans = {};
 
-		this.eachRow(bind(function(row){
+		if(spans)
+			for (let row in spans)
+				for (let column in spans[row]) {
+					const span = spans[row][column];
+
+					const hiddenRowOrder = this.data._filter_order;
+					const hiddenColumnOrder = this._hidden_column_order;
+					const startRowIndex = hiddenRowOrder ? hiddenRowOrder.find(row) : this.getIndexById(row);
+					const startColIndex = hiddenColumnOrder.length ? hiddenColumnOrder.find(column) : this.getColumnIndex(column);
+
+					const printSpan = {rowspan: 0, colspan: 0, css: span[5]||""};
+					let firstVisibleRow = true;
+
+					for(let r = startRowIndex; r < startRowIndex+span[1]; r++)
+						if(this.getIdByIndex(r)){
+							printSpan.rowspan++;
+							for(let c = startColIndex; c < startColIndex+span[0]; c++){
+								if(this.columnId(c)){
+									if(firstVisibleRow)
+										printSpan.colspan++;
+
+									if(!readySpans[r])
+										readySpans[r] = {};
+
+									if(printSpan.$ready)
+										readySpans[r][c] = {$inspan:true};
+									else{
+										readySpans[r][c] = printSpan;
+										printSpan.$ready = true;
+									}
+								}
+							}
+							firstVisibleRow = false;
+						}
+				}
+
+		this.eachRow(row => {
 			var width = 0;
 			var rowItem = this.getItem(row);
 			var rowIndex = this.getIndexById(row);
@@ -110,64 +147,44 @@ const Mixin = {
 					if(width > maxWidth && c > start){ // 'c>start' ensures that a single long column will have to fit the page
 						newTableStart = c; break; }
 
-					if(options.data !=="selection" || (options.data=="selection" && this._findIndex(sel, function(obj){
+					if(options.data !== "selection" || (options.data == "selection" && this._findIndex(sel, function(obj){
 						return obj.column == column && obj.row == row;
 					})!==-1)){
 						let span;
-						if(this.getSpan)
-							span = this.getSpan(row, column);
 
-						if(span){
-							if(readySpans[span[0]] && readySpans[span[0]][span[1]]){
-								colrow.push({$inspan:true});
+						if(spans && readySpans[rowIndex] && readySpans[rowIndex][colIndex+start]){
+							span = readySpans[rowIndex][colIndex+start];
+
+							if(span.$inspan){
+								colrow.push(span);
 								rightRestriction = Math.max(colIndex+1, rightRestriction);
 								bottomRestriction = Math.max(rowIndex+1, bottomRestriction);
 								continue;
 							}
-
-							if(this.data._filter_order)
-								for (let r = span[0]*1 + span[3] - 1; r >= span[0]; r--)
-									if(this.data.order.indexOf(r) == -1)
-										span[3]--;
-
-							const hiddenColumnOrder = this._hidden_column_order;
-							if(hiddenColumnOrder.length){
-								const ci = hiddenColumnOrder.find(span[1]);
-								for (let c = ci + span[2]; c >= ci; c--)
-									if(!this.isColumnVisible(hiddenColumnOrder[c]))
-										span[2]--;
-							}
-
-							if(!readySpans[span[0]])
-								readySpans[span[0]] = {};
-							readySpans[span[0]][span[1]] = 1;
 						}
 
-						var cellValue = span && span[4] ? span[4] : (this._columns_pull[column] ? this.getText(row, column) : "");
-						var className = this.getCss(row, column)+" "+(columns[c].css || "")+(span? (" webix_dtable_span "+ (span[5] || "")):"" );
+						const txt = this.getText(row, column);
+						const className = this.getCss(row, column)+" "+(columns[c].css || "")+(span ? " webix_dtable_span "+span.css : "");
 
-						var style  = {
-							height:span && span[3] > 1? "auto": ((rowItem.$height || this.config.rowHeight) + "px"),
-							width: span && span [2] > 1? "auto": columns[c].width + "px"
+						const style  = {
+							height:span && span.rowspan > 1 ? "auto": ((rowItem.$height || this.config.rowHeight) + "px"),
+							width: span && span.colspan > 1 ? "auto": columns[c].width + "px"
 						};
 
-						colrow.push({
-							txt: cellValue, className: className, style: style,
-							span: (span ? {colspan:span[2], spanStart:this.getColumnIndex(span[1]), rowspan:span[3]}:null)
-						});
+						colrow.push({ txt, className, style, span });
 
-						if (cellValue || cellValue===0) {
+						if (txt || txt === 0) {
 							rightRestriction = Math.max(colIndex+1, rightRestriction);
 							bottomRestriction = Math.max(rowIndex+1, bottomRestriction);
 						}
-						datarow = datarow || !!cellValue;
+						datarow = datarow || !!txt;
 					}
 				}
 			}
 
 			if(!options.skiprows || datarow)
 				tableArray.push(colrow);
-		}, this));
+		});
 
 		if(bottomRestriction && rightRestriction){
 			if(options.trim){

@@ -21,7 +21,9 @@ function orientation_handler(){
 
 if (env.mobile){
 	state.orientation = get_orientation();
-	event(window, "resize", orientation_handler);
+	if (window.screen.orientation) {
+		event(window.screen.orientation, "change", orientation_handler);
+	} else event(window, "orientationchange", orientation_handler);
 }
 
 export default function fullScreen(){

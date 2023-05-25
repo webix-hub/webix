@@ -54,17 +54,17 @@ DataStore.prototype={
 			this.filter();
 	
 		//get size and position of data
-		var info = this.driver.getInfo(data);
+		const info = this.driver.getInfo(data);
 
 		if (info.config)
 			this.callEvent("onServerConfig",[info.config]);
 
-		var options = this.driver.getOptions(data);
+		const options = this.driver.getOptions(data);
 		if (options)
 			this.callEvent("onServerOptions", [options]);
 
 		//get array of records
-		var recs = this.driver.getRecords(data);
+		const recs = this.driver.getRecords(data);
 
 		this._inner_parse(info, recs);
 
@@ -84,9 +84,9 @@ DataStore.prototype={
 		this.refresh();
 	},
 	_inner_parse:function(info, recs){
-		var from = info.from;
-		var subload = true;
-		var marks = false;
+		let from = info.from;
+		let subload = true;
+		let marks = false;
 
 		//some data is loaded and new data doesn't have "pos" - assuming update
 		if (!from && from !== 0 && this.order[0]){
@@ -102,11 +102,11 @@ DataStore.prototype={
 		} else 
 			from = (from || 0)*1;
 
-		var j=0;
-		for (let i=0; i<recs.length; i++){
+		let j=0;
+		for (let i = 0; i < recs.length; i++){
 			//get hash of details for each record
-			var temp = this.driver.getDetails(recs[i]);
-			var id = this.id(temp); 	//generate ID for the record
+			const temp = this.driver.getDetails(recs[i]);
+			const id = this.id(temp); 	//generate ID for the record
 			if (!this.pull[id]){		//if such ID already exists - update instead of insert
 				this.order[j+from]=id;	
 				j++;
@@ -114,7 +114,7 @@ DataStore.prototype={
 				j++;
 
 			if(this.pull[id]){
-				extend(this.pull[id],temp,true);//add only new properties
+				extend(this.pull[id], temp, true);//add only new properties
 				if (this._scheme_update)
 					this._scheme_update(this.pull[id]);
 				//update mode, remove item from kill list
@@ -131,12 +131,12 @@ DataStore.prototype={
 		//update mode, delete items which are not existing in the new xml
 		if (marks){
 			this.blockEvent();
-			for (var delid in marks)
+			for (let delid in marks)
 				this.remove(delid);
 			this.unblockEvent();
 		}
 
-		var endpos = info.size * 1;
+		const endpos = info.size * 1;
 		if (endpos) {
 			if (!this.order[endpos-1])
 				this.order[endpos-1] = undefined;
@@ -179,12 +179,12 @@ DataStore.prototype={
 		if (typeof id === "object")
 			id = id.toString();
 
-		var data = this.getItem(id);
-		var old = null;
+		const data = this.getItem(id);
+		let old = null;
 
 		//check is change tracking active
-		var changeTrack = this.hasEvent("onDataUpdate");
-	
+		const changeTrack = this.hasEvent("onDataUpdate");
+
 		assert(data, "Invalid ID for updateItem");
 		assert(!update || !update.id || update.id == id, "Attempt to change ID in updateItem");
 		if (!isUndefined(update) && data !== update){
@@ -235,18 +235,18 @@ DataStore.prototype={
 			if (to<0) to = 0; //we have not data in the store
 		}
 
-		if (from>to){ //can be in case of backward shift-selection
-			var a=to; to=from; from=a;
+		if (from > to){ //can be in case of backward shift-selection
+			let a=to; to=from; from=a;
 		}
 
 		return this.getIndexRange(from,to);
 	},
 	//converts range of indexes to array of all IDs between them
 	getIndexRange:function(from,to){
-		to=Math.min((to === 0 ? 0 :(to||Infinity)),this.count()-1);
-		
-		var ret=_to_array(); //result of method is rich-array
-		for (var i=(from||0); i <= to; i++)
+		to = Math.min((to === 0 ? 0 : (to||Infinity)), this.count()-1);
+
+		const ret = _to_array(); //result of method is rich-array
+		for (let i = (from||0); i <= to; i++)
 			ret.push(this.getItem(this.order[i]));
 		return ret;
 	},
@@ -264,8 +264,8 @@ DataStore.prototype={
 		assert(sindex>=0 && tindex>=0, "DataStore::move","Incorrect indexes");
 		if (sindex == tindex) return;
 
-		var id = this.getIdByIndex(sindex);
-		var obj = this.getItem(id);
+		const id = this.getIdByIndex(sindex);
+		const obj = this.getItem(id);
 
 		if (this._filter_order)
 			this._move_inner(this._filter_order, 0, 0, this.getIdByIndex(sindex), this.getIdByIndex(tindex));
@@ -279,14 +279,14 @@ DataStore.prototype={
 	_move_inner:function(col, sindex, tindex, sid, tid){
 		if (sid||tid){
 			sindex = tindex = -1;
-			for (var i=0; i<col.length; i++){
+			for (let i = 0; i < col.length; i++){
 				if (col[i] == sid && sindex<0)
 					sindex = i;
 				if (col[i] == tid && tindex<0)
 					tindex = i;
 			}
 		}
-		var id = col[sindex];
+		const id = col[sindex];
 		col.removeAt(sindex);	//remove at old position
 		col.insertAt(id,Math.min(col.length, tindex));	//insert at new position
 	},
@@ -301,12 +301,12 @@ DataStore.prototype={
 		this._scheme_export = config.$export;
 
 		//ignore $-starting properties, as they have special meaning
-		for (var key in config)
+		for (let key in config)
 			if (key.substr(0,1) != "$")
 				this._scheme[key] = config[key];
 	},
 	importData:function(target, silent){
-		var data = target ? (target.data || target) : [];
+		const data = target ? (target.data || target) : [];
 		this._filter_order = null;
 
 		if (typeof data.serialize == "function"){
@@ -316,10 +316,10 @@ DataStore.prototype={
 			//[WE-CAN-DO-BETTER]
 			if (this._make_full_copy){
 				this._make_full_copy = false;
-				var oldpull = this.pull;
+				const oldpull = this.pull;
 				this.pull = {};
 				for (let key in data.pull){
-					var old = oldpull[key];
+					const old = oldpull[key];
 					this.pull[key] = copy(data.pull[key]);
 					if (old && old.open) this.pull[key].open = true;
 				}
@@ -337,13 +337,13 @@ DataStore.prototype={
 		} else {
 			this.order = _to_array();
 			this.pull = {};
-			var id, obj;
+			let id, obj;
 
 			if (isArray(target))
 				for (let key=0; key<target.length; key++){
 					obj = id = target[key];
 					if (typeof obj == "object")
-						obj.id  = obj.id || uid();
+						obj.id = obj.id || uid();
 					else
 						obj = { id:id, value:id };
 
@@ -363,8 +363,8 @@ DataStore.prototype={
 			if (!this._datadriver_child)
 				this._set_child_scheme("data");
 
-			for (var i = 0; i<this.order.length; i++){
-				var key = this.order[i];
+			for (let i = 0; i<this.order.length; i++){
+				const key = this.order[i];
 				this._extraParser(this.pull[key], 0, 0, false);
 			}
 		}
@@ -376,7 +376,7 @@ DataStore.prototype={
 	sync:function(source, filter, silent){
 		this.unsync();
 
-		var type = typeof source;
+		const type = typeof source;
 		if (type == "string")
 			source = $$(source);
 
@@ -394,7 +394,7 @@ DataStore.prototype={
 			}
 		}
 
-		var	sync_logic = bind(function(id, data, mode){
+		const sync_logic = bind(function(id, data, mode){
 			if (this._skip_next_sync) return;
 
 			//sync of tree-structure with after-filtering
@@ -421,8 +421,6 @@ DataStore.prototype={
 				silent = false;
 		}, this);
 
-
-
 		this._sync_events = [
 			source.attachEvent("onStoreUpdated", sync_logic),
 			source.attachEvent("onIdChange", bind(function(old, nid){ this.changeId(old, nid); this.refresh(nid); }, this))
@@ -442,7 +440,7 @@ DataStore.prototype={
 	},
 	unsync:function(){
 		if (this._sync_source){
-			var source = this._sync_source;
+			const source = this._sync_source;
 
 			if ((source.name != "DataStore" && source.name != "TreeStore") &&
 					(!source.data || source.data.name != "DataStore" || source.data.name != "TreeStore")){
@@ -450,7 +448,7 @@ DataStore.prototype={
 				callEvent("onUnSyncUnknown", [this, source]);
 			} else {
 				//data sync with webix component
-				for (var i = 0; i < this._sync_events.length; i++)
+				for (let i = 0; i < this._sync_events.length; i++)
 					source.detachEvent(this._sync_events[i]);
 				this.detachEvent(this._back_sync_handler);
 			}
@@ -468,22 +466,22 @@ DataStore.prototype={
 	add:function(obj,index){
 		//default values		
 		if (this._scheme)
-			for (var key in this._scheme)
+			for (let key in this._scheme)
 				if (isUndefined(obj[key]))
 					obj[key] = this._scheme[key];
-		
+
 		if (this._scheme_init)
 			this._scheme_init(obj);
-		
+
 		//generate id for the item
-		var id = this.id(obj);
+		const id = this.id(obj);
 
 		//in case of treetable order is sent as 3rd parameter
-		var order = arguments[2]||this.order;
-		
+		const order = arguments[2]||this.order;
+
 		//by default item is added to the end of the list
-		var data_size = order.length;
-		
+		const data_size = order.length;
+
 		if (isUndefined(index) || index < 0)
 			index = data_size; 
 		//check to prevent too big indexes			
@@ -494,20 +492,20 @@ DataStore.prototype={
 		if (this.callEvent("onBeforeAdd", [id, obj, index]) === false) return false;
 
 		assert(!this.exists(id), "Not unique ID");
-		
+
 		this.pull[id]=obj;
 		order.insertAt(id,index);
 		if (this._filter_order){	//adding during filtering
 			//we can't know the location of new item in full dataset, making suggestion
 			//put at end of original dataset by default
-			var original_index = this._filter_order.length;
+			let original_index = this._filter_order.length;
 			//if some data exists, put at the same position in original and filtered lists
 			if (this.order.length)
 				original_index = Math.min((index || 0), original_index);
 
 			this._filter_order.insertAt(id,original_index);
 		}
-		
+
 		//repaint signal
 		this.callEvent("onStoreUpdated",[id,obj,"add"]);
 		this.callEvent("onAfterAdd",[id,index]);
@@ -519,7 +517,7 @@ DataStore.prototype={
 	remove:function(id){
 		//id can be an array of IDs - result of getSelect, for example
 		if (isArray(id)){
-			for (var i=0; i < id.length; i++)
+			for (let i = 0; i < id.length; i++)
 				this.remove(id[i]);
 			return;
 		}
@@ -527,7 +525,7 @@ DataStore.prototype={
 		
 		assert(this.exists(id), "Not existing ID in remove command"+id);
 
-		var obj = this.getItem(id);	//save for later event
+		const obj = this.getItem(id); //save for later event
 		//clear from collections
 		this.order.remove(id);
 		if (this._filter_order) 
@@ -622,6 +620,8 @@ DataStore.prototype={
 		this.order = this._sort_core(sorter, this.order);
 		if (this._filter_order)
 			this._filter_order = this._sort_core(sorter, this._filter_order);
+		if (this._filter_branch)	//treestore
+			this._sort_core(sorter, this.order, this._filter_branch);
 
 		//repaint self
 		this.refresh();
@@ -644,10 +644,10 @@ DataStore.prototype={
 	},
 	_sort_core:function(sorter, order){
 		if (this.order.length){
-			var pre = order.splice(0, this.$freeze);
+			const pre = order.splice(0, this.$freeze);
 			//get array of IDs
-			var neworder = _to_array();
-			for (var i=order.length-1; i>=0; i--)
+			const neworder = _to_array();
+			for (let i = order.length-1; i>=0; i--)
 				neworder[i] = this.pull[order[i]];
 
 			neworder.sort(sorter);
@@ -666,7 +666,7 @@ DataStore.prototype={
 		
 		or
 		
-		text  - filter method
+		text - filter method
 		
 		Filter method will receive data object and must return true or false
 	*/
@@ -678,28 +678,28 @@ DataStore.prototype={
 		}
 	},
 	_filter_core:function(filter, value, preserve){
-		var neworder = _to_array();
-		var freeze = this.$freeze || 0;
-		
-		for (var i=0; i < this.order.length; i++){
-			var id = this.order[i];
+		const neworder = _to_array();
+		const freeze = this.$freeze || 0;
+
+		for (let i=0; i < this.order.length; i++){
+			const id = this.order[i];
 			if (i < freeze || filter(this.getItem(id),value))
 				neworder.push(id);
 		}
 		//set new order of items, store original
-		if (!preserve ||  !this._filter_order)
+		if (!preserve || !this._filter_order)
 			this._filter_order = this.order;
 		this.order = neworder;
 	},
 	find:function(config, first){
-		var result = [];
+		const result = [];
 
-		for(var i in this.pull){
-			var data = this.pull[i];
+		for(let i in this.pull){
+			const data = this.pull[i];
 
-			var match = true;
+			let match = true;
 			if (typeof config == "object"){
-				for (var key in config)
+				for (let key in config)
 					if (data[key] != config[key]){
 						match = false;
 						break;
@@ -723,10 +723,10 @@ DataStore.prototype={
 		
 		this._filter_reset(preserve);
 		if (!this.order.length) return;
-		
+
 		//if text not define -just unfilter previous state and exit
 		if (text){
-			var filter = text;
+			let filter = text;
 			value = value||"";
 			if (typeof text == "string"){
 				text = text.replace(/#/g,"");
@@ -742,7 +742,7 @@ DataStore.prototype={
 					};
 				}
 			}
-			
+
 			this._filter_core(filter, value, preserve, this._filterMode);
 		}
 		//repaint self
@@ -754,18 +754,18 @@ DataStore.prototype={
 		Iterate through collection
 	*/
 	_obj_array:function(){
-		var data = [];
-		for (var i = this.order.length - 1; i >= 0; i--)
+		const data = [];
+		for (let i = this.order.length - 1; i >= 0; i--)
 			data[i]=this.pull[this.order[i]];
 
 		return data;
 	},
 	each:function(method, master, all){
-		var order = this.order;
+		let order = this.order;
 		if (all)
 			order = this._filter_order || order;
 
-		for (var i=0; i<order.length; i++){
+		for (let i = 0; i<order.length; i++){
 			if(order[i])
 				method.call((master||this), this.getItem(order[i]), i);
 		}
@@ -791,18 +791,18 @@ DataStore.prototype={
 				onbeforefilter:	target*/
 			});
 		}
-			
-		var list = ["sort","add","remove","exists","getIdByIndex","getIndexById","getItem","updateItem","refresh","count","filter","find","getNextId","getPrevId","clearAll","getFirstId","getLastId","serialize","sync"];
-		for (var i=0; i < list.length; i++)
+
+		const list = ["sort","add","remove","exists","getIdByIndex","getIndexById","getItem","updateItem","refresh","count","filter","find","getNextId","getPrevId","clearAll","getFirstId","getLastId","serialize","sync"];
+		for (let i = 0; i < list.length; i++)
 			target[list[i]] = this._methodPush(this,list[i]);
 	},
 	addMark:function(id, mark, css, value, silent){
-		var obj = this._marks[id]||{};
+		const obj = this._marks[id]||{};
 		this._marks[id] = obj;
 		if (!obj[mark]){
-			obj[mark] = value||true;	
+			obj[mark] = value||true;
 			if (css){
-				var old_css = obj.$css||"";
+				const old_css = obj.$css||"";
 				obj.$css = old_css+" "+mark;
 			}
 			if (!silent)
@@ -811,14 +811,15 @@ DataStore.prototype={
 		return obj[mark];
 	},
 	removeMark:function(id, mark, css, silent){
-		var obj = this._marks[id];
+		const obj = this._marks[id];
 		if (obj){
 			if (obj[mark])
 				delete obj[mark];
 			if (css){
-				var current_css = obj.$css;
+				const current_css = obj.$css;
 				if (current_css){
-					obj.$css = current_css.replace(mark, "").replace("  "," ");
+					const re = new RegExp("(\\s|^)"+mark+"(\\s|$)");
+					obj.$css = current_css.replace(re, (v,b,a) => b && a ? " " : "");
 				}
 			}
 			if (!silent) 
@@ -826,32 +827,34 @@ DataStore.prototype={
 		}
 	},
 	getMark:function(id, mark){
-		var obj = this._marks[id];
-		return (obj?obj[mark]:false);
+		const obj = this._marks[id];
+		return (obj ? obj[mark] : false);
 	},
 	clearMark:function(name, css, silent){
-		for (var id in this._marks){
-			var obj = this._marks[id];
+		for (const id in this._marks){
+			const obj = this._marks[id];
 			if (obj[name]){
 				delete obj[name];
-				if (css && obj.$css)
-					obj.$css = obj.$css.replace(name, "").replace("  "," ");
+				if (css && obj.$css){
+					const re = new RegExp("(\\s|^)"+name+"(\\s|$)");
+					obj.$css = obj.$css.replace(re, (v,b,a) => b && a ? " " : "");
+				}
 				if (!silent)
 					this.refresh(id);
 			}
 		}
-	},	
+	},
 	/*
 		serializes data to a json object
 	*/
 	serialize: function(all){
-		var ids = this.order;
+		let ids = this.order;
 		if (all && this._filter_order)
 			ids = this._filter_order;
 
-		var result = [];
-		for(var i=0; i< ids.length;i++) {
-			var el = this.pull[ids[i]];
+		const result = [];
+		for(let i=0; i< ids.length;i++) {
+			let el = this.pull[ids[i]];
 			if (this._scheme_serialize){
 				el = this._scheme_serialize(el);
 				if (el===false) continue;
@@ -886,29 +889,29 @@ DataStore.prototype={
 				return a>b?1:(a<b?-1:0);
 			},
 			"string_strict":function(a,b){
-				if (!b) return 1;
-				if (!a) return -1;
+				if (!b && b !== "") return 1;
+				if (!a && a !== "") return -1;
 
 				a = a.toString(); b = b.toString();
 				return a>b?1:(a<b?-1:0);
 			},
 			"string":function(a,b){
-				if (!b) return 1;
-				if (!a) return -1;
+				if (!b && b !== "") return 1;
+				if (!a && a !== "") return -1;
 
 				a = a.toString().toLowerCase(); b = b.toString().toLowerCase();
 				return a>b?1:(a<b?-1:0);
 			},
 			"string_locale_strict":function(a,b){
-				if (!b) return 1;
-				if (!a) return -1;
+				if (!b && b !== "") return 1;
+				if (!a && a !== "") return -1;
 
 				a = a.toString(); b = b.toString();
 				return a.localeCompare(b, i18n.locale);
 			},
 			"string_locale":function(a,b){
-				if (!b) return 1;
-				if (!a) return -1;
+				if (!b && b !== "") return 1;
+				if (!a && a !== "") return -1;
 
 				a = a.toString().toLowerCase(); b = b.toString().toLowerCase();
 				return a.localeCompare(b, i18n.locale);
@@ -954,6 +957,5 @@ DataStore.prototype={
 		}
 	}
 };
-
 
 export default DataStore;

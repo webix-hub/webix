@@ -5,8 +5,7 @@ import i18n from "../webix/i18n";
 import {use} from "../services";
 
 import template from "../webix/template";
-
-
+import editors from "../webix/editors";
 
 /*Data collection mapping logic */
 
@@ -81,6 +80,9 @@ const MapCollection = {
 				this._scheme_init_order.push(this._process_single_map(col.id, col.map, columns[i]));
 
 			this._map_options(columns[i]);
+
+			if (col.editor && !col.template && !col.format)
+				this._map_editor(col.id, columns[i]);
 		}
 	},
 	_create_collection:function(options){
@@ -186,6 +188,11 @@ const MapCollection = {
 				return "";
 			};
 		}
+	},
+	_map_editor: function(id, config){
+		const editor = editors[config.editor];
+		if(editor && editor.masterFormat)
+			config.format = editor.masterFormat;
 	}
 };
 

@@ -11,7 +11,7 @@ const StackedBarChart = {
 	*   @param: sIndex - index of drawing chart
 	*/
 	$render_stackedBar:function(ctx, data, point0, point1, sIndex, map){
-		var maxValue,minValue, xAxisY, x0, y0;
+		var maxValue,minValue, x0, y0;
 		/*necessary if maxValue - minValue < 0*/
 		var valueFactor;
 		/*maxValue - minValue*/
@@ -33,9 +33,8 @@ const StackedBarChart = {
 		var cellWidth = Math.floor((point1.x-point0.x)/data.length);
 
 		/*draws x and y scales*/
-		if(!sIndex){
-			xAxisY = this._drawScales(data,point0, point1,minValue,maxValue,cellWidth);
-		}
+		if(!sIndex)
+			this._drawScales(data,point0, point1,minValue,maxValue,cellWidth);
 
 		/*necessary for automatic scale*/
 		if(yax){
@@ -51,11 +50,11 @@ const StackedBarChart = {
 		var unit = (relValue?total_height/relValue:10);
 
 		/*a real bar width */
-		var barWidth = parseInt(config.barWidth,10);
-		if(barWidth+4 > cellWidth) barWidth = cellWidth-4;
+		let barWidth = parseInt(config.barWidth,10);
+		const minOffset = this._getMinBarOffset(cellWidth);
+		if(barWidth + minOffset > cellWidth) barWidth = cellWidth - minOffset;
 		/*the half of distance between bars*/
 		var barOffset = Math.floor((cellWidth - barWidth)/2);
-
 
 		var inner_gradient = (config.gradient?config.gradient:false);
 
@@ -77,6 +76,7 @@ const StackedBarChart = {
 
 			var negValue = origin&&value<0;
 			if(!sIndex){
+				const xAxisY = point1.y + 0.5; /* canvas line fix */
 				y0 = xAxisY-1;
 				data[i].$startY = y0;
 				if(origin){

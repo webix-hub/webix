@@ -17,17 +17,22 @@ function ui(config, parent, id){
 	var res;
 	state._ui_creation++;
 	// save old value of global scope
-	const temp = state._global_scope;
+	const temp_scope = state._global_scope;
+	// save old value of global collection
+	const temp_collection = state._global_collection;
 	// set global scope to the scope of new UI or to previous value
 	// as result inner webix.ui calls will have access the scope of master view
 	// mainly necessary for suggests
-	state._global_scope = config.$scope || temp;
+	state._global_scope = config.$scope || temp_scope;
 	try {
 		res = _ui_creator(config, parent, id);
 	} finally {
 		state._ui_creation--;
 		// restore global scope
-		state._global_scope = temp;
+		state._global_scope = temp_scope;
+		// restore global collection
+		// if an error occurred while creating the isolated layout
+		state._global_collection = temp_collection;
 	}
 	return res;
 }

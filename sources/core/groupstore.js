@@ -9,6 +9,10 @@ const GroupStore = {
 		this.attachEvent("onSyncApply", () => this._not_grouped_order = null);
 	},
 	ungroup:function(target){
+		// reset filters before ungrouping
+		if (this._filter_reset)
+			this._filter_reset(false);
+
 		if (this.getBranchIndex){
 			if (!this._ungroupLevel(target)) return;
 		} else {
@@ -16,8 +20,10 @@ const GroupStore = {
 
 			this.order = this._not_grouped_order;
 			this.pull = this._not_grouped_pull;
+
+			this._not_grouped_order = this._not_grouped_pull = null;
 		}
-		
+
 		this.callEvent("onStoreUpdated",[]);
 	},
 	_ungroupLevel(target){
@@ -72,8 +78,8 @@ const GroupStore = {
 	},	
 	group:function(config, target){
 		assert(config, "Empty config");
-		let input;
 
+		let input;
 		if (typeof config === "string"){
 			input = config;
 			config = { by:this._group_prop_accessor(config), map:{} };
@@ -87,6 +93,10 @@ const GroupStore = {
 		if (input && !config.map[input])
 			config.map[input] = [input];
 		config.missing = (config.missing === undefined) ? true : config.missing;
+
+		// reset filters before grouping
+		if (this._filter_reset)
+			this._filter_reset(false);
 
 		if (this.getBranchIndex)
 			return this._group_tree(config, target);

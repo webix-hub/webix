@@ -6,6 +6,8 @@ const Number={
 		const config = {
 			decimalSize:0,
 			groupSize:999,
+			minusSign:i18n.minusSign,
+			minusPosition:i18n.minusPosition,
 			prefix:"",
 			sufix:""
 		};

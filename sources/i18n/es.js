@@ -105,7 +105,7 @@ const es = {
 		greater: "mayor",
 		greaterOrEqual: "mayor o igual",
 		contains: "contiene",
-		notContains: "not contiene",
+		notContains: "no contiene",
 		equal: "igual",
 		notEqual: "no es igual",
 		beginsWith: "comienza con",

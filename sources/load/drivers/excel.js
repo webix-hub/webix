@@ -44,11 +44,13 @@ const excel = extend({
 		let ext = (options.ext || options).toLowerCase();
 		if (ext != "xls") ext = "xlsx";
 		return require(env.cdn + "/extras/xlsx.core.styles.min.js").then(bind(function(){
-			const cellDates = isUndefined(options.cellDates) ? true : options.cellDates;
 			/* global XLS, XLSX */
-			const wb = (ext == "xls") ?
-				XLS.read(arr.join(""), {type: "binary", cellStyles:true, cellDates}) :
-				XLSX.read(arr.join(""), {type: "binary", cellStyles:true, cellDates});
+			const wb = (ext == "xls" ? XLS : XLSX).read(arr.join(""), {
+				type: "binary",
+				cellStyles: true,
+				cellDates: isUndefined(options.cellDates) ? true : options.cellDates,
+				sheetStubs: options.sheetStubs
+			});
 
 			const res = {
 				sheets: wb.Sheets,

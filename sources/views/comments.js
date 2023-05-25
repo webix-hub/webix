@@ -7,6 +7,7 @@ import {ui, $$} from "../ui/core";
 import {extend, delay, _to_array, copy} from "../webix/helpers";
 import env from "../webix/env";
 import {setSelectionRange, preventEvent} from "../webix/html";
+import {event, eventRemove} from "../webix/htmlevents";
 import {attachEvent, detachEvent} from "../webix/customevents";
 import {confirm} from "../webix/message";
 import template from "../webix/template";
@@ -14,6 +15,7 @@ import {$active} from "../webix/skin";
 
 import i18n from "../webix/i18n";
 
+import CustomScroll from "../core/customscroll";
 import UIManager from "../core/uimanager";
 import DateHelper from "../core/date";
 import AtomDataLoader from "../core/atomdataloader";
@@ -90,12 +92,20 @@ const api = {
 
 			this.attachEvent("onDestruct", function(){
 				detachEvent(this._clickHandler);
+				eventRemove(this._transitionEv);
 			});
 
 			this._list.attachEvent("onAfterScroll", ()=>{
 				this._listMenu.hide();
 			});
 		}
+
+		//define transition
+		this._list.$view.style.transition = "height 0.5s ease";
+		this._transitionEv = event(this._list.$view, "transitionend", () => {
+			if (env.$customScroll) CustomScroll.resize();
+			this.callEvent("onTransitionEnd", []);
+		});
 	},
 	$onLoad: function(data, driver){
 		return this._fillList(data, driver);

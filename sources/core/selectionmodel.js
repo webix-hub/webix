@@ -171,8 +171,8 @@ const SelectionModel ={
 		//in case of paging - it will be current page only
 		range.each(function(obj){ 
 			if (!this.data.getMark(obj.id, "webix_selected")){
-				this._selected.push(obj.id);	
-				this._select_mark(obj.id,true,refresh);
+				if(this._select_mark(obj.id,true,refresh))
+					this._selected.push(obj.id);
 			}
 		},this);
 		//repaint self

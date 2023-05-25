@@ -63,42 +63,39 @@ const Touch = {
 	_touchend:function(e){
 		if (Touch._start_context) {
 			if (!Touch._scroll_mode) {
-				if (!Touch._long_touched) {
-					if (Touch._axis_y && !Touch._axis_x) {
+				if (!Touch._long_touched && !(Touch._axis_x * Touch._axis_y)) {
+					const delta = Touch._get_delta(e);
+					if (!Touch._axis_x && delta._x/(delta._y||1) > 4) {
 						Touch._translate_event("onSwipeX");
-					} else if (Touch._axis_x && !Touch._axis_y) {
+					} else if (!Touch._axis_y && delta._y/(delta._x||1) > 4) {
 						Touch._translate_event("onSwipeY");
 					}
 				}
 			} else {
-				var temp = Touch._get_matrix(Touch._scroll_node);
-				var x = temp.e;
-				var y = temp.f;
-				var finish = Touch.config.finish;
+				let finish = Touch.config.finish;
+				const temp = Touch._get_matrix(Touch._scroll_node);
+				const x = temp.e;
+				const y = temp.f;
 
-				var delta = Touch._get_delta(e);
-				var view = $$(Touch._scroll_node);
+				const delta = Touch._get_delta(e);
+				const view = $$(Touch._scroll_node);
 
-				var gravity = (view && view.$scroll ? view.$scroll.gravity : Touch.config.gravity);
+				const gravity = (view && view.$scroll) ? view.$scroll.gravity : Touch.config.gravity;
 				if (delta._time) {
-					var nx = x + gravity * delta._x_moment / delta._time;
-					var ny = y + gravity * delta._y_moment / delta._time;
+					const nx = x + gravity * delta._x_moment / delta._time;
+					const ny = y + gravity * delta._y_moment / delta._time;
 
-					var cnx = Touch._scroll[0] ? Touch._correct_minmax(nx, false, false, Touch._scroll_stat.dx, Touch._scroll_stat.px) : x;
-					var cny = Touch._scroll[1] ? Touch._correct_minmax(ny, false, false, Touch._scroll_stat.dy, Touch._scroll_stat.py) : y;
+					const cnx = Touch._scroll[0] ? Touch._correct_minmax(nx, false, false, Touch._scroll_stat.dx, Touch._scroll_stat.px) : x;
+					const cny = Touch._scroll[1] ? Touch._correct_minmax(ny, false, false, Touch._scroll_stat.dy, Touch._scroll_stat.py) : y;
 
-
-					var size = Math.max(Math.abs(cnx - x), Math.abs(cny - y));
+					const size = Math.max(Math.abs(cnx - x), Math.abs(cny - y));
 					if (size < 150)
 						finish = finish * size / 150;
 
 					if (cnx != x || cny != y)
 						finish = Math.round(finish * Math.max((cnx - x) / (nx - x), (cny - y) / (ny - y)));
 
-					var result = {e: cnx, f: cny};
-
-
-					view = $$(Touch._scroll_node);
+					const result = {e: cnx, f: cny};
 					if (view && view.adjustScroll)
 						view.adjustScroll(result);
 
