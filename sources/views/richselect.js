@@ -71,7 +71,9 @@ const api = {
 	_reset_value:function(){
 		const value = this._settings.value;
 		if(value){
-			this.$setValue(value);
+			// update value only for unchanged input
+			if(this.getInputNode() && this._settings.text === this.getText())
+				this.$setValue(value);
 			if(this.getPopup().isVisible())
 				this.getPopup()._show_selection();
 		}

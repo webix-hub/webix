@@ -1,5 +1,5 @@
 import {triggerEvent, preventEvent, getTextSize, locate} from "../webix/html";
-import {protoUI} from "../ui/core";
+import {protoUI, ui} from "../ui/core";
 import {$active} from "../webix/skin";
 import {isUndefined, isArray} from "../webix/helpers";
 import {assert} from "../webix/debug";
@@ -23,16 +23,19 @@ const api = {
 	},
 	defaults:{
 		template:function(obj, common){
-			var text = common.$renderInput(obj, common);
-			if (obj.badge||obj.badge===0) text = text.replace("</button>", "<span class='webix_badge'>"+obj.badge+"</span></button>");
-			return "<div class='webix_el_box' style='width:"+obj.awidth+"px; height:"+obj.aheight+"px'>"+ text + "</div>";
+			let text = common.$renderInput(obj, common);
+			if (obj.popup)
+				text = text.replace("<button", "<button aria-haspopup='true' aria-expanded='false'");
+			if (obj.badge || obj.badge === 0)
+				text = text.replace("</button>", "<span class='webix_badge'>"+obj.badge+"</span></button>");
+			return "<div class='webix_el_box' style='width:"+obj.awidth+"px; height:"+obj.aheight+"px'>"+text+"</div>";
 		},
 		label:"",
 		value:"",
 		borderless:true
 	},
 	$renderInput:function(obj){
-		return "<button type='button' "+(obj.popup?"aria-haspopup='true'":"")+" class='webix_button'>"+(obj.label||obj.value)+"</button>";
+		return "<button type='button' class='webix_button'>"+(obj.label||obj.value)+"</button>";
 	},
 	$init:function(config){
 		this._viewobj.className += " webix_control webix_el_"+(this.$cssName||this.name);
@@ -404,6 +407,14 @@ const api = {
 	_get_div_placeholder: function(obj){
 		var placeholder = (obj?obj.placeholder:this._settings.placeholder);
 		return (placeholder?"<span class='webix_placeholder'>"+placeholder+"</span>":"");
+	},
+	popup_setter: function(value){
+		if (typeof value === "object" && !value.name){
+			const popup = ui(value);
+			value = popup._settings.id;
+			this._destroy_with_me.push(popup);
+		}
+		return value;
 	}
 };
 

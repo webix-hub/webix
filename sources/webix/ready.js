@@ -52,7 +52,7 @@ if (document.readyState == "complete") handler();
 else event(window, "load", handler);
 
 ready(function(){
-	event(document.body,"click", function(e){
+	event(document.body, "click", function(e){
 		callEvent("onClick", [e]);
 	});
 });

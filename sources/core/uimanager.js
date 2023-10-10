@@ -461,7 +461,7 @@ ready(function() {
 			view.editStop();
 			return true;
 		} else if (view && view.touchable){
-			var form = view.getFormView();
+			const form = view.getFormView();
 			if (form && !view._skipSubmit)
 				form.callEvent("onSubmit",[view,ev]);
 		}
@@ -472,11 +472,12 @@ ready(function() {
 				view.editCancel();
 				return true;
 			}
-			var top = view.getTopParentView();
+
+			const top = view.getTopParentView();
 			if (top && top.setPosition){
-				if(fullscreen._fullscreen == top)
+				if (fullscreen._fullscreen == top)
 					fullscreen.exit();
-				if(top._editorMaster ){
+				if (top._editorMaster){
 					const master = $$(top._editorMaster);
 					if (master.editCancel && master._in_edit_mode)
 						master.editCancel();

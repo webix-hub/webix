@@ -329,19 +329,22 @@ const api = {
 		return html;
 	},
 	_timepicker_template:function(date){
-		var timeFormat = this._settings.calendarTime||i18n.timeFormatStr;
-		var clock = this._settings.timeIcon;
-		var tpl = "";
+		const sel = this.getSelectedDate(true);
+		if (sel)
+			date.setFullYear(sel.getFullYear(), sel.getMonth(), sel.getDate());
+		const timeFormat = this._settings.calendarTime||i18n.timeFormatStr;
+		const clock = this._settings.timeIcon;
+		let tpl = "";
 
 		if(!this._settings.master)
 			tpl = "<div role='button' tabindex='0' class='webix_cal_time"+(this._icons?" webix_cal_time_icons":"")+"'><span class='webix_icon "+clock+"'></span> "+timeFormat(date)+"</div>";
 		else{
 			//daterange needs two clocks
-			var range_date = copy($$(this._settings.master)._settings.value);
+			const range_date = copy($$(this._settings.master)._settings.value);
 			if(DateHelper.equal(range_date.end, date))
 				range_date.start = range_date.end;
-				
-			for(var i in range_date){
+
+			for(let i in range_date){
 				tpl += "<div role='button' tabindex='0' class='webix_range_time_"+i+" webix_cal_time'><span class='webix_icon "+clock+"'></span> "+timeFormat(range_date[i])+"</div>";
 			}
 		}
@@ -578,7 +581,7 @@ const api = {
 					newdate = calendar._findActive(date, mode);
 				
 				if(newdate)
-					calendar.selectDate(newdate, true, false, "user");
+					calendar._selectDate(newdate, false, "user");
 				return "webix_cal_day";
 			},
 			

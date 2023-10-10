@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.10.1.0
+ * webix UI v.10.2.0
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -2126,13 +2126,16 @@
           cellDates: isUndefined(options.cellDates) ? true : options.cellDates,
           sheetStubs: options.sheetStubs
         });
+        var book = wb.Workbook;
         var res = {
           sheets: wb.Sheets,
           names: wb.SheetNames,
           options: options,
-          ranges: wb.Workbook ? wb.Workbook.Names || [] : [],
-          states: wb.Workbook.Sheets.map(function (s) {
+          ranges: book ? book.Names || [] : [],
+          states: book && book.Sheets ? book.Sheets.map(function (s) {
             return ["visible", "hidden", "veryHidden"][s.Hidden];
+          }) : wb.SheetNames.map(function () {
+            return "visible";
           })
         };
         return exports.extend(this.getSheet(res, options), res);
@@ -3224,15 +3227,13 @@
     var element = $$(e);
 
     if (element && element.touchable) {
-      use("UIManager").applyChanges(element); //for inline elements - restore pointer to the master element
-
-      element.getNode(e); //reaction on custom css elements in buttons
-
-      var trg = e.target;
+      use("UIManager").applyChanges(element);
       if (element.config.disabled) return;
       var css = "";
+      var trg = e.target;
       if (trg.className && trg.className.toString().indexOf("webix_view") === 0) return;
-      if (element) use("UIManager")._focus_action(element); //loop through all parents
+      if (element) use("UIManager")._focus_action(element); //reaction on custom css elements in buttons
+      //loop through all parents
 
       while (trg && trg.parentNode) {
         if (trg.getAttribute) {
@@ -3264,18 +3265,16 @@
       var popup = element._settings.popup;
 
       if (popup && !element._settings.readonly && !e.longtouch_drag) {
-        if (_typeof(popup) == "object" && !popup.name) {
-          popup = element._settings.popup = ui(popup)._settings.id;
-
-          element._destroy_with_me.push($$(popup));
-        }
-
         popup = $$(popup);
         assert(popup, "Unknown popup");
 
         if (!popup.isVisible()) {
+          var node = element.getInputNode() || element.getNode();
           popup._settings.master = element._settings.id;
-          popup.show(element.getInputNode() || element.getNode(), null, true);
+          popup.show(node, null, true);
+          node.setAttribute("aria-expanded", true);
+          if (popup._settings.id != element._settings.suggest) // not a suggest
+            use("UIManager").setFocus(popup.getBody());
         }
       }
 
@@ -6725,7 +6724,9 @@
         node.scroll_enabled = true;
         node.parentNode.style.position = "relative";
         node.style.cssText += "transition:transform; user-select:none; transform-style:flat;";
-        node.addEventListener(env.transitionEnd, Touch._scroll_end, false);
+        node.addEventListener(env.transitionEnd, function (e) {
+          if (e.target === this) Touch._scroll_end.call(this);
+        }, false);
       }
     },
     _init_scroller: function () {
@@ -7810,6 +7811,16 @@
       if (this._settings.modal) this._modal_set(false);
 
       this._hiding_process();
+
+      if (this._settings.master) {
+        var _view = $$(this._settings.master);
+
+        if (_view && _view.touchable && _view._settings.popup === this._settings.id) {
+          var node = _view.getInputNode() || _view.getNode();
+
+          node.setAttribute("aria-expanded", false);
+        }
+      }
 
       if (this._settings.autofocus) {
         var el = document.activeElement; //as result of hotkey, we can have a activeElement set to document.body
@@ -17558,7 +17569,7 @@
     }
   };
 
-  var version = "10.1.0";
+  var version = "10.2.0";
   var name = "core";
 
   var errorMessage = "non-existing view for export";
@@ -18491,6 +18502,7 @@
           cell.v = excelDate(cell.v);
         } else if (isFormula) {
           if (!cell.t) cell.t = isNaN(stringValue) ? "s" : "n";
+          if (cell.v.ref) cell.F = cell.v.ref;
           cell.f = cell.v.formula.substring(1);
           cell.v = stringValue;
         } else if (!cell.t) {
@@ -19393,7 +19405,9 @@
     i18n.intFormat = Number$1.numToStr({
       groupSize: i18n.groupSize,
       groupDelimiter: i18n.groupDelimiter,
-      decimalSize: 0
+      decimalSize: 0,
+      minusPosition: i18n.minusPosition,
+      minusSign: i18n.minusSign
     });
 
     i18n.priceFormat = function (value) {
@@ -25193,6 +25207,8 @@
       return html;
     },
     _timepicker_template: function (date) {
+      var sel = this.getSelectedDate(true);
+      if (sel) date.setFullYear(sel.getFullYear(), sel.getMonth(), sel.getDate());
       var timeFormat = this._settings.calendarTime || i18n.timeFormatStr;
       var clock = this._settings.timeIcon;
       var tpl = "";
@@ -25427,7 +25443,7 @@
           var newdate = date;
           if (mode === "pgup" || mode === "pgdown") newdate = wDate.add(date, mode === "pgdown" ? 1 : -1, "month");else if (mode === "bottom") newdate = new Date(date.getFullYear(), date.getMonth() + 1, 0);else if (mode === "top") newdate = new Date(date.setDate(1));else if (mode === "left" || mode === "right") newdate = wDate.add(date, mode === "right" ? 1 : -1, "day");else if (mode === "up" || mode === "down") newdate = wDate.add(date, mode === "down" ? 1 : -1, "week");
           if (!calendar._checkDate(newdate)) newdate = calendar._findActive(date, mode);
-          if (newdate) calendar.selectDate(newdate, true, false, "user");
+          if (newdate) calendar._selectDate(newdate, false, "user");
           return "webix_cal_day";
         }
       },
@@ -26616,6 +26632,7 @@
     defaults: {
       template: function (obj, common) {
         var text = common.$renderInput(obj, common);
+        if (obj.popup) text = text.replace("<button", "<button aria-haspopup='true' aria-expanded='false'");
         if (obj.badge || obj.badge === 0) text = text.replace("</button>", "<span class='webix_badge'>" + obj.badge + "</span></button>");
         return "<div class='webix_el_box' style='width:" + obj.awidth + "px; height:" + obj.aheight + "px'>" + text + "</div>";
       },
@@ -26624,7 +26641,7 @@
       borderless: true
     },
     $renderInput: function (obj) {
-      return "<button type='button' " + (obj.popup ? "aria-haspopup='true'" : "") + " class='webix_button'>" + (obj.label || obj.value) + "</button>";
+      return "<button type='button' class='webix_button'>" + (obj.label || obj.value) + "</button>";
     },
     $init: function (config) {
       this._viewobj.className += " webix_control webix_el_" + (this.$cssName || this.name);
@@ -27011,6 +27028,16 @@
     _get_div_placeholder: function (obj) {
       var placeholder = obj ? obj.placeholder : this._settings.placeholder;
       return placeholder ? "<span class='webix_placeholder'>" + placeholder + "</span>" : "";
+    },
+    popup_setter: function (value) {
+      if (_typeof(value) === "object" && !value.name) {
+        var popup = ui(value);
+        value = popup._settings.id;
+
+        this._destroy_with_me.push(popup);
+      }
+
+      return value;
     }
   };
   var view$v = exports.protoUI(api$v, base$1.view, AutoTooltip, AtomRender, Settings, EventSystem);
@@ -28363,7 +28390,8 @@
       var value = this._settings.value;
 
       if (value) {
-        this.$setValue(value);
+        // update value only for unchanged input
+        if (this.getInputNode() && this._settings.text === this.getText()) this.$setValue(value);
         if (this.getPopup().isVisible()) this.getPopup()._show_selection();
       }
     },
@@ -28824,7 +28852,7 @@
       });
     },
     $renderInput: function (obj) {
-      return "<button type='button' " + (obj.popup ? "aria-haspopup='true'" : "") + " class='webix_button'>" + obj.label + "</button>";
+      return "<button type='button' class='webix_button'>" + obj.label + "</button>";
     },
     $setValue: function (value) {
       var input = this.getInputNode();
@@ -30831,7 +30859,9 @@
       if (backspace || del || ctrl && x) {
         var selStart = trg.selectionStart;
         var selEnd = trg.selectionEnd;
-        if (backspace && selStart == 0 || x && selStart == selEnd || del && selStart == (trg.value || trg.innerText).length) return;
+        var backspaceNothing = backspace && selStart == 0 && selStart == selEnd;
+        if (!backspaceNothing && !this._delayedBackspace) this._delayedBackspace = true;
+        if (backspaceNothing && !this._delayedBackspace || x && selStart == selEnd || del && selStart == (trg.value || trg.innerText).length) return;
       } // tab - hide popup and do nothing
 
 
@@ -30849,7 +30879,8 @@
       var contentEditable = trg.getAttribute("contentEditable") == "true" || trg.getAttribute("contentEditable") == "";
       if (isUndefined(trg.value) && !contentEditable) return;
       this._last_delay = delay(function () {
-        //focus moved to the different control, suggest is not necessary
+        delete this._delayedBackspace; //focus moved to the different control, suggest is not necessary
+
         if (!this._non_ui_mode && UIManager.getFocus() != $$(this._settings.master)) return;
         this._resolve_popup = true;
         var val = contentEditable ? trg.innerText : trg.value;

@@ -13,7 +13,7 @@ const api = {
 		});
 	},
 	$renderInput:function(obj){
-		return "<button type='button' "+(obj.popup?"aria-haspopup='true'":"")+" class='webix_button'>"+obj.label+"</button>";
+		return "<button type='button' class='webix_button'>"+obj.label+"</button>";
 	},
 	$setValue:function(value){
 		const input = this.getInputNode();

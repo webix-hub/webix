@@ -140,6 +140,9 @@ function getExcelData(data, scheme, spans, styles, options) {
 				if(!cell.t)
 					cell.t = isNaN(stringValue) ? "s" : "n";
 
+				if(cell.v.ref)
+					cell.F = cell.v.ref;
+
 				cell.f = cell.v.formula.substring(1);
 				cell.v = stringValue;
 			}

@@ -303,8 +303,12 @@ const api = {
 			const selStart = trg.selectionStart;
 			const selEnd = trg.selectionEnd;
 
+			const backspaceNothing = backspace && selStart == 0 && selStart == selEnd;
+			if(!backspaceNothing && !this._delayedBackspace)
+				this._delayedBackspace = true;
+
 			if(
-				(backspace && selStart == 0) ||
+				(backspaceNothing && !this._delayedBackspace) ||
 				(x && selStart == selEnd) ||
 				(del && selStart == (trg.value || trg.innerText).length)
 			)
@@ -333,6 +337,7 @@ const api = {
 		if (isUndefined(trg.value) && !contentEditable) return;
 
 		this._last_delay = delay(function(){
+			delete this._delayedBackspace;
 			//focus moved to the different control, suggest is not necessary
 			if (!this._non_ui_mode &&
 					UIManager.getFocus() != $$(this._settings.master)) return;

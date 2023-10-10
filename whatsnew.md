@@ -1,5 +1,58 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
+Version 10.2.0 (October 2023)
+=============================
+
+### Updates
+
+- typescript definitions are improved
+
+### Fixes
+
+- incorrect height of multicombo with top label
+- incorrect export to excel for data with array-based formulas
+- selecting values from the list doesn't work for combo with data feed
+- incorrect rendering of bullet graphs in the firefox
+- calendar widget doesn't preserve correct date value in the timepicker mode
+
+
+Version 10.1.5 (August 2023)
+=============================
+
+### Fixes
+
+- navigation in richselect
+- blinking button on hybrid devices
+- broken styles during loading data from XLS
+
+
+Version 10.1.3 (July 2023)
+=============================
+
+### Fixes
+
+- Combo input loses focus when the suggest is shown
+- Calendar navigation doesn't trigger onBeforeDateSelect/onAfterDateSelect
+- Multicombo no longer fails to remove values that are not present in the data
+- Multicombo with newValues:true no longer exhibits unexpected behavior when typing and selecting values
+
+
+Version 10.1.1 (June 2023)
+=============================
+
+
+### Updates
+
+- better typescript definitions ( datepicker, window )
+- better UX of suggest widget in response to keyboard commands
+- improved accessibility of button with dropdown menu
+
+### Fixes
+
+- regression in input repainting after data reload
+- regression in intFormat for negative numbers
+
+
 Version 10.1 (May 2023)
 =============================
 

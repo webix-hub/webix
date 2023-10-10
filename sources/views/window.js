@@ -312,6 +312,14 @@ const api = {
 
 		this._hiding_process();
 
+		if (this._settings.master){
+			const view = $$(this._settings.master);
+			if (view && view.touchable && view._settings.popup === this._settings.id){
+				const node = view.getInputNode() || view.getNode();
+				node.setAttribute("aria-expanded", false);
+			}
+		}
+
 		if (this._settings.autofocus){
 			const el = document.activeElement;
 			//as result of hotkey, we can have a activeElement set to document.body

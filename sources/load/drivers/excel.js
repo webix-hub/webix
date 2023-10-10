@@ -52,12 +52,13 @@ const excel = extend({
 				sheetStubs: options.sheetStubs
 			});
 
+			const book = wb.Workbook;
 			const res = {
 				sheets: wb.Sheets,
 				names: wb.SheetNames,
 				options:options,
-				ranges:wb.Workbook?(wb.Workbook.Names ||[]):[],
-				states: wb.Workbook.Sheets.map(s => ["visible", "hidden", "veryHidden"][s.Hidden])
+				ranges: book ? (book.Names || []) : [],
+				states: book && book.Sheets ? book.Sheets.map(s => ["visible", "hidden", "veryHidden"][s.Hidden]) : wb.SheetNames.map(() => "visible")
 			};
 			return extend(this.getSheet(res, options), res);
 		}, this));

@@ -318,63 +318,61 @@ let proto = function(){
 };
 
 attachEvent("onClick", function(e){
-	var element = $$(e);
+	const element = $$(e);
+
 	if (element && element.touchable){
 		use("UIManager").applyChanges(element);
 
-		//for inline elements - restore pointer to the master element
-		element.getNode(e);
-		//reaction on custom css elements in buttons
-		var trg=e.target;
-		if (element.config.disabled)
-			return;
+		if (element.config.disabled) return;
 
-		var css = "";
-		if (trg.className && trg.className.toString().indexOf("webix_view")===0) return;
+		let css = "";
+		let trg = e.target;
+		if (trg.className && trg.className.toString().indexOf("webix_view") === 0) return;
 
 		if (element)
 			use("UIManager")._focus_action(element);
 
+		//reaction on custom css elements in buttons
 		//loop through all parents
 		while (trg && trg.parentNode){
 			if (trg.getAttribute){
 				if (trg.getAttribute(/*@attr*/"view_id"))
 					break;
-					
-				css=trg.className;
+
+				css = trg.className;
 				if (css){
 					css = css.toString().split(" ");
-					for (var i =0; i<css.length; i++){
+					for (let i =0; i<css.length; i++){
 						if (element.on_click[css[i]]){
-							var res =  element.on_click[css[i]].call(element,e,element._settings.id,trg);
-							if (res===false)
+							const res = element.on_click[css[i]].call(element,e,element._settings.id,trg);
+							if (res === false)
 								return;
 						}
 					}
 				}
 			}
-			trg=trg.parentNode;
+			trg = trg.parentNode;
 		}
 
-
 		if (element._settings.click){
-			var code = toFunctor(element._settings.click, element.$scope);
+			const code = toFunctor(element._settings.click, element.$scope);
 			if (code && code.call) code.call(element, element._settings.id, e);
 		}
 
 		let popup = element._settings.popup;
 		if (popup && !element._settings.readonly && !e.longtouch_drag){
-			if (typeof popup == "object" && !popup.name){
-				popup = element._settings.popup = ui(popup)._settings.id;
-				element._destroy_with_me.push($$(popup));
-			}
-
 			popup = $$(popup);
 			assert(popup, "Unknown popup");
 
 			if (!popup.isVisible()){
+				const node = element.getInputNode() || element.getNode();
+
 				popup._settings.master = element._settings.id;
-				popup.show((element.getInputNode()||element.getNode()),null,true);
+				popup.show(node, null, true);
+
+				node.setAttribute("aria-expanded", true);
+				if (popup._settings.id != element._settings.suggest)	// not a suggest
+					use("UIManager").setFocus(popup.getBody());
 			}
 		}
 

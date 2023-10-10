@@ -232,7 +232,9 @@ const Touch = {
 			node.scroll_enabled = true;
 			node.parentNode.style.position = "relative";
 			node.style.cssText += "transition:transform; user-select:none; transform-style:flat;";
-			node.addEventListener(env.transitionEnd,Touch._scroll_end,false);
+			node.addEventListener(env.transitionEnd, function(e){
+				if (e.target === this) Touch._scroll_end.call(this);
+			}, false);
 		}
 	},
 	_init_scroller:function(){

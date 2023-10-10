@@ -46,7 +46,14 @@ i18n.setLocale = function(locale){
 	const _price_format = template(i18n.price);
 	const _price_settings = i18n.priceSettings || i18n;
 
-	i18n.intFormat = Number.numToStr({ groupSize: i18n.groupSize, groupDelimiter: i18n.groupDelimiter, decimalSize: 0});
+	i18n.intFormat = Number.numToStr({
+		groupSize: i18n.groupSize,
+		groupDelimiter: i18n.groupDelimiter,
+		decimalSize: 0,
+		minusPosition: i18n.minusPosition,
+		minusSign: i18n.minusSign
+	});
+
 	i18n.priceFormat = function(value){
 		const sign = value < 0;
 		if(sign)
@@ -71,6 +78,7 @@ i18n.setLocale = function(locale){
 
 		return _price_format(value);
 	};
+
 	i18n.numberFormat = Number.format;
 };
 
