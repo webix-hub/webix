@@ -59,7 +59,8 @@ const api = {
 					autofocus: false,
 					width: 200,
 				},
-				obj.tabbarPopup || {}
+				obj.tabbarPopup || {},
+				true
 			);
 
 			const body = extend(
@@ -245,10 +246,11 @@ const api = {
 			tooltip = " webix_t_id='"+tab.id+"'";
 
 		width = (tab.width||width);
-		html = "<div class=\"webix_item_tab"+className+"\" "+/*@attr*/"button_id=\""+tab.id+"\" role=\"tab\" "+
-			"aria-selected=\""+(tab.id== config.value?"true":"false")+"\" tabindex=\""+(!isDisabled && tab.id==config.value?"0":"-1")+
-			"\" style=\"width:"+width+"px;\""+(isDisabled?" webix_disabled=\"true\"":"")+tooltip+">";
+		html = `<div class="webix_item_tab${className}" `+/*@attr*/`button_id="${tab.id}" role="tab" `+
+			`aria-selected="${tab.id== config.value?"true":"false"}" tabindex="${!isDisabled && tab.id==config.value?"0":"-1"}"`+
+			` style="width:${width}px;" ${isDisabled? " webix_disabled=\"true\"":"" } ${tooltip}>`;
 
+		const closeIcon = tab.close || config.close;
 		// a tab title
 		if(this._tabTemplate){
 			var calcHeight = this._content_height- config.inputPadding*2 - 2;
@@ -257,11 +259,12 @@ const api = {
 			html+= this._tabTemplate(temp);
 		}
 		else {
+			const closeCss = closeIcon ? "webix_item_tab_text_close" : "";
 			var icon = tab.icon?("<span class='webix_icon "+tab.icon+"'></span> "):"";
-			html+=icon + tab.value;
+			html+= `<div class="webix_item_tab_text ${closeCss}">${icon} ${tab.value}</div>`;
 		}
 
-		if (!isDisabled && (tab.close || config.close))
+		if (!isDisabled && closeIcon)
 			html+="<span role='button' tabindex='0' aria-label='"+i18n.aria.closeTab+"' class='webix_tab_close webix_icon wxi-close'></span>";
 
 		html+="</div>";

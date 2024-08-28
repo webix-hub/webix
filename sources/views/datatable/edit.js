@@ -63,8 +63,13 @@ const Mixin = {
 		type.value = item[column];
 		this._addEditor(id, type);
 
-		if(type.getPopup)
-			type.getPopup()._editorMaster = this._settings.id;
+		if(type.getPopup){
+			const popup = type.getPopup();
+			popup.attachEvent("onHide", function(){
+				if(this._edit_active) this.show();
+			});
+			popup._editorMaster = this._settings.id;
+		}
 
 		if (!type.$inline)
 			type._editor_pos = this._sizeToCell(id, node, true);

@@ -86,7 +86,7 @@ const api = {
 			//line.type 	= 	line.type||"label";
 			line.id 	=	line.id||uid();
 			line.label 	=	line.label||"";
-			line.value 	=	line.value||"";
+			line.value 	=	isUndefined(line.value) ? (line.type == "checkbox" ? false : "") : line.value;
 			this._idToLine[line.id] = i;
 			this._map_options(data[i]);
 		}
@@ -224,14 +224,21 @@ const api = {
 					const post = "<div class='webix_property_label' style='"+height+"width:"+this._settings.nameWidth+"px'>"+data.label+"</div><div class='webix_property_value' style='"+height+"width:"+this._data_width+"px'>";
 
 					let content;
-					if (data.collection || data.options){
-						content = data.template(data, this.type, data.value, data);
+					const value = data.value;
+					const options = data.collection || data.options;
+					if(options){
+						if (data.format) {
+							const item = value ? options.getItem(value) : null;
+							content = data.format(item ? item.value : value);
+						}
+						else
+							content = data.template(data, this.type, value, data);
 					} else if(data.format){
-						content = data.format(data.value);
+						content = data.format(value);
 					} else
-						content = data.value;
+						content = value;
 					if (render)
-						content = render.call(this, data.value, data);
+						content = render.call(this, value, data);
 					html[i] = pre+post+content+"</div></div>";
 				}
 			}

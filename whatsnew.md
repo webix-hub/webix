@@ -1,6 +1,52 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
-Version 10.2.0 (October 2023)
+Version 10.3 (August 2024)
+=============================
+
+### Updates
+
+- TypeScript definitions are improved
+
+### Fixes
+
+- Complex widgets: checking whether a CSS class name starts with the widget-specific prefix instead of checking the whole class name is implemented
+- memory leaks related to filters
+- memory leaks related to custom scroll
+- handling errors within GraphQL proxy
+- wrong "placeholder" CSS style in .min version
+- Datepicker: format set as a string with type: "month"/"year" doesn't apply correctly
+- DataLayout can't pass data to elements inside the Accordion item
+- Dashboard: returning false in the factory crashes restore()
+- Dynamic UI rebuilding does not work for MultiView
+- The onBeforeEditStop event can't handle popup editors
+- SideMenu with context and selection
+- MultiView with the enabled keepViews config does not add PDFViewer properly
+- Incorrect work of the elementsConfig property of Form
+- Incorrect value of a checkbox in Property Sheet
+- Timeline: details do not always appear with the height:"auto" setting specified
+- A typo in the French locale
+- Incorrect behavior when the cursor hovers over the resizer line
+- Daterange: time of the end date is not displayed properly
+- Radio button with empty options/no options breaks UI rendering
+- DataTable: incorrect work of the inputConfig property
+- DataTable: zeros are not displayed when using webix.print()
+- The onItemSingleClick event doesn't work for DataView
+- MultiCombo: wrong size if the parent window was closed with Escape while the suggest list was opened
+- Unwanted filter icons in the headermenu options
+- The label and placeholder properties of Bullet Graph ignore the change of value
+- DOMException is thrown when validating the Text control with the type "number"
+- The adjustRowHeight method ignores complex templates
+- The DashBoard panel border disappears on minimizing the panel
+- webix.Date.strToDate can't parse ISO 8601 short expressions
+- DatePicker: the format set as a string with the type: "month"/"year" doesn't apply correctly
+- Wrong "placeholder" CSS style in the minified version
+- Export to Excel: calling toExcel() in the Numbers editor (iOS/macOS) results in replacing empty values with zeroes
+
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_10_3.html)
+
+
+Version 10.2 (October 2023)
 =============================
 
 ### Updates
@@ -14,43 +60,6 @@ Version 10.2.0 (October 2023)
 - selecting values from the list doesn't work for combo with data feed
 - incorrect rendering of bullet graphs in the firefox
 - calendar widget doesn't preserve correct date value in the timepicker mode
-
-
-Version 10.1.5 (August 2023)
-=============================
-
-### Fixes
-
-- navigation in richselect
-- blinking button on hybrid devices
-- broken styles during loading data from XLS
-
-
-Version 10.1.3 (July 2023)
-=============================
-
-### Fixes
-
-- Combo input loses focus when the suggest is shown
-- Calendar navigation doesn't trigger onBeforeDateSelect/onAfterDateSelect
-- Multicombo no longer fails to remove values that are not present in the data
-- Multicombo with newValues:true no longer exhibits unexpected behavior when typing and selecting values
-
-
-Version 10.1.1 (June 2023)
-=============================
-
-
-### Updates
-
-- better typescript definitions ( datepicker, window )
-- better UX of suggest widget in response to keyboard commands
-- improved accessibility of button with dropdown menu
-
-### Fixes
-
-- regression in input repainting after data reload
-- regression in intFormat for negative numbers
 
 
 Version 10.1 (May 2023)

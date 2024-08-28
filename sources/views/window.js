@@ -273,10 +273,16 @@ const api = {
 	_hide:function(e){
 		//do not hide modal windows
 		if (this._settings.hidden || this._settings.modal || !this._settings.escHide || this._hide_timer) return;
-		//do not hide submenu when clicking on menu folder
-		if (e && e.showpopup && (e.showpopup == this._settings.id || (this.getTopMenu && this.getTopMenu()._settings.id == e.showpopup))) return;
-		//do not hide popup, when starting dnd with a long touch
-		if (e && env.touch && e.longtouch_drag) return;
+
+		if(e){
+			//do not hide submenu when clicking on menu folder
+			if (e.showpopup && (e.showpopup == this._settings.id || (this.getTopMenu && this.getTopMenu()._settings.id == e.showpopup))) return;
+			//do not hide popup, when starting dnd with a long touch
+			if (env.touch && e.longtouch_drag) return;
+			//do not hide popup, when we hide inner suggest by pressing esc
+			if (e.hidesuggest) return;
+		}
+
 		//do not hide popup, when we have modal layer above the popup
 		if (state._modality.length && this._viewobj.style.zIndex <= Math.max(...state._modality)) return;
 

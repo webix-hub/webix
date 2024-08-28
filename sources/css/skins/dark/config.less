@@ -1410,7 +1410,7 @@ div.webix_inp_static, .webix_el_textarea textarea{
 	.webix_cal_day_disabled, .webix_cal_day_disabled.webix_cal_event{
 		background-color: @disabledColor;
 		color: @disabledFontColor;
-		span:hover{
+		&:not(.webix_cal_select) span:hover{
 			background-color: transparent;
 		}
 	}

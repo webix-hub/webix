@@ -239,9 +239,7 @@ body:not(:-moz-handler-blocked) .webix_el_select select{
 .webix_placeholder{
 	color: @placeholderColor;
 }
-::-webkit-input-placeholder { color: @placeholderColor; }
-::-moz-placeholder { color: @placeholderColor; }  /* Firefox 19+ */
-:-moz-placeholder { color: @placeholderColor; }   /* Firefox 18- */
+::placeholder { color: @placeholderColor; opacity: 1; }
 :-ms-input-placeholder { color: @placeholderColor; }
 
 .webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_search{

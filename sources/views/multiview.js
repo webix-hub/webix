@@ -1,6 +1,6 @@
 import {remove} from "../webix/html";
 import {protoUI, $$} from "../ui/core";
-import {clone, extend, isUndefined} from "../webix/helpers";
+import {clone, extend, isUndefined, isArray} from "../webix/helpers";
 import {_each} from "../ui/helpers";
 import promise from "../thirdparty/promiz";
 import {debug_size_box_start, debug_size_box_end} from "../webix/debug";
@@ -87,7 +87,7 @@ const api = {
 		return id;
 	},
 	_replace:function(view){
-		if(!view._settings.borderless){
+		if(!isArray(view) && !view._settings.borderless){
 			const settings = clone(this._settings._inner);
 			view._settings._inner = settings;
 			let style = view._viewobj.style;

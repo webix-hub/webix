@@ -1,7 +1,6 @@
 import {_to_array, _power_array, isUndefined} from "../../webix/helpers";
 import {assert} from "../../webix/debug";
 
-
 const Mixin = {
 	$init:function(){
 		this._clear_hidden_state();	
@@ -367,10 +366,24 @@ const Mixin = {
 		}
 	},
 	refreshColumns:function(columns){
+		const columnsUpdated = this.config.columns !== this._columns || columns;
 		this._dtable_column_refresh = true;
-		if (columns){
+
+		if (columnsUpdated) {
+			if (this._destroy_with_me.length) {
+				this._destroy_with_me = this._destroy_with_me.filter(view => {
+					// remove filters/collections from the previous column config, don't touch other views
+					if (view.config.id === this._settings.headermenu || 
+						(this._subViewStorage && this._subViewStorage[view.config.id])) return true;
+					view.destructor();
+					return false;
+				});
+			}
+
 			this._clear_hidden_state();
+			this._active_headers = {};
 			this._filter_elements = {};
+			this._collection_handlers = {};
 		}
 
 		this._columns_pull = {};
@@ -394,8 +407,11 @@ const Mixin = {
 		this._update_scroll();
 
 		this.callEvent("onStructureUpdate");
-
 		this.render();
+
+		// apply new filters in case the columns were updated
+		if (columnsUpdated) this.filterByAll();
+
 		this._dtable_column_refresh = false;
 	},
 	_refresh_columns:function(){

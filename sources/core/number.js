@@ -1,5 +1,6 @@
 import i18n from "../webix/i18n";
 import rules from "../webix/rules";
+import template from "../webix/template";
 
 const Number={
 	getConfig: function(value){
@@ -49,8 +50,6 @@ const Number={
 
 		if (config.prefix)
 			value = value.replace(config.prefix, "");
-		if (config.sufix)
-			value = value.replace(config.sufix, "");
 
 		let sign = 1;
 		switch(config.minusPosition){
@@ -68,6 +67,12 @@ const Number={
 				}
 				break;
 		}
+
+		if (config.priceTemplate)
+			value = value.replace(config.priceTemplate.replace("{obj}", ""), "");
+
+		if (config.sufix)
+			value = value.replace(config.sufix, "");
 
 		value = value.trim();
 
@@ -138,6 +143,9 @@ const Number={
 			str = int_value + (str[1] ? (config.decimalDelimiter + str[1]) : "");
 		else
 			str = int_value;
+
+		if(config.priceTemplate)
+			str = template(config.priceTemplate)(str);
 
 		if(sign){
 			switch(config.minusPosition){

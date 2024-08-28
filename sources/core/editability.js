@@ -214,8 +214,14 @@ const EditAbility ={
 
 		this._addEditor(id, type);
 
-		if(type.getPopup)
-			type.getPopup()._editorMaster = this._settings.id;
+		if(type.getPopup){
+			const popup = type.getPopup();
+			popup.attachEvent("onHide", function(){
+				if(this._edit_active) this.show();
+			});
+			popup._editorMaster = this._settings.id;
+		}
+
 		//show it over cell
 		if (show !== false)
 			this.showItem(id);
@@ -326,6 +332,9 @@ const EditAbility ={
 			value : this._get_new_value(editor), 
 			old : editor.value
 		};
+
+		const popup = editor.getPopup ? editor.getPopup() : null;
+
 		if (this.callEvent("onBeforeEditStop", [state, editor, ignore])){
 			if (!ignore){
 				//special case, state.old = 0, state.value = ""
@@ -343,9 +352,10 @@ const EditAbility ={
 			else
 				remove(editor.node);
 
-			var popup = editor.config.suggest;
-			if (popup && typeof popup == "string")
-				$$(popup).hide();
+			if (popup){
+				popup.hide();
+				delete popup._edit_active;
+			}
 
 			this._removeEditor(editor);
 			if (this._live_edits_handler)
@@ -353,6 +363,12 @@ const EditAbility ={
 
 			this.callEvent("onAfterEditStop", [state, editor, ignore]);
 			return 1;
+		}
+		else if(popup){
+			if(!popup.isVisible())
+				popup.show();
+			editor.getPopup()._edit_active = true;
+
 		}
 		return 0;
 	},

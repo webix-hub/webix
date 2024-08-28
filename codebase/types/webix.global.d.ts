@@ -209,7 +209,7 @@ declare namespace webix {
 	}
 	type WebixSparklines = {
 		[key in WebixSparklineType]: WebixCallback;
-	};
+	}
 	type WebixSpan = [ string | number, string, number, number, string?, string? ];
 	type WebixSpanConfig = WebixSpan[];
 	type WebixHeaderMenuConfig = {
@@ -332,7 +332,7 @@ declare namespace webix {
 	type WebixPromptType = "prompt-warning" | "prompt-error";
 	type WebixMessageConfig = WebixMessageBaseConfig & {
 		expire?: number;
-		type?: WebixMessageType;
+		type?: WebixMessageType | WebixAlertType | WebixConfirmType;
 	}
 	type WebixMessageboxConfig = WebixMessageBaseConfig & {
 		title?: string;
@@ -344,21 +344,21 @@ declare namespace webix {
 	};
 	type WebixAlertConfig = WebixMessageboxConfig & {
 		ok?: string;
-		type?: WebixAlertType;
+		type?: WebixAlertType | WebixConfirmType;
 	}
 	type WebixConfirmConfig = WebixMessageboxConfig & {
 		ok?: string;
 		cancel?: string;
-		type?: WebixConfirmType;
+		type?: WebixAlertType | WebixConfirmType;
 	}
 	type WebixModalboxConfig = WebixMessageboxConfig & {
 		buttons?: string[];
-		type?: WebixAlertType;
+		type?: WebixAlertType | WebixConfirmType;
 	}
 	type WebixPromptConfig = WebixMessageboxConfig & {
 		ok?: string;
 		cancel?: string;
-		type?: WebixPromptType;
+		type?: WebixPromptType | WebixAlertType | WebixConfirmType;
 	}
 	type WebixFieldParams = {
 		hidden?: boolean;
@@ -394,13 +394,9 @@ declare namespace webix {
 		rows?: string;
 		cols?: string;
 	}
+	type WebixSpreadsheetButton = "undo" | "redo" | "font-family" | "font-size" | "font-weight" | "font-style" | "underline" | "color" | "background" | "borders" | "span" | "text-align" | "vertical-align" | "wrap" | "format" | "increase-indent" | "decrease-indent" | "text-decoration";
 	type WebixSpreadsheetButtonConfig = {
-		"undo-redo"?: [ "undo"?, "redo"? ]
-		font?: ["font-family"?, "font-size"?, "font-weight"?, "font-style"?, "underline"?, "color"?]
-		cell?: ["background"?, "borders"?, "span"?],
-		align?: ["text-align"?, "vertical-align"?, "wrap"?],
-		format?: ["format"?],
-		[key: string]: any[];
+		[key: string]: WebixSpreadsheetButton[];
 	}
 	type WebixSpreadsheetSheetContent = {
 		data: [ number | string, number | string, string | number ][];
@@ -482,7 +478,7 @@ declare namespace webix {
 	}
 	type WebixTreeDataMoveOptions = WebixDataMoveOptions & {
 		parent?: string | number;
-	};
+	}
 	type WebixTextPattern = {
 		mask: string;
 		allow?: RegExp;
@@ -520,7 +516,7 @@ declare namespace webix {
 		preserve?: boolean;
 		area_name?: string;
 		css?: string;
-	};
+	}
 	type WebixDatatableSelectAreas = {
 		[areaId: number]: WebixDatatableAreaSelection;
 	}
@@ -1126,7 +1122,7 @@ declare namespace webix {
 	type DelimiterConfig = {
 		rows:string;
 		cols:string;
-	};
+	}
 	interface csv {
 		parse(text:string, delimiter?:DelimiterConfig):any[];
 		stringify(data:any[], delimiter?:DelimiterConfig):string;
@@ -1224,13 +1220,13 @@ declare namespace webix {
 		gantt_numeditor?: ganttNumEditor;
 		ss_richselect?: ssRichselectEditor;
 		$popup: obj;
-	};
+	}
 	type EnvContext = {
 		target: HTMLElement;
 		x: number;
 		y: number;
 		time: Date;
-	};
+	}
 	interface env {
 		$customScroll?: boolean;
 		cdn: string;
@@ -1789,12 +1785,12 @@ declare namespace webix {
 		};
 	}
 	interface promise {
-		new (executor: (resolve: (value? : any) => void, reject: (reason? :any) => void) => void) : Promise<any>;
-		all(promises:Promise<any>[]):Promise<any>;
-		defer():Promise<any>;
-		race(promises:Promise<any>[]):Promise<any>;
-		reject(value:any):Promise<any>;
-		resolve(value:any):Promise<any>;
+		new (executor: (resolve: (value? : any) => void, reject: (reason? :any) => void) => void): Promise<any>;
+		all(promises:Promise<any>[]): Promise<any>;
+		defer(): Omit<webix.promise, "defer" | "race" | "all"> & Promise<any>;
+		race(promises:Promise<any>[]): Promise<any>;
+		reject(value:any): Promise<any>;
+		resolve(value:any): Promise<any>;
 	}
 	interface rules {
 		isChecked(value:any):boolean;
@@ -2148,7 +2144,7 @@ declare namespace webix {
 		clearValidation():void;
 		copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixDataMoveOptions):void;
 		count():number;
-		define(property:string|webix.ui.baseviewConfig, value?:any):void;
+		define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 		destructor():void;
 		detachEvent(id:string):void;
 		exists(id:number|string):boolean;
@@ -2277,7 +2273,7 @@ declare namespace webix {
 		blockEvent():void;
 		callEvent(name:string, params:any[]):boolean;
 		clearValidation():void;
-		define(property:string|webix.ui.baseviewConfig, value?:any):void;
+		define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 		detachEvent(id:string):void;
 		escape(value:string):string;
 		getItemState(itemId:string|number):WebixDataProcessorItemStateObject;
@@ -2303,7 +2299,7 @@ declare namespace webix {
 		bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 		blockEvent():void;
 		callEvent(name:string, params:any[]):boolean;
-		define(property:string|webix.ui.baseviewConfig, value?:any):void;
+		define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 		detachEvent(id:string):void;
 		getValues():obj;
 		hasEvent(name:string):boolean;
@@ -2545,7 +2541,7 @@ declare namespace webix {
 	var HtmlMap:HtmlMap;
 	interface IdSpace{
 		innerId(id:number|string):number|string;
-		ui<T extends webix.ui.baseview>(view:webix.ui.baseviewConfig):T;
+		ui<T extends webix.ui.baseview>(view:webix.ui.baseviewConfig & {[key: string]: any}):T;
 		$$<T extends webix.ui.baseview>(name:string): T;
 	}
 	var IdSpace:IdSpace;
@@ -2641,7 +2637,7 @@ declare namespace webix {
 	}
 	var SelectionModel:SelectionModel;
 	interface Settings{
-		define(property:string|webix.ui.baseviewConfig, value?:any):void;
+		define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 		config: obj;
 		name: string;
 	}
@@ -2712,7 +2708,7 @@ declare namespace webix {
 		clearValidation():void;
 		copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixDataMoveOptions):void;
 		count():number;
-		define(property:string|webix.ui.baseviewConfig, value?:any):void;
+		define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 		destructor():void;
 		detachEvent(id:string):void;
 		exists(id:number|string):boolean;
@@ -2999,13 +2995,13 @@ declare namespace webix {
 		}
 		type baselayoutEventName ='onBindRequest'|'onDestruct'|'onViewShow';
 		class baselayout implements webix.ui.baseview{
-			addView(view:webix.ui.baseview|webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseview|webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			attachEvent(type:baselayoutEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -3021,7 +3017,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reconstruct():void;
 			removeView(id:string|number|webix.ui.baseview):void;
 			resize():void;
@@ -3064,7 +3060,7 @@ declare namespace webix {
 		interface baseview{
 			adjust():void;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			disable():void;
 			enable():void;
@@ -3076,7 +3072,7 @@ declare namespace webix {
 			hide():void;
 			isEnabled():boolean;
 			isVisible():boolean;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unbind():void;
@@ -3094,7 +3090,7 @@ declare namespace webix {
 		interface jetappConfig{
 			view?: string;
 			animate?: boolean|WebixAnimate;
-			body?: webix.ui.baseviewConfig;
+			body?: webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			container?: string|HTMLElement;
 			css?: string|obj;
@@ -3109,7 +3105,7 @@ declare namespace webix {
 			minHeight?: number;
 			minWidth?: number;
 			on?: EventHash;
-			override?: any[];
+			override?: Map<any, any>;
 			width?: number;
 		}
 		type jetappEventName ='onAfterScroll'|'onBlur'|'onDestruct'|'onEnter'|'onFocus'|'onInit'|'onLongTouch'|'onSwipeX'|'onSwipeY'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onViewResize'|'onViewShow';
@@ -3118,7 +3114,7 @@ declare namespace webix {
 			attachEvent(type:jetappEventName, functor:WebixCallback, id?:string):string|number;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -3133,7 +3129,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unblockEvent():void;
@@ -3200,7 +3196,7 @@ declare namespace webix {
 			clearValidation():void;
 			count():number;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -3233,7 +3229,7 @@ declare namespace webix {
 			locate(e:Event):string|number;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeCss(id:string|number, css:string, silent?:boolean):void;
@@ -3287,7 +3283,7 @@ declare namespace webix {
 			attachEvent(type:resizeareaEventName, functor:WebixCallback, id?:string):string|number;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			detachEvent(id:string):void;
 			hasEvent(name:string):boolean;
 			mapEvent(map:WebixEventMap):void;
@@ -3318,7 +3314,7 @@ declare namespace webix {
 		class view implements webix.ui.baseview{
 			adjust():void;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			disable():void;
 			enable():void;
@@ -3330,7 +3326,7 @@ declare namespace webix {
 			hide():void;
 			isEnabled():boolean;
 			isVisible():boolean;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unbind():void;
@@ -3366,7 +3362,7 @@ declare namespace webix {
 			attachEvent(type:vscrollEventName, functor:WebixCallback, id?:string):string|number;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			detachEvent(id:string):void;
 			getScroll():number;
 			getSize():number;
@@ -3406,13 +3402,13 @@ declare namespace webix {
 		}
 		type abslayoutEventName ='onBindRequest'|'onDestruct'|'onViewShow';
 		class abslayout implements webix.ui.baseview{
-			addView(view:webix.ui.baseview|webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseview|webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			attachEvent(type:abslayoutEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -3428,7 +3424,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reconstruct():void;
 			removeView(id:string|number|webix.ui.baseview):void;
 			resize():void;
@@ -3481,13 +3477,13 @@ declare namespace webix {
 		}
 		type accordionEventName ='onAfterCollapse'|'onAfterExpand'|'onBindRequest'|'onDestruct'|'onViewShow';
 		class accordion implements webix.ui.baseview{
-			addView(view:webix.ui.baseview|webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseview|webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			attachEvent(type:accordionEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -3503,7 +3499,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reconstruct():void;
 			removeView(id:string|number|webix.ui.baseview):void;
 			resize():void;
@@ -3528,7 +3524,7 @@ declare namespace webix {
 		interface accordionitemConfig{
 			view?: string;
 			animate?: boolean|WebixAnimate;
-			body?: string|WebixTemplate|webix.ui.baseviewConfig;
+			body?: string|WebixTemplate|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			collapsed?: boolean;
 			container?: string|HTMLElement;
@@ -3563,7 +3559,7 @@ declare namespace webix {
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
 			collapse():void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -3579,7 +3575,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
@@ -3605,7 +3601,7 @@ declare namespace webix {
 			view?: string;
 			align?: string;
 			animate?: boolean|WebixAnimate;
-			body?: webix.ui.baseviewConfig;
+			body?: webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			bottom?: number;
 			container?: string|HTMLElement;
@@ -3629,7 +3625,7 @@ declare namespace webix {
 		class align implements webix.ui.baseview{
 			adjust():void;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			disable():void;
 			enable():void;
@@ -3642,7 +3638,7 @@ declare namespace webix {
 			hide():void;
 			isEnabled():boolean;
 			isVisible():boolean;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unbind():void;
@@ -3687,7 +3683,7 @@ declare namespace webix {
 		class barcode implements webix.ui.baseview{
 			adjust():void;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			disable():void;
 			enable():void;
@@ -3700,7 +3696,7 @@ declare namespace webix {
 			hide():void;
 			isEnabled():boolean;
 			isVisible():boolean;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			render():void;
 			resize():void;
 			setValue(value:string):void;
@@ -3761,7 +3757,7 @@ declare namespace webix {
 		class bullet implements webix.ui.baseview{
 			adjust():void;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			disable():void;
 			enable():void;
@@ -3774,7 +3770,7 @@ declare namespace webix {
 			hide():void;
 			isEnabled():boolean;
 			isVisible():boolean;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			resize():void;
 			setValue(new_value:number):void;
@@ -3836,7 +3832,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -3844,7 +3840,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLButtonElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -3854,7 +3850,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -3869,7 +3865,7 @@ declare namespace webix {
 			$getValue():string;
 			$height: number;
 			$prepareValue: WebixCallback;
-			$renderInput(config:webix.ui.buttonConfig):HTMLElement;
+			$renderInput(config:webix.ui.buttonConfig & {[key: string]: any}):HTMLElement;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -3943,7 +3939,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -3963,7 +3959,7 @@ declare namespace webix {
 			locate(e:Event):string|number;
 			mapEvent(map:WebixEventMap):void;
 			moveSelection(direction:string):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id:string|number, data:obj, type:string):void;
 			resize():void;
@@ -4015,14 +4011,14 @@ declare namespace webix {
 		}
 		type carouselEventName ='onAfterScroll'|'onBindRequest'|'onBlur'|'onDestruct'|'onEnter'|'onFocus'|'onKeyPress'|'onLongTouch'|'onShow'|'onSwipeX'|'onSwipeY'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onViewResize'|'onViewShow';
 		class carousel implements webix.ui.baseview{
-			addView(view:webix.ui.baseview|webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseview|webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			adjustScroll():void;
 			attachEvent(type:carouselEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -4040,7 +4036,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			removeView(view:string|number|webix.ui.baseview):void;
 			resize():void;
 			scrollTo(x:number, y:number):void;
@@ -4142,7 +4138,7 @@ declare namespace webix {
 		type chartEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSort'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSort'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onEnter'|'onFocus'|'onItemClick'|'onItemDblClick'|'onItemSingleClick'|'onKeyPress'|'onLegendClick'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onViewResize'|'onViewShow';
 		class chart implements webix.ui.baseview{
 			add(obj:obj, index?:number):string|number;
-			addSeries(obj:webix.ui.chartConfig):void;
+			addSeries(obj:webix.ui.chartConfig & {[key: string]: any}):void;
 			adjust():void;
 			attachEvent(type:chartEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
@@ -4151,7 +4147,7 @@ declare namespace webix {
 			clearAll(soft?:boolean):void;
 			clearCanvas():void;
 			count():number;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -4182,7 +4178,7 @@ declare namespace webix {
 			locate(e:Event):string|number;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeAllSeries():void;
@@ -4247,14 +4243,13 @@ declare namespace webix {
 			minWidth?: number;
 			mode?: string;
 			on?: EventHash;
-			override?: any[];
+			override?: Map<any, any>;
 			reactions?: boolean;
 			search?: string;
 			token?: string;
 			url?: string;
 			userId?: number;
 			voiceMessages?: boolean;
-			bots?: boolean;
 			width?: number;
 		}
 		type chatEventName ='onAfterScroll'|'onBlur'|'onDestruct'|'onEnter'|'onFocus'|'onInit'|'onLongTouch'|'onSwipeX'|'onSwipeY'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onViewResize'|'onViewShow';
@@ -4264,7 +4259,7 @@ declare namespace webix {
 			attachEvent(type:chatEventName, functor:WebixCallback, id?:string):string|number;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -4281,7 +4276,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unblockEvent():void;
@@ -4340,7 +4335,7 @@ declare namespace webix {
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			uncheckValue?: string;
 			validate?: WebixCallback;
@@ -4356,7 +4351,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -4364,7 +4359,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLButtonElement|HTMLInputElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -4374,7 +4369,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -4396,8 +4391,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -4418,7 +4413,7 @@ declare namespace webix {
 			animate?: boolean|WebixAnimate;
 			autofit?: boolean;
 			autofocus?: boolean;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			button?: boolean;
 			buttonText?: string;
@@ -4467,7 +4462,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -4491,7 +4486,7 @@ declare namespace webix {
 			isVisible():boolean;
 			linkInput(input:HTMLElement):void;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			setMasterValue(value:any, refresh:boolean):void;
@@ -4552,7 +4547,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -4569,7 +4564,7 @@ declare namespace webix {
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
 			moveSelection(direction:string):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id:string|number, data:obj, type:string):void;
 			resize():void;
@@ -4637,7 +4632,7 @@ declare namespace webix {
 			relatedView?: string;
 			required?: boolean;
 			stringResult?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			validate?: WebixCallback;
 			validateEvent?: string;
@@ -4652,7 +4647,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -4660,7 +4655,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLElement|HTMLInputElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getPopup():webix.ui.baseview;
@@ -4672,7 +4667,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -4694,8 +4689,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -4739,7 +4734,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -4756,7 +4751,7 @@ declare namespace webix {
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
 			moveSelection(direction:string):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			render():void;
 			resize():void;
@@ -4823,7 +4818,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -4844,7 +4839,7 @@ declare namespace webix {
 			load(url:string|WebixCallback|WebixProxy, type?:string, callback?:WebixCallback, clear?:boolean):Promise<any>;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			setCurrentUser(id:number|string):void;
 			show(force?:boolean, animation?:boolean):void;
@@ -4901,15 +4896,14 @@ declare namespace webix {
 			name?: string;
 			newValues?: boolean;
 			on?: EventHash;
-			options?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			options?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			placeholder?: string;
 			popup?: string;
-			popupWidth?: number;
 			readonly?: boolean;
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			validate?: WebixCallback;
 			validateEvent?: string;
@@ -4924,7 +4918,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -4932,7 +4926,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLInputElement;
 			getList():webix.ui.baseview;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
@@ -4945,7 +4939,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -4967,8 +4961,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -4989,7 +4983,7 @@ declare namespace webix {
 			animate?: boolean|WebixAnimate;
 			autofit?: boolean;
 			autofocus?: boolean;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			container?: string|HTMLElement;
 			css?: string|obj;
@@ -5026,7 +5020,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -5043,7 +5037,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			setContext(context:WebixContext):void;
@@ -5073,7 +5067,7 @@ declare namespace webix {
 			autofocus?: boolean;
 			autoheight?: boolean;
 			autowidth?: boolean;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			click?: string|WebixCallback;
 			clipboard?: boolean|string;
@@ -5127,7 +5121,7 @@ declare namespace webix {
 			scrollSpeed?: string;
 			select?: boolean|string;
 			subMenuPos?: string;
-			submenuConfig?: webix.ui.submenuConfig;
+			submenuConfig?: webix.ui.submenuConfig & {[key: string]: any};
 			template?: string|WebixCallback;
 			templateCopy?: WebixCallback;
 			toFront?: boolean;
@@ -5156,7 +5150,7 @@ declare namespace webix {
 			copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixDataMoveOptions):void;
 			count():number;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -5209,7 +5203,7 @@ declare namespace webix {
 			moveTop(id:string|number):void;
 			moveUp(id:string|number, step:number):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeCss(id:string|number, css:string, silent?:boolean):void;
@@ -5312,7 +5306,7 @@ declare namespace webix {
 			relatedView?: string;
 			required?: boolean;
 			step?: number;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			validate?: WebixCallback;
 			validateEvent?: string;
@@ -5327,7 +5321,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -5335,7 +5329,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLInputElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -5347,7 +5341,7 @@ declare namespace webix {
 			mapEvent(map:WebixEventMap):void;
 			next(step?:number):void;
 			prev(step?:number):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -5369,8 +5363,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -5421,14 +5415,14 @@ declare namespace webix {
 		}
 		type dashboardEventName ='onAfterDrop'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBindRequest'|'onChange'|'onDestruct'|'onDragOut'|'onViewShow';
 		class dashboard implements webix.ui.baseview{
-			addView(view:webix.ui.baseview|webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseview|webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			attachEvent(type:dashboardEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
 			clearAll():void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -5445,7 +5439,7 @@ declare namespace webix {
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
 			moveView(id:string|number, pos:WebixGridlayoutPosConfig):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reconstruct():void;
 			removeView(id:string|number|webix.ui.baseview):void;
 			resize():void;
@@ -5512,7 +5506,7 @@ declare namespace webix {
 		type datalayoutEventName ='onAfterAdd'|'onAfterDelete'|'onAfterLoad'|'onAfterSort'|'onBeforeAdd'|'onBeforeDelete'|'onBeforeLoad'|'onBeforeSort'|'onBindRequest'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onLoadError'|'onViewShow';
 		class datalayout implements webix.ui.baseview{
 			add(obj:obj, index?:number):string|number;
-			addView(view:webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			attachEvent(type:datalayoutEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
@@ -5520,7 +5514,7 @@ declare namespace webix {
 			callEvent(name:string, params:any[]):boolean;
 			clearAll(soft?:boolean):void;
 			count():number;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -5550,7 +5544,7 @@ declare namespace webix {
 			loadNext(count:number, start:number, callback:WebixCallback, url:string, now:boolean, clear?:boolean):Promise<any>;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reconstruct():void;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
@@ -5585,7 +5579,7 @@ declare namespace webix {
 			animate?: boolean|WebixAnimate;
 			autofit?: boolean;
 			autofocus?: boolean;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			container?: string|HTMLElement;
 			css?: string|obj;
@@ -5629,7 +5623,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -5652,7 +5646,7 @@ declare namespace webix {
 			isVisible():boolean;
 			linkInput(input:HTMLElement):void;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			setMasterValue(value:any, refresh:boolean):void;
@@ -5797,7 +5791,7 @@ declare namespace webix {
 			columnId(index:number):string|number;
 			copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixDataMoveOptions):void;
 			count():number;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -5868,7 +5862,7 @@ declare namespace webix {
 			load(url:string|WebixCallback|WebixProxy, type?:string, callback?:WebixCallback, clear?:boolean):Promise<any>;
 			loadNext(count:number, start:number, callback:WebixCallback, url:string, now:boolean, clear?:boolean):Promise<any>;
 			locate(node:HTMLElement|Event):WebixDatatableCellPos;
-			mapCells(startrow:number, startcol:string, numrows:number, numcols:number, callback:WebixCallback):void;
+			mapCells(startrow:number, startcol:string, numrows:number, numcols:number, callback:WebixCallback, getOnly:boolean):void;
 			mapEvent(map:WebixEventMap):void;
 			mapSelection(callback:WebixCallback):void;
 			markSorting(column_id?:string, direction?:string, preserve?:boolean):void;
@@ -5881,7 +5875,7 @@ declare namespace webix {
 			moveUp(id:string|number, step:number):void;
 			openSub(id:string|number):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			refreshColumns(config?:any[]):void;
 			refreshFilter(id:string|number):void;
@@ -6027,7 +6021,7 @@ declare namespace webix {
 			copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixDataMoveOptions):void;
 			count():number;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -6070,7 +6064,7 @@ declare namespace webix {
 			moveTop(id:string|number):void;
 			moveUp(id:string|number, step:number):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeCss(id:string|number, css:string, silent?:boolean):void;
@@ -6129,7 +6123,7 @@ declare namespace webix {
 			animate?: boolean|WebixAnimate;
 			borderless?: boolean;
 			button?: boolean;
-			calendar?: webix.ui.calendar;
+			calendar?: webix.ui.calendar & {[key: string]: any};
 			calendarCount?: number;
 			calendarHeight?: number;
 			container?: string|HTMLElement;
@@ -6161,7 +6155,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -6177,7 +6171,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			resize():void;
 			setValue(range:WebixDaterangeValue, config?:any):void;
@@ -6244,7 +6238,7 @@ declare namespace webix {
 			required?: boolean;
 			separator?: string;
 			stringResult?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			timeIcon?: string;
 			timepicker?: boolean;
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
@@ -6261,7 +6255,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -6269,7 +6263,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLElement|HTMLInputElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getPopup():webix.ui.baseview;
@@ -6281,7 +6275,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -6304,8 +6298,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(config:webix.ui.buttonConfig):HTMLElement;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(config:webix.ui.buttonConfig & {[key: string]: any}):HTMLElement;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -6326,7 +6320,7 @@ declare namespace webix {
 			animate?: boolean|WebixAnimate;
 			autofit?: boolean;
 			autofocus?: boolean;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			container?: string|HTMLElement;
 			css?: string|obj;
@@ -6370,7 +6364,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -6395,7 +6389,7 @@ declare namespace webix {
 			isVisible():boolean;
 			linkInput(input:HTMLElement):void;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			setMasterValue(value:any, refresh:boolean):void;
@@ -6468,7 +6462,7 @@ declare namespace webix {
 			required?: boolean;
 			separator?: string;
 			stringResult?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			timeIcon?: string;
 			timepicker?: boolean;
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
@@ -6486,7 +6480,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -6494,7 +6488,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLElement|HTMLInputElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getPopup():webix.ui.baseview;
@@ -6506,7 +6500,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -6528,8 +6522,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -6563,7 +6557,7 @@ declare namespace webix {
 			labelBottomRight?: string;
 			labelLeft?: string;
 			labelRight?: string;
-			list?: webix.ui.listConfig;
+			list?: webix.ui.listConfig & {[key: string]: any};
 			maxHeight?: number;
 			maxWidth?: number;
 			minHeight?: number;
@@ -6584,7 +6578,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -6604,12 +6598,12 @@ declare namespace webix {
 			load(url:string|WebixCallback|WebixProxy, type?:string, callback?:WebixCallback, clear?:boolean):Promise<any>;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			select(id:string|any[], mode:boolean):void;
 			setValue(ids:string|any[]):void;
 			show(force?:boolean, animation?:boolean):void;
-			ui<T extends webix.ui.baseview>(view:webix.ui.baseviewConfig):T;
+			ui<T extends webix.ui.baseview>(view:webix.ui.baseviewConfig & {[key: string]: any}):T;
 			unbind():void;
 			unblockEvent():void;
 		
@@ -6646,7 +6640,7 @@ declare namespace webix {
 			minHeight?: number;
 			minWidth?: number;
 			on?: EventHash;
-			override?: any[];
+			override?: Map<any, any>;
 			systemParams?: obj;
 			tileAlign?: string;
 			tileLayout?: string;
@@ -6660,7 +6654,7 @@ declare namespace webix {
 			attachEvent(type:desktopEventName, functor:WebixCallback, id?:string):string|number;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -6678,7 +6672,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			setStateData(apps:any[]):void;
 			show(force?:boolean, animation?:boolean):void;
@@ -6763,7 +6757,7 @@ declare namespace webix {
 			clearCss(css:string, silent?:boolean):void;
 			count():number;
 			customize(obj:WebixDiagramItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -6804,7 +6798,7 @@ declare namespace webix {
 			locate(e:Event):string|number;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeCss(id:string|number, css:string, silent?:boolean):void;
@@ -6867,7 +6861,7 @@ declare namespace webix {
 			minItemWidth?: number;
 			minWidth?: number;
 			on?: EventHash;
-			override?: any[];
+			override?: Map<any, any>;
 			save?: WebixCallback;
 			shapes?: any[];
 			template?: string|WebixCallback;
@@ -6881,7 +6875,7 @@ declare namespace webix {
 			attachEvent(type:diagramEditorEventName, functor:WebixCallback, id?:string):string|number;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -6899,7 +6893,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			setValues(data:WebixDiagramValues):void;
 			show(force?:boolean, animation?:boolean):void;
@@ -6941,7 +6935,7 @@ declare namespace webix {
 			minWidth?: number;
 			mode?: string;
 			on?: EventHash;
-			override?: any[];
+			override?: Map<any, any>;
 			path?: string;
 			player?: boolean;
 			search?: string;
@@ -6957,7 +6951,7 @@ declare namespace webix {
 			attachEvent(type:docmanagerEventName, functor:WebixCallback, id?:string):string|number;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -6974,7 +6968,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unblockEvent():void;
@@ -7112,7 +7106,7 @@ declare namespace webix {
 			columnId(index:number):string|number;
 			copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixDataMoveOptions):void;
 			count():number;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -7182,7 +7176,7 @@ declare namespace webix {
 			load(url:string|WebixCallback|WebixProxy, type?:string, callback?:WebixCallback, clear?:boolean):Promise<any>;
 			loadNext(count:number, start:number, callback:WebixCallback, url:string, now:boolean, clear?:boolean):Promise<any>;
 			locate(node:HTMLElement|Event):WebixDatatableCellPos;
-			mapCells(startrow:number, startcol:string, numrows:number, numcols:number, callback:WebixCallback):void;
+			mapCells(startrow:number, startcol:string, numrows:number, numcols:number, callback:WebixCallback, getOnly:boolean):void;
 			mapEvent(map:WebixEventMap):void;
 			markSorting(column_id?:string, direction?:string, preserve?:boolean):void;
 			move(sid:string, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixDataMoveOptions):string;
@@ -7194,7 +7188,7 @@ declare namespace webix {
 			moveUp(id:string|number, step:number):void;
 			openSub(id:string|number):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			refreshColumns(config?:any[]):void;
 			refreshFilter(id:string|number):void;
@@ -7269,7 +7263,7 @@ declare namespace webix {
 			view?: string;
 			$cssName?: string;
 			animate?: boolean|WebixAnimate;
-			body?: webix.ui.baseviewConfig;
+			body?: webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			container?: string|HTMLElement;
 			css?: string|obj;
@@ -7292,7 +7286,7 @@ declare namespace webix {
 		class fieldset implements webix.ui.baseview{
 			adjust():void;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			disable():void;
 			enable():void;
@@ -7305,7 +7299,7 @@ declare namespace webix {
 			hide():void;
 			isEnabled():boolean;
 			isVisible():boolean;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			show(force?:boolean, animation?:boolean):void;
@@ -7344,7 +7338,7 @@ declare namespace webix {
 			minWidth?: number;
 			mode?: string;
 			on?: EventHash;
-			override?: any[];
+			override?: Map<any, any>;
 			path?: string;
 			player?: boolean;
 			search?: string;
@@ -7359,7 +7353,7 @@ declare namespace webix {
 			attachEvent(type:filemanagerEventName, functor:WebixCallback, id?:string):string|number;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -7376,7 +7370,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unblockEvent():void;
@@ -7434,7 +7428,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -7453,7 +7447,7 @@ declare namespace webix {
 			load(url:string|WebixCallback|WebixProxy, type?:string, callback?:WebixCallback, clear?:boolean):Promise<any>;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			setValue(value:WebixFilterValue, config?:any):void;
 			show(force?:boolean, animation?:boolean):void;
@@ -7488,7 +7482,7 @@ declare namespace webix {
 			datatype?: string;
 			disabled?: boolean;
 			elements?: any[];
-			elementsConfig?: webix.ui.baseviewConfig;
+			elementsConfig?: webix.ui.baseviewConfig & {[key: string]: any};
 			gravity?: number;
 			height?: number;
 			hidden?: boolean;
@@ -7515,7 +7509,7 @@ declare namespace webix {
 		}
 		type formEventName ='onAfterLoad'|'onAfterScroll'|'onAfterValidation'|'onBeforeLoad'|'onBeforeValidate'|'onBindRequest'|'onChange'|'onDestruct'|'onLoadError'|'onSubmit'|'onValidationError'|'onValidationSuccess'|'onValues'|'onViewShow';
 		class form implements webix.ui.baseview{
-			addView(view:webix.ui.baseview|webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseview|webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			attachEvent(type:formEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
@@ -7523,7 +7517,7 @@ declare namespace webix {
 			callEvent(name:string, params:any[]):boolean;
 			clear(config?:any):void;
 			clearValidation():void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -7548,7 +7542,7 @@ declare namespace webix {
 			mapEvent(map:WebixEventMap):void;
 			markInvalid(name:string, state?:boolean|string):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reconstruct():void;
 			refresh():void;
 			removeView(id:string|number|webix.ui.baseview):void;
@@ -7605,7 +7599,7 @@ declare namespace webix {
 		class forminput implements webix.ui.baseview{
 			adjust():void;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			disable():void;
 			enable():void;
@@ -7620,7 +7614,7 @@ declare namespace webix {
 			hide():void;
 			isEnabled():boolean;
 			isVisible():boolean;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			setBottomText(text:string):void;
@@ -7675,7 +7669,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -7691,7 +7685,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			resize():void;
 			setValue(new_value:number):void;
@@ -7736,7 +7730,7 @@ declare namespace webix {
 			minHeight?: number;
 			minWidth?: number;
 			on?: EventHash;
-			override?: any[];
+			override?: Map<any, any>;
 			preciseTimeUnit?: boolean;
 			projects?: boolean;
 			readonly?: boolean;
@@ -7761,7 +7755,7 @@ declare namespace webix {
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
 			clearAll():void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -7778,7 +7772,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reload():void;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
@@ -7840,7 +7834,7 @@ declare namespace webix {
 			callEvent(name:string, params:any[]):boolean;
 			clearAll():void;
 			count():number;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -7869,7 +7863,7 @@ declare namespace webix {
 			loadNext(count:number, start:number, callback:WebixCallback, url:string, now:boolean, clear?:boolean):Promise<any>;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			render():void;
@@ -7941,7 +7935,7 @@ declare namespace webix {
 			callEvent(name:string, params:any[]):boolean;
 			clearAll(soft?:boolean):void;
 			count():number;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -7970,7 +7964,7 @@ declare namespace webix {
 			loadNext(count:number, start:number, callback:WebixCallback, url:string, now:boolean, clear?:boolean):Promise<any>;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			render():void;
@@ -8033,14 +8027,14 @@ declare namespace webix {
 		}
 		type gridlayoutEventName ='onBindRequest'|'onChange'|'onDestruct'|'onViewShow';
 		class gridlayout implements webix.ui.baseview{
-			addView(view:webix.ui.baseview|webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseview|webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			attachEvent(type:gridlayoutEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
 			clearAll():void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -8057,7 +8051,7 @@ declare namespace webix {
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
 			moveView(id:string|number, pos:WebixGridlayoutPosConfig):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reconstruct():void;
 			removeView(id:string|number|webix.ui.baseview):void;
 			resize():void;
@@ -8084,7 +8078,7 @@ declare namespace webix {
 			animate?: boolean|WebixAnimate;
 			autofit?: boolean;
 			autofocus?: boolean;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			container?: string|HTMLElement;
 			css?: string|obj;
@@ -8128,7 +8122,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -8151,7 +8145,7 @@ declare namespace webix {
 			isVisible():boolean;
 			linkInput(input:HTMLElement):void;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			setMasterValue(value:any, refresh:boolean):void;
@@ -8250,7 +8244,7 @@ declare namespace webix {
 			copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixDataMoveOptions):void;
 			count():number;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -8299,7 +8293,7 @@ declare namespace webix {
 			moveTop(id:string|number):void;
 			moveUp(id:string|number, step:number):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeCss(id:string|number, css:string, silent?:boolean):void;
@@ -8388,13 +8382,13 @@ declare namespace webix {
 		}
 		type headerlayoutEventName ='onAfterCollapse'|'onAfterExpand'|'onBindRequest'|'onDestruct'|'onViewShow';
 		class headerlayout implements webix.ui.baseview{
-			addView(view:webix.ui.baseview|webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseview|webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			attachEvent(type:headerlayoutEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -8410,7 +8404,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reconstruct():void;
 			removeView(id:string|number|webix.ui.baseview):void;
 			resize():void;
@@ -8464,7 +8458,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -8482,7 +8476,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resume(stepNumber?:number):void;
 			setSteps(steps:any[]):void;
@@ -8542,7 +8536,7 @@ declare namespace webix {
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
 			clear(all?:boolean):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -8566,7 +8560,7 @@ declare namespace webix {
 			mapEvent(map:WebixEventMap):void;
 			markInvalid(name:string, state?:boolean|string):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -8632,7 +8626,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -8640,7 +8634,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLButtonElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -8650,7 +8644,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -8665,7 +8659,7 @@ declare namespace webix {
 			$getValue():string;
 			$height: number;
 			$prepareValue: WebixCallback;
-			$renderInput(config:webix.ui.buttonConfig):HTMLElement;
+			$renderInput(config:webix.ui.buttonConfig & {[key: string]: any}):HTMLElement;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -8708,7 +8702,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -8726,7 +8720,7 @@ declare namespace webix {
 			isVisible():boolean;
 			load(value:string):void;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unbind():void;
@@ -8752,7 +8746,7 @@ declare namespace webix {
 			collapsed?: boolean;
 			colors?: any[]|string;
 			cols?: any[];
-			comments?: boolean|webix.ui.commentsConfig;
+			comments?: boolean|webix.ui.commentsConfig & {[key: string]: any};
 			container?: string|HTMLElement;
 			css?: string|obj;
 			data?: string|any[]|obj;
@@ -8760,7 +8754,7 @@ declare namespace webix {
 			datatype?: string;
 			delimiter?: string;
 			disabled?: boolean;
-			editor?: boolean|webix.ui.baseviewConfig[]|WebixKanbanEditorConfig;
+			editor?: boolean|(webix.ui.baseviewConfig & {[key: string]: any})[]|WebixKanbanEditorConfig;
 			gravity?: number;
 			height?: number;
 			hidden?: boolean;
@@ -8787,7 +8781,7 @@ declare namespace webix {
 			tags?: any[]|string;
 			type?: string;
 			url?: string|WebixCallback|WebixProxy;
-			userList?: boolean|webix.ui.listConfig;
+			userList?: boolean|webix.ui.listConfig & {[key: string]: any};
 			users?: any[]|string;
 			visibleBatch?: string;
 			width?: number;
@@ -8795,7 +8789,7 @@ declare namespace webix {
 		type kanbanEventName ='onAfterAdd'|'onAfterCollapse'|'onAfterCopy'|'onAfterDelete'|'onAfterEditorShow'|'onAfterExpand'|'onAfterLoad'|'onAfterSort'|'onAfterStatusChange'|'onAvatarClick'|'onBeforeAdd'|'onBeforeCopy'|'onBeforeDelete'|'onBeforeEditorAction'|'onBeforeEditorShow'|'onBeforeLoad'|'onBeforeSort'|'onBeforeStatusChange'|'onBindRequest'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onListAfterContextMenu'|'onListAfterDrop'|'onListAfterSelect'|'onListBeforeContextMenu'|'onListBeforeDrag'|'onListBeforeDragIn'|'onListBeforeDrop'|'onListBeforeSelect'|'onListDragOut'|'onListIconClick'|'onListItemClick'|'onListItemDblClick'|'onLoadError'|'onViewShow';
 		class kanban implements webix.ui.baseview{
 			add(obj:obj, index?:number):string|number;
-			addView(view:webix.ui.baseview|webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseview|webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			attachEvent(type:kanbanEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
@@ -8804,7 +8798,7 @@ declare namespace webix {
 			clearAll(soft?:boolean):void;
 			copy(id:number|string):void;
 			count():number;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -8844,7 +8838,7 @@ declare namespace webix {
 			loadNext(count:number, start:number, callback:WebixCallback, url:string, now:boolean, clear?:boolean):Promise<any>;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reconstruct():void;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
@@ -8916,7 +8910,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -8934,7 +8928,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -8951,7 +8945,7 @@ declare namespace webix {
 			$height: number;
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
-			$renderInput(config:webix.ui.buttonConfig):HTMLElement;
+			$renderInput(config:webix.ui.buttonConfig & {[key: string]: any}):HTMLElement;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -8997,13 +8991,13 @@ declare namespace webix {
 		}
 		type layoutEventName ='onBindRequest'|'onDestruct'|'onViewShow';
 		class layout implements webix.ui.baseview{
-			addView(view:webix.ui.baseview|webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseview|webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			attachEvent(type:layoutEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -9019,7 +9013,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reconstruct():void;
 			removeView(id:string|number|webix.ui.baseview):void;
 			resize():void;
@@ -9114,7 +9108,7 @@ declare namespace webix {
 			copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixDataMoveOptions):void;
 			count():number;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -9161,7 +9155,7 @@ declare namespace webix {
 			moveTop(id:string|number):void;
 			moveUp(id:string|number, step:number):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeCss(id:string|number, css:string, silent?:boolean):void;
@@ -9221,7 +9215,7 @@ declare namespace webix {
 			animate?: boolean|WebixAnimate;
 			autofit?: boolean;
 			autofocus?: boolean;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			container?: string|HTMLElement;
 			css?: string|obj;
@@ -9266,7 +9260,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -9289,7 +9283,7 @@ declare namespace webix {
 			isVisible():boolean;
 			linkInput(input:HTMLElement):void;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			setMasterValue(value:any, refresh:boolean):void;
@@ -9363,7 +9357,7 @@ declare namespace webix {
 			scrollSpeed?: string;
 			select?: boolean|string;
 			subMenuPos?: string;
-			submenuConfig?: webix.ui.submenuConfig;
+			submenuConfig?: webix.ui.submenuConfig & {[key: string]: any};
 			template?: string|WebixCallback;
 			templateCopy?: WebixCallback;
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
@@ -9388,7 +9382,7 @@ declare namespace webix {
 			copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixDataMoveOptions):void;
 			count():number;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -9440,7 +9434,7 @@ declare namespace webix {
 			moveTop(id:string|number):void;
 			moveUp(id:string|number, step:number):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeCss(id:string|number, css:string, silent?:boolean):void;
@@ -9534,17 +9528,16 @@ declare namespace webix {
 			newValues?: boolean;
 			on?: EventHash;
 			optionWidth?: number;
-			options?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			options?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			placeholder?: string;
 			popup?: string;
-			popupWidth?: number;
 			readonly?: boolean;
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
 			separator?: string;
 			stringResult?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tagMode?: boolean;
 			tagTemplate?: WebixCallback;
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
@@ -9561,7 +9554,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -9569,7 +9562,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLInputElement;
 			getList():webix.ui.baseview;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
@@ -9582,7 +9575,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -9604,8 +9597,8 @@ declare namespace webix {
 			$onBlur: WebixCallback;
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$renderTag(text:string, width:number, height:number, value:string):string;
 			$scope: obj;
 			$setNode: any;
@@ -9658,17 +9651,16 @@ declare namespace webix {
 			name?: string;
 			on?: EventHash;
 			optionWidth?: number;
-			options?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			options?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			placeholder?: string;
 			popup?: string;
-			popupWidth?: number;
 			readonly?: boolean;
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
 			separator?: string;
 			stringResult?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			validate?: WebixCallback;
 			validateEvent?: string;
@@ -9683,7 +9675,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -9704,7 +9696,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -9727,8 +9719,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -9749,7 +9741,7 @@ declare namespace webix {
 			animate?: boolean|WebixAnimate;
 			autofit?: boolean;
 			autofocus?: boolean;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			button?: boolean;
 			buttonText?: string;
@@ -9797,7 +9789,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -9821,7 +9813,7 @@ declare namespace webix {
 			isVisible():boolean;
 			linkInput(input:HTMLElement):void;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			setMasterValue(value:any, refresh:boolean):void;
@@ -9890,7 +9882,7 @@ declare namespace webix {
 			required?: boolean;
 			separator?: string;
 			subConfig?: WebixMultitextSubConfig;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			validate?: WebixCallback;
 			validateEvent?: string;
@@ -9906,7 +9898,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -9914,7 +9906,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLInputElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -9925,7 +9917,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			removeSection(id?:string|number):void;
 			render(id?:string|number, data?:obj, type?:string):void;
@@ -9948,8 +9940,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -9969,7 +9961,7 @@ declare namespace webix {
 			view?: string;
 			animate?: boolean|WebixAnimate;
 			borderless?: boolean;
-			cells?: webix.ui.baseview[];
+			cells?: (webix.ui.baseviewConfig & {[key: string]: any})[];
 			cols?: any[];
 			container?: string|HTMLElement;
 			css?: string|obj;
@@ -9992,14 +9984,14 @@ declare namespace webix {
 		}
 		type multiviewEventName ='onBeforeBack'|'onBindRequest'|'onDestruct'|'onViewChange'|'onViewShow';
 		class multiview implements webix.ui.baseview{
-			addView(view:webix.ui.baseview|webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseview|webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			attachEvent(type:multiviewEventName, functor:WebixCallback, id?:string):string|number;
 			back(step:number):void;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -10017,7 +10009,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reconstruct():void;
 			removeView(id:string|number|webix.ui.baseview):void;
 			resize():void;
@@ -10080,7 +10072,7 @@ declare namespace webix {
 			callEvent(name:string, params:any[]):boolean;
 			clone(config:WebixPagerConfig):void;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -10095,7 +10087,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:string|number):void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -10124,13 +10116,13 @@ declare namespace webix {
 		interface panelConfig{
 			view?: string;
 			animate?: boolean|WebixAnimate;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			container?: string|HTMLElement;
 			css?: string|obj;
 			disabled?: boolean;
 			gravity?: number;
-			header?: string|webix.ui.baseviewConfig;
+			header?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			height?: number;
 			hidden?: boolean;
 			icon?: string|boolean;
@@ -10154,7 +10146,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -10169,7 +10161,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unbind():void;
@@ -10220,7 +10212,7 @@ declare namespace webix {
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
 			clear():void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -10241,7 +10233,7 @@ declare namespace webix {
 			nextPage():void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
 			prevPage():void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			renderPage(page:number):void;
 			resize():void;
 			setScale(scale:string|number, update:boolean):void;
@@ -10269,11 +10261,12 @@ declare namespace webix {
 			view?: string;
 			animate?: boolean|WebixAnimate;
 			borderless?: boolean;
-			chart?: webix.ui.chartConfig;
+			chart?: webix.ui.chartConfig & {[key: string]: any};
 			compact?: boolean;
+			config?: boolean;
 			container?: string|HTMLElement;
 			css?: string|obj;
-			datatable?: webix.ui.datatableConfig;
+			datatable?: webix.ui.datatableConfig & {[key: string]: any};
 			defaultOperation?: string;
 			disabled?: boolean;
 			externalProcessing?: boolean;
@@ -10291,7 +10284,7 @@ declare namespace webix {
 			mode?: string;
 			on?: EventHash;
 			operations?: WebixPivotOperationsConfig;
-			override?: any[];
+			override?: Map<any, any>;
 			predicates?: obj;
 			readonly?: boolean;
 			structure?: WebixPivotStructure;
@@ -10307,7 +10300,7 @@ declare namespace webix {
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
 			clearAll():void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -10325,7 +10318,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			setStructure(config:WebixPivotStructure):void;
 			show(force?:boolean, animation?:boolean):void;
@@ -10349,7 +10342,7 @@ declare namespace webix {
 			animate?: boolean|WebixAnimate;
 			autofit?: boolean;
 			autofocus?: boolean;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			container?: string|HTMLElement;
 			css?: string|obj;
 			disabled?: boolean;
@@ -10384,7 +10377,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -10400,7 +10393,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			setPosition(x:number, y:number):void;
@@ -10425,7 +10418,7 @@ declare namespace webix {
 		interface portletConfig{
 			view?: string;
 			animate?: boolean|WebixAnimate;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			cols?: any[];
 			container?: string|HTMLElement;
@@ -10456,13 +10449,13 @@ declare namespace webix {
 		}
 		type portletEventName ='onAfterPortletMove'|'onBeforePortletMove'|'onBindRequest'|'onDestruct'|'onViewShow';
 		class portlet implements webix.ui.baseview{
-			addView(view:webix.ui.baseview|webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseview|webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			attachEvent(type:portletEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -10480,7 +10473,7 @@ declare namespace webix {
 			mapEvent(map:WebixEventMap):void;
 			markDropArea(target:string, mode:string):void;
 			movePortlet(target:string, mode:string):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reconstruct():void;
 			removeView(id:string|number|webix.ui.baseview):void;
 			resize():void;
@@ -10552,7 +10545,7 @@ declare namespace webix {
 			callEvent(name:string, params:any[]):boolean;
 			clear():void;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -10582,7 +10575,7 @@ declare namespace webix {
 			locate(e:Event):string|number;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:string|number):void;
 			registerType(name:string, data:obj):void;
 			render(id?:string|number, data?:obj, type?:string):void;
@@ -10621,7 +10614,7 @@ declare namespace webix {
 		interface proxyConfig{
 			view?: string;
 			animate?: boolean|WebixAnimate;
-			body?: webix.ui.baseviewConfig;
+			body?: webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			container?: string|HTMLElement;
 			css?: string|obj;
@@ -10641,7 +10634,7 @@ declare namespace webix {
 		class proxy implements webix.ui.baseview{
 			adjust():void;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			disable():void;
 			enable():void;
@@ -10653,7 +10646,7 @@ declare namespace webix {
 			hide():void;
 			isEnabled():boolean;
 			isVisible():boolean;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unbind():void;
@@ -10688,8 +10681,9 @@ declare namespace webix {
 			minHeight?: number;
 			minWidth?: number;
 			on?: EventHash;
-			override?: any[];
+			override?: Map<any, any>;
 			simple?: boolean;
+			type?: string;
 			value?: WebixQueryValue;
 			width?: number;
 		}
@@ -10700,7 +10694,7 @@ declare namespace webix {
 			attachEvent(type:queryEventName, functor:WebixCallback, id?:string):string|number;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -10718,7 +10712,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unblockEvent():void;
@@ -10780,7 +10774,7 @@ declare namespace webix {
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			validate?: WebixCallback;
 			validateEvent?: string;
@@ -10797,7 +10791,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -10807,7 +10801,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLInputElement;
 			getNode():HTMLElement;
 			getOption(id:string|number):obj;
 			getParentView():webix.ui.baseview;
@@ -10820,7 +10814,7 @@ declare namespace webix {
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
 			optionIndex(ID:string|number):number;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			removeOption(id:string|number):void;
 			render(id?:string|number, data?:obj, type?:string):void;
@@ -10843,8 +10837,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -10936,7 +10930,7 @@ declare namespace webix {
 		type rangechartEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterLoad'|'onAfterRangeChange'|'onAfterRender'|'onAfterScroll'|'onAfterSort'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSort'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onEnter'|'onFocus'|'onItemClick'|'onItemDblClick'|'onItemSingleClick'|'onKeyPress'|'onLegendClick'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onViewResize'|'onViewShow';
 		class rangechart implements webix.ui.baseview{
 			add(obj:obj, index?:number):string|number;
-			addSeries(obj:webix.ui.chartConfig):void;
+			addSeries(obj:webix.ui.chartConfig & {[key: string]: any}):void;
 			adjust():void;
 			attachEvent(type:rangechartEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
@@ -10945,7 +10939,7 @@ declare namespace webix {
 			clearAll(soft?:boolean):void;
 			clearCanvas():void;
 			count():number;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -10978,7 +10972,7 @@ declare namespace webix {
 			locate(e:Event):string|number;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeAllSeries():void;
@@ -11078,7 +11072,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -11086,7 +11080,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLInputElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -11096,7 +11090,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -11118,8 +11112,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -11159,7 +11153,7 @@ declare namespace webix {
 		class resizer implements webix.ui.baseview{
 			adjust():void;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			disable():void;
 			enable():void;
@@ -11171,7 +11165,7 @@ declare namespace webix {
 			hide():void;
 			isEnabled():boolean;
 			isVisible():boolean;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unbind():void;
@@ -11210,7 +11204,7 @@ declare namespace webix {
 			mode?: string;
 			moduleId?: string;
 			on?: EventHash;
-			override?: any[];
+			override?: Map<any, any>;
 			readonly?: boolean;
 			toolbar?: boolean;
 			url?: string;
@@ -11223,7 +11217,7 @@ declare namespace webix {
 			attachEvent(type:reportsEventName, functor:WebixCallback, id?:string):string|number;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -11240,7 +11234,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unblockEvent():void;
@@ -11295,15 +11289,14 @@ declare namespace webix {
 			minWidth?: number;
 			name?: string;
 			on?: EventHash;
-			options?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			options?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			placeholder?: string;
 			popup?: string;
-			popupWidth?: number;
 			readonly?: boolean;
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			validate?: WebixCallback;
 			validateEvent?: string;
@@ -11318,7 +11311,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -11339,7 +11332,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -11361,8 +11354,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -11411,7 +11404,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -11430,12 +11423,12 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			resize():void;
 			setValue(value:string):void;
 			show(force?:boolean, animation?:boolean):void;
-			ui<T extends webix.ui.baseview>(view:webix.ui.baseviewConfig):T;
+			ui<T extends webix.ui.baseview>(view:webix.ui.baseviewConfig & {[key: string]: any}):T;
 			unbind():void;
 			unblockEvent():void;
 		
@@ -11454,7 +11447,7 @@ declare namespace webix {
 		interface scrollviewConfig{
 			view?: string;
 			animate?: boolean|WebixAnimate;
-			body?: webix.ui.baseviewConfig;
+			body?: webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			container?: string|HTMLElement;
 			css?: string|obj;
@@ -11480,7 +11473,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -11497,7 +11490,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			scrollTo(x:number, y:number):void;
@@ -11561,7 +11554,7 @@ declare namespace webix {
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			type?: string;
 			validate?: WebixCallback;
@@ -11577,7 +11570,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -11585,7 +11578,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLInputElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -11595,7 +11588,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -11616,8 +11609,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -11673,7 +11666,7 @@ declare namespace webix {
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			validate?: WebixCallback;
 			validateEvent?: string;
@@ -11689,7 +11682,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -11699,7 +11692,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():null;
 			getNode():HTMLElement;
 			getOption(id:string|number):obj;
 			getParentView():webix.ui.baseview;
@@ -11712,7 +11705,7 @@ declare namespace webix {
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
 			optionIndex(ID:string|number):number;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			removeOption(id:string|number):void;
 			render(id?:string|number, data?:obj, type?:string):void;
@@ -11735,8 +11728,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -11793,7 +11786,7 @@ declare namespace webix {
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			validate?: WebixCallback;
 			validateEvent?: string;
@@ -11808,7 +11801,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -11816,7 +11809,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLInputElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -11826,7 +11819,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -11846,8 +11839,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -11940,7 +11933,7 @@ declare namespace webix {
 			copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixTreeDataMoveOptions):number;
 			count():number;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -12000,7 +11993,7 @@ declare namespace webix {
 			open(id:string|number, show?:boolean):void;
 			openAll():void;
 			parse(data:string|any[]|obj, type:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeCss(id:string|number, css:string, silent?:boolean):void;
@@ -12063,7 +12056,7 @@ declare namespace webix {
 			animate?: boolean|WebixAnimate;
 			autofit?: boolean;
 			autofocus?: boolean;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			container?: string|HTMLElement;
 			css?: string|obj;
@@ -12100,7 +12093,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -12116,7 +12109,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			setPosition(x:number, y:number):void;
@@ -12164,7 +12157,7 @@ declare namespace webix {
 			minWidth?: number;
 			mode?: string;
 			on?: EventHash;
-			override?: any[];
+			override?: Map<any, any>;
 			readonly?: boolean;
 			recurring?: boolean;
 			serverUTC?: boolean;
@@ -12182,7 +12175,7 @@ declare namespace webix {
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
 			clearAll():void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -12199,7 +12192,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unblockEvent():void;
@@ -12277,7 +12270,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -12285,7 +12278,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLInputElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -12295,7 +12288,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -12316,8 +12309,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -12356,7 +12349,7 @@ declare namespace webix {
 		class spacer implements webix.ui.baseview{
 			adjust():void;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			disable():void;
 			enable():void;
@@ -12368,7 +12361,7 @@ declare namespace webix {
 			hide():void;
 			isEnabled():boolean;
 			isVisible():boolean;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unbind():void;
@@ -12424,13 +12417,13 @@ declare namespace webix {
 			sheetStubs?: boolean;
 			sheetTabWidth?: number;
 			strict?: boolean;
-			subbar?: webix.ui.baseviewConfig;
-			toolbar?: string|boolean;
+			subbar?: webix.ui.baseviewConfig & {[key: string]: any};
+			toolbar?: string|boolean|obj;
 			type?: string;
 			url?: string|WebixCallback|WebixProxy;
 			width?: number;
 		}
-		type spreadsheetEventName ='onAfterConditionSet'|'onAfterLoad'|'onAfterRangeSet'|'onAfterSelect'|'onAfterSheetShow'|'onAfterSpan'|'onAfterSplit'|'onBeforeCommentShow'|'onBeforeConditionSet'|'onBeforeFormatChange'|'onBeforeLoad'|'onBeforeSheetShow'|'onBeforeSpan'|'onBeforeSplit'|'onBeforeValueChange'|'onBindRequest'|'onCellChange'|'onChange'|'onColumnOperation'|'onCommand'|'onCommentHide'|'onComponentInit'|'onContextMenuConfig'|'onDataParse'|'onDataSerialize'|'onDestruct'|'onFormatChange'|'onLoadError'|'onMathRefresh'|'onReset'|'onRowOperation'|'onSheetAdd'|'onSheetRemove'|'onSheetRename'|'onStyleSet'|'onUIEditStart'|'onUIEditStop'|'onViewInit'|'onViewShow';
+		type spreadsheetEventName ='onAfterConditionSet'|'onAfterLoad'|'onAfterRangeSet'|'onAfterSelect'|'onAfterSheetShow'|'onAfterSpan'|'onAfterSplit'|'onBeforeCommentShow'|'onBeforeConditionSet'|'onBeforeFormatChange'|'onBeforeLoad'|'onBeforeSheetMenu'|'onBeforeSheetShow'|'onBeforeSpan'|'onBeforeSplit'|'onBeforeValueChange'|'onBindRequest'|'onCellChange'|'onChange'|'onColumnOperation'|'onCommand'|'onCommentHide'|'onComponentInit'|'onContextMenuConfig'|'onDataParse'|'onDataSerialize'|'onDestruct'|'onFormatChange'|'onLoadError'|'onMathRefresh'|'onReset'|'onRowOperation'|'onSheetAdd'|'onSheetRemove'|'onSheetRename'|'onStyleSet'|'onUIEditStart'|'onUIEditStop'|'onUndo'|'onViewInit'|'onViewShow';
 		class spreadsheet implements webix.ui.baseview{
 			addImage(rowId:number, columnId:number, url:string):void;
 			addSheet(content?:WebixSpreadsheetSheetContent, name?:string, show?:boolean):void;
@@ -12448,7 +12441,7 @@ declare namespace webix {
 			combineCells(range?:WebixSpreadsheetCellRangeConfig):void;
 			compactStyles():void;
 			confirm(config:WebixSpreadsheetConfirmConfig):Promise<any>;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			deleteColumn(columnId:number|any[]):void;
 			deleteRow(rowId:number|any[]):void;
 			destructor():void;
@@ -12497,7 +12490,7 @@ declare namespace webix {
 			lockCell(row:number|WebixCellObject, column:number|WebixCellObject, state?:boolean):void;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			recalculate():void;
 			redo():void;
 			refresh():void;
@@ -12528,7 +12521,7 @@ declare namespace webix {
 			showSheet(name:string):void;
 			sortRange(range?:string, dir?:string):void;
 			splitCell(row:number, column:number):void;
-			ui<T extends webix.ui.baseview>(view:webix.ui.baseviewConfig):T;
+			ui<T extends webix.ui.baseview>(view:webix.ui.baseviewConfig & {[key: string]: any}):T;
 			unbind():void;
 			unblockEvent():void;
 			undo(id:string):void;
@@ -12557,7 +12550,7 @@ declare namespace webix {
 			autofocus?: boolean;
 			autoheight?: boolean;
 			autowidth?: boolean;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			click?: string|WebixCallback;
 			clipboard?: boolean|string;
@@ -12611,7 +12604,7 @@ declare namespace webix {
 			scrollSpeed?: string;
 			select?: boolean|string;
 			subMenuPos?: string;
-			submenuConfig?: webix.ui.submenuConfig;
+			submenuConfig?: webix.ui.submenuConfig & {[key: string]: any};
 			template?: string|WebixCallback;
 			templateCopy?: WebixCallback;
 			toFront?: boolean;
@@ -12639,7 +12632,7 @@ declare namespace webix {
 			copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixDataMoveOptions):void;
 			count():number;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -12691,7 +12684,7 @@ declare namespace webix {
 			moveTop(id:string|number):void;
 			moveUp(id:string|number, step:number):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeCss(id:string|number, css:string, silent?:boolean):void;
@@ -12757,7 +12750,7 @@ declare namespace webix {
 			animate?: boolean|WebixAnimate;
 			autofit?: boolean;
 			autofocus?: boolean;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			container?: string|HTMLElement;
 			css?: string|obj;
@@ -12801,7 +12794,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -12824,7 +12817,7 @@ declare namespace webix {
 			isVisible():boolean;
 			linkInput(input:HTMLElement):void;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			setMasterValue(value:any, refresh:boolean):void;
@@ -12896,7 +12889,7 @@ declare namespace webix {
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			type?: string;
 			uncheckValue?: string;
@@ -12913,7 +12906,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -12921,7 +12914,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLButtonElement|HTMLInputElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -12931,7 +12924,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -12953,8 +12946,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(config:webix.ui.buttonConfig):HTMLElement;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(config:webix.ui.buttonConfig & {[key: string]: any}):HTMLElement;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -13015,12 +13008,12 @@ declare namespace webix {
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tabMargin?: number;
 			tabMinWidth?: number;
 			tabMoreWidth?: number;
 			tabOffset?: number;
-			tabbarPopup?: string|webix.ui.popupConfig|webix.ui.baseview;
+			tabbarPopup?: string|webix.ui.popupConfig & {[key: string]: any}|webix.ui.baseview;
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			topOffset?: number;
 			type?: string;
@@ -13038,7 +13031,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -13048,7 +13041,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():null;
 			getNode():HTMLElement;
 			getOption(id:string|number):obj;
 			getParentView():webix.ui.baseview;
@@ -13062,7 +13055,7 @@ declare namespace webix {
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
 			optionIndex(ID:string|number):number;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			removeOption(id:string|number):void;
 			render(id?:string|number, data?:obj, type?:string):void;
@@ -13085,8 +13078,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -13118,12 +13111,12 @@ declare namespace webix {
 			maxWidth?: number;
 			minHeight?: number;
 			minWidth?: number;
-			multiview?: webix.ui.multiviewConfig;
+			multiview?: webix.ui.multiviewConfig & {[key: string]: any};
 			on?: EventHash;
 			padding?: number|WebixPaddingConfig;
 			paddingX?: number;
 			paddingY?: number;
-			tabbar?: webix.ui.tabbarConfig;
+			tabbar?: webix.ui.tabbarConfig & {[key: string]: any};
 			type?: string;
 			width?: number;
 		}
@@ -13135,7 +13128,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -13153,7 +13146,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			removeView(view:string|number|webix.ui.baseview):void;
 			resize():void;
 			setValue(value:string, config?:any):void;
@@ -13209,7 +13202,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -13228,7 +13221,7 @@ declare namespace webix {
 			load(url:string|WebixCallback|WebixProxy, type?:string, callback?:WebixCallback, clear?:boolean):Promise<any>;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -13298,7 +13291,7 @@ declare namespace webix {
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			type?: string;
 			validate?: WebixCallback;
@@ -13314,7 +13307,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -13322,7 +13315,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLInputElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -13332,7 +13325,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -13353,8 +13346,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(config:webix.ui.buttonConfig):HTMLElement;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(config:webix.ui.buttonConfig & {[key: string]: any}):HTMLElement;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -13411,7 +13404,7 @@ declare namespace webix {
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|WebixCallback|WebixAutoTooltipConfig;
 			validate?: WebixCallback;
 			validateEvent?: string;
@@ -13426,7 +13419,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -13434,7 +13427,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLTextAreaElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -13444,7 +13437,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -13465,8 +13458,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(obj:webix.ui.textConfig, html:string, id:string|number):string;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(obj:webix.ui.textConfig & {[key: string]: any}, html:string, id:string|number):string;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -13528,7 +13521,7 @@ declare namespace webix {
 			relatedAction?: string;
 			relatedView?: string;
 			required?: boolean;
-			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig;
+			suggest?: string|any[]|webix.ui.baseview|WebixDataStorage|webix.ui.suggestConfig & {[key: string]: any};
 			tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
 			type?: string;
 			validate?: WebixCallback;
@@ -13544,7 +13537,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -13552,7 +13545,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLInputElement|HTMLTextAreaElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -13562,7 +13555,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -13583,8 +13576,8 @@ declare namespace webix {
 			$prepareValue: WebixCallback;
 			$render: WebixCallback;
 			$renderIcon: WebixCallback;
-			$renderInput(config:webix.ui.buttonConfig):HTMLElement;
-			$renderLabel(config:webix.ui.textConfig, id:string|number):string;
+			$renderInput(config:webix.ui.buttonConfig & {[key: string]: any}):HTMLElement;
+			$renderLabel(config:webix.ui.textConfig & {[key: string]: any}, id:string|number):string;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -13636,7 +13629,7 @@ declare namespace webix {
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -13652,7 +13645,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			setValue(value:string|Date, config?:any):void;
 			show(force?:boolean, animation?:boolean):void;
@@ -13726,7 +13719,7 @@ declare namespace webix {
 			clearAll(soft?:boolean):void;
 			count():number;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -13757,7 +13750,7 @@ declare namespace webix {
 			locate(e:Event):string|number;
 			mapEvent(map:WebixEventMap):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			render(id:string|number, data:obj, type:WebixRenderType):void;
@@ -13814,7 +13807,7 @@ declare namespace webix {
 			minHeight?: number;
 			minWidth?: number;
 			on?: EventHash;
-			override?: any[];
+			override?: Map<any, any>;
 			projects?: any[];
 			readonly?: boolean;
 			url?: string;
@@ -13829,7 +13822,7 @@ declare namespace webix {
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
 			clearAll():void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -13846,7 +13839,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reload(url:string):void;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
@@ -13909,7 +13902,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -13917,7 +13910,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLButtonElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -13927,7 +13920,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -13944,7 +13937,7 @@ declare namespace webix {
 			$getValue():string;
 			$height: number;
 			$prepareValue: WebixCallback;
-			$renderInput(config:webix.ui.buttonConfig):HTMLElement;
+			$renderInput(config:webix.ui.buttonConfig & {[key: string]: any}):HTMLElement;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -13973,7 +13966,7 @@ declare namespace webix {
 			datatype?: string;
 			disabled?: boolean;
 			elements?: any[];
-			elementsConfig?: webix.ui.baseviewConfig;
+			elementsConfig?: webix.ui.baseviewConfig & {[key: string]: any};
 			gravity?: number;
 			height?: number;
 			hidden?: boolean;
@@ -14000,7 +13993,7 @@ declare namespace webix {
 		}
 		type toolbarEventName ='onAfterLoad'|'onAfterScroll'|'onAfterValidation'|'onBeforeLoad'|'onBeforeValidate'|'onBindRequest'|'onChange'|'onDestruct'|'onLoadError'|'onValidationError'|'onValidationSuccess'|'onValues'|'onViewShow';
 		class toolbar implements webix.ui.baseview{
-			addView(view:webix.ui.baseview|webix.ui.baseviewConfig, index?:number):string|number;
+			addView(view:webix.ui.baseview|webix.ui.baseviewConfig & {[key: string]: any}, index?:number):string|number;
 			adjust():void;
 			attachEvent(type:toolbarEventName, functor:WebixCallback, id?:string):string|number;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
@@ -14008,7 +14001,7 @@ declare namespace webix {
 			callEvent(name:string, params:any[]):boolean;
 			clear():void;
 			clearValidation():void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -14033,7 +14026,7 @@ declare namespace webix {
 			mapEvent(map:WebixEventMap):void;
 			markInvalid(name:string, state?:boolean|string):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			reconstruct():void;
 			refresh():void;
 			removeView(id:string|number|webix.ui.baseview):void;
@@ -14090,7 +14083,7 @@ declare namespace webix {
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -14105,7 +14098,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
 			show(data:WebixTooltipDataItem, position:PositionInfo):void;
@@ -14193,7 +14186,7 @@ declare namespace webix {
 			copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixTreeDataMoveOptions):number;
 			count():number;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -14249,7 +14242,7 @@ declare namespace webix {
 			open(id:string|number, show?:boolean):void;
 			openAll():void;
 			parse(data:string|any[]|obj, type:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeCss(id:string|number, css:string, silent?:boolean):void;
@@ -14379,7 +14372,7 @@ declare namespace webix {
 			closeAll():void;
 			count():number;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -14430,7 +14423,7 @@ declare namespace webix {
 			open(id:string|number, show?:boolean):void;
 			openAll():void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeCss(id:string|number, css:string, silent?:boolean):void;
@@ -14601,7 +14594,7 @@ declare namespace webix {
 			columnId(index:number):string|number;
 			copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixTreeDataMoveOptions):number;
 			count():number;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -14682,7 +14675,7 @@ declare namespace webix {
 			loadBranch(id:string|number, callback:WebixCallback, url:string):Promise<any>;
 			loadNext(count:number, start:number, callback:WebixCallback, url:string, now:boolean, clear?:boolean):Promise<any>;
 			locate(node:HTMLElement|Event):WebixDatatableCellPos;
-			mapCells(startrow:number, startcol:string, numrows:number, numcols:number, callback:WebixCallback):void;
+			mapCells(startrow:number, startcol:string, numrows:number, numcols:number, callback:WebixCallback, getOnly:boolean):void;
 			mapEvent(map:WebixEventMap):void;
 			mapSelection(callback:WebixCallback):void;
 			markSorting(column_id?:string, direction?:string, preserve?:boolean):void;
@@ -14697,7 +14690,7 @@ declare namespace webix {
 			openAll():void;
 			openSub(id:string|number):void;
 			parse(data:string|any[]|obj, type:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			refreshColumns(config?:any[]):void;
 			refreshFilter(id:string|number):void;
@@ -14847,7 +14840,7 @@ declare namespace webix {
 			copy(sid:string|number, tindex:number, tobj?:WebixDataMoveTarget, details?:WebixDataMoveOptions):void;
 			count():number;
 			customize(obj:WebixItemType):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -14896,7 +14889,7 @@ declare namespace webix {
 			moveTop(id:string|number):void;
 			moveUp(id:string|number, step:number):void;
 			parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh(id?:number|string):void;
 			remove(id:string|number|any[]):void;
 			removeCss(id:string|number, css:string, silent?:boolean):void;
@@ -15003,7 +14996,7 @@ declare namespace webix {
 			blockEvent():void;
 			blur():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -15012,7 +15005,7 @@ declare namespace webix {
 			focus():void;
 			getChildViews():webix.ui.baseview[];
 			getFormView():webix.ui.baseview;
-			getInputNode():HTMLElement;
+			getInputNode():HTMLButtonElement;
 			getNode():HTMLElement;
 			getParentView():webix.ui.baseview;
 			getTopParentView():webix.ui.baseview;
@@ -15023,7 +15016,7 @@ declare namespace webix {
 			isUploaded():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			refresh():void;
 			render(id?:string|number, data?:obj, type?:string):void;
 			resize():void;
@@ -15042,7 +15035,7 @@ declare namespace webix {
 			$getValue():string;
 			$height: number;
 			$prepareValue: WebixCallback;
-			$renderInput(config:webix.ui.buttonConfig):HTMLElement;
+			$renderInput(config:webix.ui.buttonConfig & {[key: string]: any}):HTMLElement;
 			$scope: obj;
 			$setNode: any;
 			$setSize(x:number, y:number):boolean;
@@ -15079,7 +15072,7 @@ declare namespace webix {
 			minHeight?: number;
 			minWidth?: number;
 			on?: EventHash;
-			override?: any[];
+			override?: Map<any, any>;
 			roles?: boolean;
 			url?: string;
 			width?: number;
@@ -15091,7 +15084,7 @@ declare namespace webix {
 			attachEvent(type:usermanagerEventName, functor:WebixCallback, id?:string):string|number;
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -15108,7 +15101,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unblockEvent():void;
@@ -15151,7 +15144,7 @@ declare namespace webix {
 		class video implements webix.ui.baseview{
 			adjust():void;
 			bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			disable():void;
 			enable():void;
@@ -15164,7 +15157,7 @@ declare namespace webix {
 			hide():void;
 			isEnabled():boolean;
 			isVisible():boolean;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			show(force?:boolean, animation?:boolean):void;
 			unbind():void;
@@ -15185,7 +15178,7 @@ declare namespace webix {
 			animate?: boolean|WebixAnimate;
 			autofit?: boolean;
 			autofocus?: boolean;
-			body?: string|webix.ui.baseviewConfig;
+			body?: string|webix.ui.baseviewConfig & {[key: string]: any};
 			borderless?: boolean;
 			close?: boolean;
 			container?: string|HTMLElement;
@@ -15194,7 +15187,7 @@ declare namespace webix {
 			escHide?: boolean;
 			fullscreen?: boolean;
 			gravity?: number;
-			head?: webix.ui.baseviewConfig|string|false;
+			head?: webix.ui.baseviewConfig & {[key: string]: any}|string|false;
 			headHeight?: number;
 			height?: number;
 			hidden?: boolean;
@@ -15227,7 +15220,7 @@ declare namespace webix {
 			blockEvent():void;
 			callEvent(name:string, params:any[]):boolean;
 			close():void;
-			define(property:string|webix.ui.baseviewConfig, value?:any):void;
+			define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
 			destructor():void;
 			detachEvent(id:string):void;
 			disable():void;
@@ -15244,7 +15237,7 @@ declare namespace webix {
 			isEnabled():boolean;
 			isVisible():boolean;
 			mapEvent(map:WebixEventMap):void;
-			queryView(config:webix.ui.baseviewConfig|WebixCallback|string, mode?:string):any;
+			queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 			resize():void;
 			resizeChildren():void;
 			setPosition(x:number, y:number):void;

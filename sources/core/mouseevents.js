@@ -118,8 +118,8 @@ const MouseEvents={
 	},
 	//common logic for click and dbl-click processing
 	_mouseEvent:function(e, hash, name, pair){
-		if (e.processed || !this._viewobj) return;
-		e.processed = true;
+		if ((e.processed && !(name == "ItemSingleClick" && e.processed == "ItemClick")) || !this._viewobj) return;
+		e.processed = name;
 
 		let trg = e.target;
 

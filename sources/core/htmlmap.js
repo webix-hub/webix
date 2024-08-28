@@ -21,7 +21,7 @@ const HtmlMap = proto({
 		if(arguments.length==4) 
 			extra_data = "userdata='"+userdata+"'";
 		this._map.push("<area "+this._key+"='"+id+"' shape='"+shape+"' coords='"+coords.join()+"' "+extra_data+"></area>");
-		this._areas.push({index: userdata, points:coords});
+		this._areas.push({index: userdata, points:coords, itemId: id});
 
 	},
 	addSector:function(id, alpha0, alpha1, x, y, r, ky, userdata, dr, height){

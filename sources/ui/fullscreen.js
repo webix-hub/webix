@@ -32,16 +32,20 @@ export default function fullScreen(){
 	addMeta("viewport","initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no");
 	env.fastClick = true;
 
-	if (env.isMac)
+	if (env.isMac) {
 		addMeta("apple-mobile-web-app-capable", "yes");
-	else {
+		if (env.isIOS) addStyle("body.webix_full_screen{ touch-action: pan-x pan-y; }");
+	} else {
 		addMeta("mobile-web-app-capable", "yes");
 		addStyle("body.webix_full_screen{ overflow-y: auto; }");
 	}
 
 	var fix = function(){
-		var x = window.innerWidth;
-		var y = window.innerHeight;
+		// some browsers (e.g., Samsung Internet) return incorrect inner sizes, regardless of the delay we use
+		// innerWidth/innerHeight should always be lower than outerWidth/outerHeight respectively (in regular cases), so it's a fairly safe assumption to detect the correct screen sizes 
+		// if outerWidth/outerHeight is lower than innerWidth/innerHeight, then it most likely returns the correct screen width/height
+		var x = Math.min(window.innerWidth, window.outerWidth);
+		var y = Math.min(window.innerHeight, window.outerHeight);
 
 		if (y){
 			document.body.style.height = y+"px";
@@ -54,7 +58,7 @@ export default function fullScreen(){
 
 	var onrotate = function(){
 		state._freeze_resize = true;
-		delay(fix, null, [], 50);
+		delay(fix, null, [], 100);
 	};
 
 	attachEvent("onRotate", onrotate);

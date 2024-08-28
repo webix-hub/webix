@@ -11,11 +11,26 @@ import editors from "../webix/editors";
 
 const MapCollection = {
 	$init:function(){
+		this._collection_handlers = {};
 		this.$ready.push(this._create_scheme_init);
 		this.attachEvent("onStructureUpdate", this._create_scheme_init);
 		this.attachEvent("onStructureLoad", function(){
 			if(!this._scheme_init_order.length)
 				this._create_scheme_init();
+		});
+		this.attachEvent("onDestruct", function() {
+			// remove leftover handlers from collections
+			for (const collectionId in this._collection_handlers){
+				const collection = $$(collectionId);
+				if (collection && !collection.$destructed) {				
+					const handlers = this._collection_handlers[collectionId];
+					for (let i = 0; i < handlers.length; i++) {
+						collection.data.detachEvent(handlers[i]);
+					}
+				}
+			}
+
+			this._collection_handlers = {};
 		});
 	},
 	_create_scheme_init:function(){
@@ -121,33 +136,35 @@ const MapCollection = {
 		return options;
 	},
 	_map_options:function(column){
-		let options = column.options||column.collection;
-		if (options){
+		let options = column.options || column.collection;
+
+		if (options) {
 			options = this._create_collection(options);
 			this._bind_collection(options, column);
 		}
-		if (column.header){
+
+		if (column.header) {
 			this._map_header_options(column.header);
 			this._map_header_options(column.footer);
 		}
 	},
 	_map_header_options:function(arr){
 		arr = arr || [];
-		for (let i=0; i<arr.length; i++){
-			let config = arr[i];
-
+		for (let i = 0; i < arr.length; i++){
+			const config = arr[i];
 			if (config && config.options){
 				let options = config.options;
 				if (!options.loadNext)
 					options = config.options = this._create_collection(options);
 
-				let id = options.data.attachEvent("onStoreUpdated", () => {
+				const id = options.data.attachEvent("onStoreUpdated", () => {
 					if(this.refreshFilter)
 						this.refreshFilter(config.columnId);
 				});
-				this.attachEvent("onDestruct", function(){
-					if (!options.$destructed) options.data.detachEvent(id);
-				});
+
+				// collect handler ids for further destruction
+				if (!this._collection_handlers[options.config.id]) this._collection_handlers[options.config.id] = [];
+				this._collection_handlers[options.config.id].push(id);
 			}
 		}
 	},
@@ -156,14 +173,15 @@ const MapCollection = {
 			delete column.options;
 			column.collection = options;
 			column.template = column.template || this._bind_template(column.optionslist);
-			let id = options.data.attachEvent("onStoreUpdated", () => {
+			const id = options.data.attachEvent("onStoreUpdated", () => {
 				this.refresh();
 				if(this.refreshFilter)
 					this.refreshFilter(column.id);
 			});
-			this.attachEvent("onDestruct", function(){
-				if (!options.$destructed) options.data.detachEvent(id);
-			});
+
+			// collect handler ids for further destruction
+			if (!this._collection_handlers[options.config.id]) this._collection_handlers[options.config.id] = [];
+			this._collection_handlers[options.config.id].push(id);
 		}
 	},
 	_bind_template:function(multi){

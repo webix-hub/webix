@@ -145,17 +145,16 @@ const Mixin = {
 			document.body.appendChild(container);
 			container.appendChild(d);
 		}
-
+		const spanHeightMap = this._spans_pull ? this._calcSpanAutoHeight(id, d) : null;
 		this.data.each(function(obj){
 			let height;
 
-			d.innerHTML = this._getValue(obj, config, 0);
-
-			const spans = this._spans_pull;
-			if(spans && spans[obj.id] && spans[obj.id][id])
-				height = this._calcSpanAutoHeight(obj.id, id, d);
-			else
+			if(spanHeightMap && spanHeightMap[obj.id])
+				height = spanHeightMap[obj.id];
+			else{
+				d.innerHTML = this._getValue(obj, config, 0);
 				height = d.scrollHeight;
+			}
 
 			height = Math.max(height, this._settings.rowHeight, this._settings.minRowHeight||0);
 			height = Math.min(height, this._settings.maxRowHeight||100000);

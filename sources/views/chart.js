@@ -768,13 +768,14 @@ const api = {
 		return t;
 	},
 	_get_tooltip_data:function(t,e){
-		let id = this.locate(e);
+		const active = this._getActiveSeries(e);
+		const activeIndex = active ? active.index : 0;
+		const def = extend({dx:20, dy:0, template:"{obj.value}", css:""}, (this._series[activeIndex].tooltip || {template:""}), true);
+		const id = active ? active.itemId : this.locate(e);
+
 		if (!id) return null;
 
-		let active = this._getActiveSeries(e);
-		let def = extend({dx:20, dy:0, template:"{obj.value}", css:""}, (this._series[active].tooltip || {template:""}), true);
-
-		TooltipControl._tooltip.define( def );
+		TooltipControl._tooltip.define(def);
 		return this.getItem(id);
 	},
 	_getActiveSeries: function(e){
@@ -786,10 +787,16 @@ const api = {
 			offset = getOffset(this._contentobj._htmlmap),
 			pos = getPos(e),
 			x = pos.x - offset.x,
-			y = pos.y - offset.y;
+			y = pos.y - offset.y,
+			series = this._settings.legend ? this._settings.legend.values : null;
 
 		let selection;
 		for(let i = 0; i < areas.length; i++){
+			if(series){
+				const index = areas[i].index;
+				if(series[index] && series[index].$hidden)
+					continue;
+			}
 			const a = areas[i].points;
 			if(x <= a[2] && x >= a[0] && y <= a[3] && y >= a[1]){
 				if(selection){
@@ -800,7 +807,8 @@ const api = {
 					selection = areas[i];
 			}
 		}
-		return selection?selection.index:0;
+
+		return selection;
 	},
 	hideSeries:function(series){
 		this.canvases[series].hideCanvas();

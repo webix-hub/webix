@@ -39,21 +39,23 @@ const autoheight = {
 	_sizeToContent: function(focus){
 		if(this._skipSizing)
 			return (this._skipSizing = false);
+		const c = this._settings;
 		let txt = this.getInputNode();
 		let height = this._getTextHeight(txt.value, txt.offsetWidth);
 		const padding = 2*$active.inputPadding + 2*$active.borderWidth;
-		height = Math.max(height+padding, this._settings.minHeight);
-		if(height > this._settings.maxHeight){
+		const labelPadding = c.label && c.labelPosition == "top" ? this._labelTopHeight : 0;
+		height = Math.max(height + padding + labelPadding, c.minHeight);
+		if(height > c.maxHeight){
 			removeCss(this.$view, "webix_noscroll");
-			height = this._settings.maxHeight;
+			height = c.maxHeight;
 		}
 		else
 			addCss(this.$view, "webix_noscroll",true);
 		const topView = this.getTopParentView();
 		clearTimeout(topView._template_resize_timer);
 		topView._template_resize_timer = delay(()=>{
-			if (this.config.height != height){
-				this.config.height = height;
+			if (c.height != height){
+				c.height = height;
 				let caretPos = txt.selectionEnd;
 				this._skipSizing = true;
 				const value = text.api.getValue.call(this);

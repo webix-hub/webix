@@ -463,7 +463,7 @@ const api = {
 		"-2":{
 			_isBlocked: function(i){
 				var config = this._settings,
-					date = config.date,
+					date = this.getSelectedDate(true) || config.date,
 					isBlocked = false;
 
 				var minHour = (config.minTime ? config.minTime[0] : 0);
@@ -495,7 +495,7 @@ const api = {
 		"-1":{
 			_isBlocked: function(i){
 				var config = this._settings,
-					date = config.date;
+					date = this.getSelectedDate(true) || config.date;
 
 				var minHour = (config.minTime? config.minTime[0]:0);
 				var maxHour = (config.maxTime? config.maxTime[0]+(config.maxTime[1]?1:0):24);
@@ -590,8 +590,8 @@ const api = {
 			_isBlocked: function(i){
 				const date = this.getVisibleDate();
 				date.setMonth(i);
+				let blocked = this._isDateBlocked(date, 1);
 
-				var blocked = (this._settings.blockDates && this._settings.blockDates.call(this,date));
 				var min = this._settings.minDate,
 					max = this._settings.maxDate,
 					year = this._settings.date.getFullYear();
@@ -608,7 +608,7 @@ const api = {
 
 				return blocked;
 			},
-			_correctDate: function(date,calendar){
+			_correctDate: function(date, calendar){
 				date = DateHelper.monthStart(date);
 
 				if (date < calendar._settings.minDate){
@@ -617,7 +617,17 @@ const api = {
 				else if (date > calendar._settings.maxDate){
 					date = DateHelper.copy(calendar._settings.maxDate);
 				}
-
+				let blocked = calendar._isDateBlocked(date);
+				if(blocked){
+					const d = DateHelper.copy(date);
+					while(blocked && d.getMonth() == date.getMonth()){
+						blocked = calendar._isDateBlocked(d);
+						if(blocked)
+							DateHelper.add(d, 1, "day");
+						else
+							date = d;
+					}
+				}
 				return date;
 			},
 			_getTitle:function(date){ return date.getFullYear(); },
@@ -658,7 +668,7 @@ const api = {
 				const date = this.getVisibleDate();
 				date.setFullYear(i);
 
-				var blocked = (this._settings.blockDates && this._settings.blockDates.call(this,date));
+				const blocked = this._isDateBlocked(date, 2);
 				var min = this._settings.minDate;
 				var max = this._settings.maxDate;
 
@@ -673,6 +683,17 @@ const api = {
 				}
 				else if (date > calendar._settings.maxDate){
 					date = DateHelper.copy(calendar._settings.maxDate);
+				}
+				let blocked = calendar._isDateBlocked(date);
+				if(blocked){
+					const d = DateHelper.copy(date);
+					while(blocked && d.getFullYear() == date.getFullYear()){
+						blocked = calendar._isDateBlocked(d);
+						if(blocked)
+							DateHelper.add(d, 1, "day");
+						else
+							date = d;
+					}
 				}
 				return date;
 			},
@@ -1040,11 +1061,25 @@ const api = {
 		return date;
 	},
 	_checkDate: function(date){
-		var blockedDate = (this._settings.blockDates && this._settings.blockDates.call(this,date));
-		var minDate = this._settings.minDate;
-		var maxDate = this._settings.maxDate;
-		var outOfRange = (minDate && date < minDate) || (maxDate && date >= DateHelper.add(maxDate, 1, "day", true));
+		const blockedDate = this._isDateBlocked(date);
+		const minDate = this._settings.minDate;
+		const maxDate = this._settings.maxDate;
+		const outOfRange = (minDate && date < minDate) || (maxDate && date >= DateHelper.add(maxDate, 1, "day", true));
 		return !blockedDate && !outOfRange;
+	},
+	_isDateBlocked: function(date, zoom){
+		const blockDates = this._settings.blockDates;
+		let blocked = (blockDates && blockDates.call(this, date));
+		if(blocked && zoom){
+			const d = DateHelper.copy(date);
+			const method = zoom == 1? "getMonth" : "getFullYear";
+			d.setDate(1);
+			while(blocked && d[method]() == date[method]()){
+				blocked = blockDates.call(this, d);
+				DateHelper.add(d, 1, "day");
+			}
+		}
+		return blocked;
 	},
 	_findActive:function(date, mode){
 		var dir = (mode === "top" || mode === "left" || mode === "pgup" || mode === "up") ? -1 : 1;

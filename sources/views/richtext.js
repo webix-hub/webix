@@ -144,8 +144,8 @@ const api = {
 		}
 	},
 	refresh: function() {
-		if(this._rendered_input)
-			this.getInputNode().innerHTML = this._settings.value;
+		if (this._rendered_input)
+			this.getInputNode().innerHTML = this._settings.value || "";
 	},
 	_execCommandOnElement:function(commandName) {
 		let sel, selText;
@@ -214,7 +214,7 @@ const api = {
 		if (input)
 			return input.innerHTML;
 
-		return this._settings.value;
+		return this._settings.value || "";
 	}
 };
 

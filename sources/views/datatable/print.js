@@ -28,7 +28,7 @@ const Mixin = {
 			row.forEach((cell, cid)=>{
 				var column = columns[cid+start];
 
-				for(var h  = 0; h< column[group].length; h++){
+				for(var h  = 0; h < column[group].length; h++){
 					var header = column[group][h];
 
 					if(!header && !(spans[tid] && spans[tid][h])) continue;
@@ -46,11 +46,7 @@ const Mixin = {
 						spans[tid+1][h] = header.colspan-colspan;
 						header.colspan = colspan;
 					}
-					if(header.rowspan){
-						header.height = (header.height || this.config.headerRowHeight)*header.rowspan;
-						header.rowspan = null;
-					}
-					
+
 					var hcell = {
 						txt: header.rotate ? this.getHeaderNode(column.id, h).innerHTML:
 							(header.text || (header.contentId?this.getHeaderContent(header.contentId).getValue():"")),
@@ -65,6 +61,22 @@ const Mixin = {
 					headerArray[h][cid] = hcell;
 				}
 			});
+
+			headerArray.forEach(row => {
+				const headers = row.filter(v => v);
+				const rowspan = headers[0] && headers[0].span && headers[0].span.rowspan;
+				if(rowspan){
+					const rowSpanHeaders = headers.filter(v => v.span && v.span.rowspan && v.span.rowspan == rowspan);
+					const sameRowSpans = rowSpanHeaders.length == headers.length;
+					if(sameRowSpans)
+						row = row.map(header => {
+							header.style.height = header.style.height.replace("px", "")*rowspan + "px";
+							header.span.rowspan = 1;
+							return header;
+						});
+				}
+			});
+
 			if(group =="header")
 				base[tid] = headerArray.concat(tableArray);
 			else
@@ -163,7 +175,9 @@ const Mixin = {
 							}
 						}
 
-						const txt = this.getText(row, column);
+						let txt = this.getText(row, column);
+						if(txt === 0) txt += "";
+
 						const className = this.getCss(row, column)+" "+(columns[c].css || "")+(span ? " webix_dtable_span "+span.css : "");
 
 						const style  = {
@@ -173,7 +187,7 @@ const Mixin = {
 
 						colrow.push({ txt, className, style, span });
 
-						if (txt || txt === 0) {
+						if (txt) {
 							rightRestriction = Math.max(colIndex+1, rightRestriction);
 							bottomRestriction = Math.max(rowIndex+1, bottomRestriction);
 						}

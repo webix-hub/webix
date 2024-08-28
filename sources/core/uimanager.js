@@ -125,9 +125,9 @@ const UIManager = {
 				if (this._view && this._view.getFormView() == view && this._view.focus)
 					this._view.focus();
 				else{
-					//radio view with scroll: focus changes onClick event target into radiogroup, so we need call onClick before it happens
-					if(e.target.type == "radio" || e.target.getAttribute("role") == "radio")
-						callEvent("onClick", [e]);
+					//radio view with scroll: focus changes onClick event target into radiogroup, so we need to readjust the focus target before it happens
+					if (e.target.type == "radio" || e.target.getAttribute("role") == "radio")
+						e.target.setAttribute("tabindex", "0");
 
 					this.setFocus(view);
 				}
@@ -466,7 +466,7 @@ ready(function() {
 				form.callEvent("onSubmit",[view,ev]);
 		}
 	});
-	UIManager.addHotKey("esc", function(view){
+	UIManager.addHotKey("esc", function(view, ev){
 		if (view){
 			if (view.editCancel && view._in_edit_mode){
 				view.editCancel();
@@ -482,7 +482,7 @@ ready(function() {
 					if (master.editCancel && master._in_edit_mode)
 						master.editCancel();
 				}
-				top._hide();
+				top._hide(ev);
 			}
 		}
 	});

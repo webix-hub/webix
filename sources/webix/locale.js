@@ -5,8 +5,6 @@ import wDate from "../core/date";
 import Number from "../core/number";
 
 import {copy, isArray} from "../webix/helpers";
-import template from "./template";
-
 
 function extend(base,source){
 	for (let method in source){
@@ -43,9 +41,6 @@ i18n.setLocale = function(locale){
 		i18n[key+"Date"] = wDate.strToDate(i18n[key], utc);
 	}
 
-	const _price_format = template(i18n.price);
-	const _price_settings = i18n.priceSettings || i18n;
-
 	i18n.intFormat = Number.numToStr({
 		groupSize: i18n.groupSize,
 		groupDelimiter: i18n.groupDelimiter,
@@ -54,31 +49,10 @@ i18n.setLocale = function(locale){
 		minusSign: i18n.minusSign
 	});
 
-	i18n.priceFormat = function(value){
-		const sign = value < 0;
-		if(sign)
-			value = Math.abs(value);
+	const _price_settings = copy(i18n.priceSettings || i18n);
+	_price_settings.priceTemplate = i18n.price;
 
-		value = Number.format(value, _price_settings);
-
-		if(sign){
-			switch(_price_settings.minusPosition){
-				case "before":
-					return _price_settings.minusSign + _price_format(value);
-				case "parentheses":
-					return _price_settings.minusSign[0] + _price_format(value) + _price_settings.minusSign[1];
-				case "after":
-					value += _price_settings.minusSign;
-					break;
-				case "inside":
-					value = _price_settings.minusSign + value;
-					break;
-			}
-		}
-
-		return _price_format(value);
-	};
-
+	i18n.priceFormat = Number.numToStr(_price_settings);
 	i18n.numberFormat = Number.format;
 };
 

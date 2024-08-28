@@ -249,7 +249,9 @@ export function _getClassName(node){
 export function setSelectionRange(node, start, end){
 	node.focus();
 
-	if(node.setSelectionRange){
+	const types = ["password", "search", "tel", "text", "url"];
+
+	if (node.setSelectionRange && types.includes(node.type)){
 		start = start || 0;
 		end = end || start;
 

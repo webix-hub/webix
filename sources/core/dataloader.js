@@ -36,6 +36,7 @@ const DataLoader =proto({
 	_feed:function(from, count, callback, defer, clear){
 		//allow only single request at same time
 		if (this._load_count){
+			if(this._feed_last.from == from && this._feed_last.count == count) return;
 			defer = promise.defer();
 			this._load_count = [from,count,callback,defer,clear];	//save last ignored request
 			return defer;

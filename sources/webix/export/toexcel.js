@@ -128,26 +128,30 @@ function getExcelData(data, scheme, spans, styles, options) {
 				if(column.type && !cell.t) cell.t = (types[column.type] || "");
 				if(column.format && !cell.z) cell.z = column.format;
 			}
-			// set type based on cell's value
-			if(options.stubCells && !stringValue)
-				cell.t = "z";
-			else if(cell.v instanceof Date){
-				cell.t = cell.t || "n";
-				cell.z = cell.z || XLSX.SSF[table][14];
-				cell.v = excelDate(cell.v);
-			}
-			else if(isFormula){
-				if(!cell.t)
-					cell.t = isNaN(stringValue) ? "s" : "n";
 
+			//prepare formula
+			if(isFormula){
 				if(cell.v.ref)
 					cell.F = cell.v.ref;
 
 				cell.f = cell.v.formula.substring(1);
 				cell.v = stringValue;
 			}
+
+			// set type based on cell's value
+			if(options.stubCells && stringValue === ""){
+				cell.t = "z";
+				delete cell.v;
+			}
+			else if(cell.v instanceof Date){
+				cell.t = cell.t || "n";
+				cell.z = cell.z || XLSX.SSF[table][14];
+				cell.v = excelDate(cell.v);
+			}
 			else if(!cell.t){
-				if(typeof cell.v === "boolean")
+				if(isFormula)
+					cell.t = isNaN(stringValue) ? "s" : "n";
+				else if(typeof cell.v === "boolean")
 					cell.t = "b";
 				else if(typeof cell.v === "number" || parseFloat(cell.v) == cell.v){
 					cell.v = cell.v*1;

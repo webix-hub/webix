@@ -6,10 +6,10 @@
 }
 .webix_all_tabs{
 	height: 100%;
-	display:table;
+	display: flex;
+	align-items: stretch;
 }
 .webix_tab_filler{
-	display: table-cell;
 	background: transparent;
 	font-size: 1px;
 	border-bottom: 1px solid @tabbarBorderColor;
@@ -22,10 +22,11 @@
 	border-left: 1px solid @tabbarBorderColor;
 };
 .webix_item_tab{
-	display: table-cell;
-	text-align:center;
-	vertical-align: middle;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	overflow: hidden;
+	position: relative;
 	cursor: pointer;
 	border: 1px solid @tabbarBorderColor;
 	border-left-width:0px;
@@ -89,10 +90,9 @@
 
 .webix_tab_more_icon{
 	cursor: pointer;
-	display: table-cell;
+	display: flex;
+	align-items: center;
 	overflow: hidden;
-	text-align: center;
-	vertical-align: middle;
 	padding:0 3px;
 	#box > .sizing;
 
@@ -106,9 +106,8 @@
 }
 .webix_icon.webix_tab_close{
  	font-size:12px;
- 	float:right;
- 	padding:4px;
- 	margin-top:-4px;
+	position: absolute;
+ 	right: 0px;
  	&:focus{
  		color: @dangerColor;
  	}
@@ -126,4 +125,14 @@
 		background-color: @disabledColor;
 		border-color: transparent;
 	}
+}
+
+.webix_item_tab_text{
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	padding: 0 5px;
+}
+.webix_item_tab_text_close{
+	padding-right: 22px;
 }

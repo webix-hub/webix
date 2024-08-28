@@ -24,7 +24,6 @@ const api = {
 	},
 	_optionsTemplate: function(id){
 		const config = this._settings;
-		this._check_options(config.options);
 
 		const options = this._filterOptions(config.options);
 		const active = this._getFirstActive();
@@ -71,6 +70,8 @@ const api = {
 			this.resize();
 	},
 	$getSize:function(dx, dy){
+		this._check_options(this._settings.options);
+
 		var size = button.api.$getSize.call(this, dx, dy);
 		if(!this._settings.autoheight){
 			var options = this._filterOptions(this._settings.options);
@@ -102,6 +103,7 @@ const api = {
 			option = this.getOption(id);
 
 			inp[i].checked = (id == value);
+			inp[i].checked ? inp[i].setAttribute("checked", "1") : inp[i].removeAttribute("checked");
 			focusable = option && !option.disabled && (inp[i].checked || (!value && option.id == active));
 			inp[i].setAttribute("tabindex", focusable?"0":"-1");
 

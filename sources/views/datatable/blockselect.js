@@ -194,7 +194,10 @@ const Mixin = {
 			if (pointer === "touch") preventEvent(e);
 		}
 	},
-	_locate_cell_xy:function(x,y, isEndPoint){
+	_locate_cell_xy:function(x, y, isEndPoint){
+		const handle = isEndPoint && this.$handleStart;
+		const dir = handle ? this._getHandleMoveDirection(x, y) : null;
+
 		let inTopSplit = false,
 			row = null,
 			column = null;
@@ -219,9 +222,6 @@ const Mixin = {
 
 		const cols = this._settings.columns;
 		const rows = this.data.order;
-
-		const handle = isEndPoint && this.$handleStart;
-		const dir = handle?this._getHandleMoveDirection(x,y):null;
 
 		let summ = 0;
 		if(!handle || dir =="x")

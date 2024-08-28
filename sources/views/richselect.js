@@ -55,9 +55,10 @@ const api = {
 		return this.options_setter(value);
 	},
 	options_setter:function(value){
+		if (this._settings.suggest) $$(this._settings.suggest).destructor();
 		value = this._suggest_config ? this._suggest_config(value) : value;
-		var suggest = (this._settings.popup = this._settings.suggest = text.api.suggest_setter.call(this, value));
-		var list = $$(suggest).getList();
+		const suggest = (this._settings.popup = this._settings.options = this._settings.suggest = text.api.suggest_setter.call(this, value));
+		const list = $$(suggest).getList();
 		if (list)
 			list.attachEvent("onAfterLoad", ()=> this._reset_value());
 
@@ -72,7 +73,7 @@ const api = {
 		const value = this._settings.value;
 		if(value){
 			// update value only for unchanged input
-			if(this.getInputNode() && this._settings.text === this.getText())
+			if(this.getInputNode() && (this._settings.text === this.getText() || isUndefined(this._settings.text)))
 				this.$setValue(value);
 			if(this.getPopup().isVisible())
 				this.getPopup()._show_selection();

@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.10.2.0
+ * webix UI v.10.3.0
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -1353,6 +1353,7 @@
 
   var GraphQL = {
     $proxy: true,
+    ignoreErrors: true,
     save: function (data) {
       return this.load(data);
     },
@@ -1360,15 +1361,32 @@
       var params = {
         query: this.source
       };
-
-      if (arguments.length === 1) {
-        params.variables = view;
-      }
-
+      var isView = arguments.length > 1;
+      var xhr;
+      if (!isView) params.variables = view;
       return ajax().headers({
         "Content-type": "application/json"
-      }).post(this.url, params).then(function (data) {
-        return unbox(data.json().data);
+      }).post(this.url, params, function () {
+        xhr = arguments.length <= 2 ? undefined : arguments[2];
+      }).then(function (data) {
+        var res = data.json();
+        var resData = res.data,
+            errors = res.errors;
+
+        if (errors && !GraphQL.ignoreErrors) {
+          if (isView) {
+            return Deferred.reject(xhr);
+          } else {
+            // promise rejection for external callers
+            // the error must be handled via fail/catch in such cases
+            return Deferred.reject({
+              xhr: xhr,
+              errors: errors
+            });
+          }
+        }
+
+        return unbox(resData);
       });
     }
   };
@@ -1758,8 +1776,9 @@
   }
   function setSelectionRange(node, start, end) {
     node.focus();
+    var types = ["password", "search", "tel", "text", "url"];
 
-    if (node.setSelectionRange) {
+    if (node.setSelectionRange && types.includes(node.type)) {
       start = start || 0;
       end = end || start;
       node.setSelectionRange(start, end);
@@ -4245,8 +4264,8 @@
         if (this.canFocus(view)) {
           // keep form focus
           if (this._view && this._view.getFormView() == view && this._view.focus) this._view.focus();else {
-            //radio view with scroll: focus changes onClick event target into radiogroup, so we need call onClick before it happens
-            if (e.target.type == "radio" || e.target.getAttribute("role") == "radio") callEvent("onClick", [e]);
+            //radio view with scroll: focus changes onClick event target into radiogroup, so we need to readjust the focus target before it happens
+            if (e.target.type == "radio" || e.target.getAttribute("role") == "radio") e.target.setAttribute("tabindex", "0");
             this.setFocus(view);
           }
         } //remove focus from an unreachable view
@@ -4564,7 +4583,7 @@
         if (form && !view._skipSubmit) form.callEvent("onSubmit", [view, ev]);
       }
     });
-    UIManager.addHotKey("esc", function (view) {
+    UIManager.addHotKey("esc", function (view, ev) {
       if (view) {
         if (view.editCancel && view._in_edit_mode) {
           view.editCancel();
@@ -4581,7 +4600,7 @@
             if (master.editCancel && master._in_edit_mode) master.editCancel();
           }
 
-          top._hide();
+          top._hide(ev);
         }
       }
     });
@@ -7778,11 +7797,17 @@
     },
     _hide: function (e) {
       //do not hide modal windows
-      if (this._settings.hidden || this._settings.modal || !this._settings.escHide || this._hide_timer) return; //do not hide submenu when clicking on menu folder
+      if (this._settings.hidden || this._settings.modal || !this._settings.escHide || this._hide_timer) return;
 
-      if (e && e.showpopup && (e.showpopup == this._settings.id || this.getTopMenu && this.getTopMenu()._settings.id == e.showpopup)) return; //do not hide popup, when starting dnd with a long touch
+      if (e) {
+        //do not hide submenu when clicking on menu folder
+        if (e.showpopup && (e.showpopup == this._settings.id || this.getTopMenu && this.getTopMenu()._settings.id == e.showpopup)) return; //do not hide popup, when starting dnd with a long touch
 
-      if (e && env.touch && e.longtouch_drag) return; //do not hide popup, when we have modal layer above the popup
+        if (env.touch && e.longtouch_drag) return; //do not hide popup, when we hide inner suggest by pressing esc
+
+        if (e.hidesuggest) return;
+      } //do not hide popup, when we have modal layer above the popup
+
 
       if (state._modality.length && this._viewobj.style.zIndex <= Math.max.apply(Math, _toConsumableArray(state._modality))) return; //ignore inside clicks and clicks in child-popups
 
@@ -8173,7 +8198,7 @@
       var result = this.show(e, null, true);
       if (result === false) return result; // ignore contexmenu clicks for the popup or its body
 
-      var view = $$(e);
+      var view = $$(e.currentTarget);
 
       if (view) {
         var top = view.queryView(function (a) {
@@ -10284,6 +10309,7 @@
     _feed: function (from, count, callback, defer, clear) {
       //allow only single request at same time
       if (this._load_count) {
+        if (this._feed_last.from == from && this._feed_last.count == count) return;
         defer = Deferred.defer();
         this._load_count = [from, count, callback, defer, clear]; //save last ignored request
 
@@ -11879,7 +11905,14 @@
 
       this._addEditor(id, type);
 
-      if (type.getPopup) type.getPopup()._editorMaster = this._settings.id; //show it over cell
+      if (type.getPopup) {
+        var popup = type.getPopup();
+        popup.attachEvent("onHide", function () {
+          if (this._edit_active) this.show();
+        });
+        popup._editorMaster = this._settings.id;
+      } //show it over cell
+
 
       if (show !== false) this.showItem(id);
       if (!type.$inline) this._sizeToCell(id, node, true);
@@ -11977,6 +12010,7 @@
         value: this._get_new_value(editor),
         old: editor.value
       };
+      var popup = editor.getPopup ? editor.getPopup() : null;
 
       if (this.callEvent("onBeforeEditStop", [state$$1, editor, ignore])) {
         if (!ignore) {
@@ -11993,14 +12027,20 @@
         }
 
         if (editor.$inline) editor.node = null;else remove(editor.node);
-        var popup = editor.config.suggest;
-        if (popup && typeof popup == "string") $$(popup).hide();
+
+        if (popup) {
+          popup.hide();
+          delete popup._edit_active;
+        }
 
         this._removeEditor(editor);
 
         if (this._live_edits_handler) this.detachEvent(this._live_edits_handler);
         this.callEvent("onAfterEditStop", [state$$1, editor, ignore]);
         return 1;
+      } else if (popup) {
+        if (!popup.isVisible()) popup.show();
+        editor.getPopup()._edit_active = true;
       }
 
       return 0;
@@ -12742,7 +12782,8 @@
 
       this._areas.push({
         index: userdata,
-        points: coords
+        points: coords,
+        itemId: id
       });
     },
     addSector: function (id, alpha0, alpha1, x, y, r, ky, userdata, dr, height) {
@@ -13030,10 +13071,27 @@
 
   var MapCollection = {
     $init: function () {
+      this._collection_handlers = {};
       this.$ready.push(this._create_scheme_init);
       this.attachEvent("onStructureUpdate", this._create_scheme_init);
       this.attachEvent("onStructureLoad", function () {
         if (!this._scheme_init_order.length) this._create_scheme_init();
+      });
+      this.attachEvent("onDestruct", function () {
+        // remove leftover handlers from collections
+        for (var collectionId in this._collection_handlers) {
+          var collection = $$(collectionId);
+
+          if (collection && !collection.$destructed) {
+            var handlers = this._collection_handlers[collectionId];
+
+            for (var i = 0; i < handlers.length; i++) {
+              collection.data.detachEvent(handlers[i]);
+            }
+          }
+        }
+
+        this._collection_handlers = {};
       });
     },
     _create_scheme_init: function () {
@@ -13191,11 +13249,11 @@
           if (!options.loadNext) options = config.options = _this._create_collection(options);
           var id = options.data.attachEvent("onStoreUpdated", function () {
             if (_this.refreshFilter) _this.refreshFilter(config.columnId);
-          });
+          }); // collect handler ids for further destruction
 
-          _this.attachEvent("onDestruct", function () {
-            if (!options.$destructed) options.data.detachEvent(id);
-          });
+          if (!_this._collection_handlers[options.config.id]) _this._collection_handlers[options.config.id] = [];
+
+          _this._collection_handlers[options.config.id].push(id);
         }
       };
 
@@ -13214,10 +13272,11 @@
           _this2.refresh();
 
           if (_this2.refreshFilter) _this2.refreshFilter(column.id);
-        });
-        this.attachEvent("onDestruct", function () {
-          if (!options.$destructed) options.data.detachEvent(id);
-        });
+        }); // collect handler ids for further destruction
+
+        if (!this._collection_handlers[options.config.id]) this._collection_handlers[options.config.id] = [];
+
+        this._collection_handlers[options.config.id].push(id);
       }
     },
     _bind_template: function (multi) {
@@ -13359,8 +13418,8 @@
     },
     //common logic for click and dbl-click processing
     _mouseEvent: function (e, hash, name, pair) {
-      if (e.processed || !this._viewobj) return;
-      e.processed = true;
+      if (e.processed && !(name == "ItemSingleClick" && e.processed == "ItemClick") || !this._viewobj) return;
+      e.processed = name;
       var trg = e.target;
       var css = "";
       var id = null;
@@ -17569,7 +17628,7 @@
     }
   };
 
-  var version = "10.2.0";
+  var version = "10.3.0";
   var name = "core";
 
   var errorMessage = "non-existing view for export";
@@ -18493,20 +18552,25 @@
           var column = scheme[C];
           if (column.type && !cell.t) cell.t = types[column.type] || "";
           if (column.format && !cell.z) cell.z = column.format;
-        } // set type based on cell's value
+        } //prepare formula
 
 
-        if (options.stubCells && !stringValue) cell.t = "z";else if (cell.v instanceof Date) {
-          cell.t = cell.t || "n";
-          cell.z = cell.z || XLSX.SSF[table][14];
-          cell.v = excelDate(cell.v);
-        } else if (isFormula) {
-          if (!cell.t) cell.t = isNaN(stringValue) ? "s" : "n";
+        if (isFormula) {
           if (cell.v.ref) cell.F = cell.v.ref;
           cell.f = cell.v.formula.substring(1);
           cell.v = stringValue;
+        } // set type based on cell's value
+
+
+        if (options.stubCells && stringValue === "") {
+          cell.t = "z";
+          delete cell.v;
+        } else if (cell.v instanceof Date) {
+          cell.t = cell.t || "n";
+          cell.z = cell.z || XLSX.SSF[table][14];
+          cell.v = excelDate(cell.v);
         } else if (!cell.t) {
-          if (typeof cell.v === "boolean") cell.t = "b";else if (typeof cell.v === "number" || parseFloat(cell.v) == cell.v) {
+          if (isFormula) cell.t = isNaN(stringValue) ? "s" : "n";else if (typeof cell.v === "boolean") cell.t = "b";else if (typeof cell.v === "number" || parseFloat(cell.v) == cell.v) {
             cell.v = cell.v * 1;
             cell.t = "n";
           } else {
@@ -18515,6 +18579,7 @@
             cell.t = "s";
           }
         }
+
         ws[cell_ref] = cell;
       }
     }
@@ -18803,7 +18868,7 @@
     dayStart: function (date) {
       return this.datePart(date, true);
     },
-    dateToStr: function (format, utc) {
+    dateToStr: function (format, utc, timezone) {
       if (typeof format == "function") return format;
 
       if (env.strict) {
@@ -18845,6 +18910,18 @@
                 str += wDate.toFixed(date.getHours());
                 str += ":" + wDate.toFixed(date.getMinutes());
                 str += ":" + wDate.toFixed(date.getSeconds());
+
+                if (timezone) {
+                  var offset = new Date().getTimezoneOffset();
+                  if (!offset) str += "Z";else {
+                    var sign = offset < 0 ? "+" : "-";
+                    offset = Math.abs(offset);
+                    var hours = Math.floor(offset / 60);
+                    var minutes = offset % 60;
+                    str += sign + (hours < 10 ? "0" : "") + hours + ":" + (minutes < 10 ? "0" : "") + minutes;
+                  }
+                } else if (utc) str += "Z";
+
                 return str;
               }
 
@@ -18929,7 +19006,18 @@
             str += "\"+wDate.toFixed(date.getHours())+\"";
             str += ":\"+wDate.toFixed(date.getMinutes())+\"";
             str += ":\"+wDate.toFixed(date.getSeconds())+\"";
-            if (utc === true) str += "Z";
+
+            if (timezone) {
+              var offset = new Date().getTimezoneOffset();
+              if (!offset) str += "Z";else {
+                var sign = offset < 0 ? "+" : "-";
+                offset = Math.abs(offset);
+                var hours = Math.floor(offset / 60);
+                var minutes = offset % 60;
+                str += sign + (hours < 10 ? "0" : "") + hours + ":" + (minutes < 10 ? "0" : "") + minutes;
+              }
+            } else if (utc) str += "Z";
+
             return str;
 
           default:
@@ -18942,7 +19030,7 @@
         return temp(v, i18n, wDate);
       };
     },
-    strToDate: function (format, utc) {
+    strToDate: function (format, utc, timezone) {
       if (typeof format == "function") return format;
       var mask = format.match(/%[a-zA-Z]/g);
       var splt = "var temp=date.split(/[\\s\\./\\-\\:\\,]+/g); if(!temp.join('')){return ''}";
@@ -18978,15 +19066,21 @@
               set[0] = (temp[i] || 0) * 1;
               if (set[0] < 30) set[0] += 2000;
             } else if (a == "%n" || a == "%m") set[1] = (temp[i] || 1) - 1;else if (a == "%M") set[1] = i18n.calendar.monthShort_hash[temp[i]] || 0;else if (a == "%F") set[1] = i18n.calendar.monthFull_hash[temp[i]] || 0;else if (a == "%j" || a == "%d") set[2] = temp[i] || 1;else if (a == "%g" || a == "%G" || a == "%h" || a == "%H") set[3] = temp[i] || 0;else if (a == "%a") set[3] = set[3] % 12 + ((temp[i] || "") == i18n.am[0] ? 0 : 12);else if (a == "%A") set[3] = set[3] % 12 + ((temp[i] || "") == i18n.am[1] ? 0 : 12);else if (a == "%i") set[4] = temp[i] || 0;else if (a == "%s") set[5] = temp[i] || 0;else if (a == "%S") set[6] = temp[i] || 0;else if (a == "%c") {
-              var reg = /(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(\+.*|)/g;
+              var reg = /(\d{4})-?(\d{2})?-?(\d{2})?T?(\d{2})?:?(\d{2})?:?(\d{2})?[,|.]?(\d{3})?(Z|\+|-)?(\d{2})?:?(\d{2})?/;
               var res = reg.exec(date);
               set[0] = (res[1] || 0) * 1;
-              if (set[0] < 30) set[0] += 2000;
               set[1] = (res[2] || 1) - 1;
-              set[2] = res[3] || 1;
-              set[3] = res[4] || 0;
-              set[4] = res[5] || 0;
-              set[5] = res[6] || 0;
+              set[2] = (res[3] || 1) * 1;
+              set[3] = (res[4] || 0) * 1;
+              set[4] = (res[5] || 0) * 1;
+              set[5] = (res[6] || 0) * 1;
+              set[6] = (res[7] || 0) * 1;
+
+              if (timezone && res[8] && res[8] != "Z") {
+                var sign = res[8] == "-" ? -1 : 1;
+                var tzDifference = sign * ((res[9] || 0) * 60 + (res[10] || 0) * 1);
+                if (tzDifference) set[4] += tzDifference + new Date().getTimezoneOffset();
+              }
             }
           }
 
@@ -19051,15 +19145,7 @@
             break;
 
           case "%c":
-            splt += "var res = date.split('T');";
-            splt += "if(res[0]){ var d = res[0].split('-');";
-            splt += "set[0]= (d[0]||0)*1; if (set[0]<30) set[0]+=2000;";
-            splt += "set[1]= (d[1]||1)-1;";
-            splt += "set[2]= d[2]||1;}";
-            splt += "if(res[1]){ var t = res[1].split(':');";
-            splt += "set[3]= t[0]||0;";
-            splt += "set[4]= t[1]||0;";
-            splt += "set[5]= parseInt(t[2])||0;}";
+            splt += "\n\t\t\t\t\t\tconst reg = /(\\d{4})-?(\\d{2})?-?(\\d{2})?T?(\\d{2})?:?(\\d{2})?:?(\\d{2})?[,|.]?(\\d{3})?(Z|\\+|-)?(\\d{2})?:?(\\d{2})?/;\n\t\t\t\t\t\tconst res = reg.exec(date);\n\t\t\t\t\t\tset[0]= (res[1]||0)*1;\n\t\t\t\t\t\tset[1]= (res[2]||1)-1;\n\t\t\t\t\t\tset[2]= (res[3]||1)*1;\n\t\t\t\t\t\tset[3]= (res[4]||0)*1;\n\t\t\t\t\t\tset[4]= (res[5]||0)*1;\n\t\t\t\t\t\tset[5]= (res[6]||0)*1;\n\t\t\t\t\t\tset[6]= (res[7]||0)*1;\n\n\t\t\t\t\t\tif(".concat(timezone, " && res[8] && res[8] != \"Z\"){\n\t\t\t\t\t\t\tconst sign = res[8] == \"-\" ? -1 : 1;\n\t\t\t\t\t\t\tconst tzDifference = sign * ((res[9]||0)*60 + (res[10]||0)*1);\n\t\t\t\t\t\t\tif(tzDifference)\n\t\t\t\t\t\t\t\tset[4] += tzDifference + new Date().getTimezoneOffset();\n\t\t\t\t\t\t}");
             break;
 
           default:
@@ -19259,7 +19345,6 @@
       config = config || i18n;
       var initialValue = value;
       if (config.prefix) value = value.replace(config.prefix, "");
-      if (config.sufix) value = value.replace(config.sufix, "");
       var sign = 1;
 
       switch (config.minusPosition) {
@@ -19281,6 +19366,8 @@
           break;
       }
 
+      if (config.priceTemplate) value = value.replace(config.priceTemplate.replace("{obj}", ""), "");
+      if (config.sufix) value = value.replace(config.sufix, "");
       value = value.trim();
       var decimal = "";
 
@@ -19334,6 +19421,7 @@
       } else int_value = str[0];
 
       if (config.decimalSize || config.decimalOptional) str = int_value + (str[1] ? config.decimalDelimiter + str[1] : "");else str = int_value;
+      if (config.priceTemplate) str = template(config.priceTemplate)(str);
 
       if (sign) {
         switch (config.minusPosition) {
@@ -19398,10 +19486,6 @@
       i18n[key + "Date"] = wDate.strToDate(i18n[key], utc);
     }
 
-    var _price_format = template(i18n.price);
-
-    var _price_settings = i18n.priceSettings || i18n;
-
     i18n.intFormat = Number$1.numToStr({
       groupSize: i18n.groupSize,
       groupDelimiter: i18n.groupDelimiter,
@@ -19410,32 +19494,10 @@
       minusSign: i18n.minusSign
     });
 
-    i18n.priceFormat = function (value) {
-      var sign = value < 0;
-      if (sign) value = Math.abs(value);
-      value = Number$1.format(value, _price_settings);
+    var _price_settings = copy(i18n.priceSettings || i18n);
 
-      if (sign) {
-        switch (_price_settings.minusPosition) {
-          case "before":
-            return _price_settings.minusSign + _price_format(value);
-
-          case "parentheses":
-            return _price_settings.minusSign[0] + _price_format(value) + _price_settings.minusSign[1];
-
-          case "after":
-            value += _price_settings.minusSign;
-            break;
-
-          case "inside":
-            value = _price_settings.minusSign + value;
-            break;
-        }
-      }
-
-      return _price_format(value);
-    };
-
+    _price_settings.priceTemplate = i18n.price;
+    i18n.priceFormat = Number$1.numToStr(_price_settings);
     i18n.numberFormat = Number$1.format;
   };
 
@@ -20112,14 +20174,21 @@
     if (!env.mobile) return;
     addMeta("viewport", "initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no");
     env.fastClick = true;
-    if (env.isMac) addMeta("apple-mobile-web-app-capable", "yes");else {
+
+    if (env.isMac) {
+      addMeta("apple-mobile-web-app-capable", "yes");
+      if (env.isIOS) addStyle("body.webix_full_screen{ touch-action: pan-x pan-y; }");
+    } else {
       addMeta("mobile-web-app-capable", "yes");
       addStyle("body.webix_full_screen{ overflow-y: auto; }");
     }
 
     var fix = function () {
-      var x = window.innerWidth;
-      var y = window.innerHeight;
+      // some browsers (e.g., Samsung Internet) return incorrect inner sizes, regardless of the delay we use
+      // innerWidth/innerHeight should always be lower than outerWidth/outerHeight respectively (in regular cases), so it's a fairly safe assumption to detect the correct screen sizes 
+      // if outerWidth/outerHeight is lower than innerWidth/innerHeight, then it most likely returns the correct screen width/height
+      var x = Math.min(window.innerWidth, window.outerWidth);
+      var y = Math.min(window.innerHeight, window.outerHeight);
 
       if (y) {
         document.body.style.height = y + "px";
@@ -20132,7 +20201,7 @@
 
     var onrotate = function () {
       state._freeze_resize = true;
-      delay(fix, null, [], 50);
+      delay(fix, null, [], 100);
     };
 
     attachEvent("onRotate", onrotate);
@@ -20691,7 +20760,7 @@
     //use number defaults
     calendar: {
       monthFull: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
-      monthShort: ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aôu", "Sep", "Oct", "Nov", "Déc"],
+      monthShort: ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"],
       dayFull: ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
       dayShort: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
       hours: "Heures",
@@ -23524,7 +23593,7 @@
       return id;
     },
     _replace: function (view) {
-      if (!view._settings.borderless) {
+      if (!isArray(view) && !view._settings.borderless) {
         var settings = clone(this._settings._inner);
         view._settings._inner = settings;
         var style = view._viewobj.style;
@@ -24270,13 +24339,32 @@
     _rec_apply_settings: function (col, settings) {
       for (var i = 0; i < col.length; i++) {
         var element = col[i];
-        exports.extend(element, settings);
+
+        if (element.view) {
+          var _view = ui[element.view];
+          var prototype = _view.prototype;
+          if (Object.keys(prototype).length && prototype.getValue && prototype.setValue || _view.$protoWait && this._waiting_control(_view.$protoWait)) exports.extend(element, settings);
+        }
+
         var nextsettings = settings;
         if (element.elementsConfig) nextsettings = exports.extend(exports.extend({}, element.elementsConfig), settings);
-        var sub;
+        var sub = void 0;
         if (element.body) sub = [element.body];else sub = element.rows || element.cols || element.cells || element.body;
         if (sub) this._rec_apply_settings(sub, nextsettings);
       }
+    },
+    _waiting_control: function (waitFor, check) {
+      check = check || {};
+
+      for (var i = 0; i < waitFor.length; i++) {
+        if (waitFor[i].$protoWait) this._waiting_control(waitFor[i].$protoWait, check);else {
+          if (waitFor[i].getValue) check.getValue = true;
+          if (waitFor[i].setValue) check.setValue = true;
+        }
+        if (check.setValue && check.getValue) return true;
+      }
+
+      return false;
     },
     $getSize: function (dx, dy) {
       var sizes = layout.api.$getSize.call(this, dx, dy);
@@ -24727,7 +24815,7 @@
 
         line.id = line.id || uid();
         line.label = line.label || "";
-        line.value = line.value || "";
+        line.value = isUndefined(line.value) ? line.type == "checkbox" ? false : "" : line.value;
         this._idToLine[line.id] = i;
 
         this._map_options(data[i]);
@@ -24867,14 +24955,19 @@
             var render = this.on_render[data.type];
             var post = "<div class='webix_property_label' style='" + height + "width:" + this._settings.nameWidth + "px'>" + data.label + "</div><div class='webix_property_value' style='" + height + "width:" + this._data_width + "px'>";
             var content = void 0;
+            var value = data.value;
+            var options = data.collection || data.options;
 
-            if (data.collection || data.options) {
-              content = data.template(data, this.type, data.value, data);
+            if (options) {
+              if (data.format) {
+                var item = value ? options.getItem(value) : null;
+                content = data.format(item ? item.value : value);
+              } else content = data.template(data, this.type, value, data);
             } else if (data.format) {
-              content = data.format(data.value);
-            } else content = data.value;
+              content = data.format(value);
+            } else content = value;
 
-            if (render) content = render.call(this, data.value, data);
+            if (render) content = render.call(this, value, data);
             html[i] = pre + post + content + "</div></div>";
           }
         }
@@ -25344,7 +25437,7 @@
       "-2": {
         _isBlocked: function (i) {
           var config = this._settings,
-              date = config.date,
+              date = this.getSelectedDate(true) || config.date,
               isBlocked = false;
           var minHour = config.minTime ? config.minTime[0] : 0;
           var maxHour = config.maxTime ? config.maxTime[0] + (config.maxTime[1] ? 1 : 0) : 24;
@@ -25373,7 +25466,7 @@
       "-1": {
         _isBlocked: function (i) {
           var config = this._settings,
-              date = config.date;
+              date = this.getSelectedDate(true) || config.date;
           var minHour = config.minTime ? config.minTime[0] : 0;
           var maxHour = config.maxTime ? config.maxTime[0] + (config.maxTime[1] ? 1 : 0) : 24;
           if (i < minHour || i >= maxHour) return true;
@@ -25453,7 +25546,7 @@
           var date = this.getVisibleDate();
           date.setMonth(i);
 
-          var blocked = this._settings.blockDates && this._settings.blockDates.call(this, date);
+          var blocked = this._isDateBlocked(date, 1);
 
           var min = this._settings.minDate,
               max = this._settings.maxDate,
@@ -25478,6 +25571,17 @@
             date = wDate.copy(calendar._settings.minDate);
           } else if (date > calendar._settings.maxDate) {
             date = wDate.copy(calendar._settings.maxDate);
+          }
+
+          var blocked = calendar._isDateBlocked(date);
+
+          if (blocked) {
+            var d = wDate.copy(date);
+
+            while (blocked && d.getMonth() == date.getMonth()) {
+              blocked = calendar._isDateBlocked(d);
+              if (blocked) wDate.add(d, 1, "day");else date = d;
+            }
           }
 
           return date;
@@ -25518,7 +25622,7 @@
           var date = this.getVisibleDate();
           date.setFullYear(i);
 
-          var blocked = this._settings.blockDates && this._settings.blockDates.call(this, date);
+          var blocked = this._isDateBlocked(date, 2);
 
           var min = this._settings.minDate;
           var max = this._settings.maxDate;
@@ -25532,6 +25636,17 @@
             date = wDate.copy(calendar._settings.minDate);
           } else if (date > calendar._settings.maxDate) {
             date = wDate.copy(calendar._settings.maxDate);
+          }
+
+          var blocked = calendar._isDateBlocked(date);
+
+          if (blocked) {
+            var d = wDate.copy(date);
+
+            while (blocked && d.getFullYear() == date.getFullYear()) {
+              blocked = calendar._isDateBlocked(d);
+              if (blocked) wDate.add(d, 1, "day");else date = d;
+            }
           }
 
           return date;
@@ -25875,12 +25990,29 @@
       return date;
     },
     _checkDate: function (date) {
-      var blockedDate = this._settings.blockDates && this._settings.blockDates.call(this, date);
+      var blockedDate = this._isDateBlocked(date);
 
       var minDate = this._settings.minDate;
       var maxDate = this._settings.maxDate;
       var outOfRange = minDate && date < minDate || maxDate && date >= wDate.add(maxDate, 1, "day", true);
       return !blockedDate && !outOfRange;
+    },
+    _isDateBlocked: function (date, zoom) {
+      var blockDates = this._settings.blockDates;
+      var blocked = blockDates && blockDates.call(this, date);
+
+      if (blocked && zoom) {
+        var d = wDate.copy(date);
+        var method = zoom == 1 ? "getMonth" : "getFullYear";
+        d.setDate(1);
+
+        while (blocked && d[method]() == date[method]()) {
+          blocked = blockDates.call(this, d);
+          wDate.add(d, 1, "day");
+        }
+      }
+
+      return blocked;
     },
     _findActive: function (date, mode) {
       var dir = mode === "top" || mode === "left" || mode === "pgup" || mode === "up" ? -1 : 1;
@@ -27075,6 +27207,9 @@
     $render: function (config) {
       if (config.align === "right") this._dataobj.firstChild.style.textAlign = "right";
     },
+    getInputNode: function () {
+      return this._dataobj.firstChild;
+    },
     _set_inner_size: false,
     _set_default_css: function () {},
     _calc_size: function (config) {
@@ -27322,7 +27457,7 @@
         var node = this.getInputNode(); //attach onChange handler only for controls which do not manage blur on their own
         //for example - combo
 
-        if (!this.$onBlur) _event(node, "change", function () {
+        if (!this.$onBlur && node) _event(node, "change", function () {
           return _this._applyChanges("user");
         });
         if (c.suggest) $$(c.suggest).linkInput(this);
@@ -27481,6 +27616,9 @@
       if (message && (!config.bottomPadding || this._restorePadding)) {
         this._restorePadding = 1;
         config.bottomPadding = getTextSize(message, "webix_inp_bottom_label", this._get_input_width(config)).height;
+
+        this._setInputHeight();
+
         this.render();
         this.adjust();
         this.resize();
@@ -27510,18 +27648,20 @@
 
       if (base$1.api.$setSize.call(this, x, y)) {
         if (!x || !y) return;
+        if (config.labelPosition == "top") config.labelWidth = 0;else if (config.label) config.labelWidth = this._getLabelWidth(config.labelWidth, config.label, config.required);
 
-        if (config.labelPosition == "top") {
-          config.labelWidth = 0; // textarea
-
-          if (!config.inputHeight) this._inputHeight = this._content_height - (config.label ? this._labelTopHeight : 0) - (this.config.bottomPadding || 0);
-        } else {
-          if (config.label) config.labelWidth = this._getLabelWidth(config.labelWidth, config.label, config.required);
-          if (config.bottomPadding) config.inputHeight = this._content_height - this.config.bottomPadding;
-        }
+        this._setInputHeight();
 
         this.render();
       }
+    },
+    _setInputHeight: function () {
+      var config = this._settings;
+
+      if (config.labelPosition == "top") {
+        // textarea
+        if (!config.inputHeight) this._inputHeight = this._content_height - (config.label ? this._labelTopHeight : 0) - (config.bottomPadding || 0);
+      } else if (config.bottomPadding) config.inputHeight = this._content_height - this.config.bottomPadding;
     },
     _get_input_width: function (config) {
       var width = (this._input_width || 0) - (config.label ? config.labelWidth : 0) - this._inputSpacing - (config.iconWidth || 0); //prevent js error in IE
@@ -27895,8 +28035,6 @@
     _optionsTemplate: function (id) {
       var config = this._settings;
 
-      this._check_options(config.options);
-
       var options = this._filterOptions(config.options);
 
       var active = this._getFirstActive();
@@ -27939,6 +28077,8 @@
       if (this._last_size && this.$getSize(0, 0)[2] != this._last_size[1]) this.resize();
     },
     $getSize: function (dx, dy) {
+      this._check_options(this._settings.options);
+
       var size = button$1.api.$getSize.call(this, dx, dy);
 
       if (!this._settings.autoheight) {
@@ -27980,6 +28120,7 @@
         "radio_id");
         option = this.getOption(id);
         inp[i].checked = id == value;
+        inp[i].checked ? inp[i].setAttribute("checked", "1") : inp[i].removeAttribute("checked");
         focusable = option && !option.disabled && (inp[i].checked || !value && option.id == active);
         inp[i].setAttribute("tabindex", focusable ? "0" : "-1");
         parentNode = inp[i] ? inp[i].parentNode : null;
@@ -28135,7 +28276,7 @@
 
       if (typeof value == "string" && value) {
         var formatDate = null;
-        if ((type == "month" || type == "year") && this._formatDate) formatDate = this._formatDate;else formatDate = timeMode ? i18n.parseTimeFormatDate : i18n.parseFormatDate;
+        if (this._formatDate) formatDate = this._formatDate;else formatDate = timeMode ? i18n.parseTimeFormatDate : i18n.parseFormatDate;
         value = formatDate(value);
       }
 
@@ -28190,7 +28331,10 @@
     },
     format_setter: function (value) {
       if (value) {
-        if (typeof value === "function") this._formatStr = value;else {
+        if (_typeof(value) == "object") {
+          this._formatStr = typeof value.get == "string" ? wDate.dateToStr(value.get) : value.get;
+          this._formatDate = typeof value.set == "string" ? wDate.strToDate(value.set) : value.set;
+        } else {
           this._formatStr = wDate.dateToStr(value);
           this._formatDate = wDate.strToDate(value);
         }
@@ -28241,12 +28385,7 @@
 
       if (this._settings.stringResult) {
         var formatStr = i18n.parseFormatStr;
-        if (timeMode) formatStr = i18n.parseTimeFormatStr;
-
-        if (this._formatStr && (type == "month" || type == "year")) {
-          formatStr = this._formatStr;
-        }
-
+        if (this._formatStr) formatStr = this._formatStr;else if (timeMode) formatStr = i18n.parseTimeFormatStr;
         if (this._settings.multiselect) return [].concat(value).map(function (a) {
           return a ? formatStr(a) : "";
         });
@@ -28373,8 +28512,9 @@
     options_setter: function (value) {
       var _this = this;
 
+      if (this._settings.suggest) $$(this._settings.suggest).destructor();
       value = this._suggest_config ? this._suggest_config(value) : value;
-      var suggest = this._settings.popup = this._settings.suggest = text.api.suggest_setter.call(this, value);
+      var suggest = this._settings.popup = this._settings.options = this._settings.suggest = text.api.suggest_setter.call(this, value);
       var list = $$(suggest).getList();
       if (list) list.attachEvent("onAfterLoad", function () {
         return _this._reset_value();
@@ -28391,7 +28531,7 @@
 
       if (value) {
         // update value only for unchanged input
-        if (this.getInputNode() && this._settings.text === this.getText()) this.$setValue(value);
+        if (this.getInputNode() && (this._settings.text === this.getText() || isUndefined(this._settings.text))) this.$setValue(value);
         if (this.getPopup().isVisible()) this.getPopup()._show_selection();
       }
     },
@@ -28756,23 +28896,25 @@
       var _this3 = this;
 
       if (this._skipSizing) return this._skipSizing = false;
+      var c = this._settings;
       var txt = this.getInputNode();
 
       var height = this._getTextHeight(txt.value, txt.offsetWidth);
 
       var padding = 2 * $active.inputPadding + 2 * $active.borderWidth;
-      height = Math.max(height + padding, this._settings.minHeight);
+      var labelPadding = c.label && c.labelPosition == "top" ? this._labelTopHeight : 0;
+      height = Math.max(height + padding + labelPadding, c.minHeight);
 
-      if (height > this._settings.maxHeight) {
+      if (height > c.maxHeight) {
         removeCss(this.$view, "webix_noscroll");
-        height = this._settings.maxHeight;
+        height = c.maxHeight;
       } else addCss(this.$view, "webix_noscroll", true);
 
       var topView = this.getTopParentView();
       clearTimeout(topView._template_resize_timer);
       topView._template_resize_timer = delay(function () {
-        if (_this3.config.height != height) {
-          _this3.config.height = height;
+        if (c.height != height) {
+          c.height = height;
           var caretPos = txt.selectionEnd;
           _this3._skipSizing = true;
           var value = text.api.getValue.call(_this3);
@@ -29416,7 +29558,7 @@
           view: "popup",
           autofocus: false,
           width: 200
-        }, obj.tabbarPopup || {});
+        }, obj.tabbarPopup || {}, true);
         var body = exports.extend({
           view: "list",
           borderless: true,
@@ -29579,9 +29721,10 @@
       if (tab.css) className += " " + tab.css;
       if (config.tooltip) tooltip = " webix_t_id='" + tab.id + "'";
       width = tab.width || width;
-      html = "<div class=\"webix_item_tab" + className + "\" " +
+      html = "<div class=\"webix_item_tab".concat(className, "\" ") +
       /*@attr*/
-      "button_id=\"" + tab.id + "\" role=\"tab\" " + "aria-selected=\"" + (tab.id == config.value ? "true" : "false") + "\" tabindex=\"" + (!isDisabled && tab.id == config.value ? "0" : "-1") + "\" style=\"width:" + width + "px;\"" + (isDisabled ? " webix_disabled=\"true\"" : "") + tooltip + ">"; // a tab title
+      "button_id=\"".concat(tab.id, "\" role=\"tab\" ") + "aria-selected=\"".concat(tab.id == config.value ? "true" : "false", "\" tabindex=\"").concat(!isDisabled && tab.id == config.value ? "0" : "-1", "\"") + " style=\"width:".concat(width, "px;\" ").concat(isDisabled ? " webix_disabled=\"true\"" : "", " ").concat(tooltip, ">");
+      var closeIcon = tab.close || config.close; // a tab title
 
       if (this._tabTemplate) {
         var calcHeight = this._content_height - config.inputPadding * 2 - 2;
@@ -29592,11 +29735,12 @@
         }, tab);
         html += this._tabTemplate(temp);
       } else {
+        var closeCss = closeIcon ? "webix_item_tab_text_close" : "";
         var icon = tab.icon ? "<span class='webix_icon " + tab.icon + "'></span> " : "";
-        html += icon + tab.value;
+        html += "<div class=\"webix_item_tab_text ".concat(closeCss, "\">").concat(icon, " ").concat(tab.value, "</div>");
       }
 
-      if (!isDisabled && (tab.close || config.close)) html += "<span role='button' tabindex='0' aria-label='" + i18n.aria.closeTab + "' class='webix_tab_close webix_icon wxi-close'></span>";
+      if (!isDisabled && closeIcon) html += "<span role='button' tabindex='0' aria-label='" + i18n.aria.closeTab + "' class='webix_tab_close webix_icon wxi-close'></span>";
       html += "</div>";
       return html;
     },
@@ -29746,7 +29890,7 @@
       }
     },
     refresh: function () {
-      if (this._rendered_input) this.getInputNode().innerHTML = this._settings.value;
+      if (this._rendered_input) this.getInputNode().innerHTML = this._settings.value || "";
     },
     _execCommandOnElement: function (commandName) {
       var sel, selText;
@@ -29811,7 +29955,7 @@
     getValue: function () {
       var input = this.getInputNode();
       if (input) return input.innerHTML;
-      return this._settings.value;
+      return this._settings.value || "";
     }
   };
   var view$P = exports.protoUI(api$P, IdSpace, layout.view);
@@ -30803,6 +30947,8 @@
       return 0;
     },
     linkInput: function (input) {
+      var _this = this;
+
       var node;
 
       if (input.getInputNode) {
@@ -30811,12 +30957,9 @@
         input.attachEvent("onInputResize", bind(this._resetPosition, this));
       } else node = toNode(input);
 
-      _event(node, "keydown", function (e) {
-        if ((node != document.body || this.isVisible()) && (input.config ? !input.config.readonly : !node.getAttribute("readonly"))) this._suggestions(e, node);
-      }, {
-        bind: this
+      if (input != document.body) _event(node, "keydown", function (e) {
+        if (_this.isVisible() && (input.config ? !input.config.readonly : !node.getAttribute("readonly"))) _this._suggestions(e, node);
       });
-
       if (input._getInputDiv) node = input._getInputDiv();
       node.setAttribute("aria-autocomplete", "list");
       node.setAttribute("aria-expanded", "false");
@@ -30957,7 +31100,11 @@
           list.showItem(list.getFirstId());
         }
       } else if (list.setValue) {
-        if (this._settings.master) value = $$(this._settings.master).$prepareValue(value);
+        if (this._settings.master) {
+          var master = $$(this._settings.master);
+          if (master._formatStr) value = master._settings.value;else value = master.$prepareValue(value);
+        }
+
         list.setValue(value, "auto");
       }
     },
@@ -30982,7 +31129,8 @@
       }
       if (visible) this.hide();else if (this._show_on_key_press) this.show(this._last_input_target);
     },
-    _escape_key: function () {
+    _escape_key: function (e) {
+      if (this.isVisible()) e.hidesuggest = true;
       return this.hide();
     },
     _tab_key: function () {
@@ -35571,19 +35719,19 @@
       return t;
     },
     _get_tooltip_data: function (t, e) {
-      var id = this.locate(e);
-      if (!id) return null;
-
       var active = this._getActiveSeries(e);
 
+      var activeIndex = active ? active.index : 0;
       var def = exports.extend({
         dx: 20,
         dy: 0,
         template: "{obj.value}",
         css: ""
-      }, this._series[active].tooltip || {
+      }, this._series[activeIndex].tooltip || {
         template: ""
       }, true);
+      var id = active ? active.itemId : this.locate(e);
+      if (!id) return null;
 
       TooltipControl._tooltip.define(def);
 
@@ -35596,10 +35744,16 @@
           offset$$1 = offset(this._contentobj._htmlmap),
           pos$$1 = pos(e),
           x = pos$$1.x - offset$$1.x,
-          y = pos$$1.y - offset$$1.y;
+          y = pos$$1.y - offset$$1.y,
+          series = this._settings.legend ? this._settings.legend.values : null;
       var selection;
 
       for (var i = 0; i < areas.length; i++) {
+        if (series) {
+          var index$$1 = areas[i].index;
+          if (series[index$$1] && series[index$$1].$hidden) continue;
+        }
+
         var a = areas[i].points;
 
         if (x <= a[2] && x >= a[0] && y <= a[3] && y >= a[1]) {
@@ -35609,7 +35763,7 @@
         }
       }
 
-      return selection ? selection.index : 0;
+      return selection;
     },
     hideSeries: function (series) {
       this.canvases[series].hideCanvas();
@@ -38403,7 +38557,7 @@
           height = 0;
 
       for (var i = 0; i < c.length; i++) {
-        d.className = "webix_measure_size " + c[i].css;
+        d.className = "webix_view webix_measure_size " + c[i].css;
         d.style.width = c[i].width ? c[i].width + "px" : "auto";
         d.style.height = c[i].height ? c[i].height + "px" : "auto";
         d.innerHTML = c[i].text;
@@ -40523,6 +40677,8 @@
       }
     },
     _locate_cell_xy: function (x, y, isEndPoint) {
+      var handle = isEndPoint && this.$handleStart;
+      var dir = handle ? this._getHandleMoveDirection(x, y) : null;
       var inTopSplit = false,
           row = null,
           column = null;
@@ -40541,8 +40697,6 @@
       if (y < 0) y = 0;
       var cols = this._settings.columns;
       var rows = this.data.order;
-      var handle = isEndPoint && this.$handleStart;
-      var dir = handle ? this._getHandleMoveDirection(x, y) : null;
       var summ = 0;
       if (!handle || dir == "x") for (var i = 0; i < cols.length; i++) {
         summ += cols[i].width;
@@ -40723,13 +40877,19 @@
       this._rs_ready = false;
       var mode = false;
       var node = e.target;
-      var config = this._settings; //we can't use node.className because there can be SVG (in SVG it is an SVGAnimatedString object)
+      var config = this._settings;
+      var in_body, in_header;
 
-      var element_class = node.getAttribute("class") || ""; //ignore resize in case of drag-n-drop enabled
+      while (!(node == this._viewobj || in_body || in_header)) {
+        //we can't use node.className because there can be SVG (in SVG it is an SVGAnimatedString object)
+        var element_class = node.getAttribute("class") || "";
+        in_body = element_class.indexOf("webix_cell") != -1;
+        in_header = element_class.indexOf("webix_hcell") != -1;
+        if (!(in_body || in_header)) node = node.parentElement;
+      } //ignore resize in case of drag-n-drop enabled
 
-      var in_body = element_class.indexOf("webix_cell") != -1;
+
       if (in_body && config.drag) return this._mark_resize(mode);
-      var in_header = element_class.indexOf("webix_hcell") != -1;
 
       if (in_body || in_header) {
         var _pos = posRelative(e);
@@ -41111,11 +41271,13 @@
         container.appendChild(d);
       }
 
+      var spanHeightMap = this._spans_pull ? this._calcSpanAutoHeight(id, d) : null;
       this.data.each(function (obj) {
         var height;
-        d.innerHTML = this._getValue(obj, config, 0);
-        var spans = this._spans_pull;
-        if (spans && spans[obj.id] && spans[obj.id][id]) height = this._calcSpanAutoHeight(obj.id, id, d);else height = d.scrollHeight;
+        if (spanHeightMap && spanHeightMap[obj.id]) height = spanHeightMap[obj.id];else {
+          d.innerHTML = this._getValue(obj, config, 0);
+          height = d.scrollHeight;
+        }
         height = Math.max(height, this._settings.rowHeight, this._settings.minRowHeight || 0);
         height = Math.min(height, this._settings.maxRowHeight || 100000);
         obj.$height = first ? height : Math.max(height, obj.$height);
@@ -41486,7 +41648,14 @@
 
       this._addEditor(id, type);
 
-      if (type.getPopup) type.getPopup()._editorMaster = this._settings.id;
+      if (type.getPopup) {
+        var popup = type.getPopup();
+        popup.attachEvent("onHide", function () {
+          if (this._edit_active) this.show();
+        });
+        popup._editorMaster = this._settings.id;
+      }
+
       if (!type.$inline) type._editor_pos = this._sizeToCell(id, node, true);
       if (type.afterRender) type.afterRender();
 
@@ -42198,12 +42367,26 @@
       }
     },
     refreshColumns: function (columns) {
+      var _this = this;
+
+      var columnsUpdated = this.config.columns !== this._columns || columns;
       this._dtable_column_refresh = true;
 
-      if (columns) {
+      if (columnsUpdated) {
+        if (this._destroy_with_me.length) {
+          this._destroy_with_me = this._destroy_with_me.filter(function (view) {
+            // remove filters/collections from the previous column config, don't touch other views
+            if (view.config.id === _this._settings.headermenu || _this._subViewStorage && _this._subViewStorage[view.config.id]) return true;
+            view.destructor();
+            return false;
+          });
+        }
+
         this._clear_hidden_state();
 
+        this._active_headers = {};
         this._filter_elements = {};
+        this._collection_handlers = {};
       }
 
       this._columns_pull = {}; //clear rendered data
@@ -42229,7 +42412,9 @@
       this._update_scroll();
 
       this.callEvent("onStructureUpdate");
-      this.render();
+      this.render(); // apply new filters in case the columns were updated
+
+      if (columnsUpdated) this.filterByAll();
       this._dtable_column_refresh = false;
     },
     _refresh_columns: function () {
@@ -42961,11 +43146,6 @@
               header.colspan = colspan;
             }
 
-            if (header.rowspan) {
-              header.height = (header.height || _this.config.headerRowHeight) * header.rowspan;
-              header.rowspan = null;
-            }
-
             var hcell = {
               txt: header.rotate ? _this.getHeaderNode(column.id, h).innerHTML : header.text || (header.contentId ? _this.getHeaderContent(header.contentId).getValue() : ""),
               className: "webix_hcell " + "webix_" + group + "_cell " + (header.css || ""),
@@ -42980,6 +43160,24 @@
             };
             headerArray[h] = headerArray[h] || [];
             headerArray[h][cid] = hcell;
+          }
+        });
+        headerArray.forEach(function (row) {
+          var headers = row.filter(function (v) {
+            return v;
+          });
+          var rowspan = headers[0] && headers[0].span && headers[0].span.rowspan;
+
+          if (rowspan) {
+            var rowSpanHeaders = headers.filter(function (v) {
+              return v.span && v.span.rowspan && v.span.rowspan == rowspan;
+            });
+            var sameRowSpans = rowSpanHeaders.length == headers.length;
+            if (sameRowSpans) row = row.map(function (header) {
+              header.style.height = header.style.height.replace("px", "") * rowspan + "px";
+              header.span.rowspan = 1;
+              return header;
+            });
           }
         });
         if (group == "header") base[tid] = headerArray.concat(tableArray);else base[tid] = tableArray.concat(headerArray);
@@ -43080,6 +43278,7 @@
 
               var txt = _this2.getText(row, column);
 
+              if (txt === 0) txt += "";
               var className = _this2.getCss(row, column) + " " + (columns[c].css || "") + (_span ? " webix_dtable_span " + _span.css : "");
               var style = {
                 height: _span && _span.rowspan > 1 ? "auto" : (rowItem.$height || _this2.config.rowHeight) + "px",
@@ -43092,7 +43291,7 @@
                 span: _span
               });
 
-              if (txt || txt === 0) {
+              if (txt) {
                 rightRestriction = Math.max(colIndex + 1, rightRestriction);
                 bottomRestriction = Math.max(rowIndex + 1, bottomRestriction);
               }

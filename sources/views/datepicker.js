@@ -111,7 +111,7 @@ const api = {
 
 		if (typeof value == "string" && value){
 			let formatDate = null;
-			if ((type == "month" || type == "year") && this._formatDate)
+			if (this._formatDate)
 				formatDate = this._formatDate;
 			else
 				formatDate = (timeMode ? i18n.parseTimeFormatDate : i18n.parseFormatDate);
@@ -175,8 +175,10 @@ const api = {
 	},
 	format_setter:function(value){
 		if(value){
-			if (typeof value === "function")
-				this._formatStr = value;
+			if (typeof value == "object"){
+				this._formatStr = typeof value.get == "string" ? wDate.dateToStr(value.get) : value.get;
+				this._formatDate = typeof value.set == "string" ? wDate.strToDate(value.set) : value.set;
+			}
 			else {
 				this._formatStr = wDate.dateToStr(value);
 				this._formatDate = wDate.strToDate(value);
@@ -239,11 +241,10 @@ const api = {
 		//return string from getValue
 		if(this._settings.stringResult){
 			let formatStr = i18n.parseFormatStr;
-			if(timeMode)
-				formatStr = i18n.parseTimeFormatStr;
-			if(this._formatStr && (type == "month" || type == "year")){
+			if(this._formatStr)
 				formatStr = this._formatStr;
-			}
+			else if(timeMode)
+				formatStr = i18n.parseTimeFormatStr;
 
 			if(this._settings.multiselect)
 				return [].concat(value).map(a => a ? formatStr(a) : "");

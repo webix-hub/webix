@@ -33,6 +33,9 @@ const api = {
 		if (config.align === "right")
 			this._dataobj.firstChild.style.textAlign = "right";
 	},
+	getInputNode() {
+		return this._dataobj.firstChild;
+	},
 	_set_inner_size:false,
 	_set_default_css:function(){},
 	_calc_size:function(config){

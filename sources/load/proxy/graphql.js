@@ -1,4 +1,5 @@
-import {ajax} from "../ajax";
+import { ajax } from "../ajax";
+import promise from "../../thirdparty/promiz";
 
 function unbox(data){
 	if (!data || !typeof data === "object" || Array.isArray(data))
@@ -16,23 +17,40 @@ function unbox(data){
 }
 
 const GraphQL = {
-	$proxy:true,
+	$proxy: true,
+	ignoreErrors: true,
 	save:function(data){
 		return this.load(data);
 	},
 	load:function(view){
-		var params = {
+		const params = {
 			query: this.source
 		};
-		if (arguments.length === 1){
-			params.variables = view;
-		}
+		const isView = arguments.length > 1;
+		let xhr;
+		
+		if (!isView) params.variables = view;
 
 		return ajax()
 			.headers({ "Content-type": "application/json" })
-			.post(this.url, params)
-			.then(function(data){
-				return unbox(data.json().data);
+			.post(this.url, params, (...args) => {
+				xhr = args[2];
+			})
+			.then(data => {
+				const res = data.json();
+				const { data: resData, errors } = res;
+
+				if (errors && !GraphQL.ignoreErrors) {
+					if (isView) {
+						return promise.reject(xhr);
+					} else {
+						// promise rejection for external callers
+						// the error must be handled via fail/catch in such cases
+						return promise.reject({ xhr, errors });
+					}
+				}
+
+				return unbox(resData);
 			});
 	}
 };

@@ -256,10 +256,11 @@ const api = {
 		} else
 			node = toNode(input);
 
-		_event(node,"keydown",function(e){
-			if ((node != document.body || this.isVisible()) && (input.config ? (!input.config.readonly) : (!node.getAttribute("readonly"))))
-				this._suggestions(e, node);
-		}, {bind:this});
+		if(input != document.body)
+			_event(node,"keydown",e => {
+				if (this.isVisible() && (input.config ? (!input.config.readonly) : (!node.getAttribute("readonly"))))
+					this._suggestions(e, node);
+			});
 		
 		if(input._getInputDiv)
 			node = input._getInputDiv();
@@ -431,8 +432,13 @@ const api = {
 			}
 		}
 		else if (list.setValue){
-			if (this._settings.master)
-				value = $$(this._settings.master).$prepareValue(value);
+			if (this._settings.master){
+				const master = $$(this._settings.master);
+				if(master._formatStr)
+					value = master._settings.value;
+				else
+					value = master.$prepareValue(value);
+			}
 			list.setValue(value, "auto");
 		}
 	},
@@ -469,7 +475,9 @@ const api = {
 		else if (this._show_on_key_press)
 			this.show(this._last_input_target);
 	},
-	_escape_key:function(){
+	_escape_key:function(e){
+		if(this.isVisible())
+			e.hidesuggest = true;
 		return this.hide();
 	},
 	_tab_key:function(){

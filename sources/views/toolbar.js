@@ -1,4 +1,4 @@
-import {protoUI} from "../ui/core";
+import {protoUI, ui} from "../ui/core";
 
 import {_each} from "../ui/helpers";
 import {extend} from "../webix/helpers";
@@ -30,7 +30,7 @@ const api = {
 		this._viewobj.setAttribute("role", "toolbar");
 	},
 	_recollect_elements:function(){
-		var form = this;
+		const form = this;
 		form.elements = {};
 		_each(this, function(view){
 			if (view._settings.name && view.getValue && view.setValue){
@@ -46,12 +46,12 @@ const api = {
 
 			if (view.setValues || view._fill_data) return false;
 		});
-		var old = this._values;
+		const old = this._values;
 		this.setDirty(false);
 		if (old) {
 			//restore dirty state after form reconstructing
-			var now = this._values;
-			for (var key in form.elements) 
+			const now = this._values;
+			for (let key in form.elements) 
 				if (old[key] && now[key] != old[key]){
 					now[key] = old[key];
 					this.setDirty(true);
@@ -62,7 +62,7 @@ const api = {
 		this._recollect_elements();
 	},
 	_parse_cells_ext:function(collection){
-		var config = this._settings;
+		const config = this._settings;
 		if (config.elements && !collection){
 			this._collection = collection = config.elements;
 			this._vertical_orientation = this._form_vertical;
@@ -75,15 +75,22 @@ const api = {
 		return collection;
 	},
 	_rec_apply_settings:function(col, settings){
-		for (var i=0; i<col.length; i++){
-			var element = col[i];
-			extend( element, settings );
-			var nextsettings = settings;
+		for (let i=0; i<col.length; i++){
+			const element = col[i];
+
+			if(element.view){
+				const view =  ui[element.view];
+				const prototype = view.prototype;
+				if((Object.keys(prototype).length && prototype.getValue && prototype.setValue) || (view.$protoWait && this._waiting_control(view.$protoWait)))
+					extend(element, settings);
+			}
+
+			let nextsettings = settings;
 
 			if (element.elementsConfig)
 				nextsettings = extend(extend({}, element.elementsConfig), settings);
 
-			var sub;
+			let sub;
 			if (element.body)
 				sub = [element.body];
 			else
@@ -93,10 +100,26 @@ const api = {
 				this._rec_apply_settings(sub, nextsettings);
 		}
 	},
+	_waiting_control(waitFor, check){
+		check = check || {};
+		for (let i = 0; i < waitFor.length; i++) {
+			if(waitFor[i].$protoWait)
+				this._waiting_control(waitFor[i].$protoWait, check);
+			else{
+				if(waitFor[i].getValue)
+					check.getValue = true;
+				if (waitFor[i].setValue)
+					check.setValue = true;
+			}
+			if(check.setValue && check.getValue)
+				return true;
+		}
+		return false;
+	},
 	$getSize:function(dx, dy){
-		var sizes = layout.api.$getSize.call(this, dx, dy);
-		var parent = this.getParentView();
-		var index = this._vertical_orientation?3:1;
+		const sizes = layout.api.$getSize.call(this, dx, dy);
+		const parent = this.getParentView();
+		const index = this._vertical_orientation?3:1;
 		if (parent && this._vertical_orientation != parent._vertical_orientation)
 			sizes[index]+=100000;
 		

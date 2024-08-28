@@ -95,16 +95,24 @@ const Mixin = {
 		this._rs_ready = false;
 
 		let mode = false;
-		const node = e.target;
+		let node = e.target;
 		const config = this._settings;
-		//we can't use node.className because there can be SVG (in SVG it is an SVGAnimatedString object)
-		const element_class = node.getAttribute("class")||"";
+
+		let in_body, in_header;
+		while (!(node == this._viewobj || in_body || in_header)){
+			//we can't use node.className because there can be SVG (in SVG it is an SVGAnimatedString object)
+			const element_class = node.getAttribute("class")||"";
+			in_body = element_class.indexOf("webix_cell") != -1;
+			in_header = element_class.indexOf("webix_hcell") != -1;
+
+			if(!(in_body || in_header))
+				node = node.parentElement;
+		}
 
 		//ignore resize in case of drag-n-drop enabled
-		const in_body = element_class.indexOf("webix_cell") != -1;
 		if (in_body && config.drag) return this._mark_resize(mode);
 
-		const in_header = element_class.indexOf("webix_hcell") != -1;
+		
 		if (in_body || in_header){
 			const pos = posRelative(e);
 			const cell = this._locate(node);

@@ -239,7 +239,7 @@ const api = {
 
 		let width = 0, height = 0;
 		for (let i=0; i<c.length; i++){
-			d.className = "webix_measure_size "+c[i].css;
+			d.className = "webix_view webix_measure_size "+c[i].css;
 			d.style.width = c[i].width?c[i].width+"px":"auto";
 			d.style.height = c[i].height?c[i].height+"px":"auto";
 			d.innerHTML = c[i].text;

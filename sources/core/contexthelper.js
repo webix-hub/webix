@@ -52,7 +52,7 @@ const ContextHelper = {
 		if (result === false) return result;
 
 		// ignore contexmenu clicks for the popup or its body
-		const view = $$(e);
+		const view = $$(e.currentTarget);
 		if (view){
 			const top = view.queryView(a => !a.getParentView(), "parent") || view;
 			if (top._ignore_clicks) top._ignore_clicks(e);

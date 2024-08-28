@@ -21,7 +21,7 @@ const api = {
 			const node = this.getInputNode();
 			//attach onChange handler only for controls which do not manage blur on their own
 			//for example - combo
-			if (!this.$onBlur)
+			if (!this.$onBlur && node)
 				_event(node, "change", () => this._applyChanges("user"));
 			if (c.suggest)
 				$$(c.suggest).linkInput(this);
@@ -189,7 +189,7 @@ const api = {
 		if (message && (!config.bottomPadding || this._restorePadding)){
 			this._restorePadding = 1;
 			config.bottomPadding = getTextSize(message, "webix_inp_bottom_label", this._get_input_width(config)).height;
-
+			this._setInputHeight();
 			this.render();
 			this.adjust();
 			this.resize();
@@ -220,19 +220,22 @@ const api = {
 		if(base.api.$setSize.call(this,x,y)){
 			if (!x || !y) return;
 
-			if (config.labelPosition == "top"){
+			if (config.labelPosition == "top")
 				config.labelWidth = 0;
-				// textarea
-				if (!config.inputHeight)
-					this._inputHeight = this._content_height - (config.label?this._labelTopHeight:0) - (this.config.bottomPadding||0);
-			} else {
-				if(config.label)
-					config.labelWidth = this._getLabelWidth(config.labelWidth, config.label, config.required);
-				if (config.bottomPadding)
-					config.inputHeight = this._content_height - this.config.bottomPadding;
-			}
+			else if(config.label)
+				config.labelWidth = this._getLabelWidth(config.labelWidth, config.label, config.required);
+			this._setInputHeight();
 			this.render();
 		}
+	},
+	_setInputHeight: function(){
+		const config = this._settings;
+		if (config.labelPosition == "top") {
+			// textarea
+			if (!config.inputHeight)
+				this._inputHeight = this._content_height - (config.label ? this._labelTopHeight : 0) - (config.bottomPadding || 0);
+		} else if (config.bottomPadding)
+			config.inputHeight = this._content_height - this.config.bottomPadding;
 	},
 	_get_input_width: function(config){
 		const width = (this._input_width||0) - (config.label?config.labelWidth:0) - this._inputSpacing - (config.iconWidth || 0);

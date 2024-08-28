@@ -35,7 +35,7 @@ const wDate = {
 	dayStart:function(date){
 		return this.datePart(date, true);
 	},
-	dateToStr:function(format,utc){
+	dateToStr:function(format,utc,timezone){
 		if (typeof format == "function") return format;
 
 		if(env.strict){
@@ -78,6 +78,22 @@ const wDate = {
 							str += wDate.toFixed(date.getHours());
 							str += ":"+wDate.toFixed(date.getMinutes());
 							str += ":"+wDate.toFixed(date.getSeconds());
+							if(timezone){
+								let offset = new Date().getTimezoneOffset();
+
+								if(!offset)
+									str += "Z";
+								else {
+									const sign = offset < 0 ? "+" : "-";
+									offset = Math.abs(offset);
+									const hours = Math.floor(offset/60);
+									const minutes = offset%60;
+
+									str += sign + (hours < 10 ? "0" : "") + hours + ":" + (minutes < 10 ? "0" : "") + minutes;
+								}
+							}
+							else if(utc)
+								str += "Z";
 							return str;
 						}
 						return s;
@@ -121,7 +137,21 @@ const wDate = {
 					str += "\"+wDate.toFixed(date.getHours())+\"";
 					str += ":\"+wDate.toFixed(date.getMinutes())+\"";
 					str += ":\"+wDate.toFixed(date.getSeconds())+\"";
-					if(utc === true)
+					if(timezone){
+						let offset = new Date().getTimezoneOffset();
+
+						if(!offset)
+							str += "Z";
+						else {
+							const sign = offset < 0 ? "+" : "-";
+							offset = Math.abs(offset);
+							const hours = Math.floor(offset/60);
+							const minutes = offset%60;
+
+							str += sign + (hours < 10 ? "0" : "") + hours + ":" + (minutes < 10 ? "0" : "") + minutes;
+						}
+					}
+					else if(utc)
 						str += "Z";
 					return str;
 
@@ -132,7 +162,7 @@ const wDate = {
 		const temp = new Function("date", "i18n", "wDate", "if (!date) return ''; if (!date.getMonth) date=i18n.parseFormatDate(date);  return \""+format+"\";");
 		return function(v){ return temp(v, i18n, wDate); };
 	},
-	strToDate:function(format,utc){
+	strToDate:function(format,utc,timezone){
 		if (typeof format == "function") return format;
 
 		var mask=format.match(/%[a-zA-Z]/g);
@@ -189,14 +219,22 @@ const wDate = {
 					else if( a ==  "%S")
 						set[6]=temp[i]||0;
 					else if( a ==  "%c"){
-						var reg = /(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(\+.*|)/g;
-						var res = reg.exec(date);
-						set[0]= (res[1]||0)*1; if (set[0]<30) set[0]+=2000;
+						const reg = /(\d{4})-?(\d{2})?-?(\d{2})?T?(\d{2})?:?(\d{2})?:?(\d{2})?[,|.]?(\d{3})?(Z|\+|-)?(\d{2})?:?(\d{2})?/;
+						const res = reg.exec(date);
+						set[0]= (res[1]||0)*1;
 						set[1]= (res[2]||1)-1;
-						set[2]= res[3]||1;
-						set[3]= res[4]||0;
-						set[4]= res[5]||0;
-						set[5]= res[6]||0;
+						set[2]= (res[3]||1)*1;
+						set[3]= (res[4]||0)*1;
+						set[4]= (res[5]||0)*1;
+						set[5]= (res[6]||0)*1;
+						set[6]= (res[7]||0)*1;
+
+						if(timezone && res[8] && res[8] != "Z"){
+							const sign = res[8] == "-" ? -1 : 1;
+							const tzDifference = sign * ((res[9]||0)*60 + (res[10]||0)*1);
+							if(tzDifference)
+								set[4] += tzDifference + new Date().getTimezoneOffset();
+						}
 					}
 				}
 				if(utc)
@@ -241,15 +279,23 @@ const wDate = {
 				case "%F":  splt+="set[1]=i18n.calendar.monthFull_hash[temp["+i+"]]||0;";
 					break;
 				case "%c":
-					splt+= "var res = date.split('T');";
-					splt+= "if(res[0]){ var d = res[0].split('-');";
-					splt+= "set[0]= (d[0]||0)*1; if (set[0]<30) set[0]+=2000;";
-					splt+= "set[1]= (d[1]||1)-1;";
-					splt+= "set[2]= d[2]||1;}";
-					splt+= "if(res[1]){ var t = res[1].split(':');";
-					splt+= "set[3]= t[0]||0;";
-					splt+= "set[4]= t[1]||0;";
-					splt+= "set[5]= parseInt(t[2])||0;}";
+					splt+= `
+						const reg = /(\\d{4})-?(\\d{2})?-?(\\d{2})?T?(\\d{2})?:?(\\d{2})?:?(\\d{2})?[,|.]?(\\d{3})?(Z|\\+|-)?(\\d{2})?:?(\\d{2})?/;
+						const res = reg.exec(date);
+						set[0]= (res[1]||0)*1;
+						set[1]= (res[2]||1)-1;
+						set[2]= (res[3]||1)*1;
+						set[3]= (res[4]||0)*1;
+						set[4]= (res[5]||0)*1;
+						set[5]= (res[6]||0)*1;
+						set[6]= (res[7]||0)*1;
+
+						if(${timezone} && res[8] && res[8] != "Z"){
+							const sign = res[8] == "-" ? -1 : 1;
+							const tzDifference = sign * ((res[9]||0)*60 + (res[10]||0)*1);
+							if(tzDifference)
+								set[4] += tzDifference + new Date().getTimezoneOffset();
+						}`;
 					break;
 				default:
 					break;
