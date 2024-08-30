@@ -139,10 +139,8 @@ function getExcelData(data, scheme, spans, styles, options) {
 			}
 
 			// set type based on cell's value
-			if(options.stubCells && stringValue === ""){
+			if(options.stubCells && stringValue === "")
 				cell.t = "z";
-				delete cell.v;
-			}
 			else if(cell.v instanceof Date){
 				cell.t = cell.t || "n";
 				cell.z = cell.z || XLSX.SSF[table][14];

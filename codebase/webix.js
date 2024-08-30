@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.10.3.0
+ * webix UI v.10.3.1
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -17628,7 +17628,7 @@
     }
   };
 
-  var version = "10.3.0";
+  var version = "10.3.1";
   var name = "core";
 
   var errorMessage = "non-existing view for export";
@@ -18562,10 +18562,7 @@
         } // set type based on cell's value
 
 
-        if (options.stubCells && stringValue === "") {
-          cell.t = "z";
-          delete cell.v;
-        } else if (cell.v instanceof Date) {
+        if (options.stubCells && stringValue === "") cell.t = "z";else if (cell.v instanceof Date) {
           cell.t = cell.t || "n";
           cell.z = cell.z || XLSX.SSF[table][14];
           cell.v = excelDate(cell.v);
@@ -18579,7 +18576,6 @@
             cell.t = "s";
           }
         }
-
         ws[cell_ref] = cell;
       }
     }
@@ -30958,7 +30954,7 @@
       } else node = toNode(input);
 
       if (input != document.body) _event(node, "keydown", function (e) {
-        if (_this.isVisible() && (input.config ? !input.config.readonly : !node.getAttribute("readonly"))) _this._suggestions(e, node);
+        if (input.config ? !input.config.readonly : !node.getAttribute("readonly")) _this._suggestions(e, node);
       });
       if (input._getInputDiv) node = input._getInputDiv();
       node.setAttribute("aria-autocomplete", "list");

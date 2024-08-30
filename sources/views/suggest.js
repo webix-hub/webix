@@ -258,7 +258,7 @@ const api = {
 
 		if(input != document.body)
 			_event(node,"keydown",e => {
-				if (this.isVisible() && (input.config ? (!input.config.readonly) : (!node.getAttribute("readonly"))))
+				if (input.config ? (!input.config.readonly) : (!node.getAttribute("readonly")))
 					this._suggestions(e, node);
 			});
 		
