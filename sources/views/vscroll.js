@@ -7,7 +7,6 @@ import {toNode, delay} from "../webix/helpers";
 import {_event} from "../webix/htmlevents";
 import {$active} from "../webix/skin";
 
-
 const api = {
 	name:"vscroll",
 	$apiOnly:true,
@@ -59,11 +58,8 @@ const api = {
 	sizeTo:function(value, top, bottom){
 		value = value-(top||0)-(bottom||0);
 
-		var width = this._settings.scrollSize;
-		if (!width && this._settings.scrollVisible && !env.$customScroll){
-			this._viewobj.style.pointerEvents = "none";
-			width = 14;
-		}
+		let width = this._settings.scrollSize;
+		if (!width && this._settings.scrollVisible && !env.$customScroll) width = 14;
 
 		if (!width){
 			this._viewobj.style.display = "none";
@@ -149,7 +145,25 @@ const api = {
 	},
 	activeArea:function(area, x_mode){
 		this._x_scroll_mode = x_mode;
-		_event(area, "wheel", this._on_wheel, {bind:this, passive:false});
+
+		_event(area, "wheel", this._on_wheel, { bind: this, passive: false });
+		// workaround: show dynamic scrollbars when hovering over the active area
+		let throttled;
+		const mousemoveEvent = new MouseEvent("mousemove", {
+			bubbles: true,
+			passive: false,
+			view: window,
+		});
+		_event(area, "mousemove", () => {
+			if (env.scrollSize === 0 && !env.$customScroll) {
+				if (throttled) return;
+				else {
+					this._viewobj.dispatchEvent(mousemoveEvent);
+					throttled = true;	
+				}
+				setTimeout(() => throttled = false, 500);
+			}
+		}, { passive: false });
 	},
 	_on_wheel:function(e){
 		if (e.ctrlKey) return false;

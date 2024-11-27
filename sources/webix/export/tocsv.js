@@ -6,36 +6,35 @@ import promise from "../../thirdparty/promiz";
 import {download} from "../../webix/html";
 import {$$} from "../../ui/core";
 import {assert} from "../../webix/debug";
-import {extend} from "../../webix/helpers";
+import {extend, isArray} from "../../webix/helpers";
 
 export const toCSV = function(id, options){
 	options = options || {};
+	options.export_mode = "csv";
 
 	let view = $$(id);
+	let result;
+
 	if (view && view.$exportView)
-		view = view.$exportView(options);
+		view = result = view.$exportView(options);
+
 	assert(view, errorMessage);
 	if(!view) return promise.reject(errorMessage);
 
-	options.export_mode = "csv";
+	//$exportView returns array
+	if(!isArray(view)){
+		extend(options, {
+			filterHTML: true
+		});
+		result = getExportData(view, options, getExportScheme(view, options));
+	}
 
-	extend(options, {
-		filterHTML: true
-	});
+	if(options.dataOnly)
+		return result;
 
-	const scheme = getExportScheme(view, options);
-	const result = getExportData(view, options, scheme);
-
-	const data = getCsvData(result, scheme);
-	const filename = getFileName(options.filename, "csv");
-
-	const blob = new Blob(["\uFEFF" + data], { type: "text/csv" });
+	const blob = new Blob(["\uFEFF" + csv.stringify(result)], { type: "text/csv" });
 	if(options.download !== false)
-		download(blob, filename);
+		download(blob, getFileName(options.filename, "csv"));
 
 	return promise.resolve(blob);
 };
-
-function getCsvData(data) {
-	return csv.stringify(data);
-}

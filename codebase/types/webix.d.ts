@@ -1,4 +1,4 @@
-// Type definitions for Webix UI 10.2
+// Type definitions for Webix UI 11.0
 // Project: https://webix.com
 
 type obj = { [key: string]: any };
@@ -522,13 +522,14 @@ type WebixDatatableHideColumnConfig = {
 	spans?: boolean;
 }
 type WebixDatatableCellPos = {
-	row: number;
+	row: string | number;
 	column: string | number;
 	rind: number;
 	cind: number;
 	span: number;
 }
-type WebixDataProcessorFullConfig	= {
+type WebixDatatableItemPos = Omit<Partial<WebixDatatableCellPos>, "span">;
+type WebixDataProcessorFullConfig = {
 	id?: string | number;
 	master?: string | webix.ui.baseview;
 } & WebixDataProcessorConfig
@@ -4245,6 +4246,9 @@ interface chatConfig{
 	reactions?: boolean;
 	search?: string;
 	token?: string;
+	typingDelay?: number;
+	typingLoadedDelay?: number;
+	typingMode?: boolean;
 	url?: string;
 	userId?: number;
 	voiceMessages?: boolean;
@@ -5132,7 +5136,7 @@ interface contextmenuConfig{
 	yCount?: number;
 	zIndex?: number;
 }
-type contextmenuEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeShow'|'onBeforeSort'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onHide'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMenuItemClick'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onSelectChange'|'onShow'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewMove'|'onViewMoveEnd'|'onViewResize'|'onViewShow';
+type contextmenuEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeShow'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onHide'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMenuItemClick'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onSelectChange'|'onShow'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewMove'|'onViewMoveEnd'|'onViewResize'|'onViewShow';
 export class contextmenu implements webix.ui.baseview{
 	add(obj:obj, index?:number):string|number;
 	addCss(id:string|number, css:string, silent?:boolean):void;
@@ -5765,7 +5769,7 @@ interface datatableConfig{
 	width?: number;
 	yCount?: number;
 }
-type datatableEventName ='onAfterAdd'|'onAfterAreaAdd'|'onAfterAreaRemove'|'onAfterBlockSelect'|'onAfterColumnDrop'|'onAfterColumnDropOrder'|'onAfterColumnHide'|'onAfterColumnShow'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterEditStart'|'onAfterEditStop'|'onAfterFilter'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onAreaDrag'|'onBeforeAdd'|'onBeforeAreaAdd'|'onBeforeAreaRemove'|'onBeforeBlockSelect'|'onBeforeColumnDrag'|'onBeforeColumnDrop'|'onBeforeColumnDropOrder'|'onBeforeColumnHide'|'onBeforeColumnShow'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeEditStart'|'onBeforeEditStop'|'onBeforeFilter'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onCheck'|'onCollectValues'|'onColumnGroupCollapse'|'onColumnResize'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEditorChange'|'onEnter'|'onFocus'|'onHeaderClick'|'onItemClick'|'onItemDblClick'|'onItemSingleClick'|'onKeyPress'|'onLiveEdit'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onResize'|'onRowResize'|'onScrollX'|'onScrollY'|'onSelectChange'|'onStructureLoad'|'onStructureUpdate'|'onSubViewClose'|'onSubViewCreate'|'onSubViewOpen'|'onSubViewRender'|'onSwipeX'|'onSwipeY'|'onSyncScroll'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
+type datatableEventName ='onAfterAdd'|'onAfterAreaAdd'|'onAfterAreaRemove'|'onAfterBlockSelect'|'onAfterColumnDrop'|'onAfterColumnDropOrder'|'onAfterColumnHide'|'onAfterColumnShow'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterEditStart'|'onAfterEditStop'|'onAfterFilter'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onAreaDrag'|'onBeforeAdd'|'onBeforeAreaAdd'|'onBeforeAreaRemove'|'onBeforeBlockSelect'|'onBeforeColumnDrag'|'onBeforeColumnDrop'|'onBeforeColumnDropOrder'|'onBeforeColumnHide'|'onBeforeColumnShow'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeEditStart'|'onBeforeEditStop'|'onBeforeFilter'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onCheck'|'onCollectValues'|'onColumnGroupCollapse'|'onColumnResize'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEditorChange'|'onEnter'|'onFocus'|'onHeaderClick'|'onItemClick'|'onItemDblClick'|'onItemSingleClick'|'onKeyPress'|'onLiveEdit'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onMoveSelection'|'onPaste'|'onResize'|'onRowResize'|'onScrollX'|'onScrollY'|'onSelectChange'|'onStructureLoad'|'onStructureUpdate'|'onSubViewClose'|'onSubViewCreate'|'onSubViewOpen'|'onSubViewRender'|'onSwipeX'|'onSwipeY'|'onSyncScroll'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
 export class datatable implements webix.ui.baseview{
 	add(obj:obj, index?:number):string|number;
 	addCellCss(id:string, name:string, css:string, silent:boolean):void;
@@ -5827,7 +5831,7 @@ export class datatable implements webix.ui.baseview{
 	getIdByIndex(index:number|string):string|number;
 	getIndexById(id:number|string):number;
 	getItem(id:number|string):obj;
-	getItemNode(id:string|number):HTMLElement;
+	getItemNode(id:string|number|WebixDatatableItemPos):HTMLElement;
 	getLastId():number|string;
 	getNextId(id:number|string, step?:number):string|number;
 	getNode():HTMLElement;
@@ -6004,7 +6008,7 @@ interface dataviewConfig{
 	xCount?: number;
 	yCount?: number;
 }
-type dataviewEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
+type dataviewEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
 export class dataview implements webix.ui.baseview{
 	add(obj:obj, index?:number):string|number;
 	addCss(id:string|number, css:string, silent?:boolean):void;
@@ -6426,7 +6430,7 @@ interface datepickerConfig{
 	css?: string|obj;
 	disabled?: boolean;
 	editable?: boolean;
-	format?: string|WebixCallback;
+	format?: string|obj;
 	gravity?: number;
 	height?: number;
 	hidden?: boolean;
@@ -6739,7 +6743,7 @@ interface diagramConfig{
 	width?: number;
 	zoom?: number;
 }
-type diagramEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBindRequest'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onLoadError'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onSelectChange'|'onViewShow';
+type diagramEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onLoadError'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onSelectChange'|'onViewShow';
 export class diagram implements webix.ui.baseview{
 	add(obj:obj, index?:number):string|number;
 	addCss(id:string|number, css:string, silent?:boolean):void;
@@ -7081,7 +7085,7 @@ interface excelviewerConfig{
 	width?: number;
 	yCount?: number;
 }
-type excelviewerEventName ='onAfterAdd'|'onAfterAreaAdd'|'onAfterAreaRemove'|'onAfterBlockSelect'|'onAfterColumnDrop'|'onAfterColumnDropOrder'|'onAfterColumnHide'|'onAfterColumnShow'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterEditStart'|'onAfterEditStop'|'onAfterFilter'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onAreaDrag'|'onBeforeAdd'|'onBeforeAreaAdd'|'onBeforeAreaRemove'|'onBeforeBlockSelect'|'onBeforeColumnDrag'|'onBeforeColumnDrop'|'onBeforeColumnDropOrder'|'onBeforeColumnHide'|'onBeforeColumnShow'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeEditStart'|'onBeforeEditStop'|'onBeforeFilter'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onCheck'|'onCollectValues'|'onColumnResize'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEditorChange'|'onEnter'|'onFocus'|'onHeaderClick'|'onItemClick'|'onItemDblClick'|'onItemSingleClick'|'onKeyPress'|'onLiveEdit'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onResize'|'onRowResize'|'onScrollX'|'onScrollY'|'onSelectChange'|'onStructureLoad'|'onStructureUpdate'|'onSubViewClose'|'onSubViewCreate'|'onSubViewOpen'|'onSubViewRender'|'onSwipeX'|'onSwipeY'|'onSyncScroll'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
+type excelviewerEventName ='onAfterAdd'|'onAfterAreaAdd'|'onAfterAreaRemove'|'onAfterBlockSelect'|'onAfterColumnDrop'|'onAfterColumnDropOrder'|'onAfterColumnHide'|'onAfterColumnShow'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterEditStart'|'onAfterEditStop'|'onAfterFilter'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onAreaDrag'|'onBeforeAdd'|'onBeforeAreaAdd'|'onBeforeAreaRemove'|'onBeforeBlockSelect'|'onBeforeColumnDrag'|'onBeforeColumnDrop'|'onBeforeColumnDropOrder'|'onBeforeColumnHide'|'onBeforeColumnShow'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeEditStart'|'onBeforeEditStop'|'onBeforeFilter'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onCheck'|'onCollectValues'|'onColumnResize'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEditorChange'|'onEnter'|'onFocus'|'onHeaderClick'|'onItemClick'|'onItemDblClick'|'onItemSingleClick'|'onKeyPress'|'onLiveEdit'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onMoveSelection'|'onPaste'|'onResize'|'onRowResize'|'onScrollX'|'onScrollY'|'onSelectChange'|'onStructureLoad'|'onStructureUpdate'|'onSubViewClose'|'onSubViewCreate'|'onSubViewOpen'|'onSubViewRender'|'onSwipeX'|'onSwipeY'|'onSyncScroll'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
 export class excelviewer implements webix.ui.baseview{
 	add(obj:obj, index?:number):string|number;
 	addCellCss(id:string, name:string, css:string, silent:boolean):void;
@@ -8227,7 +8231,7 @@ interface grouplistConfig{
 	xCount?: number;
 	yCount?: number;
 }
-type grouplistEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
+type grouplistEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
 export class grouplist implements webix.ui.baseview{
 	add(obj:obj, index?:number, parentId?:string):string;
 	addCss(id:string|number, css:string, silent?:boolean):void;
@@ -9091,7 +9095,7 @@ interface listConfig{
 	xCount?: number;
 	yCount?: number;
 }
-type listEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
+type listEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
 export class list implements webix.ui.baseview{
 	add(obj:obj, index?:number):string|number;
 	addCss(id:string|number, css:string, silent?:boolean):void;
@@ -9365,7 +9369,7 @@ interface menuConfig{
 	xCount?: number;
 	yCount?: number;
 }
-type menuEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMenuItemClick'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
+type menuEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMenuItemClick'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
 export class menu implements webix.ui.baseview{
 	add(obj:obj, index?:number):string|number;
 	addCss(id:string|number, css:string, silent?:boolean):void;
@@ -10241,6 +10245,7 @@ export class pdfviewer implements webix.ui.baseview{
 	zoomIn():void;
 	zoomOut():void;
 
+	$customPrint: WebixCallback;
 	$getSize(dx?:number, dy?:number):any[];
 	$height: number;
 	$numPages: number;
@@ -10514,6 +10519,7 @@ interface propertyConfig{
 	height?: number;
 	hidden?: boolean;
 	id?: string|number;
+	item?: WebixItemType|string;
 	keyPressTimeout?: number;
 	map?: WebixDataMap;
 	maxHeight?: number;
@@ -10531,6 +10537,7 @@ interface propertyConfig{
 	scrollSpeed?: string;
 	template?: string|WebixCallback;
 	tooltip?: string|boolean|WebixCallback|WebixAutoTooltipConfig;
+	type?: WebixItemType|string;
 	url?: string|WebixCallback|WebixProxy;
 	width?: number;
 }
@@ -10685,7 +10692,7 @@ interface queryConfig{
 	value?: WebixQueryValue;
 	width?: number;
 }
-type queryEventName ='onAfterScroll'|'onBlur'|'onChange'|'onDestruct'|'onEnter'|'onFocus'|'onInit'|'onLongTouch'|'onSwipeX'|'onSwipeY'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onViewResize'|'onViewShow';
+type queryEventName ='onChange'|'onDestruct'|'onInit'|'onLongTouch'|'onSwipeX'|'onSwipeY'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onViewResize'|'onViewShow';
 export class query implements webix.ui.baseview{
 	adjust():void;
 	app(app:obj):void;
@@ -11911,7 +11918,7 @@ interface sidebarConfig{
 	url?: string|WebixCallback|WebixProxy;
 	width?: number;
 }
-type sidebarEventName ='onAfterAdd'|'onAfterClose'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterOpen'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onBeforeAdd'|'onBeforeClose'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeOpen'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemCheck'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPartialRender'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
+type sidebarEventName ='onAfterAdd'|'onAfterClose'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterOpen'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onBeforeAdd'|'onBeforeClose'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeOpen'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemCheck'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPartialRender'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
 export class sidebar implements webix.ui.baseview{
 	add(obj:obj, index?:number):string|number;
 	addCss(id:string|number, css:string, silent?:boolean):void;
@@ -12143,7 +12150,7 @@ interface schedulerConfig{
 	dimPastEvents?: boolean;
 	disabled?: boolean;
 	dragCreate?: boolean;
-	dynamic?: string;
+	dynamic?: string | boolean;
 	gravity?: number;
 	height?: number;
 	hidden?: boolean;
@@ -12421,22 +12428,24 @@ interface spreadsheetConfig{
 	url?: string|WebixCallback|WebixProxy;
 	width?: number;
 }
-type spreadsheetEventName ='onAfterConditionSet'|'onAfterLoad'|'onAfterRangeSet'|'onAfterSelect'|'onAfterSheetShow'|'onAfterSpan'|'onAfterSplit'|'onBeforeCommentShow'|'onBeforeConditionSet'|'onBeforeFormatChange'|'onBeforeLoad'|'onBeforeSheetMenu'|'onBeforeSheetShow'|'onBeforeSpan'|'onBeforeSplit'|'onBeforeValueChange'|'onBindRequest'|'onCellChange'|'onChange'|'onColumnOperation'|'onCommand'|'onCommentHide'|'onComponentInit'|'onContextMenuConfig'|'onDataParse'|'onDataSerialize'|'onDestruct'|'onFormatChange'|'onLoadError'|'onMathRefresh'|'onReset'|'onRowOperation'|'onSheetAdd'|'onSheetRemove'|'onSheetRename'|'onStyleSet'|'onUIEditStart'|'onUIEditStop'|'onUndo'|'onViewInit'|'onViewShow';
+type spreadsheetEventName ='onAfterConditionSet'|'onAfterLoad'|'onAfterRangeSet'|'onAfterSelect'|'onAfterSheetShow'|'onAfterSpan'|'onAfterSplit'|'onBeforeCommentShow'|'onBeforeConditionSet'|'onBeforeFormatChange'|'onBeforeLoad'|'onBeforeSheetMenu'|'onBeforeSheetShow'|'onBeforeSpan'|'onBeforeSplit'|'onBeforeStyleChange'|'onBeforeValueChange'|'onBindRequest'|'onCellChange'|'onChange'|'onColumnOperation'|'onCommand'|'onCommentHide'|'onComponentInit'|'onContextMenuConfig'|'onDataParse'|'onDataSerialize'|'onDestruct'|'onFormatChange'|'onLoadError'|'onMathRefresh'|'onReset'|'onRowOperation'|'onSheetAdd'|'onSheetRemove'|'onSheetRename'|'onStyleChange'|'onStyleSet'|'onUIEditStart'|'onUIEditStop'|'onUndo'|'onViewInit'|'onViewShow'|'onZoom';
 export class spreadsheet implements webix.ui.baseview{
-	addImage(rowId:number, columnId:number, url:string):void;
+	addCheckbox(range:obj):void;
+	addImage(rowId:number, columnId:number, url:string, page?:string):void;
+	addRadio(range:obj):void;
 	addSheet(content?:WebixSpreadsheetSheetContent, name?:string, show?:boolean):void;
-	addSparkline(rowId:number, columnId:number, config:WebixSpreadsheetSparklineConfig):void;
-	addStyle(styleProps:WebixSpreadsheetStyleProps, baseStyle:WebixSpreadsheetStyle):void;
+	addSparkline(rowId:number, columnId:number, config:WebixSpreadsheetSparklineConfig, page?:string):void;
+	addStyle(styleProps:WebixSpreadsheetStyleProps, baseStyle?:WebixSpreadsheetStyle, page?:string):void;
 	adjust():void;
 	alert(config:WebixSpreadsheetAlertConfig):Promise<any>;
 	attachEvent(type:spreadsheetEventName, functor:WebixCallback, id?:string):string|number;
 	bind(source:WebixBindSource, rule?:WebixCallback, format?:string):void;
 	blockEvent():void;
 	callEvent(name:string, params:any[]):boolean;
-	changeDecimals(row:number, column:number, change:number):void;
-	clearRange(rangeStr?:string, type?:WebixSpreadsheetRangeClearConfig):void;
+	changeDecimals(row:number, column:number, change:number, page?:string):void;
+	clearRange(rangeStr?:string, type?:WebixSpreadsheetRangeClearConfig, page?:string):void;
 	clearSheet():void;
-	combineCells(range?:WebixSpreadsheetCellRangeConfig):void;
+	combineCells(range?:WebixSpreadsheetCellRangeConfig, page?:string):void;
 	compactStyles():void;
 	confirm(config:WebixSpreadsheetConfirmConfig):Promise<any>;
 	define(property:string|webix.ui.baseviewConfig & {[key: string]: any}, value?:any):void;
@@ -12449,51 +12458,53 @@ export class spreadsheet implements webix.ui.baseview{
 	editSheet(name:string):void;
 	enable():void;
 	filterSpreadSheet():void;
-	freezeColumns(columns:number):void;
-	freezeRows(rows:number):void;
+	freezeColumns(columns:number, page?:string):void;
+	freezeRows(rows:number, page?:string):void;
 	getActiveSheet():string;
-	getCellEditor(row:number, column:number):WebixSpreadsheetCellEditorConfig;
-	getCellFilter(row:number, column:number):WebixSpreadsheetCellFilterExtendedConfig;
+	getCellEditor(row:number, column:number, page?:string):WebixSpreadsheetCellEditorConfig;
+	getCellFilter(row:number, column:number, page?:string):WebixSpreadsheetCellFilterExtendedConfig;
 	getCellValue(row:number, column:number, math:boolean, page:string):string;
 	getChildViews():webix.ui.baseview[];
-	getColumn(id:string):WebixDatatableColumn;
+	getColumn(id:string, page?:string):WebixDatatableColumn;
 	getFormView():webix.ui.baseview;
 	getNode():HTMLElement;
 	getParentView():webix.ui.baseview;
 	getRangeValue(range:string, page:string):any[];
-	getRow(id:string):obj;
+	getRow(id:string, page?:string):obj;
 	getSelectedId(asArray:boolean):any;
 	getSelectedRange():string;
 	getSheetData(sheet_name:string):void;
 	getSheetState(name:string):string;
-	getStyle(row:number, column:number):obj;
+	getStyle(row:number, column:number, page?:string):obj;
 	getTopParentView():webix.ui.baseview;
 	groupUndo(func:WebixCallback):void;
 	hasEvent(name:string):boolean;
 	hide():void;
-	hideColumn(columnId:number, state:boolean):void;
-	hideGridlines(state:boolean|string):void;
-	hideHeaders(state:boolean|string):void;
-	hideRow(rowId:number, state:boolean):void;
+	hideColumn(columnId:number, state:boolean, page?:string):void;
+	hideGridlines(state:boolean|string, page?:string):void;
+	hideHeaders(state:boolean|string, page?:string):void;
+	hideRow(rowId:number, state:boolean, page?:string):void;
 	ignoreUndo(func:WebixCallback):void;
 	innerId(id:number|string):number|string;
 	insertColumn(columnId:number|any[]):void;
 	insertRow(rowId:number|any[]):void;
-	isCellLocked(rowId:number, columnId:number):boolean;
+	isCellLocked(rowId:number, columnId:number, page?:string):boolean;
 	isColumnVisible(columnId:number):boolean;
 	isEnabled():boolean;
 	isRowVisible(rowId:number):boolean;
 	isVisible():boolean;
 	load(url:string, type?:string, callback?:WebixCallback):Promise<any>;
-	lockCell(row:number|WebixCellObject, column:number|WebixCellObject, state?:boolean):void;
+	lockCell(row:number|WebixCellObject, column:number|WebixCellObject, state?:boolean, page?:string):void;
 	mapEvent(map:WebixEventMap):void;
+	markCheckbox(row:number, column:number):void;
+	markRadio(row:number, column:number):void;
 	parse(data:Promise<any>|string|any[]|obj, type?:string, clear?:boolean):void;
 	queryView(config:webix.ui.baseviewConfig & {[key: string]: any}|WebixCallback|string, mode?:string):any;
 	recalculate():void;
 	redo():void;
 	refresh():void;
 	registerMathMethod(name:string, handler:WebixCallback):void;
-	removeFilters():void;
+	removeFilters(page?:string):void;
 	removeSheet(name:string):void;
 	renameSheet(name:string, newName:string):void;
 	reset():void;
@@ -12501,29 +12512,29 @@ export class spreadsheet implements webix.ui.baseview{
 	resize():void;
 	saveCell(row:number, column:number):void;
 	serialize(options?:WebixSpreadsheetSerializeConfig):obj;
-	setCellEditor(rowId:number, columnId:number, editorObject:WebixSpreadsheetCellEditorConfig):void;
-	setCellFilter(rowId:number, columnId:number, filterObject:WebixSpreadsheetCellFilterConfig):void;
+	setCellEditor(rowId:number, columnId:number, editorObject:WebixSpreadsheetCellEditorConfig, page?:string):void;
+	setCellFilter(rowId:number, columnId:number, filterObject:WebixSpreadsheetCellFilterConfig, page?:string):void;
 	setCellValue(row:number, column:number, value:string, page:string):void;
-	setColumnWidth(id:string|number|any[], width:number|string):void;
-	setFormat(rowId:number, columnId:number, format:string):void;
+	setColumnWidth(id:string|number|any[], width:number|string, page?:string):void;
+	setFormat(rowId:number, columnId:number, format:string, page?:string):void;
 	setPlaceholder(placeholder:obj|string, value?:number|string):void;
-	setRangeStyle(rangeStr:string, style:WebixSpreadsheetStyle):void;
+	setRangeStyle(rangeStr:string, style:WebixSpreadsheetStyle, page?:string):void;
 	setRangeValue(range:string, value:any, page:string):void;
-	setRowHeight(id:string|number|any[], height:number|string):void;
+	setRowHeight(id:string|number|any[], height:number|string, page?:string):void;
 	setSheetState(name:string, state:string):void;
-	setStyle(row:number, column:number, style:WebixSpreadsheetStyle):void;
+	setStyle(row:number, column:number, style:WebixSpreadsheetStyle, page?:string):void;
 	show(force?:boolean, animation?:boolean):void;
 	showCell(ref:string, silent:boolean):void;
-	showFormulas(state:boolean|string):void;
+	showFormulas(state:boolean|string, page?:string):void;
 	showPrintBorders(state:boolean|string):void;
 	showSheet(name:string):void;
 	sortRange(range?:string, dir?:string):void;
-	splitCell(row:number, column:number):void;
+	splitCell(row:number, column:number, page?:string):void;
 	ui<T extends webix.ui.baseview>(view:webix.ui.baseviewConfig & {[key: string]: any}):T;
 	unbind():void;
 	unblockEvent():void;
 	undo(id:string):void;
-	zoom(scale:number):void;
+	zoom(scale:number, page?:string):void;
 
 	$$: webix.ui.baseview;
 	$getSize(dx?:number, dy?:number):any[];
@@ -12539,6 +12550,7 @@ export class spreadsheet implements webix.ui.baseview{
 	config: spreadsheetConfig;
 	name: string;
 	ranges: obj;
+	validation: obj;
 	views: obj;
 }
 interface submenuConfig{
@@ -12615,7 +12627,7 @@ interface submenuConfig{
 	yCount?: number;
 	zIndex?: number;
 }
-type submenuEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeShow'|'onBeforeSort'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onHide'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMenuItemClick'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onSelectChange'|'onShow'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewMove'|'onViewMoveEnd'|'onViewResize'|'onViewShow';
+type submenuEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeShow'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onHide'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMenuItemClick'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onSelectChange'|'onShow'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewMove'|'onViewMoveEnd'|'onViewResize'|'onViewShow';
 export class submenu implements webix.ui.baseview{
 	add(obj:obj, index?:number):string|number;
 	addCss(id:string|number, css:string, silent?:boolean):void;
@@ -14165,7 +14177,7 @@ interface treeConfig{
 	url?: string|WebixCallback|WebixProxy;
 	width?: number;
 }
-type treeEventName ='onAfterAdd'|'onAfterClose'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterOpen'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onBeforeAdd'|'onBeforeClose'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeOpen'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemCheck'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPartialRender'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
+type treeEventName ='onAfterAdd'|'onAfterClose'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterOpen'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onBeforeAdd'|'onBeforeClose'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeOpen'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemCheck'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPartialRender'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
 export class tree implements webix.ui.baseview{
 	add(obj:obj, index?:number, parentId?:string):string;
 	addCss(id:string|number, css:string, silent?:boolean):void;
@@ -14354,7 +14366,7 @@ interface treemapConfig{
 	value?: string|WebixCallback;
 	width?: number;
 }
-type treemapEventName ='onAfterAdd'|'onAfterClose'|'onAfterContextMenu'|'onAfterDelete'|'onAfterLoad'|'onAfterOpen'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onBeforeAdd'|'onBeforeClose'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeLoad'|'onBeforeOpen'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onEnter'|'onFocus'|'onItemCheck'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPartialRender'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
+type treemapEventName ='onAfterAdd'|'onAfterClose'|'onAfterContextMenu'|'onAfterDelete'|'onAfterLoad'|'onAfterOpen'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onBeforeAdd'|'onBeforeClose'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeLoad'|'onBeforeOpen'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onEnter'|'onFocus'|'onItemCheck'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPartialRender'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
 export class treemap implements webix.ui.baseview{
 	add(obj:obj, index?:number):string|number;
 	addCss(id:string|number, css:string, silent?:boolean):void;
@@ -14564,7 +14576,7 @@ interface treetableConfig{
 	width?: number;
 	yCount?: number;
 }
-type treetableEventName ='onAfterAdd'|'onAfterAreaAdd'|'onAfterAreaRemove'|'onAfterBlockSelect'|'onAfterClose'|'onAfterColumnDrop'|'onAfterColumnDropOrder'|'onAfterColumnHide'|'onAfterColumnShow'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterEditStart'|'onAfterEditStop'|'onAfterFilter'|'onAfterLoad'|'onAfterOpen'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onAreaDrag'|'onBeforeAdd'|'onBeforeAreaAdd'|'onBeforeAreaRemove'|'onBeforeBlockSelect'|'onBeforeClose'|'onBeforeColumnDrag'|'onBeforeColumnDrop'|'onBeforeColumnDropOrder'|'onBeforeColumnHide'|'onBeforeColumnShow'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeEditStart'|'onBeforeEditStop'|'onBeforeFilter'|'onBeforeLoad'|'onBeforeOpen'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onCheck'|'onCollectValues'|'onColumnGroupCollapse'|'onColumnResize'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEditorChange'|'onEnter'|'onFocus'|'onHeaderClick'|'onItemCheck'|'onItemClick'|'onItemDblClick'|'onItemSingleClick'|'onKeyPress'|'onLiveEdit'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onResize'|'onRowResize'|'onScrollX'|'onScrollY'|'onSelectChange'|'onStructureLoad'|'onStructureUpdate'|'onSubViewClose'|'onSubViewCreate'|'onSubViewOpen'|'onSubViewRender'|'onSwipeX'|'onSwipeY'|'onSyncScroll'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
+type treetableEventName ='onAfterAdd'|'onAfterAreaAdd'|'onAfterAreaRemove'|'onAfterBlockSelect'|'onAfterClose'|'onAfterColumnDrop'|'onAfterColumnDropOrder'|'onAfterColumnHide'|'onAfterColumnShow'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterEditStart'|'onAfterEditStop'|'onAfterFilter'|'onAfterLoad'|'onAfterOpen'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onAreaDrag'|'onBeforeAdd'|'onBeforeAreaAdd'|'onBeforeAreaRemove'|'onBeforeBlockSelect'|'onBeforeClose'|'onBeforeColumnDrag'|'onBeforeColumnDrop'|'onBeforeColumnDropOrder'|'onBeforeColumnHide'|'onBeforeColumnShow'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeEditStart'|'onBeforeEditStop'|'onBeforeFilter'|'onBeforeLoad'|'onBeforeOpen'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onCheck'|'onCollectValues'|'onColumnGroupCollapse'|'onColumnResize'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEditorChange'|'onEnter'|'onFocus'|'onHeaderClick'|'onItemCheck'|'onItemClick'|'onItemDblClick'|'onItemSingleClick'|'onKeyPress'|'onLiveEdit'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onMoveSelection'|'onPaste'|'onResize'|'onRowResize'|'onScrollX'|'onScrollY'|'onSelectChange'|'onStructureLoad'|'onStructureUpdate'|'onSubViewClose'|'onSubViewCreate'|'onSubViewOpen'|'onSubViewRender'|'onSwipeX'|'onSwipeY'|'onSyncScroll'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
 export class treetable implements webix.ui.baseview{
 	add(obj:obj, index?:number, parentId?:string):string;
 	addCellCss(id:string, name:string, css:string, silent:boolean):void;
@@ -14632,7 +14644,7 @@ export class treetable implements webix.ui.baseview{
 	getIdByIndex(index:number|string):string|number;
 	getIndexById(id:number|string):number;
 	getItem(id:number|string):obj;
-	getItemNode(id:string|number):HTMLElement;
+	getItemNode(id:string|number|WebixDatatableItemPos):HTMLElement;
 	getLastId():number|string;
 	getNextId(id:number|string, step?:number):string|number;
 	getNextSiblingId(id:string|number):string|number;
@@ -14823,7 +14835,7 @@ interface unitlistConfig{
 	xCount?: number;
 	yCount?: number;
 }
-type unitlistEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onUnits'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
+type unitlistEventName ='onAfterAdd'|'onAfterContextMenu'|'onAfterDelete'|'onAfterDrop'|'onAfterLoad'|'onAfterRender'|'onAfterScroll'|'onAfterSelect'|'onAfterSort'|'onAfterUnSelect'|'onBeforeAdd'|'onBeforeContextMenu'|'onBeforeDelete'|'onBeforeDrag'|'onBeforeDragIn'|'onBeforeDrop'|'onBeforeDropOut'|'onBeforeLoad'|'onBeforeRender'|'onBeforeSelect'|'onBeforeSort'|'onBeforeUnSelect'|'onBindRequest'|'onBlur'|'onDataRequest'|'onDataUpdate'|'onDestruct'|'onDragOut'|'onEnter'|'onFocus'|'onItemClick'|'onItemDblClick'|'onItemRender'|'onItemSingleClick'|'onKeyPress'|'onLoadError'|'onLongTouch'|'onMouseMove'|'onMouseMoving'|'onMouseOut'|'onPaste'|'onSelectChange'|'onSwipeX'|'onSwipeY'|'onTabFocus'|'onTimedKeyPress'|'onTouchEnd'|'onTouchMove'|'onTouchStart'|'onUnits'|'onValidationError'|'onValidationSuccess'|'onViewResize'|'onViewShow';
 export class unitlist implements webix.ui.baseview{
 	add(obj:obj, index?:number):string|number;
 	addCss(id:string|number, css:string, silent?:boolean):void;

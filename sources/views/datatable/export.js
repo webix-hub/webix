@@ -10,16 +10,29 @@ const Mixin = {
 
 		const mode = options.export_mode;
 
-		if ((mode != "pdf" && mode != "excel") || options.dataOnly || !options.styles)
+		if ((mode != "pdf" && mode != "excel") || options.dataOnly || !(options.styles || options.freeze))
 			return this;
 		else { //excel export with styles
 			options.dataOnly = true;
 			options.heights = isUndefined(options.heights) ? "all": options.heights;
 
 			const data = mode == "pdf" ? toPDF(this, options) : toExcel(this, options);
-			data[0].styles = this._getExportStyles(options);
+
+			if(options.styles)
+				data[0].styles = this._getExportStyles(options);
 
 			delete options.dataOnly;
+ 
+			if(mode == "excel" && options.freeze){
+				const columns = this._hidden_split[0] || this.config.leftSplit;
+				const rows = this.config.topSplit;
+				if(columns || rows)
+					data[0].freeze = {
+						rows: rows - (data[0].viewOptions.yCorrection || 0),
+						columns: columns - (data[0].viewOptions.xCorrection || 0)
+					};
+			}
+
 			return data;
 		}
 	},
@@ -152,8 +165,8 @@ const Mixin = {
 				fontSize: cellStyle["font-size"].replace("px", "")*0.75, //px to pt conversion
 				bold: cellStyle["font-weight"] != "normal" && cellStyle["font-weight"] != 400,
 				italic: cellStyle["font-style"] == "italic",
-				underline: cellStyle["text-decoration-line"] == "line-through",
-				strikethrough: cellStyle["text-decoration-line"] == "underline",
+				underline: cellStyle["text-decoration-line"].indexOf("underline") != -1,
+				strikethrough: cellStyle["text-decoration-line"].indexOf("line-through") != -1,
 				color: color.rgbToHex(cellStyle["color"]),
 				textAlign: cellStyle["text-align"],
 				whiteSpace: cellStyle["white-space"] == "normal",

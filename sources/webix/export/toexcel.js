@@ -5,7 +5,7 @@ import require from "../../load/require";
 import env from "../../webix/env";
 
 import {download} from "../../webix/html";
-import {extend, isArray} from "../../webix/helpers";
+import {extend, isArray, uid} from "../../webix/helpers";
 import {$$} from "../../ui/core";
 import {assert} from "../../webix/debug";
 
@@ -29,13 +29,15 @@ export const toExcel = function(id, options){
 		if(isArray(view))
 			views = views.concat(view);
 		else if(view.data && view.data.pull){
+			const images = [];
 			//spreadsheet and excelviewer require plain data output first
 			const scheme = getExportScheme(view, viewOptions);
 			views.push({
-				scheme : scheme,
-				exportData:getExportData(view, viewOptions, scheme),
+				scheme,
+				exportData: getExportData(view, viewOptions, scheme, images),
 				spans:(viewOptions.spans ? getSpans(view, viewOptions) : []),
-				viewOptions: viewOptions
+				viewOptions,
+				images
 			});
 		}
 	}
@@ -48,6 +50,7 @@ export const toExcel = function(id, options){
 
 		const wb = { SheetNames:[], Sheets:{}, Workbook:{ WBProps :{}, Names:[], Sheets:[] }};
 
+		let images = [];
 		for(let i = 0; i<views.length; i++){
 			const viewOptions = views[i].viewOptions;
 			const scheme = views[i].scheme;
@@ -55,13 +58,35 @@ export const toExcel = function(id, options){
 			const spans  = views[i].spans;
 			const ranges =  views[i].ranges || [];
 			const styles = views[i].styles || [];
-			const data   = getExcelData(result, scheme, spans, styles, viewOptions);
-			let sname  = (viewOptions.name || "Data"+(i+1)).replace(/[*?:[\]\\/]/g,"").replace(/&/g, "&amp;").substring(0, 31);
+			const freeze = views[i].freeze;
+			const sheetSettings = views[i].sheetSettings;
+			const data = getExcelData(result, scheme, spans, styles, freeze, sheetSettings, viewOptions);
+			let sname = (viewOptions.name || "Data"+(i+1)).replace(/[*?:[\]\\/]/g,"").replace(/&/g, "&amp;").substring(0, 31);
 
 			//avoid name duplication
 			let k = i;
 			while(wb.SheetNames.indexOf(sname) != -1)
 				sname = "Data"+(++k);
+
+			if(views[i].images)
+				images.push(
+					promise.all(views[i].images).then(res =>{
+						const regex = /data:image\/(png|jpg|jpeg);base64,/;
+						res = res.filter(image => image);
+						data["!images"] = res.map(image => {
+							let type = image.data.match(regex)[1];
+							if(type == "jpeg") type = "jpg";
+							image.position.attrs = { editAs: "oneCell" };
+							return {
+								name: uid()+"."+type,
+								type,
+								data: image.data.replace(regex, ""),
+								opts: { base64: true },
+								position: image.position
+							};
+						});
+					})
+				);
 
 			wb.SheetNames.push(sname);
 			wb.Sheets[sname] = data;
@@ -69,14 +94,17 @@ export const toExcel = function(id, options){
 			wb.Workbook.Sheets.push({ state: views[i].state || "visible" });
 		}
 
-		/* global XLSX */
-		const xls = XLSX.write(wb, {bookType:"xlsx", bookSST:false, type: "binary"});
-		const filename =  getFileName(options.filename, "xlsx");
+		promise.all(images).then(()=>{
+			/* global XLSX */
+			const xls = XLSX.write(wb, {bookType:"xlsx", bookSST:false, type: "binary"});
+			const filename =  getFileName(options.filename, "xlsx");
 
-		const blob = new Blob([str2array(xls)], { type: "application/xlsx" });
-		if(options.download !== false)
-			download(blob, filename);
-		defer.resolve(blob);
+			const blob = new Blob([str2array(xls)], { type: "application/xlsx" });
+			if(options.download !== false)
+				download(blob, filename);
+			defer.resolve(blob);
+		});
+
 		return defer;
 	});
 };
@@ -90,7 +118,7 @@ function str2array(s) {
 
 const types = { number:"n", date:"n", string:"s", boolean:"b"};
 const table = "_table";
-function getExcelData(data, scheme, spans, styles, options) {
+function getExcelData(data, scheme, spans, styles, freeze, sheetSettings, options) {
 	const ws = {};
 	const range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
 	for(let R = 0; R != data.length; ++R) {
@@ -172,7 +200,28 @@ function getExcelData(data, scheme, spans, styles, options) {
 	if(spans.length)
 		ws["!merges"] = spans;
 
+	if(freeze)
+		ws["!freeze"] = {
+			xSplit: freeze.columns,
+			ySplit: freeze.rows,
+			topLeftCell: `${indexToHeader(freeze.columns+1)}${freeze.rows+1}`,
+			state: "frozen",
+			activePane: freeze.rows && freeze.columns ? "bottomRight" : (freeze.rows ? "bottomLeft" : "topLeft")
+		};
+
+	if(sheetSettings)
+		ws["!settings"] = sheetSettings;
+
 	return ws;
+}
+
+function indexToHeader(index){
+	const alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	const chars = alpha.length;
+	const quotient = Math.floor(--index / chars);
+	if (quotient > 0)
+		return indexToHeader(quotient) + alpha[index % chars];
+	return alpha[index % chars];
 }
 
 function getRowHeights(scheme){

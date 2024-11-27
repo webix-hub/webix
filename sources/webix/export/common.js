@@ -10,14 +10,17 @@ function getDataHelper(key, column, raw){
 	return function(obj){ return obj[key]; };
 }
 
-function getHeaderText(view, header){
+function getHeaderText(view, header, filterHTML){
 	let text = header.text;
 	if (header.contentId){
 		const content = view.getHeaderContent(header.contentId);
 		if (content && !content.type.$icon)
 			text = content.getValue(true);
 	}
-	return (text||"").toString().replace( /<[^>]*>/gi, "");
+	let res = (text||"").toString();
+	if(filterHTML)
+		res = res.replace( /<[^>]*>/gi, "");
+	return res;
 }
 
 export function getStyles(r, c, styles){
@@ -152,7 +155,7 @@ export function getExportScheme(view, options){
 		else record.header = [].concat(record.header);
 
 		for(let i = 0; i<record.header.length; i++)
-			record.header[i] = record.header[i] ? getHeaderText(view, record.header[i]) : "";
+			record.header[i] = record.header[i] ? getHeaderText(view, record.header[i], !!options.filterHTML) : "";
 
 		h_count = Math.max(h_count, record.header.length);
 
@@ -162,7 +165,7 @@ export function getExportScheme(view, options){
 			else footer = [].concat(footer);
 
 			for(let i = 0; i<footer.length; i++)
-				footer[i] = footer[i] ? getHeaderText(view, footer[i]) : "";
+				footer[i] = footer[i] ? getHeaderText(view, footer[i], !!options.filterHTML) : "";
 
 			record.footer = footer;
 			f_count = Math.max(f_count, record.footer.length);
@@ -196,16 +199,17 @@ export function getFileName(name, extension){
 	return `${name || "Data"}.${extension}`;
 }
 
-export function getExportData(view, options, scheme){
+export function getExportData(view, options, scheme, images){
 	const filterHTML = !!options.filterHTML;
 	const htmlFilter = /<[^>]*>/gi;
 	let data = [];
 	let header, headers;
 	const mode = options.export_mode;
+	const excel = mode == "excel";
 
-	if((mode === "excel" || mode == "csv") && options.docHeader){
+	if((excel || mode == "csv") && options.docHeader){
 		data = [[(options.docHeader.text || options.docHeader).toString()], [""]];
-		if(mode === "excel" && options.docHeader.height)
+		if(excel && options.docHeader.height)
 			scheme.heights[0] = options.docHeader.height;
 	}
 
@@ -222,7 +226,7 @@ export function getExportData(view, options, scheme){
 				headers.push(header);
 			}
 
-			if(mode =="excel" && view._columns && options.heights !==false &&
+			if(excel && view._columns && options.heights !==false &&
 			(view._headers[h] !== $active.barHeight || options.heights == "all")
 			) scheme.heights[data.length] = view._headers[h];
 
@@ -250,13 +254,18 @@ export function getExportData(view, options, scheme){
 			for (let i = 0; i < scheme.length; i++){
 				let column = scheme[i], cell = null;
 				//spreadsheet use muon to store data, get value via $getExportValue
-				if(view.$getExportValue)
+				if(view.$getExportValue){
 					cell = view.$getExportValue(item.id, column.id, options);
+					if(typeof cell == "object" && cell.image){
+						images.push(cell.image);
+						cell = "";
+					}
+				}
 				else {
 					//datatable math
 					let formula;
 					if(options.math && item["$"+column.id] && item["$"+column.id].charAt(0) =="="){
-						if(mode == "excel")
+						if(excel)
 							formula = item["$"+column.id];
 						else
 							cell = item["$"+column.id];
@@ -283,7 +292,7 @@ export function getExportData(view, options, scheme){
 						if (typeof cell === "string" && mode === "csv")
 							cell = cell.trim();
 						//for multiline data
-						if (typeof cell === "string" && (mode === "excel" || mode === "csv")){
+						if (typeof cell === "string" && (excel || mode === "csv")){
 							cell = cell.replace(/<br\s*\/?>/mg,"\n");
 						}
 					}
@@ -295,7 +304,7 @@ export function getExportData(view, options, scheme){
 				line.push(cell);
 			}
 
-			if(mode =="excel" && view._columns && options.heights !== false &&
+			if(excel && view._columns && options.heights !== false &&
 			((item.$height && item.$height !== $active.rowHeight) || options.heights == "all")
 			) scheme.heights[data.length] = item.$height || this.config.rowHeight;
 
@@ -313,7 +322,7 @@ export function getExportData(view, options, scheme){
 				footers.push(footer);
 			}
 
-			if(mode =="excel" && view._columns && options.heights !==false &&
+			if(excel && view._columns && options.heights !==false &&
 			(view._footers[f] !== $active.barHeight || options.heights=="all")
 			) scheme.heights[data.length] = view._footers[f];
 
@@ -322,7 +331,7 @@ export function getExportData(view, options, scheme){
 		}
 	}
 
-	if(mode ==="excel" && options.docFooter){
+	if(excel && options.docFooter){
 		data = data.concat([[], [(options.docFooter.text || options.docFooter).toString()]]);
 		if(options.docFooter.height)
 			scheme.heights[data.length-1] = options.docFooter.height;

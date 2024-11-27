@@ -101,7 +101,7 @@ const Mixin = {
 						this._selected_rows[i] = newid;
 
 				for (let i=0; i<this._selected_areas.length; i++){
-					var item = this._selected_areas[i];
+					const item = this._selected_areas[i];
 					if (item.row == oldid){
 						oldid = this._select_key(item);
 						item.row = newid;
@@ -119,7 +119,7 @@ const Mixin = {
 			},
 			_data_synced:function(){
 				for (let i = this._selected_areas.length-1; i >=0 ; i--){
-					var row = this._selected_areas[i].row;
+					const row = this._selected_areas[i].row;
 					if (!this.exists(row)){
 						this._selected_areas.splice(i,1);
 						delete this._selected_pull[row];
@@ -135,7 +135,7 @@ const Mixin = {
 				this._selected_rows = [];
 			},
 			isSelected:function(id, column){
-				var key;
+				let key;
 				if (!isUndefined(column))
 					key = this._select_key({ row:id, column: column});
 				else 
@@ -144,7 +144,7 @@ const Mixin = {
 				return this._selected_pull[key];
 			},
 			getSelectedId:function(asArray, plain){
-				var result;
+				let result;
 
 				//if multiple selections was created - return array
 				//in case of single selection, return value or array, when asArray parameter provided
@@ -165,7 +165,7 @@ const Mixin = {
 				return this.row;
 			},
 			_select:function(data, preserve){
-				var key = this._select_key(data);
+				const key = this._select_key(data);
 				//don't allow selection on unnamed columns
 				if (key === null) return;
 
@@ -205,13 +205,13 @@ const Mixin = {
 				for (let i=0; i<this._selected_rows.length; i++)
 					this.data.removeMark(this._selected_rows[i], "webix_selected", 0, true);
 
-				var cols = this._settings.columns;
+				const cols = this._settings.columns;
 				if (cols)
 					for (let i = 0; i < cols.length; i++) {
 						cols[i].$selected = null;
 					}
 
-				var data = this._selected_areas;
+				const data = this._selected_areas;
 				this._reinit_selection();
 				for (let i=0; i<data.length; i++){
 					this.callEvent("onAfterUnSelect", [data[i]]);
@@ -231,7 +231,7 @@ const Mixin = {
 				}
 			},
 			_unselect:function(data){
-				var key = this._select_key(data);
+				const key = this._select_key(data);
 				if (!key && this._selected_areas.length){
 					this.clearSelection();
 					this.callEvent("onSelectChange", []);
@@ -255,7 +255,7 @@ const Mixin = {
 				this._finalize_select(0, this._post_unselect(data));
 			},
 			_add_item_select:function(id){
-				var item = this.getItem(id);
+				const item = this.getItem(id);
 				return this.data.addMark(item.id, "webix_selected", 0, { $count: 0 }, true);
 			},
 			_finalize_select:function(id){
@@ -267,14 +267,15 @@ const Mixin = {
 				}
 			},
 			_click_before_select:function(e, id){
-				var preserve = e.ctrlKey || e.metaKey || (this._settings.multiselect == "touch");
-				var range = e.shiftKey;
+				const c = this._settings;
+				let preserve = e.ctrlKey || e.metaKey || (c.multiselect === "touch");
+				let range = e.shiftKey;
 
-				if (!this._settings.multiselect && this._settings.select != "multiselect" && this._settings.select != "area")
+				if (!c.multiselect && c.select != "multiselect" && c.select !== "area")
 					preserve = range = false;
 
 				if (range && this._selected_areas.length){
-					var last = this._selected_areas[this._selected_areas.length-1];
+					const last = this._selected_areas[this._selected_areas.length-1];
 					this._selectRange(id, last);
 				} else {
 					if (preserve && this._selected_pull[this._select_key(id)])
@@ -288,31 +289,32 @@ const Mixin = {
 				if (editor && editor.$inline && !editor.getPopup) return;
 
 				// restore focus
-				const node = this.getItemNode(id);
-				if (node) node.focus();
+				let node = this.getItemNode(id);
+				if(node)
+					node.focus( {preventScroll: true} );
 			},
 			_mapSelection:function(callback, column, row){
-				var cols = this._settings.columns;
+				let cols = this._settings.columns;
 				//selected columns only
 				if (column){
-					var temp = [];
+					const temp = [];
 					for (let i=0; i<cols.length; i++)
 						if (cols[i].$selected)
 							temp.push(cols[i]);
 					cols = temp;
 				}
 
-				var rows = this.data.order;
-				var row_ind = 0;
+				const rows = this.data.order;
+				let row_ind = 0;
 
 				for (let i=0; i<rows.length; i++){
-					var item = this.getItem(rows[i]);
+					const item = this.getItem(rows[i]);
 					if (!item) continue; //dyn loading, row is not available
-					var selection = this.data.getMark(item.id, "webix_selected");
+					const selection = this.data.getMark(item.id, "webix_selected");
 					if (selection || column){
-						var col_ind = 0;
-						for (var j = 0; j < cols.length; j++){
-							var id = cols[j].id;
+						let col_ind = 0;
+						for (let j = 0; j < cols.length; j++){
+							const id = cols[j].id;
 							if (row || column || selection[id]){
 								if (callback)
 									item[id] = callback(item[id], rows[i], id, row_ind, col_ind);
@@ -358,8 +360,8 @@ const Mixin = {
 			selectRange:function(row_id, end_row_id, preserve){
 				if (isUndefined(preserve)) preserve = true;
 
-				var row_start_ind = row_id ? this.getIndexById(row_id) : 0;
-				var row_end_ind = end_row_id ? this.getIndexById(end_row_id) : this.data.order.length-1;
+				let row_start_ind = row_id ? this.getIndexById(row_id) : 0;
+				let row_end_ind = end_row_id ? this.getIndexById(end_row_id) : this.data.order.length-1;
 
 				if (row_start_ind>row_end_ind){
 					var temp = row_start_ind;
@@ -369,7 +371,7 @@ const Mixin = {
 				
 				this._silent_selection = true;
 				for (let i=row_start_ind; i<=row_end_ind; i++){
-					var id = this.getIdByIndex(i);
+					const id = this.getIdByIndex(i);
 					if (!id){
 						if (row_id)
 							this.select(row_id);

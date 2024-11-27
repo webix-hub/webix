@@ -15,7 +15,7 @@ env.printSizes = [
 ];
 
 var fits = { page:true, data:true};
-var modes = { portrait:true, landscape:true};
+var modes = { portrait:true, landscape:true, auto:true };
 
 const print = function(id, options){
 	let view = $$(id);

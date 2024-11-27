@@ -51,16 +51,20 @@ const api = {
 		else if (this._revertValue)
 			this._revertValue();
 	},
-	suggest_setter:function(value){
-		return this.options_setter(value);
+	suggest_setter:function(value, prop, config){
+		return this.options_setter(value, prop, config);
 	},
-	options_setter:function(value){
+	options_setter:function(value, prop, config){
 		if (this._settings.suggest) $$(this._settings.suggest).destructor();
-		value = this._suggest_config ? this._suggest_config(value) : value;
+		// optionWidth may not be accessible yet at this point due to how the settings are applied
+		if (!this._settings.optionWidth && (config && config.optionWidth)) this.define("optionWidth", config.optionWidth);
+
+		value = this._suggest_config ? this._suggest_config(value, config) : value;
+
 		const suggest = (this._settings.popup = this._settings.options = this._settings.suggest = text.api.suggest_setter.call(this, value));
 		const list = $$(suggest).getList();
 		if (list)
-			list.attachEvent("onAfterLoad", ()=> this._reset_value());
+			list.attachEvent("onAfterLoad", () => this._reset_value());
 
 		return suggest;
 	},

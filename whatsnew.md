@@ -1,5 +1,50 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
+
+Version 11.0.0 (November 2024)
+=============================
+
+### Major features
+
+- Export of images is now available in the common toExcel() method and in Spreadsheet
+- The *mode: "auto"* configuration property for webix.print()
+- export to Excel: frozen rows/cols
+- Spreadsheet:
+	- a method that allows getting the cell reference from the cell ID in a table
+	- import from Excel: filters, zoom, header visibility, gridlines
+	- export to Excel: export frozen rows/cols, zoom, header visibility, gridlines
+	- the find and replace functionality
+	- displaying and filtering math formulas by category
+	- highlighting references in the formulas mode
+- File Manager and Document Manager:
+	- extended filters for searching files
+	- view search results in the Grid mode
+- Report Manager: 
+	- ability to show reports as standalone widgets 
+
+### Updates
+
+- Supported PDF.js version updated to 4.7.76
+
+### Fixes
+
+- regression in Multicombo: suggest stays hidden while a user is typing
+- regression in Multicombo: bottomLabel leads to wrong sizing
+- improved data export to CSV (filterHTML)
+- typescript definitions are improved
+- Datatable: configuration of filters may ignore optionWidth in inputConfig
+- Datatable: multisort state is shared across instances
+- Datatable: concurrent data loads throw an error
+- Treetable: client-side filters cannot be reset after additional parse
+- Datatable in Firefox: a tooltip is still visible after the cursor has left the table 
+- Datatable in Firefox on Windows, any browser on macOS: inactive scrollbars
+- Datatable: unnecessary mutations in the column's config
+- Dynamic loading in Datatable: keyboard navigation does not load data upwards
+- Dynamic loading in Datatable: dragging scrollbar triggers an additional request with incorrect parameters
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_11_0.html)
+
+
 Version 10.3 (August 2024)
 =============================
 

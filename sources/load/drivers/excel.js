@@ -77,6 +77,8 @@ const excel = extend({
 		const sizes = [];
 		const types = [];
 		const hidden = [];
+		const links = [];
+		let sheetSettings = {};
 
 		const cellTypes = { n:"number", d:"date", s:"string", b:"boolean"};
 
@@ -107,6 +109,8 @@ const excel = extend({
 							styles.push([row-yCorrection, col-xCorrection, cell.s]);
 						if (cell.t)
 							types.push([row-yCorrection, col-xCorrection, cellTypes[cell.t]]);
+						if (cell.l)
+							links.push([row-yCorrection, col-xCorrection, cell.l.location ? "#"+cell.l.location : cell.l.Target]);
 					}
 				}
 				all.push(nrow);
@@ -145,9 +149,11 @@ const excel = extend({
 					}
 				}
 			}
+			if(sheet["!settings"])
+				sheetSettings = sheet["!settings"];
 		}
 
-		return { data:all, spans, styles, sizes, types, hidden, excel: true };
+		return { data:all, spans, styles, sizes, types, hidden, links, sheetSettings, excel: true };
 	},
 	_urlToOptions:function(details){
 		var parts = details.split("[");

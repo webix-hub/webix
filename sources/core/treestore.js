@@ -46,9 +46,9 @@ const TreeStore = {
 		//- in all cases we can show or hide childs for matched item
 		
 		//set new order of items, store original
-		if (!preserve ||  !this._filter_branch){
+		if (!preserve || !this._filter_branch){
 			this._filter_branch = this.branch;
-			this.branch  = clone(this.branch);
+			this.branch = clone(this.branch);
 		}
 
 		this.branch[0] = this._filter_branch_rec(filter, value, this.branch[0], 1, (filterMode||{}));
@@ -195,13 +195,12 @@ const TreeStore = {
 					this._scheme_init(temp);
 				this.pull[id]=temp;
 			}
-
 			this._extraParser(temp, parent, 0, update, info.from ? info.from*1+i : 0);
 		}
 
 		//fix state of top item after data loading
-		var pItem = this.pull[parent] || {};
-		var pBranch = this.branch[parent] || [];
+		const pItem = this.pull[parent] || {};
+		const pBranch = this.branch[parent] || [];
 		pItem.$count = pBranch.length;
 		delete pItem.webix_kids;
 
@@ -215,15 +214,16 @@ const TreeStore = {
 		obj.$parent = parent!="0"?parent:0;
 		obj.$level = level||(parent!="0"?this.pull[parent].$level+1:1);
 		
-		var parent_branch = this.branch[obj.$parent];
-		if (!parent_branch)
-			parent_branch = this.branch[obj.$parent] = [];
-		if (this._filter_branch)
-			this._filter_branch[obj.$parent] = parent_branch;
+		let parent_branch = this.branch[obj.$parent];
+		let origin_branch;
+
+		if (!parent_branch) parent_branch = this.branch[obj.$parent] = [];
+		if (this._filter_branch) origin_branch = this._filter_branch[obj.$parent];
 
 		if (!update){
-			var pos = from || parent_branch.length;
+			const pos = from || parent_branch.length;
 			parent_branch[pos] = obj.id;
+			if (origin_branch) origin_branch[origin_branch.length] = obj.id;
 		}
 
 		var child = this._datadriver_child(obj);
@@ -239,7 +239,6 @@ const TreeStore = {
 		if (!isArray(child))
 			child = [child];
 		
-
 		for (var i=0; i < child.length; i++) {
 			//extra processing to convert strings to objects
 			var item = DataDriver.json.getDetails(child[i]);

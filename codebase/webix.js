@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.10.3.1
+ * webix UI v.11.0.0
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -491,28 +491,31 @@
   }; //copies methods and properties from source to the target from all levels
 
 
-  function copy(source) {
+  function copy(source, origin, allowViewRefs) {
     assert(source, "Invalid mixing target");
     level_in();
     var esModern = !!window.Map && !!window.Set && !!window.WeakMap && !!window.WeakSet;
     var target;
 
-    if (arguments.length > 1) {
-      target = arguments[0];
-      source = arguments[1];
+    if (origin) {
+      target = source;
+      source = origin;
     } else target = isArray(source) ? [] : {};
 
     for (var method in source) {
       var from = source[method];
 
       if (from && _typeof(from) == "object" && !(from instanceof RegExp)) {
+        var viewInstance = !!from._settings && !!from.$init && !!from.define;
         if (isDate(from)) target[method] = new Date(from);
         /* jshint ignore:start */
-        else if (esModern && (from instanceof Map || from instanceof Set || from instanceof WeakMap || from instanceof WeakSet)) target[method] = from;
+        else if (esModern && (from instanceof Map || from instanceof Set || from instanceof WeakMap || from instanceof WeakSet) || allowViewRefs && viewInstance) {
+          target[method] = from;
+        }
         /* jshint ignore:end */
         else {
           target[method] = isArray(from) ? [] : {};
-          copy(target[method], from);
+          copy(target[method], from, allowViewRefs);
         }
       } else {
         target[method] = from;
@@ -2076,12 +2079,13 @@
         for (var i = 0; i < calls.length; i++) {
           calls[i].resolve();
         }
-      }; //css, async, no waiting
+      };
 
+      var cssExt = ".css",
+          mjsExt = ".mjs";
+      var parts = module.split("?"); // css, async, no waiting
 
-      var parts = module.split("?");
-
-      if (parts[0].substr(parts[0].length - 4) == ".css") {
+      if (parts[0].substring(parts[0].length - cssExt.length) === cssExt) {
         var link = create("LINK", {
           type: "text/css",
           rel: "stylesheet",
@@ -2092,6 +2096,7 @@
         document.getElementsByTagName("head")[0].appendChild(link);
       } else {
         var newScript = document.createElement("script");
+        if (parts[0].substring(parts[0].length - mjsExt.length) === mjsExt) newScript.type = "module";
         newScript.onload = onload;
         newScript.onerror = onerror;
         document.getElementsByTagName("head")[0].appendChild(newScript);
@@ -2173,6 +2178,8 @@
       var sizes = [];
       var types = [];
       var hidden = [];
+      var links = [];
+      var sheetSettings = {};
       var cellTypes = {
         n: "number",
         d: "date",
@@ -2205,6 +2212,7 @@
               nrow.push(ncell);
               if (cell.s) styles.push([row - yCorrection, col - xCorrection, cell.s]);
               if (cell.t) types.push([row - yCorrection, col - xCorrection, cellTypes[cell.t]]);
+              if (cell.l) links.push([row - yCorrection, col - xCorrection, cell.l.location ? "#" + cell.l.location : cell.l.Target]);
             }
           }
 
@@ -2251,6 +2259,8 @@
             }
           }
         }
+
+        if (sheet["!settings"]) sheetSettings = sheet["!settings"];
       }
 
       return {
@@ -2260,6 +2270,8 @@
         sizes: sizes,
         types: types,
         hidden: hidden,
+        links: links,
+        sheetSettings: sheetSettings,
         excel: true
       };
     },
@@ -3351,7 +3363,7 @@
         this._webix_tooltip_mm = event$1(document, "pointermove", function (e) {
           return _this._move_tooltip(e);
         });
-        this._webix_tooltip_ml = event$1(document, "pointerleave", function () {
+        this._webix_tooltip_ml = event$1(document.body, "pointerleave", function () {
           return _this._hide_tooltip();
         });
         this._drag_event = attachEvent("onDragMode", function () {
@@ -4619,23 +4631,22 @@
       this._settings = this.config = {};
     },
     define: function (property, value) {
-      if (_typeof(property) == "object") return this._parseSeetingColl(property);
+      if (_typeof(property) === "object") return this._parseSettingColl(property);
       return this._define(property, value);
     },
-    _define: function (property, value) {
+    _define: function (property, value, coll) {
       //method with name {prop}_setter will be used as property setter
       //setter is optional
       var setter = this[property + "_setter"];
-      return this._settings[property] = setter ? setter.call(this, value, property) : value;
+      return this._settings[property] = setter ? setter.call(this, value, property, coll) : value;
     },
     //process configuration object
-    _parseSeetingColl: function (coll) {
+    _parseSettingColl: function (coll) {
       if (coll) {
-        for (var a in coll) {
-          //for each setting
-          this._define(a, coll[a]);
-        } //set value through config
-
+        // set value for each setting/property from config
+        for (var property in coll) {
+          this._define(property, coll[property], coll);
+        }
       }
     },
     //helper for object initialization
@@ -4644,9 +4655,9 @@
       var settings = {};
       if (initial) settings = exports.extend(settings, initial); //code below will copy all properties over default one
 
-      if (_typeof(obj) == "object" && !obj.tagName) exports.extend(settings, obj, true); //call config for each setting
+      if (_typeof(obj) === "object" && !obj.tagName) exports.extend(settings, obj, true); //call config for each setting
 
-      this._parseSeetingColl(settings);
+      this._parseSettingColl(settings);
     },
     _mergeSettings: function (config, defaults) {
       for (var key in defaults) {
@@ -10309,7 +10320,7 @@
     _feed: function (from, count, callback, defer, clear) {
       //allow only single request at same time
       if (this._load_count) {
-        if (this._feed_last.from == from && this._feed_last.count == count) return;
+        if (this._feed_last.from == from && this._feed_last.count == count) return Deferred.reject();
         defer = Deferred.defer();
         this._load_count = [from, count, callback, defer, clear]; //save last ignored request
 
@@ -10532,7 +10543,7 @@
       }
     },
     _call_on_config: function (config) {
-      this._parseSeetingColl(config);
+      this._parseSettingColl(config);
     }
   }, AtomDataLoader);
 
@@ -16427,12 +16438,14 @@
       obj.$parent = parent != "0" ? parent : 0;
       obj.$level = level || (parent != "0" ? this.pull[parent].$level + 1 : 1);
       var parent_branch = this.branch[obj.$parent];
+      var origin_branch;
       if (!parent_branch) parent_branch = this.branch[obj.$parent] = [];
-      if (this._filter_branch) this._filter_branch[obj.$parent] = parent_branch;
+      if (this._filter_branch) origin_branch = this._filter_branch[obj.$parent];
 
       if (!update) {
         var pos = from || parent_branch.length;
         parent_branch[pos] = obj.id;
+        if (origin_branch) origin_branch[origin_branch.length] = obj.id;
       }
 
       var child = this._datadriver_child(obj);
@@ -17628,7 +17641,7 @@
     }
   };
 
-  var version = "10.3.1";
+  var version = "11.0.0";
   var name = "core";
 
   var errorMessage = "non-existing view for export";
@@ -17642,7 +17655,7 @@
     };
   }
 
-  function getHeaderText(view, header) {
+  function getHeaderText(view, header, filterHTML) {
     var text = header.text;
 
     if (header.contentId) {
@@ -17650,7 +17663,9 @@
       if (content && !content.type.$icon) text = content.getValue(true);
     }
 
-    return (text || "").toString().replace(/<[^>]*>/gi, "");
+    var res = (text || "").toString();
+    if (filterHTML) res = res.replace(/<[^>]*>/gi, "");
+    return res;
   }
 
   function getStyles(r, c, styles) {
@@ -17791,7 +17806,7 @@
       }];else record.header = [].concat(record.header);
 
       for (var _i4 = 0; _i4 < record.header.length; _i4++) {
-        record.header[_i4] = record.header[_i4] ? getHeaderText(view, record.header[_i4]) : "";
+        record.header[_i4] = record.header[_i4] ? getHeaderText(view, record.header[_i4], !!options.filterHTML) : "";
       }
 
       h_count = Math.max(h_count, record.header.length);
@@ -17803,7 +17818,7 @@
         }];else footer = [].concat(footer);
 
         for (var _i5 = 0; _i5 < footer.length; _i5++) {
-          footer[_i5] = footer[_i5] ? getHeaderText(view, footer[_i5]) : "";
+          footer[_i5] = footer[_i5] ? getHeaderText(view, footer[_i5], !!options.filterHTML) : "";
         }
 
         record.footer = footer;
@@ -17837,16 +17852,17 @@
     if (name) name = name.replace(/[/?\\<>:*|"]/g, "").substring(0, 150);
     return "".concat(name || "Data", ".").concat(extension);
   }
-  function getExportData(view, options, scheme) {
+  function getExportData(view, options, scheme, images) {
     var filterHTML = !!options.filterHTML;
     var htmlFilter = /<[^>]*>/gi;
     var data = [];
     var header, headers;
     var mode = options.export_mode;
+    var excel = mode == "excel";
 
-    if ((mode === "excel" || mode == "csv") && options.docHeader) {
+    if ((excel || mode == "csv") && options.docHeader) {
       data = [[(options.docHeader.text || options.docHeader).toString()], [""]];
-      if (mode === "excel" && options.docHeader.height) scheme.heights[0] = options.docHeader.height;
+      if (excel && options.docHeader.height) scheme.heights[0] = options.docHeader.height;
     }
 
     if (options.header !== false && scheme.length) {
@@ -17864,7 +17880,7 @@
           headers.push(header);
         }
 
-        if (mode == "excel" && view._columns && options.heights !== false && (view._headers[h] !== $active.barHeight || options.heights == "all")) scheme.heights[data.length] = view._headers[h];
+        if (excel && view._columns && options.heights !== false && (view._headers[h] !== $active.barHeight || options.heights == "all")) scheme.heights[data.length] = view._headers[h];
         if (mode !== "pdf") data[data.length] = headers;
       }
     }
@@ -17891,12 +17907,19 @@
           var column = scheme[_i7],
               cell = null; //spreadsheet use muon to store data, get value via $getExportValue
 
-          if (view.$getExportValue) cell = view.$getExportValue(item.id, column.id, options);else {
+          if (view.$getExportValue) {
+            cell = view.$getExportValue(item.id, column.id, options);
+
+            if (_typeof(cell) == "object" && cell.image) {
+              images.push(cell.image);
+              cell = "";
+            }
+          } else {
             //datatable math
             var formula = void 0;
 
             if (options.math && item["$" + column.id] && item["$" + column.id].charAt(0) == "=") {
-              if (mode == "excel") formula = item["$" + column.id];else cell = item["$" + column.id];
+              if (excel) formula = item["$" + column.id];else cell = item["$" + column.id];
             }
 
             if (this._spans_pull) {
@@ -17920,7 +17943,7 @@
 
               if (typeof cell === "string" && mode === "csv") cell = cell.trim(); //for multiline data
 
-              if (typeof cell === "string" && (mode === "excel" || mode === "csv")) {
+              if (typeof cell === "string" && (excel || mode === "csv")) {
                 cell = cell.replace(/<br\s*\/?>/mg, "\n");
               }
             }
@@ -17930,10 +17953,11 @@
               value: cell
             };
           }
+
           line.push(cell);
         }
 
-        if (mode == "excel" && view._columns && options.heights !== false && (item.$height && item.$height !== $active.rowHeight || options.heights == "all")) scheme.heights[data.length] = item.$height || this.config.rowHeight;
+        if (excel && view._columns && options.heights !== false && (item.$height && item.$height !== $active.rowHeight || options.heights == "all")) scheme.heights[data.length] = item.$height || this.config.rowHeight;
         data.push(line);
       }
     }, view, options.hidden);
@@ -17950,12 +17974,12 @@
           footers.push(footer);
         }
 
-        if (mode == "excel" && view._columns && options.heights !== false && (view._footers[f] !== $active.barHeight || options.heights == "all")) scheme.heights[data.length] = view._footers[f];
+        if (excel && view._columns && options.heights !== false && (view._footers[f] !== $active.barHeight || options.heights == "all")) scheme.heights[data.length] = view._footers[f];
         if (mode !== "pdf") data.push(footers);
       }
     }
 
-    if (mode === "excel" && options.docFooter) {
+    if (excel && options.docFooter) {
       data = data.concat([[], [(options.docFooter.text || options.docFooter).toString()]]);
       if (options.docFooter.height) scheme.heights[data.length - 1] = options.docFooter.height;
     }
@@ -17996,28 +18020,27 @@
 
   var toCSV = function (id, options) {
     options = options || {};
-    var view = $$(id);
-    if (view && view.$exportView) view = view.$exportView(options);
-    assert(view, errorMessage);
-    if (!view) return Deferred.reject(errorMessage);
     options.export_mode = "csv";
-    exports.extend(options, {
-      filterHTML: true
-    });
-    var scheme = getExportScheme(view, options);
-    var result = getExportData(view, options, scheme);
-    var data = getCsvData(result, scheme);
-    var filename = getFileName(options.filename, "csv");
-    var blob = new Blob(["\uFEFF" + data], {
+    var view = $$(id);
+    var result;
+    if (view && view.$exportView) view = result = view.$exportView(options);
+    assert(view, errorMessage);
+    if (!view) return Deferred.reject(errorMessage); //$exportView returns array
+
+    if (!isArray(view)) {
+      exports.extend(options, {
+        filterHTML: true
+      });
+      result = getExportData(view, options, getExportScheme(view, options));
+    }
+
+    if (options.dataOnly) return result;
+    var blob = new Blob(["\uFEFF" + csv$1.stringify(result)], {
       type: "text/csv"
     });
-    if (options.download !== false) download(blob, filename);
+    if (options.download !== false) download(blob, getFileName(options.filename, "csv"));
     return Deferred.resolve(blob);
   };
-
-  function getCsvData(data) {
-    return csv$1.stringify(data);
-  }
 
   var font = {};
   var toPDF = function (id, options) {
@@ -18411,13 +18434,15 @@
       assert(view, errorMessage); //$exportView returns array
 
       if (isArray(view)) views = views.concat(view);else if (view.data && view.data.pull) {
-        //spreadsheet and excelviewer require plain data output first
+        var images = []; //spreadsheet and excelviewer require plain data output first
+
         var scheme = getExportScheme(view, viewOptions);
         views.push({
           scheme: scheme,
-          exportData: getExportData(view, viewOptions, scheme),
+          exportData: getExportData(view, viewOptions, scheme, images),
           spans: viewOptions.spans ? getSpans(view, viewOptions) : [],
-          viewOptions: viewOptions
+          viewOptions: viewOptions,
+          images: images
         });
       }
     }
@@ -18435,17 +18460,20 @@
           Sheets: []
         }
       };
+      var images = [];
 
-      for (var _i = 0; _i < views.length; _i++) {
-        var _viewOptions = views[_i].viewOptions;
-        var _scheme = views[_i].scheme;
+      var _loop = function (_i) {
+        var viewOptions = views[_i].viewOptions;
+        var scheme = views[_i].scheme;
         var result = views[_i].exportData;
         var spans = views[_i].spans;
         var ranges = views[_i].ranges || [];
         var styles = views[_i].styles || [];
-        var data = getExcelData(result, _scheme, spans, styles, _viewOptions);
+        var freeze = views[_i].freeze;
+        var sheetSettings = views[_i].sheetSettings;
+        var data = getExcelData(result, scheme, spans, styles, freeze, sheetSettings, viewOptions);
 
-        var sname = (_viewOptions.name || "Data" + (_i + 1)).replace(/[*?:[\]\\/]/g, "").replace(/&/g, "&amp;").substring(0, 31); //avoid name duplication
+        var sname = (viewOptions.name || "Data" + (_i + 1)).replace(/[*?:[\]\\/]/g, "").replace(/&/g, "&amp;").substring(0, 31); //avoid name duplication
 
 
         var k = _i;
@@ -18454,27 +18482,54 @@
           sname = "Data" + ++k;
         }
 
+        if (views[_i].images) images.push(Deferred.all(views[_i].images).then(function (res) {
+          var regex = /data:image\/(png|jpg|jpeg);base64,/;
+          res = res.filter(function (image) {
+            return image;
+          });
+          data["!images"] = res.map(function (image) {
+            var type = image.data.match(regex)[1];
+            if (type == "jpeg") type = "jpg";
+            image.position.attrs = {
+              editAs: "oneCell"
+            };
+            return {
+              name: uid() + "." + type,
+              type: type,
+              data: image.data.replace(regex, ""),
+              opts: {
+                base64: true
+              },
+              position: image.position
+            };
+          });
+        }));
         wb.SheetNames.push(sname);
         wb.Sheets[sname] = data;
         wb.Workbook.Names = wb.Workbook.Names.concat(ranges);
         wb.Workbook.Sheets.push({
           state: views[_i].state || "visible"
         });
+      };
+
+      for (var _i = 0; _i < views.length; _i++) {
+        _loop(_i);
       }
-      /* global XLSX */
 
-
-      var xls = XLSX.write(wb, {
-        bookType: "xlsx",
-        bookSST: false,
-        type: "binary"
+      Deferred.all(images).then(function () {
+        /* global XLSX */
+        var xls = XLSX.write(wb, {
+          bookType: "xlsx",
+          bookSST: false,
+          type: "binary"
+        });
+        var filename = getFileName(options.filename, "xlsx");
+        var blob = new Blob([str2array(xls)], {
+          type: "application/xlsx"
+        });
+        if (options.download !== false) download(blob, filename);
+        defer.resolve(blob);
       });
-      var filename = getFileName(options.filename, "xlsx");
-      var blob = new Blob([str2array(xls)], {
-        type: "application/xlsx"
-      });
-      if (options.download !== false) download(blob, filename);
-      defer.resolve(blob);
       return defer;
     });
   };
@@ -18498,7 +18553,7 @@
   };
   var table = "_table";
 
-  function getExcelData(data, scheme, spans, styles, options) {
+  function getExcelData(data, scheme, spans, styles, freeze, sheetSettings, options) {
     var ws = {};
     var range = {
       s: {
@@ -18584,7 +18639,23 @@
     ws["!rows"] = getRowHeights(scheme);
     ws["!cols"] = getColumnsWidths(scheme);
     if (spans.length) ws["!merges"] = spans;
+    if (freeze) ws["!freeze"] = {
+      xSplit: freeze.columns,
+      ySplit: freeze.rows,
+      topLeftCell: "".concat(indexToHeader(freeze.columns + 1)).concat(freeze.rows + 1),
+      state: "frozen",
+      activePane: freeze.rows && freeze.columns ? "bottomRight" : freeze.rows ? "bottomLeft" : "topLeft"
+    };
+    if (sheetSettings) ws["!settings"] = sheetSettings;
     return ws;
+  }
+
+  function indexToHeader(index$$1) {
+    var alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    var chars = alpha.length;
+    var quotient = Math.floor(--index$$1 / chars);
+    if (quotient > 0) return indexToHeader(quotient) + alpha[index$$1 % chars];
+    return alpha[index$$1 % chars];
   }
 
   function getRowHeights(scheme) {
@@ -19649,7 +19720,8 @@
   };
   var modes = {
     portrait: true,
-    landscape: true
+    landscape: true,
+    auto: true
   };
 
   var print = function (id, options) {
@@ -27656,7 +27728,7 @@
 
       if (config.labelPosition == "top") {
         // textarea
-        if (!config.inputHeight) this._inputHeight = this._content_height - (config.label ? this._labelTopHeight : 0) - (config.bottomPadding || 0);
+        if (!this.$renderTag && !config.inputHeight) this._inputHeight = this._content_height - (config.label ? this._labelTopHeight : 0) - (config.bottomPadding || 0);
       } else if (config.bottomPadding) config.inputHeight = this._content_height - this.config.bottomPadding;
     },
     _get_input_width: function (config) {
@@ -28502,14 +28574,16 @@
 
       if (value && value != oldvalue && !(nodeValue === "" && suggest.getItemText(value) !== "")) this.setValue(value, "user");else if (nodeValue === "") this.setValue("", "user");else if (this._revertValue) this._revertValue();
     },
-    suggest_setter: function (value) {
-      return this.options_setter(value);
+    suggest_setter: function (value, prop, config) {
+      return this.options_setter(value, prop, config);
     },
-    options_setter: function (value) {
+    options_setter: function (value, prop, config) {
       var _this = this;
 
-      if (this._settings.suggest) $$(this._settings.suggest).destructor();
-      value = this._suggest_config ? this._suggest_config(value) : value;
+      if (this._settings.suggest) $$(this._settings.suggest).destructor(); // optionWidth may not be accessible yet at this point due to how the settings are applied
+
+      if (!this._settings.optionWidth && config && config.optionWidth) this.define("optionWidth", config.optionWidth);
+      value = this._suggest_config ? this._suggest_config(value, config) : value;
       var suggest = this._settings.popup = this._settings.options = this._settings.suggest = text.api.suggest_setter.call(this, value);
       var list = $$(suggest).getList();
       if (list) list.attachEvent("onAfterLoad", function () {
@@ -39603,11 +39677,7 @@
     sizeTo: function (value, top, bottom) {
       value = value - (top || 0) - (bottom || 0);
       var width = this._settings.scrollSize;
-
-      if (!width && this._settings.scrollVisible && !env.$customScroll) {
-        this._viewobj.style.pointerEvents = "none";
-        width = 14;
-      }
+      if (!width && this._settings.scrollVisible && !env.$customScroll) width = 14;
 
       if (!width) {
         this._viewobj.style.display = "none";
@@ -39693,10 +39763,35 @@
       this.callEvent("onScroll", [this.getScroll()]);
     },
     activeArea: function (area, x_mode) {
+      var _this2 = this;
+
       this._x_scroll_mode = x_mode;
 
       _event(area, "wheel", this._on_wheel, {
         bind: this,
+        passive: false
+      }); // workaround: show dynamic scrollbars when hovering over the active area
+
+
+      var throttled;
+      var mousemoveEvent = new MouseEvent("mousemove", {
+        bubbles: true,
+        passive: false,
+        view: window
+      });
+
+      _event(area, "mousemove", function () {
+        if (env.scrollSize === 0 && !env.$customScroll) {
+          if (throttled) return;else {
+            _this2._viewobj.dispatchEvent(mousemoveEvent);
+
+            throttled = true;
+          }
+          setTimeout(function () {
+            return throttled = false;
+          }, 500);
+        }
+      }, {
         passive: false
       });
     },
@@ -40120,9 +40215,10 @@
           }
         },
         _click_before_select: function (e, id) {
-          var preserve = e.ctrlKey || e.metaKey || this._settings.multiselect == "touch";
+          var c = this._settings;
+          var preserve = e.ctrlKey || e.metaKey || c.multiselect === "touch";
           var range = e.shiftKey;
-          if (!this._settings.multiselect && this._settings.select != "multiselect" && this._settings.select != "area") preserve = range = false;
+          if (!c.multiselect && c.select != "multiselect" && c.select !== "area") preserve = range = false;
 
           if (range && this._selected_areas.length) {
             var last = this._selected_areas[this._selected_areas.length - 1];
@@ -40140,7 +40236,9 @@
           if (editor && editor.$inline && !editor.getPopup) return; // restore focus
 
           var node = this.getItemNode(id);
-          if (node) node.focus();
+          if (node) node.focus({
+            preventScroll: true
+          });
         },
         _mapSelection: function (callback, column, row) {
           var cols = this._settings.columns; //selected columns only
@@ -40873,26 +40971,29 @@
       this._rs_ready = false;
       var mode = false;
       var node = e.target;
-      var config = this._settings;
-      var in_body, in_header;
 
-      while (!(node == this._viewobj || in_body || in_header)) {
-        //we can't use node.className because there can be SVG (in SVG it is an SVGAnimatedString object)
-        var element_class = node.getAttribute("class") || "";
-        in_body = element_class.indexOf("webix_cell") != -1;
-        in_header = element_class.indexOf("webix_hcell") != -1;
-        if (!(in_body || in_header)) node = node.parentElement;
-      } //ignore resize in case of drag-n-drop enabled
+      if (this._viewobj.contains(node)) {
+        var config = this._settings;
+        var in_body, in_header;
+
+        while (!(node == this._viewobj || in_body || in_header)) {
+          //we can't use node.className because there can be SVG (in SVG it is an SVGAnimatedString object)
+          var element_class = node.getAttribute("class") || "";
+          in_body = element_class.indexOf("webix_cell") != -1;
+          in_header = element_class.indexOf("webix_hcell") != -1;
+          if (!(in_body || in_header)) node = node.parentElement;
+        } //ignore resize in case of drag-n-drop enabled
 
 
-      if (in_body && config.drag) return this._mark_resize(mode);
+        if (in_body && config.drag) return this._mark_resize(mode);
 
-      if (in_body || in_header) {
-        var _pos = posRelative(e);
+        if (in_body || in_header) {
+          var _pos = posRelative(e);
 
-        var cell = this._locate(node);
+          var cell = this._locate(node);
 
-        mode = this._is_column_rs(cell, _pos, node, config.resizeColumn, in_body) || in_body && this._is_row_rs(cell, _pos, node, config.resizeRow);
+          mode = this._is_column_rs(cell, _pos, node, config.resizeColumn, in_body) || in_body && this._is_row_rs(cell, _pos, node, config.resizeRow);
+        }
       } //mark or unmark resizing ready state
 
 
@@ -42365,7 +42466,8 @@
     refreshColumns: function (columns) {
       var _this = this;
 
-      var columnsUpdated = this.config.columns !== this._columns || columns;
+      if (columns) columns = copy(columns, null, true);
+      var columnsUpdated = this._columns.length !== 0 && this._settings.columns !== this._columns || !!columns;
       this._dtable_column_refresh = true;
 
       if (columnsUpdated) {
@@ -42383,6 +42485,7 @@
         this._active_headers = {};
         this._filter_elements = {};
         this._collection_handlers = {};
+        this._has_active_headers = false;
       }
 
       this._columns_pull = {}; //clear rendered data
@@ -42395,12 +42498,13 @@
 
       for (var _i8 = 0; _i8 < 3; _i8++) {
         this._header.childNodes[_i8].innerHTML = "";
+        this._footer.childNodes[_i8].innerHTML = "";
         this._body.childNodes[_i8].firstChild.innerHTML = "";
       } //render new structure
 
 
-      this._columns = this.config.columns = columns || this.config.columns;
-      this._rightSplit = this._columns.length - (this.config.rightSplit || 0);
+      this._columns = this._settings.columns = columns || this._settings.columns;
+      this._rightSplit = this._columns.length - (this._settings.rightSplit || 0);
       this._dtable_fully_ready = 0;
 
       this._define_structure();
@@ -42566,13 +42670,32 @@
             var step = 1;
             if (mode == "pgup" || mode == "pgdown") step = this._pager ? this._pager.config.size : this.getVisibleCount(); //get new selection row
 
-            if (mode == "up" || mode == "pgup") _index -= step;else if (mode == "down" || mode == "pgdown") _index += step; //check that we in valid row range
+            if (mode == "up" || mode == "pgup") {
+              _index -= step;
+              this._nav_dir = "up";
+            } else if (mode == "down" || mode == "pgdown") {
+              _index += step;
+              this._nav_dir = "down";
+            } //check that we in valid row range
+
 
             if (_index < 0) _index = 0;
             if (_index >= this.data.order.length) _index = this.data.order.length - 1;
             details.step = step;
-            row = this.getIdByIndex(_index);
-            if (!row && this._settings.pager) this.showItemByIndex(_index);
+            row = this.getIdByIndex(_index); // row is not visible yet (paging and/or dynamic loading)
+
+            if (!row) {
+              this.showItemByIndex(_index);
+              this._sel_ctx = {
+                cell: cell,
+                index: _index,
+                column: column,
+                mode: mode,
+                details: details,
+                preserve: preserve,
+                dir: this._nav_dir
+              };
+            }
           }
         } else if (mode == "right" || mode == "left") {
           if (column && this.config.select != "row") {
@@ -42595,31 +42718,37 @@
           return;
         }
 
-        if (row) {
-          cell.row = row;
-          cell.column = column;
-          this.callEvent("onMoveSelection", [cell, mode, details]);
-          this.showCell(cell.row, cell.column);
-
-          if (!this.select) {
-            //switch on cell or row selection by default
-            exports.extend(this, this._selections._commonselect, true);
-            this._settings.select = this.open || this._subViewStorage ? "row" : "cell";
-            exports.extend(this, this._selections[this._settings.select], true);
-          }
-
-          cell.row = row;
-          cell.column = column;
-
-          if (preserve && this._settings.select == "area") {
-            var last = this._selected_areas[this._selected_areas.length - 1];
-
-            this._extendAreaRange(cell, last, mode, details);
-          } else this._select(cell, preserve);
-        }
+        this._moveSelection(cell, {
+          row: row,
+          column: column
+        }, mode, details, preserve);
       }
 
       return false;
+    },
+    _moveSelection: function (cell, pos$$1, mode, details, preserve) {
+      var row = pos$$1.row,
+          column = pos$$1.column;
+
+      if (row) {
+        cell.row = row;
+        cell.column = column;
+        this.callEvent("onMoveSelection", [cell, mode, details]);
+        this.showCell(cell.row, cell.column);
+
+        if (!this.select) {
+          //switch on cell or row selection by default
+          exports.extend(this, this._selections._commonselect, true);
+          this._settings.select = this.open || this._subViewStorage ? "row" : "cell";
+          exports.extend(this, this._selections[this._settings.select], true);
+        }
+
+        if (preserve && this._settings.select == "area") {
+          var last = this._selected_areas[this._selected_areas.length - 1];
+
+          this._extendAreaRange(cell, last, mode, details);
+        } else this._select(cell, preserve);
+      }
     },
     _getNextCtrlSelection: function (cell, mode) {
       var row = cell.row,
@@ -43407,13 +43536,23 @@
           filterHTML: true
         });
       var mode = options.export_mode;
-      if (mode != "pdf" && mode != "excel" || options.dataOnly || !options.styles) return this;else {
+      if (mode != "pdf" && mode != "excel" || options.dataOnly || !(options.styles || options.freeze)) return this;else {
         //excel export with styles
         options.dataOnly = true;
         options.heights = isUndefined(options.heights) ? "all" : options.heights;
         var data = mode == "pdf" ? toPDF(this, options) : toExcel(this, options);
-        data[0].styles = this._getExportStyles(options);
+        if (options.styles) data[0].styles = this._getExportStyles(options);
         delete options.dataOnly;
+
+        if (mode == "excel" && options.freeze) {
+          var columns = this._hidden_split[0] || this.config.leftSplit;
+          var rows = this.config.topSplit;
+          if (columns || rows) data[0].freeze = {
+            rows: rows - (data[0].viewOptions.yCorrection || 0),
+            columns: columns - (data[0].viewOptions.xCorrection || 0)
+          };
+        }
+
         return data;
       }
     },
@@ -43555,8 +43694,8 @@
           //px to pt conversion
           bold: cellStyle["font-weight"] != "normal" && cellStyle["font-weight"] != 400,
           italic: cellStyle["font-style"] == "italic",
-          underline: cellStyle["text-decoration-line"] == "line-through",
-          strikethrough: cellStyle["text-decoration-line"] == "underline",
+          underline: cellStyle["text-decoration-line"].indexOf("underline") != -1,
+          strikethrough: cellStyle["text-decoration-line"].indexOf("line-through") != -1,
           color: color.rgbToHex(cellStyle["color"]),
           textAlign: cellStyle["text-align"],
           whiteSpace: cellStyle["white-space"] == "normal",
@@ -43728,6 +43867,8 @@
     },
     on_context: {},
     $init: function (config) {
+      var _this = this;
+
       this.on_click = exports.extend({}, this.on_click);
       var html = "<div class='webix_ss_header' section='header'><div class='webix_hs_left'></div><div class='webix_hs_center'></div><div class='webix_hs_right'></div></div><div class='webix_ss_body'><div class='webix_ss_left'><div class='webix_ss_center_scroll'></div></div>";
       html += "<div class='webix_ss_center'><div class='webix_ss_center_scroll' role='rowgroup'></div></div>";
@@ -43755,6 +43896,8 @@
       this._filter_elements = {};
       this._sort_signs = {};
       this._sort_signs_order = [];
+      this._last_order = [];
+      this._last_sorted = {};
       this._header_height = this._footer_height = 0; //component can create new view
 
       this._destroy_with_me = [];
@@ -43777,7 +43920,33 @@
       this.attachEvent("onDestruct", this._clean_config_struct);
       this.attachEvent("onKeyPress", this._onKeyPress);
       this.attachEvent("onScrollY", this._adjust_rows);
+      this.attachEvent("onAfterLoad", function () {
+        // select target row after dyn. data loading (on key navigation)
+        if (_this._nav_dir && _this._sel_ctx) {
+          if (_this._sel_ctx.dir !== _this._nav_dir) return; // shifting nav direction mid-load
+
+          var _this$_sel_ctx = _this._sel_ctx,
+              cell = _this$_sel_ctx.cell,
+              index$$1 = _this$_sel_ctx.index,
+              column = _this$_sel_ctx.column,
+              mode = _this$_sel_ctx.mode,
+              details = _this$_sel_ctx.details,
+              preserve = _this$_sel_ctx.preserve;
+
+          var row = _this.getIdByIndex(index$$1);
+
+          _this._moveSelection(cell, {
+            row: row,
+            column: column
+          }, mode, details, preserve);
+
+          _this._nav_dir = _this._sel_ctx = null;
+        }
+      });
       callEvent("onDataTable", [this, config]);
+    },
+    columns_setter: function (value) {
+      return copy(value, null, true);
     },
     _render_initial: function () {
       this._scrollSizeX = this._scrollSizeY = env.scrollSize;
@@ -43788,13 +43957,13 @@
       this._render_initial = function () {};
     },
     _first_render: function () {
-      var _this = this;
+      var _this2 = this;
 
       this.data.attachEvent("onStoreLoad", function () {
-        return _this._refresh_any_header_content(true);
+        return _this2._refresh_any_header_content(true);
       });
       this.data.attachEvent("onSyncApply", function () {
-        return _this._refresh_any_header_content(true);
+        return _this2._refresh_any_header_content(true);
       });
       this.data.attachEvent("onStoreUpdated", bind(function () {
         return this.render.apply(this, arguments);
@@ -43806,26 +43975,28 @@
       this.render();
     },
     _delayRender: function (cell) {
-      var _this2 = this;
+      var _this3 = this;
 
       clearTimeout(this._renderDelay);
       this._renderDelay = delay(function (cell) {
-        _this2._renderDelay = 0;
+        _this3._renderDelay = 0;
 
-        if (!isUndefined(_this2._delayedLeftScroll)) {
-          _this2._setLeftScroll(_this2._delayedLeftScroll);
+        if (!isUndefined(_this3._delayedLeftScroll)) {
+          _this3._setLeftScroll(_this3._delayedLeftScroll);
 
-          delete _this2._delayedLeftScroll;
+          delete _this3._delayedLeftScroll;
         }
 
-        _this2.render(); //restore focus
+        _this3.render(); //restore focus
 
 
-        if (!_this2._settings.clipboard && cell) {
-          var node = _this2.getItemNode(cell);
+        if (!_this3._settings.clipboard && cell) {
+          var node = _this3.getItemNode(cell);
 
           if (node) node.focus();
         }
+
+        if (!_this3._active_load_next) _this3._nav_dir = _this3._sel_ctx = null;
       }, this, [cell]);
     },
     render: function (id, data, mode) {
@@ -44321,6 +44492,7 @@
           if (row_ind < state[0] + 1) {
             //scroll top - show row at top of screen
             summ = Math.max(0, summ) - this._get_top_split_height();
+            if (row_ind > 0 && dataHeight) summ -= this._getHeightByIndex(row_ind - 1);
           } else if (summ + itemHeight > dataHeight) {
             //scroll bottom - show row at bottom of screen
             summ += itemHeight - dataHeight; //because of row rounding we need to scroll some extra
@@ -44404,7 +44576,7 @@
       this.showItemByIndex(this.getIndexById(id), -1);
     },
     _render_header_section: function (sec, name, heights) {
-      var _this3 = this;
+      var _this4 = this;
 
       var header = sec.childNodes;
       header[0].innerHTML = this._render_subheader(0, this._settings.leftSplit, this._left_width, name, heights);
@@ -44414,7 +44586,7 @@
       if (env.touch) Touch._set_matrix(header[1].firstChild, -x, 0, "0ms");else header[1].scrollLeft = x;
 
       header[1].onscroll = function () {
-        return _this3._scroll_with_header();
+        return _this4._scroll_with_header();
       };
     },
     _scroll_with_header: function () {
@@ -45093,6 +45265,7 @@
       var paging = this._settings.pager;
       var fetch = this._settings.datafetch;
       var direction = !this._last_valid_render_pos || yr[0] >= this._last_valid_render_pos;
+      if (this._nav_dir && this._nav_dir === "up") direction = false;
       this._last_valid_render_pos = yr[0];
 
       if (this._data_request_flag) {
@@ -45137,10 +45310,14 @@
       }
     },
     _run_load_next: function (conf, direction) {
+      var _this5 = this;
+
       var count = Math.max(conf.count, this._settings.datafetch || this._settings.loadahead || 0);
       var start = direction ? conf.start : conf.last - count + 1;
       if (this._maybe_loading_already(conf.count, conf.start)) return;
-      this.loadNext(count, start);
+      this._active_load_next = this.loadNext(count, start)["finally"](function () {
+        return _this5._active_load_next = null;
+      });
     },
     // necessary for safari only
     _preserveScrollTarget: function (columnNode) {
@@ -45392,7 +45569,8 @@
         if (!this._data_request_flag) this._data_request_flag = {
           start: i,
           count: yr[1] - i
-        };else this._data_request_flag.last = i;
+        };
+        this._data_request_flag.last = i;
       }
 
       state.total += state.row;
@@ -45612,10 +45790,8 @@
 
       return maybe;
     },
-    _last_order: [],
-    _last_sorted: {},
     _sort: function (col_id, direction, type$$1, preserve) {
-      var _this4 = this;
+      var _this6 = this;
 
       var sortSign = true;
       preserve = this._settings.sort === "multi" && preserve;
@@ -45638,29 +45814,29 @@
       if (type$$1 == "server") {
         var params = [col.id, direction, type$$1];
         if (this._last_order.length > 1) params = [this._last_order.map(function (id) {
-          return _this4._last_sorted[id];
+          return _this6._last_sorted[id];
         })];
 
         if (this.callEvent("onBeforeSort", params)) {
           if (!this._skip_server_op) this.loadNext(0, 0, 0, 0, true, true).then(function () {
-            return _this4._on_after_sort(params);
+            return _this6._on_after_sort(params);
           });else this._skip_server_op.$params = params; // save last parameters
         } else sortSign = false;
       } else {
         if (type$$1 == "text" || type$$1 == "text_locale") this._sort_text(config, col.id, type$$1);
         if (this._last_order.length > 1) sortSign = this.data.sort(this._last_order.map(function (id) {
-          return _this4._last_sorted[id];
+          return _this6._last_sorted[id];
         }));else sortSign = this.data.sort(config);
       }
 
       if (sortSign) this.markSorting(col.id, config.dir, preserve);
     },
     _sort_text: function (config, id, type$$1) {
-      var _this5 = this;
+      var _this7 = this;
 
       var new_id = "$".concat(type$$1, "_").concat(id);
       this.data.each(function (obj) {
-        return obj[new_id] = _this5.getText(obj.id, id);
+        return obj[new_id] = _this7.getText(obj.id, id);
       });
       config.as = "string" + (type$$1.indexOf("locale") != -1 ? "_locale" : "");
       config.by = new_id;

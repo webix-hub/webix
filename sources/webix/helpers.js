@@ -44,30 +44,38 @@ let extend = function(base, source, force){
 };
 
 //copies methods and properties from source to the target from all levels
-export function copy(source){
+export function copy(source, origin, allowViewRefs){
 	assert(source,"Invalid mixing target");
 	if (DEBUG) level_in();
 
-	var esModern = !!window.Map && !!window.Set && !!window.WeakMap && !!window.WeakSet;
-	var target;
-	if(arguments.length>1){
-		target = arguments[0];
-		source = arguments[1];
+	const esModern = !!window.Map && !!window.Set && !!window.WeakMap && !!window.WeakSet;
+	let target;
+	if(origin){
+		target = source;
+		source = origin;
 	} else 
 		target = (isArray(source)?[]:{});
 
-	for (var method in source){
-		var from = source[method];
-		if(from && typeof from == "object" && !(from instanceof RegExp)){
+	for (let method in source){
+		const from = source[method];
+		if(from && typeof from == "object" && !(from instanceof RegExp)){		
+			const viewInstance = !!from._settings && !!from.$init && !!from.define;
 			if (isDate(from))
 				target[method] = new Date(from);
 			/* jshint ignore:start */
-			else if (esModern && (from instanceof Map || from instanceof Set || from instanceof WeakMap || from instanceof WeakSet))
+			else if (
+				(esModern && (from instanceof Map ||
+					from instanceof Set ||
+					from instanceof WeakMap ||
+					from instanceof WeakSet)) ||
+				(allowViewRefs && viewInstance)
+			) {
 				target[method] = from;
+			}
 			/* jshint ignore:end */
 			else {
 				target[method] = (isArray(from)?[]:{});
-				copy(target[method],from);
+				copy(target[method], from, allowViewRefs);
 			}
 		} else {
 			target[method] = from;

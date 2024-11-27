@@ -107,15 +107,25 @@ const Mixin = {
 						step = this._pager ? this._pager.config.size : this.getVisibleCount();
 
 					//get new selection row
-					if (mode == "up" || mode == "pgup") index-=step;
-					else if (mode == "down" || mode == "pgdown") index+=step;
+					if (mode == "up" || mode == "pgup") {
+						index -= step;
+						this._nav_dir = "up";
+					}
+					else if (mode == "down" || mode == "pgdown") {
+						index += step;
+						this._nav_dir = "down";
+					} 
 					//check that we in valid row range
 					if (index <0) index=0;
 					if (index >=this.data.order.length) index=this.data.order.length-1;
 					details.step = step;
 					row = this.getIdByIndex(index);
-					if (!row && this._settings.pager)
+					
+					// row is not visible yet (paging and/or dynamic loading)
+					if (!row) {
 						this.showItemByIndex(index);
+						this._sel_ctx = { cell, index, column, mode, details, preserve, dir: this._nav_dir };
+					}
 				}
 			} else if (mode == "right" || mode == "left"){
 				if (column && this.config.select != "row"){
@@ -139,30 +149,32 @@ const Mixin = {
 				return;
 			}
 
-			if (row){
-				cell.row = row;
-				cell.column = column;
-				this.callEvent("onMoveSelection", [cell, mode, details]);
-				this.showCell(cell.row, cell.column);
-
-				if(!this.select){ //switch on cell or row selection by default
-					extend(this, this._selections._commonselect, true);
-					this._settings.select = (this.open || this._subViewStorage?"row":"cell");
-					extend(this, this._selections[this._settings.select], true);
-				}
-
-				cell.row = row;
-				cell.column = column;
-				if(preserve && this._settings.select == "area"){
-					var last = this._selected_areas[this._selected_areas.length-1];
-					this._extendAreaRange(cell, last, mode, details);
-				}
-				else
-					this._select(cell, preserve);			
-			}
+			this._moveSelection(cell, { row, column }, mode, details, preserve);
 		}
 
 		return false;
+	},
+	_moveSelection(cell, pos, mode, details, preserve) {
+		const { row, column } = pos;
+		if (row){
+			cell.row = row;
+			cell.column = column;
+			this.callEvent("onMoveSelection", [cell, mode, details]);
+			this.showCell(cell.row, cell.column);
+
+			if(!this.select){ //switch on cell or row selection by default
+				extend(this, this._selections._commonselect, true);
+				this._settings.select = (this.open || this._subViewStorage?"row":"cell");
+				extend(this, this._selections[this._settings.select], true);
+			}
+
+			if(preserve && this._settings.select == "area"){
+				var last = this._selected_areas[this._selected_areas.length-1];
+				this._extendAreaRange(cell, last, mode, details);
+			}
+			else
+				this._select(cell, preserve);			
+		}
 	},
 	_getNextCtrlSelection: function(cell, mode){
 		const {row, column} = cell,

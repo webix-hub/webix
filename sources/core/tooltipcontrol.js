@@ -40,7 +40,7 @@ const TooltipControl = {
 			this._tooltip._css_name = "webix_tooltip webix_global_tooltip";
 
 			this._webix_tooltip_mm = event(document, "pointermove", e => this._move_tooltip(e));
-			this._webix_tooltip_ml = event(document, "pointerleave", () => this._hide_tooltip());
+			this._webix_tooltip_ml = event(document.body, "pointerleave", () => this._hide_tooltip());
 			this._drag_event = attachEvent("onDragMode", () => this._hide_tooltip());
 			this._click_event = attachEvent("onClick", () => this._hide_tooltip());
 		}

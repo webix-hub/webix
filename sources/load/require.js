@@ -80,16 +80,20 @@ export default function require(module, callback, master){
 				calls[i].resolve();
 		};
 
-		//css, async, no waiting
-		var parts = module.split("?");
-		if (parts[0].substr(parts[0].length-4) == ".css") {
-			var link = create("LINK",{  type:"text/css", rel:"stylesheet", href:fullpath});
+		const [ cssExt, mjsExt ] = [".css", ".mjs"];
+		const parts = module.split("?");
+
+		// css, async, no waiting
+		if (parts[0].substring(parts[0].length - cssExt.length) === cssExt) {
+			const link = create("LINK",{  type:"text/css", rel:"stylesheet", href:fullpath});
 			link.onload = onload;
 			link.onerror = onerror;
 
 			document.getElementsByTagName("head")[0].appendChild(link);
 		} else {
-			var newScript = document.createElement("script");
+			const newScript = document.createElement("script");
+
+			if (parts[0].substring(parts[0].length - mjsExt.length) === mjsExt) newScript.type = "module";
 			newScript.onload = onload;
 			newScript.onerror = onerror;
 

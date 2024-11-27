@@ -7,24 +7,25 @@ const Settings={
 			in same time for inner call it have sense to use _settings
 			because it will be minified in final version
 		*/
-		this._settings = this.config= {}; 
+		this._settings = this.config = {}; 
 	},
 	define:function(property, value){
-		if (typeof property == "object")
-			return this._parseSeetingColl(property);
+		if (typeof property === "object")
+			return this._parseSettingColl(property);
 		return this._define(property, value);
 	},
-	_define:function(property,value){
+	_define:function(property, value, coll){
 		//method with name {prop}_setter will be used as property setter
 		//setter is optional
-		var setter = this[property+"_setter"];
-		return (this._settings[property]=setter?setter.call(this,value,property):value);
+		const setter = this[property + "_setter"];
+		return (this._settings[property] = setter ? setter.call(this, value, property, coll) : value);
 	},
 	//process configuration object
-	_parseSeetingColl:function(coll){
-		if (coll){
-			for (var a in coll)				//for each setting
-				this._define(a,coll[a]);		//set value through config
+	_parseSettingColl:function(coll){
+		if (coll) {
+			// set value for each setting/property from config
+			for (const property in coll) 
+				this._define(property, coll[property], coll);
 		}
 	},
 	//helper for object initialization
@@ -35,10 +36,10 @@ const Settings={
 			settings = extend(settings,initial);
 					
 		//code below will copy all properties over default one
-		if (typeof obj == "object" && !obj.tagName)
+		if (typeof obj === "object" && !obj.tagName)
 			extend(settings,obj, true);	
 		//call config for each setting
-		this._parseSeetingColl(settings);
+		this._parseSettingColl(settings);
 	},
 	_mergeSettings:function(config, defaults){
 		for (var key in defaults)

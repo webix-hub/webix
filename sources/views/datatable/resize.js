@@ -96,29 +96,32 @@ const Mixin = {
 
 		let mode = false;
 		let node = e.target;
-		const config = this._settings;
 
-		let in_body, in_header;
-		while (!(node == this._viewobj || in_body || in_header)){
-			//we can't use node.className because there can be SVG (in SVG it is an SVGAnimatedString object)
-			const element_class = node.getAttribute("class")||"";
-			in_body = element_class.indexOf("webix_cell") != -1;
-			in_header = element_class.indexOf("webix_hcell") != -1;
+		if(this._viewobj.contains(node)){
+			const config = this._settings;
+			let in_body, in_header;
 
-			if(!(in_body || in_header))
-				node = node.parentElement;
-		}
+			while (!(node == this._viewobj || in_body || in_header)){
+				//we can't use node.className because there can be SVG (in SVG it is an SVGAnimatedString object)
+				const element_class = node.getAttribute("class")||"";
+				in_body = element_class.indexOf("webix_cell") != -1;
+				in_header = element_class.indexOf("webix_hcell") != -1;
 
-		//ignore resize in case of drag-n-drop enabled
-		if (in_body && config.drag) return this._mark_resize(mode);
+				if(!(in_body || in_header))
+					node = node.parentElement;
+			}
 
-		
-		if (in_body || in_header){
-			const pos = posRelative(e);
-			const cell = this._locate(node);
+			//ignore resize in case of drag-n-drop enabled
+			if (in_body && config.drag) return this._mark_resize(mode);
 
-			mode = this._is_column_rs(cell, pos, node, config.resizeColumn, in_body)
-				|| (in_body && this._is_row_rs(cell, pos, node, config.resizeRow));
+			
+			if (in_body || in_header){
+				const pos = posRelative(e);
+				const cell = this._locate(node);
+
+				mode = this._is_column_rs(cell, pos, node, config.resizeColumn, in_body)
+					|| (in_body && this._is_row_rs(cell, pos, node, config.resizeRow));
+			}
 		}
 
 		//mark or unmark resizing ready state

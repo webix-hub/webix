@@ -1,4 +1,4 @@
-import {_to_array, _power_array, isUndefined} from "../../webix/helpers";
+import {_to_array, _power_array, isUndefined, copy} from "../../webix/helpers";
 import {assert} from "../../webix/debug";
 
 const Mixin = {
@@ -366,7 +366,9 @@ const Mixin = {
 		}
 	},
 	refreshColumns:function(columns){
-		const columnsUpdated = this.config.columns !== this._columns || columns;
+		if (columns) columns = copy(columns, null, true);
+		const columnsUpdated = (this._columns.length !== 0 && this._settings.columns !== this._columns) || !!columns;
+
 		this._dtable_column_refresh = true;
 
 		if (columnsUpdated) {
@@ -384,6 +386,7 @@ const Mixin = {
 			this._active_headers = {};
 			this._filter_elements = {};
 			this._collection_handlers = {};
+			this._has_active_headers = false;
 		}
 
 		this._columns_pull = {};
@@ -395,12 +398,13 @@ const Mixin = {
 		}
 		for (let i=0; i<3; i++){
 			this._header.childNodes[i].innerHTML = "";
+			this._footer.childNodes[i].innerHTML = "";
 			this._body.childNodes[i].firstChild.innerHTML = "";
 		}
 
 		//render new structure
-		this._columns = this.config.columns = (columns || this.config.columns);
-		this._rightSplit = this._columns.length - (this.config.rightSplit || 0);
+		this._columns = this._settings.columns = (columns || this._settings.columns);
+		this._rightSplit = this._columns.length - (this._settings.rightSplit || 0);
 
 		this._dtable_fully_ready = 0;
 		this._define_structure();

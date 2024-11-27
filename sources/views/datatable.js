@@ -34,7 +34,7 @@ import SpansMixin from "./datatable/spans";
 import {addStyle, addCss, removeCss, createCss, create, remove, getTextSize, _getClassName, index as getIndex} from "../webix/html";
 import {protoUI, $$, ui} from "../ui/core";
 import {$active} from "../webix/skin";
-import {extend, uid, bind, delay, toFunctor, isUndefined, isArray, clone} from "../webix/helpers";
+import {extend, uid, bind, delay, toFunctor, isUndefined, isArray, clone, copy} from "../webix/helpers";
 import {debug_size_box} from "../webix/debug";
 import {assert} from "../webix/debug";
 import {callEvent} from "../webix/customevents";
@@ -171,6 +171,8 @@ const api = {
 		this._filter_elements = {};
 		this._sort_signs = {};
 		this._sort_signs_order = [];
+		this._last_order = [];
+		this._last_sorted = {};
 		this._header_height = this._footer_height = 0;
 
 		//component can create new view
@@ -193,8 +195,21 @@ const api = {
 		this.attachEvent("onDestruct", this._clean_config_struct);
 		this.attachEvent("onKeyPress", this._onKeyPress);
 		this.attachEvent("onScrollY", this._adjust_rows);
+		this.attachEvent("onAfterLoad", () => {
+			// select target row after dyn. data loading (on key navigation)
+			if (this._nav_dir && this._sel_ctx) {
+				if (this._sel_ctx.dir !== this._nav_dir) return; // shifting nav direction mid-load
+				const { cell, index, column, mode, details, preserve } = this._sel_ctx;
+				const row = this.getIdByIndex(index);
+				this._moveSelection(cell, { row, column }, mode, details, preserve);
+				this._nav_dir = this._sel_ctx = null;
+			}
+		});
 
 		callEvent("onDataTable", [this, config]);
+	},
+	columns_setter(value) {
+		return copy(value, null, true);
 	},
 	_render_initial:function(){
 		this._scrollSizeX = this._scrollSizeY = env.scrollSize;
@@ -229,6 +244,8 @@ const api = {
 				const node = this.getItemNode(cell);
 				if(node) node.focus();
 			}
+
+			if (!this._active_load_next) this._nav_dir = this._sel_ctx = null;
 		}, this, [cell]);
 	},
 	render:function(id, data, mode){
@@ -706,6 +723,9 @@ const api = {
 				if (row_ind < state[0]+1){
 					//scroll top - show row at top of screen
 					summ = Math.max(0, summ) - this._get_top_split_height();
+
+					if (row_ind > 0 && dataHeight)
+						summ -= this._getHeightByIndex(row_ind - 1);
 				} else if(summ + itemHeight > dataHeight) {
 					//scroll bottom - show row at bottom of screen
 					summ += itemHeight - dataHeight;
@@ -713,8 +733,8 @@ const api = {
 					for (let cur_ind = row_ind; cur_ind>0 && dataHeight>0 ; cur_ind--)
 						dataHeight -= this._getHeightByIndex(cur_ind);
 
-					if (row_ind>0 && dataHeight)
-						summ += this._getHeightByIndex(row_ind+1);
+					if (row_ind > 0 && dataHeight)
+						summ += this._getHeightByIndex(row_ind + 1);
 				} else { summ = scroll.y; }
 
 				scroll.y = summ;
@@ -831,7 +851,6 @@ const api = {
 		this.refreshHeaderContent(false, true, id);
 	},
 	_refreshHeaderContent:function(sec, cellTrackOnly, getOnly, byId, loading){
-
 		if (this._has_active_headers && sec){
 			const tag = "DIV";
 			const attr = /*@attr*/"active_id";
@@ -1447,10 +1466,11 @@ const api = {
 		}
 	},
 	_check_load_next:function(yr){
-		var paging = this._settings.pager;
-		var fetch = this._settings.datafetch;
-		
-		var direction = (!this._last_valid_render_pos || yr[0] >= this._last_valid_render_pos);
+		const paging = this._settings.pager;
+		const fetch = this._settings.datafetch;
+		let direction = (!this._last_valid_render_pos || yr[0] >= this._last_valid_render_pos);
+		if (this._nav_dir && this._nav_dir === "up") direction = false;
+
 		this._last_valid_render_pos = yr[0];
 
 		if (this._data_request_flag){
@@ -1492,11 +1512,11 @@ const api = {
 		}
 	},
 	_run_load_next:function(conf, direction){
-		var count = Math.max(conf.count, (this._settings.datafetch||this._settings.loadahead||0));
-		var start = direction?conf.start:(conf.last - count+1);
-		
+		const count = Math.max(conf.count, (this._settings.datafetch || this._settings.loadahead || 0));
+		const start = direction ? conf.start : (conf.last - count + 1);
+
 		if (this._maybe_loading_already(conf.count, conf.start)) return;
-		this.loadNext(count, start);
+		this._active_load_next = this.loadNext(count, start).finally(() => this._active_load_next = null);
 	},
 	// necessary for safari only
 	_preserveScrollTarget: function(columnNode){
@@ -1750,8 +1770,7 @@ const api = {
 			html = "<div role='gridcell' class='webix_cell'></div>";
 			if (!this._data_request_flag)
 				this._data_request_flag = {start:i, count:yr[1]-i};
-			else
-				this._data_request_flag.last = i;
+			this._data_request_flag.last = i;
 		}
 		state.total += state.row;
 		return html;
@@ -1967,8 +1986,6 @@ const api = {
 		}
 		return maybe;
 	},
-	_last_order:[],
-	_last_sorted:{},
 	_sort:function(col_id, direction, type, preserve){
 		let sortSign = true;
 
@@ -2167,10 +2184,6 @@ const api = {
 		delete TooltipControl._tooltip.type.column;
 		return null;
 	},
-	
-
-
-
 	showOverlay:function(message){
 		if (!this._datatable_overlay){
 			var t = create("DIV", { "class":"webix_overlay" }, "");

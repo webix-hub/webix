@@ -232,7 +232,7 @@ const api = {
 		const config = this._settings;
 		if (config.labelPosition == "top") {
 			// textarea
-			if (!config.inputHeight)
+			if (!this.$renderTag && !config.inputHeight)
 				this._inputHeight = this._content_height - (config.label ? this._labelTopHeight : 0) - (config.bottomPadding || 0);
 		} else if (config.bottomPadding)
 			config.inputHeight = this._content_height - this.config.bottomPadding;
