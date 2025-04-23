@@ -1417,6 +1417,18 @@ button,
 .webix_dtable_focused .webix_column > div.webix_column_select {
   background: #e3e7f2;
 }
+.webix_hcell .webix_multicombo_tag {
+  max-width: 50%;
+}
+.webix_hcell:not(.webix_span[rowspan]) .webix_multicombo {
+  max-height: 38px;
+}
+.webix_hcell:not(.webix_span[rowspan]) .webix_multicombo .webix_el_box {
+  max-height: 32px;
+}
+.webix_hcell:not(.webix_span[rowspan]) .webix_multicombo .webix_inp_static {
+  max-height: 32px;
+}
 .webix_window {
   position: absolute;
   box-shadow: 0px 4px 20px rgba(44, 47, 60, 0.12);
@@ -3547,6 +3559,7 @@ legend.webix_required:after,
 .webix_multicombo_tag {
   min-width: 15px;
   text-align: center;
+  max-width: calc(100% - 3px);
 }
 .webix_multicombo_tag,
 .webix_multicombo_value.webix_readonly {
@@ -5101,6 +5114,8 @@ body.webix_print {
   position: relative;
   overflow: visible;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 .webix_icon_button .webix_icon {
   font-size: 20px;

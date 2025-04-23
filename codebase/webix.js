@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.11.0.0
+ * webix UI v.11.1.0
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -4174,6 +4174,126 @@
       "pausebreak": "pause",
       "5numlocked": "clear"
     },
+    _keyboard_layouts: {
+      QWERTY: {
+        "KeyA": "a",
+        "KeyB": "b",
+        "KeyC": "c",
+        "KeyD": "d",
+        "KeyE": "e",
+        "KeyF": "f",
+        "KeyG": "g",
+        "KeyH": "h",
+        "KeyI": "i",
+        "KeyJ": "j",
+        "KeyK": "k",
+        "KeyL": "l",
+        "KeyM": "m",
+        "KeyN": "n",
+        "KeyO": "o",
+        "KeyP": "p",
+        "KeyQ": "q",
+        "KeyR": "r",
+        "KeyS": "s",
+        "KeyT": "t",
+        "KeyU": "u",
+        "KeyV": "v",
+        "KeyW": "w",
+        "KeyX": "x",
+        "KeyY": "y",
+        "KeyZ": "z",
+        "Digit0": "0",
+        "Digit1": "1",
+        "Digit2": "2",
+        "Digit3": "3",
+        "Digit4": "4",
+        "Digit5": "5",
+        "Digit6": "6",
+        "Digit7": "7",
+        "Digit8": "8",
+        "Digit9": "9",
+        "Numpad0": "0",
+        "Numpad1": "1",
+        "Numpad2": "2",
+        "Numpad3": "3",
+        "Numpad4": "4",
+        "Numpad5": "5",
+        "Numpad6": "6",
+        "Numpad7": "7",
+        "Numpad8": "8",
+        "Numpad9": "9",
+        "NumpadAdd": "add",
+        "NumpadSubtract": "subtract",
+        "NumpadMultiply": "multiply",
+        "NumpadDivide": "divide",
+        "NumpadDecimal": "decimal",
+        "NumpadEnter": "enter",
+        "ControlLeft": "ctrl",
+        "ControlRight": "ctrl",
+        "AltLeft": "alt",
+        "AltRight": "alt",
+        "ShiftLeft": "shift",
+        "ShiftRight": "shift",
+        "MetaLeft": "meta",
+        "MetaRight": "meta",
+        "Backquote": "`",
+        "Backslash": "\\",
+        "Semicolon": ";",
+        "Quote": "'",
+        "Comma": ",",
+        "Period": ".",
+        "Slash": "/",
+        "BracketLeft": "[",
+        "BracketRight": "]",
+        "Minus": "-",
+        "Equal": "=",
+        "IntlBackslash": "\\",
+        "IntlRo": "\\",
+        "IntlYen": "\\"
+      },
+      QWERTZ: {
+        "KeyY": "z",
+        "KeyZ": "y",
+        "Minus": "ß",
+        "Equal": "´",
+        "BracketLeft": "ü",
+        "BracketRight": "+",
+        "Semicolon": "ö",
+        "Quote": "ä",
+        "Backslash": "#",
+        "IntlBackslash": "<"
+      },
+      AZERTY: {
+        "KeyQ": "a",
+        "KeyA": "q",
+        "KeyZ": "w",
+        "KeyW": "z",
+        "KeyM": ",",
+        "Comma": ";",
+        "Period": ":",
+        "Semicolon": "m",
+        "Digit1": "&",
+        "Digit2": "é",
+        "Digit3": "\"",
+        "Digit4": "'",
+        "Digit5": "(",
+        "Digit6": "-",
+        "Digit7": "è",
+        "Digit8": "_",
+        "Digit9": "ç",
+        "Digit0": "à",
+        "Minus": ")",
+        "Equal": "=",
+        "BracketLeft": "^",
+        "BracketRight": "$",
+        "Backslash": "*",
+        "Quote": "ù",
+        "Slash": "!",
+        "Backquote": "²",
+        "IntlBackslash": "<",
+        "IntlRo": "µ"
+      }
+    },
     _inputs: {
       "input": 1,
       "button": 1,
@@ -4496,15 +4616,32 @@
         }
       }
     },
+    _get_key: function (e) {
+      // key can be undefined (browser autofill)
+      if (!e.key) return ""; // naive check for QWERTZ and AZERTY layouts
+      // we are handling QWERTY/QWERTZ/AZERTY layouts only, as they are most common
+
+      var key = this._check_keyboard_layout(e) ? e.key.toLowerCase() : this._normalize_key_code(e);
+      return this._controls[key] || key;
+    },
+    _normalize_key_code: function (e) {
+      // https://w3c.github.io/uievents-code/
+      // https://w3c.github.io/uievents-code/#key-alphanumeric-section
+      // convert key code to layout-agnostic key names (QWERTY)
+      // special keys not in the default layout are not converted (fallback to e.key)
+      return this._keyboard_layouts["QWERTY"][e.code] || e.key.toLowerCase();
+    },
+    _check_keyboard_layout: function (e) {
+      return this._keyboard_layouts["QWERTZ"][e.code] === e.key.toLowerCase() || this._keyboard_layouts["AZERTY"][e.code] === e.key.toLowerCase();
+    },
     _keycode: function (key, ctrl, shift, alt, meta) {
-      //key can be undefined (browser autofill)
-      return (key || "").toLowerCase() + "_" + ["", ctrl ? "1" : "0", shift ? "1" : "0", alt ? "1" : "0", meta ? "1" : "0"].join("");
+      return key + "_" + ["", ctrl ? "1" : "0", shift ? "1" : "0", alt ? "1" : "0", meta ? "1" : "0"].join("");
     },
     _check_keycode: function (e) {
       var keyCode = e.which || e.keyCode;
       var is_any = !e.ctrlKey && !e.altKey && !e.metaKey && keyCode != 9 && keyCode != 27 && keyCode != 13;
 
-      var code = this._keycode(e.key, e.ctrlKey, e.shiftKey, e.altKey, e.metaKey);
+      var code = this._keycode(this._get_key(e), e.ctrlKey, e.shiftKey, e.altKey, e.metaKey);
 
       var focus = this.getFocus();
       if (this._hotkeys[code]) return this._process_calls(this._hotkeys[code], focus, e);else if (is_any && this._hotkeys["any_0000"]) return this._process_calls(this._hotkeys["any_0000"], focus, e);
@@ -11848,7 +11985,7 @@
       if (first.focus) first.focus();
     },
     edit: function (id, preserve, show) {
-      if (!this._settings.editable || !this.callEvent("onBeforeEditStart", [id])) return;
+      if (!this._settings.editable || !this.callEvent("onBeforeEditStart", [id])) return false;
       if (this._settings.form) return this._show_editor_form(id);
 
       var editor = this._get_editor_type(id);
@@ -12088,6 +12225,9 @@
       return this._last_editor || false;
     },
     editNext: function (next, from) {
+      return this._edit_next(next, from);
+    },
+    _edit_next: function (next, from) {
       next = next !== false; //true by default
 
       if (this._in_edit_mode == 1 || from) {
@@ -12101,9 +12241,11 @@
           //if we was able to close previous editor
           if (editor_next) {
             //and there is a new target
-            this.edit(editor_next); //init new editor
+            var result = this.edit(editor_next); //init new editor
 
             this._after_edit_next(editor_next);
+
+            if (result === false) return this._edit_next(next, editor_next);
           }
 
           return false;
@@ -16091,41 +16233,60 @@
       }
     },
     _setParentThirdState: function (itemId) {
+      var _this = this;
+
       //we need to use dynamic function creating
       //jshint -W083:true
-      var checked, checkedCount, indeterminate, parentId, result, unsureCount, needrender;
-      parentId = this.getParentId(itemId);
-      result = [];
+      var parentId = this.getParentId(itemId);
+      var result = [];
 
-      while (parentId && parentId != "0") {
-        unsureCount = 0;
-        checkedCount = 0;
-        this.data.eachChild(parentId, function (obj) {
+      var _loop = function () {
+        var unsureCount = 0;
+        var checkedCount = 0;
+        var disabledCount = 0;
+
+        _this.data.eachChild(parentId, function (obj) {
           if (obj.indeterminate) {
             unsureCount++;
+            if (obj.checked) disabledCount++;
           } else if (obj.checked) {
             checkedCount++;
           }
-        });
-        checked = indeterminate = needrender = false;
-        var item = this.getItem(parentId);
 
-        if (checkedCount == item.$count) {
+          if (!obj.checked && obj.disabled) {
+            disabledCount++;
+          }
+        });
+
+        var checked = false;
+        var indeterminate = false;
+        var needRender = false;
+        item = _this.getItem(parentId);
+
+        if (checkedCount && checkedCount + disabledCount === item.$count) {
           checked = true;
-        } else if (checkedCount > 0 || unsureCount > 0) {
+        }
+
+        if (checkedCount > 0 && checkedCount !== item.$count || unsureCount > 0) {
           indeterminate = true;
         } //we need to reset indeterminate in any case :(
 
 
-        if (indeterminate || indeterminate != item.indeterminate) needrender = true;
+        if (indeterminate || indeterminate != item.indeterminate) needRender = true;
         item.indeterminate = indeterminate;
-        if (checked || item.checked != checked) needrender = true;
+        if (checked || item.checked != checked) needRender = true;
         item.checked = checked;
 
-        if (needrender) {
+        if (needRender) {
           result.push(parentId);
-          parentId = this.getParentId(parentId);
+          parentId = _this.getParentId(parentId);
         } else parentId = 0;
+      };
+
+      while (parentId && parentId != "0") {
+        var item;
+
+        _loop();
       }
 
       return result;
@@ -16205,8 +16366,10 @@
       item.indeterminate = false;
       state = item.checked;
       this.data.eachSubItem(id, function (child) {
-        child.indeterminate = false;
-        child.checked = state;
+        if (!child.disabled) {
+          child.indeterminate = false;
+          child.checked = state;
+        }
       });
 
       if (this._branch_render_supported && this.isBranchOpen(item.$parent)) {
@@ -16217,7 +16380,8 @@
 
     /*returns checked state of item checkbox*/
     isChecked: function (id) {
-      return this.getItem(id).checked;
+      var item = this.getItem(id);
+      return item.checked && !item.indeterminate;
     },
 
     /*gets all leaves in a certain branch (in the whole tree if id is not set)*/
@@ -17641,7 +17805,7 @@
     }
   };
 
-  var version = "11.0.0";
+  var version = "11.1.0";
   var name = "core";
 
   var errorMessage = "non-existing view for export";
@@ -22238,8 +22402,8 @@
         var dx = Math.round(this._set_size_delta * _sizes[4] / this._set_size_gravity);
         this._set_size_delta -= dx;
         this._set_size_gravity -= _sizes[4];
-        if (this._vertical_orientation) height = dx;else {
-          width = dx;
+        if (this._vertical_orientation) height = _sizes[3] > -1 ? Math.min(dx, _sizes[3]) : dx;else {
+          width = _sizes[1] > -1 ? Math.min(dx, _sizes[1]) : dx;
         }
 
         auto[_i2].view.$setSize(width, height);
@@ -25595,6 +25759,30 @@
             var newdate = wDate.add(date, mode == "down" ? 1 : -1, "hour", true);
             if (date.getDate() === newdate.getDate()) return this._findActive(newdate, mode, calendar);
           }
+        },
+        _correctDate: function (date, calendar) {
+          var time = wDate.timePart(date);
+
+          if (date < calendar._settings.minDate) {
+            date = wDate.copy(calendar._settings.minDate);
+            date.setSeconds(time);
+          } else if (date > calendar._settings.maxDate) {
+            date = wDate.copy(calendar._settings.maxDate);
+            date.setSeconds(time);
+          }
+
+          var blocked = calendar._isDateBlocked(date);
+
+          if (blocked) {
+            var d = wDate.copy(date);
+
+            while (blocked && d.getMonth() == date.getMonth()) {
+              blocked = calendar._isDateBlocked(d);
+              if (blocked) wDate.add(d, 1, "day");else date = d;
+            }
+          }
+
+          return date;
         }
       },
       "0": {
@@ -27724,12 +27912,14 @@
       }
     },
     _setInputHeight: function () {
-      var config = this._settings;
+      if (!this.$renderTag) {
+        var config = this._settings;
 
-      if (config.labelPosition == "top") {
-        // textarea
-        if (!this.$renderTag && !config.inputHeight) this._inputHeight = this._content_height - (config.label ? this._labelTopHeight : 0) - (config.bottomPadding || 0);
-      } else if (config.bottomPadding) config.inputHeight = this._content_height - this.config.bottomPadding;
+        if (config.labelPosition == "top") {
+          // textarea
+          if (!config.inputHeight) this._inputHeight = this._content_height - (config.label ? this._labelTopHeight : 0) - (config.bottomPadding || 0);
+        } else if (config.bottomPadding) config.inputHeight = this._content_height - this.config.bottomPadding;
+      }
     },
     _get_input_width: function (config) {
       var width = (this._input_width || 0) - (config.label ? config.labelWidth : 0) - this._inputSpacing - (config.iconWidth || 0); //prevent js error in IE
@@ -30567,8 +30757,9 @@
 
         var highlightStyles = this._getHighlightNode().style;
 
+        var config = this._settings;
         highlightStyles.left = input.offsetLeft + "px";
-        highlightStyles.top = input.offsetTop + "px";
+        highlightStyles.top = (config.type == "text" && config.labelPosition == "top" ? this._labelTopHeight : 0) + input.offsetTop + "px";
         highlightStyles.height = input.getBoundingClientRect().height + "px";
       }
     },
@@ -41930,7 +42121,14 @@
 
         if (selection.length == 1) {
           var sel = selection[0];
-          if (this._settings.select == "row") sel.column = this._settings.columns[e.shiftKey ? 0 : this._settings.columns.length - 1].id;
+
+          if (this._settings.select == "row") {
+            var index = e.shiftKey ? 0 : this._settings.columns.length - 1;
+            sel.column = this._settings.columns[index].id;
+            if (this._item_clicked && this._item_clicked.row == sel.row) sel.column = this._item_clicked.column;
+            this._item_clicked = null;
+          }
+
           this.editNext(tab, sel);
           return false;
         }

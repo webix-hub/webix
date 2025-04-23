@@ -229,13 +229,15 @@ const api = {
 		}
 	},
 	_setInputHeight: function(){
-		const config = this._settings;
-		if (config.labelPosition == "top") {
-			// textarea
-			if (!this.$renderTag && !config.inputHeight)
-				this._inputHeight = this._content_height - (config.label ? this._labelTopHeight : 0) - (config.bottomPadding || 0);
-		} else if (config.bottomPadding)
-			config.inputHeight = this._content_height - this.config.bottomPadding;
+		if(!this.$renderTag){
+			const config = this._settings;
+			if (config.labelPosition == "top") {
+				// textarea
+				if (!config.inputHeight)
+					this._inputHeight = this._content_height - (config.label ? this._labelTopHeight : 0) - (config.bottomPadding || 0);
+			} else if (config.bottomPadding)
+				config.inputHeight = this._content_height - this.config.bottomPadding;
+		}
 	},
 	_get_input_width: function(config){
 		const width = (this._input_width||0) - (config.label?config.labelWidth:0) - this._inputSpacing - (config.iconWidth || 0);

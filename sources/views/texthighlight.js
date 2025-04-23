@@ -113,9 +113,10 @@ const api = {
 		if(this._rendered_input && this.isVisible()){
 			const input = this.getInputNode();
 			const highlightStyles = this._getHighlightNode().style;
+			const config = this._settings;
 
 			highlightStyles.left = input.offsetLeft+"px";
-			highlightStyles.top = input.offsetTop+"px";
+			highlightStyles.top = (config.type == "text" && config.labelPosition == "top" ? this._labelTopHeight : 0) + input.offsetTop+"px";
 			highlightStyles.height = input.getBoundingClientRect().height+"px";
 		}
 	},

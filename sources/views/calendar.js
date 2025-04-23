@@ -560,7 +560,32 @@ const api = {
 					if(date.getDate() === newdate.getDate())
 						return  this._findActive(newdate, mode, calendar);
 				}
-			}
+			},
+			_correctDate: function(date, calendar){
+				const time = DateHelper.timePart(date);
+				
+				if (date < calendar._settings.minDate) {
+					date = DateHelper.copy(calendar._settings.minDate);
+					date.setSeconds(time);
+				} else if (date > calendar._settings.maxDate) {
+					date = DateHelper.copy(calendar._settings.maxDate);
+					date.setSeconds(time);
+				}
+				
+				let blocked = calendar._isDateBlocked(date);
+				if (blocked) {
+					const d = DateHelper.copy(date);
+					while (blocked && d.getMonth() == date.getMonth()){
+						blocked = calendar._isDateBlocked(d);
+						if (blocked)
+							DateHelper.add(d, 1, "day");
+						else 
+							date = d;
+					}
+				}
+
+				return date;
+			},
 		},
 		"0":{//days
 			_changeStep:1,

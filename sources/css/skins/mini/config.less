@@ -360,6 +360,21 @@
 	.webix_invalid .webix_el_box .webix_inp_static input{
 		background-color:transparent;
 	}
+	.webix_view.webix_el_tabbar{
+		background-color: transparent;
+		border-color: transparent;
+	}
+	.webix_item_tab, .webix_item_tab.webix_selected, .webix_tab_more_icon{
+		.webix_icon{
+			color: @darkBarFontColor;
+		}
+		color: @darkBarFontColor;
+		&:hover, &:focus{
+			color: @darkBarFontColor;
+			.barButtonHover;
+		}
+		background-color:@barButtonBgColor;
+	}
 }
 
 //---------------------------------------------------------------//
@@ -510,6 +525,17 @@
 
 .webix_el_tabbar + .webix_multiview{
 	background-color: @backColor;
+}
+
+.webix_el_tabbar .webix_all_tabs>div{
+	border-radius: 0;
+	&:first-child{
+		border-radius: @tabBorderRadius 0 0 0;
+		
+	}
+	&:last-child{
+		border-radius: 0 @tabBorderRadius 0 0;
+	}
 }
 
 //*****************//

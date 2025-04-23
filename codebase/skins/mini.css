@@ -414,6 +414,30 @@ body.webix_noselect {
 .webix_header.webix_dark .webix_invalid .webix_el_box .webix_inp_static input {
   background-color: transparent;
 }
+.webix_header.webix_dark .webix_view.webix_el_tabbar {
+  background-color: transparent;
+  border-color: transparent;
+}
+.webix_header.webix_dark .webix_item_tab,
+.webix_header.webix_dark .webix_item_tab.webix_selected,
+.webix_header.webix_dark .webix_tab_more_icon {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.webix_header.webix_dark .webix_item_tab .webix_icon,
+.webix_header.webix_dark .webix_item_tab.webix_selected .webix_icon,
+.webix_header.webix_dark .webix_tab_more_icon .webix_icon {
+  color: #FFFFFF;
+}
+.webix_header.webix_dark .webix_item_tab:hover,
+.webix_header.webix_dark .webix_item_tab.webix_selected:hover,
+.webix_header.webix_dark .webix_tab_more_icon:hover,
+.webix_header.webix_dark .webix_item_tab:focus,
+.webix_header.webix_dark .webix_item_tab.webix_selected:focus,
+.webix_header.webix_dark .webix_tab_more_icon:focus {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.4);
+}
 .webix_header.webix_dark {
   color: #FFFFFF;
 }
@@ -833,6 +857,30 @@ button,
 }
 .webix_accordionitem_header.webix_dark .webix_invalid .webix_el_box .webix_inp_static input {
   background-color: transparent;
+}
+.webix_accordionitem_header.webix_dark .webix_view.webix_el_tabbar {
+  background-color: transparent;
+  border-color: transparent;
+}
+.webix_accordionitem_header.webix_dark .webix_item_tab,
+.webix_accordionitem_header.webix_dark .webix_item_tab.webix_selected,
+.webix_accordionitem_header.webix_dark .webix_tab_more_icon {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.webix_accordionitem_header.webix_dark .webix_item_tab .webix_icon,
+.webix_accordionitem_header.webix_dark .webix_item_tab.webix_selected .webix_icon,
+.webix_accordionitem_header.webix_dark .webix_tab_more_icon .webix_icon {
+  color: #FFFFFF;
+}
+.webix_accordionitem_header.webix_dark .webix_item_tab:hover,
+.webix_accordionitem_header.webix_dark .webix_item_tab.webix_selected:hover,
+.webix_accordionitem_header.webix_dark .webix_tab_more_icon:hover,
+.webix_accordionitem_header.webix_dark .webix_item_tab:focus,
+.webix_accordionitem_header.webix_dark .webix_item_tab.webix_selected:focus,
+.webix_accordionitem_header.webix_dark .webix_tab_more_icon:focus {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.4);
 }
 .webix_accordionitem_label {
   height: 100%;
@@ -1948,6 +1996,18 @@ button,
 .webix_dtable_focused .webix_column > div.webix_column_select {
   background: #edeff5;
 }
+.webix_hcell .webix_multicombo_tag {
+  max-width: 50%;
+}
+.webix_hcell:not(.webix_span[rowspan]) .webix_multicombo {
+  max-height: 30px;
+}
+.webix_hcell:not(.webix_span[rowspan]) .webix_multicombo .webix_el_box {
+  max-height: 24px;
+}
+.webix_hcell:not(.webix_span[rowspan]) .webix_multicombo .webix_inp_static {
+  max-height: 24px;
+}
 .webix_window {
   position: absolute;
   box-shadow: 0 3px 10px 0 rgba(0, 0, 0, 0.1), 0 1px 7px 0 rgba(0, 0, 0, 0.1);
@@ -2721,6 +2781,30 @@ button,
 }
 .webix_property_label_line.webix_dark .webix_invalid .webix_el_box .webix_inp_static input {
   background-color: transparent;
+}
+.webix_property_label_line.webix_dark .webix_view.webix_el_tabbar {
+  background-color: transparent;
+  border-color: transparent;
+}
+.webix_property_label_line.webix_dark .webix_item_tab,
+.webix_property_label_line.webix_dark .webix_item_tab.webix_selected,
+.webix_property_label_line.webix_dark .webix_tab_more_icon {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.webix_property_label_line.webix_dark .webix_item_tab .webix_icon,
+.webix_property_label_line.webix_dark .webix_item_tab.webix_selected .webix_icon,
+.webix_property_label_line.webix_dark .webix_tab_more_icon .webix_icon {
+  color: #FFFFFF;
+}
+.webix_property_label_line.webix_dark .webix_item_tab:hover,
+.webix_property_label_line.webix_dark .webix_item_tab.webix_selected:hover,
+.webix_property_label_line.webix_dark .webix_tab_more_icon:hover,
+.webix_property_label_line.webix_dark .webix_item_tab:focus,
+.webix_property_label_line.webix_dark .webix_item_tab.webix_selected:focus,
+.webix_property_label_line.webix_dark .webix_tab_more_icon:focus {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.4);
 }
 .webix_property_label_line.webix_dark {
   color: #FFFFFF;
@@ -4351,6 +4435,7 @@ legend.webix_required:after,
 .webix_multicombo_tag {
   min-width: 15px;
   text-align: center;
+  max-width: calc(100% - 3px);
 }
 .webix_multicombo_tag,
 .webix_multicombo_value.webix_readonly {
@@ -4995,6 +5080,30 @@ legend.webix_required:after,
 }
 .webix_toolbar.webix_layout_subbar.webix_dark .webix_invalid .webix_el_box .webix_inp_static input {
   background-color: transparent;
+}
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_view.webix_el_tabbar {
+  background-color: transparent;
+  border-color: transparent;
+}
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_item_tab,
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_item_tab.webix_selected,
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_tab_more_icon {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_item_tab .webix_icon,
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_item_tab.webix_selected .webix_icon,
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_tab_more_icon .webix_icon {
+  color: #FFFFFF;
+}
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_item_tab:hover,
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_item_tab.webix_selected:hover,
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_tab_more_icon:hover,
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_item_tab:focus,
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_item_tab.webix_selected:focus,
+.webix_toolbar.webix_layout_subbar.webix_dark .webix_tab_more_icon:focus {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.4);
 }
 .webix_toolbar .webix_layout_line,
 .webix_toolbar .webix_layout_clean {
@@ -6159,6 +6268,8 @@ body.webix_print {
   position: relative;
   overflow: visible;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 .webix_icon_button .webix_icon {
   font-size: 20px;
@@ -6501,6 +6612,30 @@ body.webix_print {
 .layoutBarBG.webix_dark .webix_invalid .webix_el_box .webix_inp_static input {
   background-color: transparent;
 }
+.layoutBarBG.webix_dark .webix_view.webix_el_tabbar {
+  background-color: transparent;
+  border-color: transparent;
+}
+.layoutBarBG.webix_dark .webix_item_tab,
+.layoutBarBG.webix_dark .webix_item_tab.webix_selected,
+.layoutBarBG.webix_dark .webix_tab_more_icon {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.layoutBarBG.webix_dark .webix_item_tab .webix_icon,
+.layoutBarBG.webix_dark .webix_item_tab.webix_selected .webix_icon,
+.layoutBarBG.webix_dark .webix_tab_more_icon .webix_icon {
+  color: #FFFFFF;
+}
+.layoutBarBG.webix_dark .webix_item_tab:hover,
+.layoutBarBG.webix_dark .webix_item_tab.webix_selected:hover,
+.layoutBarBG.webix_dark .webix_tab_more_icon:hover,
+.layoutBarBG.webix_dark .webix_item_tab:focus,
+.layoutBarBG.webix_dark .webix_item_tab.webix_selected:focus,
+.layoutBarBG.webix_dark .webix_tab_more_icon:focus {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.4);
+}
 .webix_toolbar .webix_el_label .webix_el_box {
   font-family: Roboto, sans-serif;
   font-size: 14px;
@@ -6766,6 +6901,30 @@ body.webix_print {
 .webix_toolbar.webix_dark .webix_invalid .webix_el_box .webix_inp_static input {
   background-color: transparent;
 }
+.webix_toolbar.webix_dark .webix_view.webix_el_tabbar {
+  background-color: transparent;
+  border-color: transparent;
+}
+.webix_toolbar.webix_dark .webix_item_tab,
+.webix_toolbar.webix_dark .webix_item_tab.webix_selected,
+.webix_toolbar.webix_dark .webix_tab_more_icon {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.webix_toolbar.webix_dark .webix_item_tab .webix_icon,
+.webix_toolbar.webix_dark .webix_item_tab.webix_selected .webix_icon,
+.webix_toolbar.webix_dark .webix_tab_more_icon .webix_icon {
+  color: #FFFFFF;
+}
+.webix_toolbar.webix_dark .webix_item_tab:hover,
+.webix_toolbar.webix_dark .webix_item_tab.webix_selected:hover,
+.webix_toolbar.webix_dark .webix_tab_more_icon:hover,
+.webix_toolbar.webix_dark .webix_item_tab:focus,
+.webix_toolbar.webix_dark .webix_item_tab.webix_selected:focus,
+.webix_toolbar.webix_dark .webix_tab_more_icon:focus {
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.4);
+}
 .webix_layout_space > .webix_toolbar {
   border-radius: 2px;
 }
@@ -6884,6 +7043,15 @@ body.webix_print {
 }
 .webix_el_tabbar + .webix_multiview {
   background-color: #FFFFFF;
+}
+.webix_el_tabbar .webix_all_tabs > div {
+  border-radius: 0;
+}
+.webix_el_tabbar .webix_all_tabs > div:first-child {
+  border-radius: 2px 0 0 0;
+}
+.webix_el_tabbar .webix_all_tabs > div:last-child {
+  border-radius: 0 2px 0 0;
 }
 .webix_layout_space > .webix_view,
 .webix_layout_wide > .webix_view {

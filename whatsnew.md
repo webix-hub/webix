@@ -1,7 +1,44 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
+Version 11.1 (April 2025)
+=============================
 
-Version 11.0.0 (November 2024)
+### Major features
+
+- Rich Text Editor widget
+- File Manager and Document Manager:
+	- data limits: amount of items loaded to every folder can be limited to a specified number
+	- API method for selecting an item: `selectFile`
+- Spreadsheet:
+	- XSS safety mode
+	- zoom on `Ctrl`+`mousewheel`
+	- API methods for number formatting: `addFormat()`, `getFormat()`, `setFormat()`, `removeFormat()`
+- Diagram:
+	- new hotkeys: zoom on `Ctrl`+`+`, `Ctrl`+`-`, `Ctrl`+`0`
+
+### Updates
+
+- hotkeys now can support QWERTY (default), QWERTZ and AZERTY layouts (e.g. `Ctrl`+`Ö` will be recognized as valid hotkey)
+- File Manager and Document Manager: Location is added into the displayed item's details
+- Scheduler: the Units view is now scrollable, the configurable `minWidth` is set for unit columns
+- Spreadsheet: (UX for formatted dates) if a cell displays only time, the date editor will open as a timepicker
+- User Manager: `cursor:pointer` is displayed over clickable checkboxes in matrices ("user/role", "rule/role", "rule/user")
+- Gantt: tasks outside the specified scale now will not be displayed on Gantt's chart area
+- ToDo: better indication of the applied search
+
+### Fixes
+
+- hotkeys set with UIManager didn't work in non-latin keyboard layouts
+- Texthighlight: with `labelPosition:"top"` highlighted text was shifting from the input
+- Multicombo: wrong sizing with `labelPosition: "left"`
+- Button: `maxWidth` was ignored durging resize
+- Calendar: `minDate`/`maxDate` limits were ignored during time selection (in an empty widget)
+- Window: "Close" icon was misaligned
+- Tree with `threeState`: disabled items could be affected by checking/unchecking a parent node
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_11_1.html)
+
+Version 11.0 (November 2024)
 =============================
 
 ### Major features
@@ -87,9 +124,7 @@ Version 10.3 (August 2024)
 - Wrong "placeholder" CSS style in the minified version
 - Export to Excel: calling toExcel() in the Numbers editor (iOS/macOS) results in replacing empty values with zeroes
 
-
 [Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_10_3.html)
-
 
 Version 10.2 (October 2023)
 =============================
@@ -106,6 +141,7 @@ Version 10.2 (October 2023)
 - incorrect rendering of bullet graphs in the firefox
 - calendar widget doesn't preserve correct date value in the timepicker mode
 
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_10_2.html)
 
 Version 10.1 (May 2023)
 =============================
@@ -115,7 +151,6 @@ Version 10.1 (May 2023)
 - Group calls in the Chat widget
 - Year view in the Scheduler widget
 - Improved UX in the ToDo list
-
 
 [Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_10_1.html)
 

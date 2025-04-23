@@ -135,7 +135,7 @@ const EditAbility ={
 			first.focus();
 	},
 	edit:function(id, preserve, show){
-		if (!this._settings.editable || !this.callEvent("onBeforeEditStart", [id])) return;
+		if (!this._settings.editable || !this.callEvent("onBeforeEditStart", [id])) return false;
 		if (this._settings.form)
 			return this._show_editor_form(id);
 
@@ -413,11 +413,14 @@ const EditAbility ={
 	getEditState:function(){
 		return this._last_editor || false;
 	},
-	editNext:function(next, from){ 
+	editNext:function(next, from){
+		return this._edit_next(next, from);
+	},
+	_edit_next:function(next, from){
 		next = next !== false; //true by default
 		if (this._in_edit_mode == 1 || from){
 			//only if one editor is active
-			var editor_next = this._find_cell_next((this._last_editor || from), function(id){
+			const editor_next = this._find_cell_next((this._last_editor || from ), function(id){
 				if (this._get_editor_type(id))
 					return true;
 				return false;
@@ -425,8 +428,10 @@ const EditAbility ={
 
 			if (this.editStop()){	//if we was able to close previous editor
 				if (editor_next){	//and there is a new target
-					this.edit(editor_next);	//init new editor
+					const result = this.edit(editor_next);	//init new editor
 					this._after_edit_next(editor_next);
+					if(result === false)
+						return this._edit_next(next, editor_next);
 				}
 				return false;
 			}

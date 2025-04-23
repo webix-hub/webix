@@ -32,8 +32,52 @@ const UIManager = {
 		"subtract": "-",
 		"decimal": ".",
 		"divide": "/",
-		"pausebreak":"pause",
-		"5numlocked":"clear"
+		"pausebreak": "pause",
+		"5numlocked": "clear"
+	},
+	_keyboard_layouts: {
+		QWERTY: {
+			"KeyA": "a", "KeyB": "b", "KeyC": "c", "KeyD": "d", "KeyE": "e",
+			"KeyF": "f", "KeyG": "g", "KeyH": "h", "KeyI": "i", "KeyJ": "j",
+			"KeyK": "k", "KeyL": "l", "KeyM": "m", "KeyN": "n", "KeyO": "o",
+			"KeyP": "p", "KeyQ": "q", "KeyR": "r", "KeyS": "s", "KeyT": "t",
+			"KeyU": "u", "KeyV": "v", "KeyW": "w", "KeyX": "x", "KeyY": "y",
+			"KeyZ": "z",
+
+			"Digit0": "0", "Digit1": "1", "Digit2": "2", "Digit3": "3", "Digit4": "4",
+			"Digit5": "5", "Digit6": "6", "Digit7": "7", "Digit8": "8", "Digit9": "9",
+			
+			"Numpad0": "0", "Numpad1": "1", "Numpad2": "2", "Numpad3": "3", "Numpad4": "4",
+			"Numpad5": "5", "Numpad6": "6", "Numpad7": "7", "Numpad8": "8", "Numpad9": "9",
+			"NumpadAdd": "add", "NumpadSubtract": "subtract", "NumpadMultiply": "multiply",
+			"NumpadDivide": "divide", "NumpadDecimal": "decimal", "NumpadEnter": "enter",
+			
+			"ControlLeft": "ctrl", "ControlRight": "ctrl",
+			"AltLeft": "alt", "AltRight": "alt",
+			"ShiftLeft": "shift", "ShiftRight": "shift",
+			"MetaLeft": "meta", "MetaRight": "meta",
+			
+			"Backquote": "`", "Backslash": "\\", "Semicolon": ";", "Quote": "'",
+			"Comma": ",", "Period": ".", "Slash": "/", "BracketLeft": "[",
+			"BracketRight": "]", "Minus": "-", "Equal": "=", "IntlBackslash": "\\",
+			"IntlRo": "\\", "IntlYen": "\\",
+		},
+		QWERTZ: {
+			"KeyY": "z", "KeyZ": "y", 
+			"Minus": "ß", "Equal": "´", "BracketLeft": "ü",
+			"BracketRight": "+", "Semicolon": "ö", "Quote": "ä",
+			"Backslash": "#", "IntlBackslash": "<"
+		},
+		AZERTY: {
+			"KeyQ": "a", "KeyA": "q", "KeyZ": "w", "KeyW": "z",
+			"KeyM": ",", "Comma": ";", "Period": ":", "Semicolon": "m",
+			"Digit1": "&", "Digit2": "é", "Digit3": "\"", "Digit4": "'",
+			"Digit5": "(", "Digit6": "-", "Digit7": "è", "Digit8": "_",
+			"Digit9": "ç", "Digit0": "à", "Minus": ")", "Equal": "=",
+			"BracketLeft": "^", "BracketRight": "$", "Backslash": "*",
+			"Quote": "ù", "Slash": "!", "Backquote": "²",
+			"IntlBackslash": "<", "IntlRo": "µ"
+		}
 	},
 	_inputs:{
 		"input": 1,
@@ -360,14 +404,32 @@ const UIManager = {
 
 		}
 	},
+	_get_key(e) {
+		// key can be undefined (browser autofill)
+		if (!e.key) return "";
+
+		// naive check for QWERTZ and AZERTY layouts
+		// we are handling QWERTY/QWERTZ/AZERTY layouts only, as they are most common
+		const key = this._check_keyboard_layout(e) ? e.key.toLowerCase() : this._normalize_key_code(e);
+		return this._controls[key] || key;
+	},
+	_normalize_key_code(e) {
+		// https://w3c.github.io/uievents-code/
+		// https://w3c.github.io/uievents-code/#key-alphanumeric-section
+		// convert key code to layout-agnostic key names (QWERTY)
+		// special keys not in the default layout are not converted (fallback to e.key)
+		return this._keyboard_layouts["QWERTY"][e.code] || e.key.toLowerCase();
+	},
+	_check_keyboard_layout(e) {
+		return this._keyboard_layouts["QWERTZ"][e.code] === e.key.toLowerCase() || this._keyboard_layouts["AZERTY"][e.code] === e.key.toLowerCase();
+	},
 	_keycode: function(key, ctrl, shift, alt, meta) {
-		//key can be undefined (browser autofill)
-		return (key||"").toLowerCase()+"_"+["", (ctrl ? "1" : "0"), (shift ? "1" : "0"), (alt ? "1" : "0"), (meta ? "1" : "0")].join("");
+		return key+"_"+["", (ctrl ? "1" : "0"), (shift ? "1" : "0"), (alt ? "1" : "0"), (meta ? "1" : "0")].join("");
 	},
 	_check_keycode: function(e){
 		const keyCode = e.which || e.keyCode;
 		const is_any = !e.ctrlKey && !e.altKey && !e.metaKey && (keyCode!=9)&&(keyCode!=27)&&(keyCode!=13);
-		const code = this._keycode(e.key, e.ctrlKey, e.shiftKey, e.altKey, e.metaKey);
+		const code = this._keycode(this._get_key(e), e.ctrlKey, e.shiftKey, e.altKey, e.metaKey);
 
 		var focus = this.getFocus();
 		if (this._hotkeys[code])

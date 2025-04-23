@@ -489,3 +489,17 @@
 .webix_dtable_focused .webix_column > div.webix_column_select{
 	.selectFocusRule();
 }
+
+.webix_hcell .webix_multicombo_tag{
+	max-width: 50%;
+}
+.webix_hcell:not(.webix_span[rowspan]) .webix_multicombo{
+	max-height: @inputHeight;
+	.webix_el_box{
+		max-height: @inputHeight - 2*@skin_input_y_padding;
+
+	}
+	.webix_inp_static{
+		max-height: @inputHeight - 2*@skin_input_y_padding;
+	}
+}

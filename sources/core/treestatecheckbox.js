@@ -72,40 +72,47 @@ const TreeStateCheckbox = {
 		//we need to use dynamic function creating
 		//jshint -W083:true
 
-		var checked, checkedCount,indeterminate, parentId,result,unsureCount,needrender;
-		parentId = this.getParentId(itemId);
-		result = [];
-		while(parentId && parentId != "0"){
-			unsureCount = 0;
-			checkedCount = 0;
-			this.data.eachChild(parentId,function(obj){
-				if(obj.indeterminate){
+		let parentId = this.getParentId(itemId);
+		const result = [];
+		while (parentId && parentId != "0") {
+			let unsureCount = 0;
+			let checkedCount = 0;
+			let disabledCount = 0;
+			this.data.eachChild(parentId, function(obj){
+				if (obj.indeterminate) {
 					unsureCount++;
+					if (obj.checked)
+						disabledCount++;
 				}
-				else if(obj.checked){
+				else if (obj.checked) {
 					checkedCount++;
 				}
+				if (!obj.checked && obj.disabled) {
+					disabledCount++;
+				}
 			});
-
-			checked = indeterminate = needrender = false;
+			let checked= false;
+			let indeterminate = false;
+			let needRender = false;
 			
 			var item = this.getItem(parentId);
-			if(checkedCount==item.$count){
+			if (checkedCount && (checkedCount + disabledCount === item.$count)) {
 				checked = true;
 			}
-			else if(checkedCount>0||unsureCount>0){
+
+			if ((checkedCount>0 && checkedCount !== item.$count) || unsureCount > 0){
 				indeterminate = true;
 			}
 			
 			//we need to reset indeterminate in any case :(
 			if (indeterminate || indeterminate != item.indeterminate)
-				needrender = true;
+				needRender = true;
 			item.indeterminate = indeterminate;
 			if (checked || item.checked != checked)
-				needrender = true;
+				needRender = true;
 			item.checked = checked;
 
-			if (needrender){
+			if (needRender){
 				result.push(parentId);
 				parentId = this.getParentId(parentId);
 			} else
@@ -187,8 +194,10 @@ const TreeStateCheckbox = {
 		state = item.checked;
 
 		this.data.eachSubItem(id, function(child){
-			child.indeterminate = false;
-			child.checked = state;
+			if (!child.disabled) {
+				child.indeterminate = false;
+				child.checked = state;
+			}
 		});
 		
 		if(this._branch_render_supported && this.isBranchOpen(item.$parent)){ //for tree-render only
@@ -197,7 +206,8 @@ const TreeStateCheckbox = {
 	},
 	/*returns checked state of item checkbox*/
 	isChecked:function(id){
-		return this.getItem(id).checked;
+		const item = this.getItem(id);
+		return item.checked && !item.indeterminate;
 	},
 	/*gets all leaves in a certain branch (in the whole tree if id is not set)*/
 	_getAllLeaves:function(parentId){

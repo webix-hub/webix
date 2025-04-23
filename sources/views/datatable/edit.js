@@ -243,8 +243,15 @@ const Mixin = {
 			var selection = this.getSelectedId(true);
 			if (selection.length == 1){
 				var sel =  selection[0];
-				if(this._settings.select == "row")
-					sel.column = this._settings.columns[e.shiftKey?0:this._settings.columns.length-1].id;
+
+				if(this._settings.select == "row"){
+					let index = e.shiftKey? 0 : this._settings.columns.length-1;
+					sel.column = this._settings.columns[index].id;
+					if(this._item_clicked && (this._item_clicked.row == sel.row))
+						sel.column = this._item_clicked.column;
+					this._item_clicked = null;
+				}
+
 				this.editNext(tab, sel);
 				return false;
 			}

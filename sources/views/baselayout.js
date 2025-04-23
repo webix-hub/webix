@@ -604,9 +604,9 @@ const api = {
 			var dx = Math.round(this._set_size_delta * sizes[4]/this._set_size_gravity);
 			this._set_size_delta -= dx; this._set_size_gravity -= sizes[4];
 			if (this._vertical_orientation)
-				height = dx;
+				height = sizes[3] > -1 ? Math.min(dx, sizes[3]) : dx;
 			else {
-				width = dx;
+				width = sizes[1] > -1 ? Math.min(dx, sizes[1]) : dx;
 			}
 
 			auto[i].view.$setSize(width,height);
