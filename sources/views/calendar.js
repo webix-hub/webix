@@ -393,16 +393,13 @@ const api = {
 		const s = this._settings;
 		const start = s.weekNumber ? 1 : 0;
 		let day = DateHelper.datePart(DateHelper.copy(bounds._start));
-		let weekNumber = DateHelper.getISOWeek(DateHelper.add(day, 2, "day", true));
 
 		let html = "", focusable, sqSize;
 		for (let y=0; y<heights.length; y++){
 			html += "<div class='webix_cal_row' role='row' style='height:"+heights[y]+"px;line-height:"+heights[y]+"px'>";
 
 			if (start){
-				// recalculate week number for the first week of a year
-				if(!day.getMonth() && day.getDate()<7)
-					weekNumber =  DateHelper.getISOWeek(DateHelper.add(day,2,"day", true));
+				const weekNumber = DateHelper.getISOWeek(DateHelper.add(day, 2, "day", true));
 				html += "<div class='webix_cal_week_num' aria-hidden='true' style='width:"+widths[0]+"px'>"+weekNumber+"</div>";
 			}
 
@@ -434,7 +431,6 @@ const api = {
 			}
 
 			html += "</div>";
-			weekNumber++;
 		}
 		return html.replace("$webix_tabindex", (focusable || s.master) ? "-1" : "0");
 	},

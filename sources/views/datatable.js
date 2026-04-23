@@ -209,7 +209,9 @@ const api = {
 		callEvent("onDataTable", [this, config]);
 	},
 	columns_setter(value) {
-		return copy(value, null, true);
+		const columns = copy(value, null, true);
+		this._clean_config_struct(columns);
+		return columns;
 	},
 	_render_initial:function(){
 		this._scrollSizeX = this._scrollSizeY = env.scrollSize;
@@ -1451,7 +1453,8 @@ const api = {
 	},
 	_repaint_single_row:function(id){
 		var item = this.getItem(id);
-		var rowindex = this.getIndexById(id);
+		var index = this.getIndexById(id);
+		var rowindex = index;
 
 		var state = this._get_y_range(this._settings.prerender === true);
 		var freeze = this._settings.topSplit;
@@ -1477,7 +1480,7 @@ const api = {
 			if (column.attached && column.node){
 				var node =  column.node.childNodes[rowindex];
 				if (!node) continue;
-				var value = this._getValue(item, this._columns[i], 0);
+				var value = this._getValue(item, this._columns[i], index);
 
 				node.innerHTML = value;
 				node.className = this._getCss(this._columns[i], value, item, id) + freezeCss;
@@ -1684,7 +1687,10 @@ const api = {
 		}
 	},
 	getText:function(row_id, column_id){
-		return this._getValue(this.getItem(row_id), this.getColumnConfig(column_id), 0);
+		const item = this.getItem(row_id);
+		const config = this.getColumnConfig(column_id);
+		const ind = this.getIndexById(row_id);
+		return this._getValue(item, config, ind);
 	},
 	getCss:function(row_id, column_id){
 		var item = this.getItem(row_id);

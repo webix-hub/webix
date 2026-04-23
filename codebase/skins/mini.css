@@ -5277,9 +5277,8 @@ legend.webix_forminput_label_top {
 }
 .webix_slider_box {
   position: relative;
-  padding: 0px 10px;
+  padding: 0 10px;
   height: 100%;
-  padding-top: 11px;
   float: left;
   border-radius: 5px;
   -moz-box-sizing: border-box;
@@ -5430,6 +5429,7 @@ legend.webix_forminput_label_top {
 .webix_slider_vertical .webix_slider_title {
   padding-top: 1px;
   text-align: left;
+  display: inline-block;
 }
 .webix_slider_vertical.webix_slider_alt .webix_slider_handle {
   height: 11px;
@@ -5445,6 +5445,33 @@ legend.webix_forminput_label_top {
   display: inline-block;
   width: auto;
   white-space: nowrap;
+}
+.webix_slider_axis {
+  position: relative;
+}
+.webix_slider_axis.webix_axis_vertical {
+  margin-bottom: 11px;
+  flex: 1;
+  min-width: 0;
+}
+.webix_slider_axis.webix_axis_horizontal {
+  padding-top: 4px;
+  height: 20px;
+  top: 10px;
+}
+.webix_slider_axis_item {
+  position: absolute;
+  white-space: nowrap;
+}
+.webix_slider_vertical_wrap {
+  position: relative;
+  display: flex;
+  float: left;
+}
+.webix_slider_title.webix_slider_title_left,
+.webix_slider_title_box.webix_slider_title_left {
+  float: left;
+  text-align: right;
 }
 .webix_switch_toggle {
   position: absolute;
@@ -7185,10 +7212,10 @@ body.webix_print {
   border-left: 1px solid #ccd2d4;
 }
 .webix_dtable .webix_hs_right .webix_hcell.webix_first {
-  border-left: 1px solid #DADEE0;
+  border-left: 1px solid #ccd2d4;
 }
 .webix_dtable .webix_hs_left .webix_hcell.webix_last {
-  border-right: 1px solid #DADEE0;
+  border-right: 1px solid #ccd2d4;
 }
 .webix_dtable .webix_dtable_subview {
   background: #FFFFFF;
@@ -7882,6 +7909,9 @@ div.webix_inp_static,
 .webix_rangeslider .webix_slider_title {
   height: 14px;
   margin-top: 0px;
+}
+.webix_slider_axis.webix_axis_horizontal {
+  height: 14px;
 }
 .webix_section > .webix_template {
   font-family: Roboto, sans-serif;

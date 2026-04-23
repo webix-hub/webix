@@ -450,7 +450,10 @@
 		border-bottom:1px solid darken(@borderColor,5%);
 	}
 	.webix_hs_right .webix_hcell.webix_first {
-		border-left: @dataHeaderBordersStyle;
+		border-left: 1px solid darken(@borderColor,5%);
+	}
+	.webix_hs_left .webix_hcell.webix_last{
+		border-right: 1px solid darken(@borderColor,5%);
 	}
 	.webix_ss_filter select, .webix_ss_filter input {
 		height: @inputHeight - 2*@skin_input_y_padding;
@@ -1108,7 +1111,9 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		height:14px;
 	}
 }
-
+.webix_slider_axis.webix_axis_horizontal {
+	height: 14px;
+}
 
 //switch
 @switchHeight: 22px;

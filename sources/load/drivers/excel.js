@@ -78,6 +78,8 @@ const excel = extend({
 		const types = [];
 		const hidden = [];
 		const links = [];
+		const rowGroups = [];
+		const columnGroups = [];
 		let sheetSettings = {};
 
 		const cellTypes = { n:"number", d:"date", s:"string", b:"boolean"};
@@ -126,24 +128,30 @@ const excel = extend({
 				}
 			}
 			if(sheet["!cols"]){
-				var widths = sheet["!cols"];
-				for(let i = 0; i<widths.length; i++){
-					const item = widths[i];
+				const cols = sheet["!cols"];
+				for(let i = 0; i<cols.length; i++){
+					const item = cols[i];
 					if(item){
 						const index = i-xCorrection;
-						sizes.push(["column", index, Math.round(item.wch/(8.43/70))]); //mode, colind, value
+						if(item.outlineLevel)
+							columnGroups[index] = item.outlineLevel;
+						if(item.wch)
+							sizes.push(["column", index, Math.round(item.wch/(8.43/70))]); //mode, colind, value
 						if(item.hidden)
 							hidden.push(["column", index]);
 					}
 				}
 			}
 			if(sheet["!rows"]){
-				var heights = sheet["!rows"];
-				for(let i = 0; i<heights.length; i++){
-					const item = heights[i];
+				const rows = sheet["!rows"];
+				for(let i = 0; i<rows.length; i++){
+					const item = rows[i];
 					if(item){
 						const index = i-yCorrection;
-						sizes.push(["row", index, item.hpx]); //mode ("row", "column"), rowind, value
+						if(item.outlineLevel)
+							rowGroups[index] = item.outlineLevel;
+						if(item.hpx)
+							sizes.push(["row", index, item.hpx]); //mode ("row", "column"), rowind, value
 						if(item.hidden)
 							hidden.push(["row", index]);
 					}
@@ -153,7 +161,7 @@ const excel = extend({
 				sheetSettings = sheet["!settings"];
 		}
 
-		return { data:all, spans, styles, sizes, types, hidden, links, sheetSettings, excel: true };
+		return { data:all, spans, styles, sizes, types, hidden, links, sheetSettings, rowGroups, columnGroups, excel: true };
 	},
 	_urlToOptions:function(details){
 		var parts = details.split("[");

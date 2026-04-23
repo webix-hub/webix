@@ -16,23 +16,30 @@ const Mixin = {
 			options.dataOnly = true;
 			options.heights = isUndefined(options.heights) ? "all": options.heights;
 
+			const freeze = mode == "excel" && options.freeze;
+			if(freeze){
+				options.frozenRows = this.config.topSplit;
+				options.frozenCols = options.hidden ? this._hidden_split[0] || this.config.leftSplit : this.config.leftSplit;
+			}
+
 			const data = mode == "pdf" ? toPDF(this, options) : toExcel(this, options);
+
+			if(freeze){
+				const viewOptions = data[0].viewOptions;
+				const rows = viewOptions.frozenRows;
+				const columns = viewOptions.frozenCols;
+				if(rows || columns)
+					data[0].freeze = {
+						rows: rows ? rows - (viewOptions.yCorrection || 0) : 0,
+						columns: columns ? columns - (viewOptions.xCorrection || 0) : 0
+					};
+			}
 
 			if(options.styles)
 				data[0].styles = this._getExportStyles(options);
 
 			delete options.dataOnly;
  
-			if(mode == "excel" && options.freeze){
-				const columns = this._hidden_split[0] || this.config.leftSplit;
-				const rows = this.config.topSplit;
-				if(columns || rows)
-					data[0].freeze = {
-						rows: rows - (data[0].viewOptions.yCorrection || 0),
-						columns: columns - (data[0].viewOptions.xCorrection || 0)
-					};
-			}
-
 			return data;
 		}
 	},

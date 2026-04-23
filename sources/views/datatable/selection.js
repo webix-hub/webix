@@ -565,9 +565,8 @@ const Mixin = {
 			_selectRange:function(id,last){
 				this._extendAreaRange(id, last);
 			},
-			_select: function(cell){
-				//ctrl-selection is not supported yet, so ignoring the preserve flag
-				this.addSelectArea(cell,cell,false);
+			_select: function(cell, preserve){
+				this.addSelectArea(cell,cell,preserve);
 				return true;
 			},
 			_data_synced:function(){

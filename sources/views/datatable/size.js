@@ -152,7 +152,8 @@ const Mixin = {
 			if(spanHeightMap && spanHeightMap[obj.id])
 				height = spanHeightMap[obj.id];
 			else{
-				d.innerHTML = this._getValue(obj, config, 0);
+				const index = this.getIndexById(obj.id);
+				d.innerHTML = this._getValue(obj, config, index);
 				height = d.scrollHeight;
 			}
 

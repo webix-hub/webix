@@ -306,19 +306,21 @@ const wDate = {
 		const temp = new Function("date", "i18n", "if (!date) return ''; if (typeof date == 'object') return date; var set=[0,0,1,0,0,0,0]; "+splt+" return new Date("+code+");");
 		return function(v){ return temp(v, i18n ); };
 	},
-		
+
 	getISOWeek: function(ndate) {
-		if(!ndate) return false;
-		var nday = ndate.getDay();
-		if (nday === 0) {
-			nday = 7;
-		}
-		var first_thursday = new Date(ndate.valueOf());
-		first_thursday.setDate(ndate.getDate() + (4 - nday));
-		var year_number = first_thursday.getFullYear(); // year of the first Thursday
-		var ordinal_date = Math.floor( (first_thursday.getTime() - new Date(year_number, 0, 1).getTime()) / 86400000); //ordinal date of the first Thursday - 1 (so not really ordinal date)
-		var weekNumber = 1 + Math.floor( ordinal_date / 7);	
-		return weekNumber;
+		if (!ndate) return false;
+		
+		// treating date as UTC to avoid shifts because of daylight saving time
+		const dateUTC = new Date(Date.UTC(ndate.getFullYear(), ndate.getMonth(), ndate.getDate()));
+		const nday = dateUTC.getUTCDay() || 7;
+		
+		const first_thursday = this.copy(dateUTC);
+		first_thursday.setUTCDate(dateUTC.getUTCDate() + (4 - nday));
+		const year_number = first_thursday.getUTCFullYear(); // year of the first Thursday
+		const ordinal_date = Math.floor(
+			(first_thursday.getTime() - Date.UTC(year_number, 0, 1)) / 86400000
+		); //ordinal date of the first Thursday - 1 (so not really ordinal date)
+		return 1 + Math.floor(ordinal_date / 7);
 	},
 	
 	getUTCISOWeek: function(ndate){

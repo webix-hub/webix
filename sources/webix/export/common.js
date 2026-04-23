@@ -81,8 +81,11 @@ export function getExportScheme(view, options){
 
 	if (options.ignore)
 		for (let i=columns.length-1; i>=0; i--)
-			if (options.ignore[columns[i].id])
+			if (options.ignore[columns[i].id]){
+				if(options.frozenCols && options.frozenCols > i)
+					options.frozenCols--;
 				columns.splice(i,1);
+			}
 
 	if (options.id)
 		scheme.push({ id:"id", width:50, header:" ", template:function(obj){ return obj.id; }});
@@ -237,6 +240,7 @@ export function getExportData(view, options, scheme, images){
 	options.yCorrection = (options.yCorrection||0)-data.length;
 
 	const treeline = (options.flatTree || options.plainOutput) ? "" : "-";
+	const frozenRows = options.frozenRows;
 
 	view.data.each(function(item, index){
 		if(!options.filter || options.filter(item)){
@@ -310,6 +314,8 @@ export function getExportData(view, options, scheme, images){
 
 			data.push(line);
 		}
+		else if(frozenRows && frozenRows > index)
+			options.frozenRows--;
 	}, view, options.hidden);
 
 	if( options.footer !==false ){

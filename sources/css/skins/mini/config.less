@@ -651,10 +651,10 @@
 		border-left: 1px solid darken(@borderColor,5%);
 	}
 	.webix_hs_right .webix_hcell.webix_first {
-		border-left: @dataHeaderBordersStyle;
+		border-left: 1px solid darken(@borderColor,5%);
 	}
 	.webix_hs_left .webix_hcell.webix_last{
-		border-right: @dataHeaderBordersStyle;
+		border-right: 1px solid darken(@borderColor,5%);
 	}
 	.webix_dtable_subview{
 		background: @backColor;
@@ -1435,6 +1435,10 @@ div.webix_inp_static,.webix_el_textarea textarea {
 		height:14px;
 		margin-top:0px;
 	}
+}
+
+.webix_slider_axis.webix_axis_horizontal {
+	height: 14px;
 }
 
 // icon inside a button

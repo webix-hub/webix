@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.11.3.0
+ * webix UI v.11.4.0
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -2241,6 +2241,8 @@
       var types = [];
       var hidden = [];
       var links = [];
+      var rowGroups = [];
+      var columnGroups = [];
       var sheetSettings = {};
       var cellTypes = {
         n: "number",
@@ -2292,14 +2294,15 @@
         }
 
         if (sheet["!cols"]) {
-          var widths = sheet["!cols"];
+          var cols = sheet["!cols"];
 
-          for (var _i = 0; _i < widths.length; _i++) {
-            var item = widths[_i];
+          for (var _i = 0; _i < cols.length; _i++) {
+            var item = cols[_i];
 
             if (item) {
               var index = _i - xCorrection;
-              sizes.push(["column", index, Math.round(item.wch / (8.43 / 70))]); //mode, colind, value
+              if (item.outlineLevel) columnGroups[index] = item.outlineLevel;
+              if (item.wch) sizes.push(["column", index, Math.round(item.wch / (8.43 / 70))]); //mode, colind, value
 
               if (item.hidden) hidden.push(["column", index]);
             }
@@ -2307,15 +2310,16 @@
         }
 
         if (sheet["!rows"]) {
-          var heights = sheet["!rows"];
+          var rows = sheet["!rows"];
 
-          for (var _i2 = 0; _i2 < heights.length; _i2++) {
-            var _item = heights[_i2];
+          for (var _i2 = 0; _i2 < rows.length; _i2++) {
+            var _item = rows[_i2];
 
             if (_item) {
               var _index = _i2 - yCorrection;
 
-              sizes.push(["row", _index, _item.hpx]); //mode ("row", "column"), rowind, value
+              if (_item.outlineLevel) rowGroups[_index] = _item.outlineLevel;
+              if (_item.hpx) sizes.push(["row", _index, _item.hpx]); //mode ("row", "column"), rowind, value
 
               if (_item.hidden) hidden.push(["row", _index]);
             }
@@ -2334,6 +2338,8 @@
         hidden: hidden,
         links: links,
         sheetSettings: sheetSettings,
+        rowGroups: rowGroups,
+        columnGroups: columnGroups,
         excel: true
       };
     },
@@ -10854,14 +10860,32 @@
     setState: function (obj) {
       var _this2 = this;
 
-      var columns = this.config.columns;
       if (!obj) return;
       this.markSorting();
       this._last_order = [];
       this._last_sorted = {};
       this.blockEvent();
+      var reorder = false;
 
-      if (obj.order && obj.order.length) {
+      if (obj.ids) {
+        for (var i = 0; i < this._columns.length; i++) {
+          if (this._columns[i].id != obj.ids[i]) {
+            reorder = true;
+            break;
+          }
+        }
+
+        if (reorder) {
+          // reconstruct columns using the full order (refreshColumns resets hidden columns, so we have to provide the full order here)
+          var order = obj.order && obj.order.length ? obj.order : obj.ids;
+          var newColumns = order.map(function (id) {
+            return _this2.getColumnConfig(id);
+          }).filter(Boolean);
+          this.refreshColumns(newColumns);
+        }
+      }
+
+      if (!reorder && obj.order && obj.order.length) {
         this._hidden_column_order = _to_array([].concat(obj.order));
         var rs = obj.order.length - this._settings.rightSplit;
         this._hidden_split = [this._settings.leftSplit, rs, this._settings.rightSplit];
@@ -10870,46 +10894,30 @@
       if (obj.hidden) {
         var hihash = {};
 
-        for (var i = 0; i < obj.hidden.length; i++) {
-          hihash[obj.hidden[i]] = true;
-          if (!this._hidden_column_order.length) this.hideColumn(obj.hidden[i]);
+        for (var _i = 0; _i < obj.hidden.length; _i++) {
+          hihash[obj.hidden[_i]] = true;
+          if (!this._hidden_column_order.length) this.hideColumn(obj.hidden[_i]);
         }
 
         if (this._hidden_column_order.length) {
-          for (var _i = 0; _i < this._hidden_column_order.length; _i++) {
-            var hikey = this._hidden_column_order[_i];
+          for (var _i2 = 0; _i2 < this._hidden_column_order.length; _i2++) {
+            var hikey = this._hidden_column_order[_i2];
             if (!!hihash[hikey] == !this._hidden_column_hash[hikey]) this.hideColumn(hikey, {}, false, !!hihash[hikey]);
           }
         }
       }
 
-      if (obj.ids) {
-        var reorder = false;
-
-        for (var _i2 = 0; _i2 < columns.length; _i2++) {
-          if (columns[_i2].id != obj.ids[_i2]) reorder = true;
-        }
-
-        if (reorder) {
-          for (var _i3 = 0; _i3 < obj.ids.length; _i3++) {
-            columns[_i3] = this.getColumnConfig(obj.ids[_i3]) || columns[_i3];
-          }
-
-          this.refreshColumns();
-        }
-      }
-
       if (obj.size) {
-        var cols_n = Math.min(obj.size.length, columns.length);
+        var cols_n = Math.min(obj.size.length, this._columns.length);
 
-        for (var _i4 = 0; _i4 < cols_n; _i4++) {
-          var col = columns[_i4];
+        for (var _i3 = 0; _i3 < cols_n; _i3++) {
+          var col = this._columns[_i3];
 
-          if (col && obj.size[_i4] > 0 && col.width != obj.size[_i4]) {
+          if (col && obj.size[_i3] > 0 && col.width != obj.size[_i3]) {
             delete col.fillspace;
             delete col.adjust;
 
-            this._setColumnWidth(_i4, obj.size[_i4], true);
+            this._setColumnWidth(_i3, obj.size[_i3], true);
           }
         }
       }
@@ -10931,11 +10939,11 @@
           multi = false;
         }
 
-        for (var _i5 = 0; _i5 < sort.length; _i5++) {
-          var _col = this.getColumnConfig(sort[_i5].id);
+        for (var _i4 = 0; _i4 < sort.length; _i4++) {
+          var _col = this.getColumnConfig(sort[_i4].id);
 
           if (_col) {
-            this._sort(_col.id, sort[_i5].dir, _col.sort, multi);
+            this._sort(_col.id, sort[_i4].dir, _col.sort, multi);
 
             if (_col.sort == "server") server.sort = true;
           }
@@ -10983,8 +10991,8 @@
         var select = obj.select;
         this.unselect();
 
-        for (var _i6 = 0; _i6 < select.length; _i6++) {
-          if (!select[_i6].row || this.exists(select[_i6].row)) this._select(select[_i6], true);
+        for (var _i5 = 0; _i5 < select.length; _i5++) {
+          if (!select[_i5].row || this.exists(select[_i5].row)) this._select(select[_i5], true);
         }
       }
 
@@ -17128,6 +17136,7 @@
 
           if (item.webkitGetAsEntry) {
             item = item.webkitGetAsEntry();
+            if (!item) continue;
 
             if (item.isDirectory) {
               this._directoryDrop(item, this, "");
@@ -17967,7 +17976,7 @@
     }
   };
 
-  var version = "11.3.0";
+  var version = "11.4.0";
   var name = "core";
 
   var errorMessage = "non-existing view for export";
@@ -18053,7 +18062,10 @@
     }
 
     if (options.ignore) for (var _i = columns.length - 1; _i >= 0; _i--) {
-      if (options.ignore[columns[_i].id]) columns.splice(_i, 1);
+      if (options.ignore[columns[_i].id]) {
+        if (options.frozenCols && options.frozenCols > _i) options.frozenCols--;
+        columns.splice(_i, 1);
+      }
     }
     if (options.id) scheme.push({
       id: "id",
@@ -18213,6 +18225,7 @@
 
     options.yCorrection = (options.yCorrection || 0) - data.length;
     var treeline = options.flatTree || options.plainOutput ? "" : "-";
+    var frozenRows = options.frozenRows;
     view.data.each(function (item, index) {
       if (!options.filter || options.filter(item)) {
         var reallyHidden = options.hidden && view.data._filter_order && view.getIndexById(item.id) == -1;
@@ -18285,7 +18298,7 @@
 
         if (excel && view._columns && options.heights !== false && (item.$height && item.$height !== $active.rowHeight || options.heights == "all")) scheme.heights[data.length] = item.$height || this.config.rowHeight;
         data.push(line);
-      }
+      } else if (frozenRows && frozenRows > index) options.frozenRows--;
     }, view, options.hidden);
 
     if (options.footer !== false) {
@@ -18954,8 +18967,10 @@
         var ranges = views[_i].ranges || [];
         var styles = views[_i].styles || [];
         var freeze = views[_i].freeze;
+        var rowGroups = views[_i].rowGroups || [];
+        var columnGroups = views[_i].columnGroups || [];
         var sheetSettings = views[_i].sheetSettings;
-        var data = getExcelData(result, scheme, spans, styles, freeze, sheetSettings, viewOptions);
+        var data = getExcelData(result, scheme, spans, styles, freeze, rowGroups, columnGroups, sheetSettings, viewOptions);
 
         var sname = (viewOptions.name || "Data" + (_i + 1)).replace(/[*?:[\]\\/]/g, "").replace(/&/g, "&amp;").substring(0, 31); //avoid name duplication
 
@@ -19037,7 +19052,7 @@
   };
   var table = "_table";
 
-  function getExcelData(data, scheme, spans, styles, freeze, sheetSettings, options) {
+  function getExcelData(data, scheme, spans, styles, freeze, rowGroups, columnGroups, sheetSettings, options) {
     var ws = {};
     var range = {
       s: {
@@ -19121,7 +19136,15 @@
 
     if (range.s.c < 10000000) ws["!ref"] = XLSX.utils.encode_range(range);
     ws["!rows"] = getRowHeights(scheme);
+    rowGroups.forEach(function (level, index$$1) {
+      if (!ws["!rows"][index$$1]) ws["!rows"][index$$1] = {};
+      ws["!rows"][index$$1].outlineLevel = level;
+    });
     ws["!cols"] = getColumnsWidths(scheme);
+    columnGroups.forEach(function (level, index$$1) {
+      if (!ws["!cols"][index$$1]) ws["!cols"][index$$1] = {};
+      ws["!cols"][index$$1].outlineLevel = level;
+    });
     if (spans.length) ws["!merges"] = spans;
     if (freeze) ws["!freeze"] = {
       xSplit: freeze.columns,
@@ -19725,21 +19748,17 @@
       };
     },
     getISOWeek: function (ndate) {
-      if (!ndate) return false;
-      var nday = ndate.getDay();
+      if (!ndate) return false; // treating date as UTC to avoid shifts because of daylight saving time
 
-      if (nday === 0) {
-        nday = 7;
-      }
+      var dateUTC = new Date(Date.UTC(ndate.getFullYear(), ndate.getMonth(), ndate.getDate()));
+      var nday = dateUTC.getUTCDay() || 7;
+      var first_thursday = this.copy(dateUTC);
+      first_thursday.setUTCDate(dateUTC.getUTCDate() + (4 - nday));
+      var year_number = first_thursday.getUTCFullYear(); // year of the first Thursday
 
-      var first_thursday = new Date(ndate.valueOf());
-      first_thursday.setDate(ndate.getDate() + (4 - nday));
-      var year_number = first_thursday.getFullYear(); // year of the first Thursday
+      var ordinal_date = Math.floor((first_thursday.getTime() - Date.UTC(year_number, 0, 1)) / 86400000); //ordinal date of the first Thursday - 1 (so not really ordinal date)
 
-      var ordinal_date = Math.floor((first_thursday.getTime() - new Date(year_number, 0, 1).getTime()) / 86400000); //ordinal date of the first Thursday - 1 (so not really ordinal date)
-
-      var weekNumber = 1 + Math.floor(ordinal_date / 7);
-      return weekNumber;
+      return 1 + Math.floor(ordinal_date / 7);
     },
     getUTCISOWeek: function (ndate) {
       return this.getISOWeek(ndate);
@@ -26001,7 +26020,6 @@
       var s = this._settings;
       var start = s.weekNumber ? 1 : 0;
       var day = wDate.datePart(wDate.copy(bounds._start));
-      var weekNumber = wDate.getISOWeek(wDate.add(day, 2, "day", true));
       var html = "",
           focusable,
           sqSize;
@@ -26010,8 +26028,7 @@
         html += "<div class='webix_cal_row' role='row' style='height:" + heights[y] + "px;line-height:" + heights[y] + "px'>";
 
         if (start) {
-          // recalculate week number for the first week of a year
-          if (!day.getMonth() && day.getDate() < 7) weekNumber = wDate.getISOWeek(wDate.add(day, 2, "day", true));
+          var weekNumber = wDate.getISOWeek(wDate.add(day, 2, "day", true));
           html += "<div class='webix_cal_week_num' aria-hidden='true' style='width:" + widths[0] + "px'>" + weekNumber + "</div>";
         }
 
@@ -26040,7 +26057,6 @@
         }
 
         html += "</div>";
-        weekNumber++;
       }
 
       return html.replace("$webix_tabindex", focusable || s.master ? "-1" : "0");
@@ -28196,7 +28212,7 @@
     },
     $init: function (config) {
       if (config.labelPosition == "top" && isUndefined(config.height) && this.defaults.height) // textarea
-        config.height = this.defaults.height + (config.label ? this._labelTopHeight : 0); // used in clear_setter
+        config.height = this.defaults.height + (config.label ? this._labelTopHeight : 0) + (config.axisTitles ? this._labelTopHeight : 0); // used in clear_setter
 
       if (!isUndefined(config.icon)) this._settings.icon = config.icon;
       if (this.$onBlur) this.attachEvent("onBlur", function () {
@@ -29901,13 +29917,35 @@
       template: function (obj, common) {
         var id = common._handle_id = "x" + uid();
         var html = "";
-        var title = "<div class='webix_slider_title" + (obj.moveTitle ? " webix_slider_move" : "") + "'" + (!obj.moveTitle && obj.vertical ? " style='line-height:" + (obj.aheight - obj.inputPadding * 2) + "px;'" : "") + ">&nbsp;</div>";
+        var bothTitles = obj.axisTitles && obj.title;
+        var titleCss = "";
+        var titleStyle = "";
+
+        if (obj.vertical) {
+          titleStyle += "width:".concat(typeof obj.titleWidth === "number" ? "".concat(obj.titleWidth, "px") : "auto", ";");
+          if (!obj.moveTitle) titleStyle += "line-height:".concat(obj.aheight - obj.inputPadding * 2, "px;");
+
+          if (bothTitles) {
+            titleCss = " webix_slider_title_left";
+          }
+        }
+
+        titleStyle = titleStyle ? " style=\"".concat(titleStyle, "\"") : "";
+        var title = "<div class=\"webix_slider_title".concat(obj.moveTitle ? " webix_slider_move" : "").concat(titleCss, "\"").concat(titleStyle, ">&nbsp;</div>");
         var left = "<div class='webix_slider_left'>&nbsp;</div>";
         var right = "<div class='webix_slider_right'></div>";
         var handle = "<div class='webix_slider_handle' " +
         /*@attr*/
         "webix_disable_drag" + "='true' role='slider' aria-label='" + obj.label + (obj.title ? " " + obj.title(obj) : "") + "' aria-valuemax='" + obj.max + "' aria-valuemin='" + obj.min + "' aria-valuenow='" + obj.value + "' tabindex='0' id='" + id + "'>&nbsp;</div>";
-        if (obj.vertical) html = "<div class='webix_slider_box'>" + right + left + handle + "</div>" + title;else html = title + "<div class='webix_slider_box'>" + left + right + handle + "</div>";
+        var axisTitles = obj.axisTitles ? common._set_axis_titles(obj) : "";
+
+        if (obj.vertical) {
+          html = "<div class=\"webix_slider_vertical_wrap\"><div class='webix_slider_box'>".concat(right).concat(left).concat(handle, "</div>").concat(axisTitles, "</div>");
+          html = bothTitles ? "".concat(title).concat(html) : "".concat(html).concat(title);
+        } else {
+          html = title + "<div class='webix_slider_box'>" + left + right + handle + axisTitles + "</div>";
+        }
+
         return common.$renderInput(obj, html, id);
       }
     },
@@ -29917,6 +29955,43 @@
     title_setter: function (value) {
       if (typeof value == "string") return template(value);
       return value;
+    },
+    _set_axis_titles: function (obj) {
+      var axisTitles = "<div class=\"webix_slider_axis webix_axis_".concat(obj.vertical ? "vertical" : "horizontal", "\">");
+      var getTitle = typeof obj.axisTitles === "function" ? obj.axisTitles : function (v) {
+        return v;
+      };
+      var length = obj.max - obj.min;
+
+      for (var i = obj.min, count = obj.vertical ? length : 0; i <= obj.max; i += obj.step, obj.vertical ? count -= obj.step : count += obj.step) {
+        var _text = getTitle(i);
+
+        if (!_text && _text !== 0) continue;
+        var style = "";
+        var tsize = getTextSize(_text, "webix_view");
+        var percent = count / length;
+
+        var contHeight = this._get_content_height();
+
+        if (obj.vertical) {
+          var theight = tsize.height;
+          var centering = i === obj.min ? theight : count ? Math.round(theight / 2) : 0;
+          style = "top:".concat(Math.round((contHeight - this._sliderPadding * 2) * percent - centering + (count ? i === obj.min ? 10 : 5 : 0)), "px;");
+        } else {
+          var twidth = tsize.width;
+
+          var _centering = i === obj.max ? twidth : count ? Math.round(twidth / 2) : 0;
+
+          var width = this._get_input_width(obj);
+
+          style = "left:".concat(Math.round((width - this._sliderPadding * 2) * percent - _centering + (count ? 2 : 0)), "px;");
+        }
+
+        axisTitles += "<div class=\"webix_slider_axis_item\" style=\"".concat(style, "\">").concat(_text, "</div>");
+      }
+
+      axisTitles += "</div>";
+      return axisTitles;
     },
     _get_slider_handle: function () {
       return this.$view.querySelector(".webix_slider_handle");
@@ -29928,7 +30003,9 @@
 
       if (handle) {
         //view is rendered for sure
-        var size = config.vertical ? this._content_height : this._get_input_width(config); //width or height
+        var contHeight = this._get_content_height();
+
+        var size = config.vertical ? contHeight : this._get_input_width(config); //width or height
 
         var value = config.value % config.step ? Math.round(config.value / config.step) * config.step : config.value;
         var max = config.max - config.min;
@@ -29958,7 +30035,7 @@
       var config = this._settings;
 
       if (this._settings.title) {
-        var title = handle.parentNode[config.vertical ? "nextSibling" : "previousSibling"];
+        var title = this.$view.querySelector(".webix_slider_title");
         title.innerHTML = this._settings.title(this._settings, this);
 
         if (this._settings.moveTitle) {
@@ -29979,8 +30056,8 @@
       this._get_slider_handle().setAttribute("aria-valuenow", this._settings.value);
     },
     _safeValue: function (value, min, max) {
-      min = min ? min : this._settings.min;
-      max = max ? max : this._settings.max;
+      min = isUndefined(min) ? this._settings.min : min;
+      max = isUndefined(max) ? this._settings.max : max;
       return Math.min(Math.max(value, min), max);
     },
     refresh: function () {
@@ -30022,6 +30099,13 @@
         config.height = config.height || $active.vSliderHeight;
         this._viewobj.className += " webix_slider_vertical";
         this._sliderPadding = $active.vSliderPadding;
+        this.defaults.titleWidth = config.axisTitles ? 24 : "auto";
+      } else if (config.axisTitles) {
+        this.defaults.height = $active.inputHeight + ($name === "mini" || $name === "compact" ? 18 : 28);
+
+        if (config.labelPosition == "top" && isUndefined(config.height) && this.defaults.height) {
+          config.height = this.defaults.height + (config.label ? this._labelTopHeight : 0);
+        }
       }
     },
     $skin: function () {
@@ -30131,6 +30215,15 @@
       if (config.vertical) newvalue = max - newvalue;
       newvalue = Math.round((newvalue + 1 * config.min) / config.step) * config.step;
       return this._safeValue(newvalue);
+    },
+    _get_content_height: function () {
+      var config = this._settings;
+
+      if (config.vertical && config.labelPosition == "top") {
+        return this._content_height - this._labelTopHeight;
+      }
+
+      return this._content_height;
     },
     _init_onchange: function () {} //need not ui.text logic
 
@@ -41226,9 +41319,8 @@
         _selectRange: function (id, last) {
           this._extendAreaRange(id, last);
         },
-        _select: function (cell) {
-          //ctrl-selection is not supported yet, so ignoring the preserve flag
-          this.addSelectArea(cell, cell, false);
+        _select: function (cell, preserve) {
+          this.addSelectArea(cell, cell, preserve);
           return true;
         },
         _data_synced: function () {
@@ -41285,8 +41377,14 @@
         this._bs_position = offset(this._body);
         var pos$$1 = pos(e);
         this._bs_ready = [pos$$1.x - this._bs_position.x, pos$$1.y - this._bs_position.y];
+        this._bs_event_state = {
+          ctrlKey: !!e.ctrlKey,
+          metaKey: !!e.metaKey
+        };
 
         this._bs_handler_init(e.target, pointer);
+
+        if (env.isFF) preventEvent(e);
       }
     },
     _bs_handler_init: function (target, pointer) {
@@ -41320,11 +41418,12 @@
       this._bs_mm_handler = eventRemove(this._bs_mm_handler);
       this._bs_mu_handler = eventRemove(this._bs_mu_handler);
       removeCss(document.body, "webix_noselect");
+      delete this._bs_event_state;
       this._bs_ready = this._bs_progress = false;
       if (this._auto_scroll_delay) this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
     },
     _update_block_selection: function () {
-      if (this._bs_progress) delay(this._bs_select, this, [false, false]);
+      if (this._bs_progress) delay(this._bs_select, this, [false, false, this._bs_event_state]);
     },
     _bs_select: function (mode, theend, e) {
       if (!this._bs_ready[2]) this._bs_ready[2] = this._locate_cell_xy(this._bs_ready[0], this._bs_ready[1]);
@@ -41541,45 +41640,48 @@
       this._settings.scrollAlignY = false;
       this._settings.fixedRowHeight = false;
 
-      this._applyResizeHandlers(value);
+      this._applyResizeHandlers(value, "row");
 
       return value;
     },
     resizeColumn_setter: function (value) {
-      this._applyResizeHandlers(value);
+      this._applyResizeHandlers(value, "column");
 
       return value;
     },
-    _applyResizeHandlers: function (value) {
+    _applyResizeHandlers: function (value, type) {
       var _this = this;
 
-      if (!this._rs_init_flag) return;
+      if (!value) return;
 
-      if (value) {
-        if (value.icon) {
-          _event(this._header, "pointerdown", function (e) {
-            return _this._handleResizerPointerDown(e, "header");
-          });
+      if (value.icon) {
+        // resizer icons work for columns only
+        if (type !== "column") return;
 
-          _event(this._footer, "pointerdown", function (e) {
-            return _this._handleResizerPointerDown(e, "footer");
-          });
+        _event(this._header, "pointerdown", function (e) {
+          return _this._handleResizerPointerDown(e, "header");
+        });
 
-          this._renderResizers = true;
-        } else {
-          // backward compatibility
-          _event(this._viewobj, "mousemove", function (e) {
-            return _this._rs_move(e);
-          });
+        _event(this._footer, "pointerdown", function (e) {
+          return _this._handleResizerPointerDown(e, "footer");
+        });
 
-          _event(this._viewobj, "mousedown", function (e) {
-            return _this._rs_down(e);
-          });
+        this._renderResizers = true;
+      } else {
+        // backward compatibility, old resize logic (columns, rows)
+        if (!this._rs_init_flag) return;
 
-          _event(this._viewobj, "mouseup", function () {
-            return _this._rs_up();
-          });
-        }
+        _event(this._viewobj, "mousemove", function (e) {
+          return _this._rs_move(e);
+        });
+
+        _event(this._viewobj, "mousedown", function (e) {
+          return _this._rs_down(e);
+        });
+
+        _event(this._viewobj, "mouseup", function () {
+          return _this._rs_up();
+        });
 
         this._rs_init_flag = false;
       }
@@ -41877,8 +41979,8 @@
       this._mark_resize(mode);
     },
     _is_column_rs: function (cell, pos$$1, node, rColumn, in_body) {
-      // if resize is only within the header
-      if (!rColumn || in_body && rColumn.headerOnly) return false;
+      // if resize is only within the header or icon-based resize is enabled
+      if (!rColumn || in_body && rColumn.headerOnly || rColumn.icon) return false;
       var dx = node.offsetWidth;
       rColumn = rColumn.size ? rColumn.size : 3;
       var col, config;
@@ -42092,11 +42194,15 @@
 
       if (Touch._start_context && !prerender && !this._touch_target) {
         // Preserve target so touchmove continues firing
-        var target = Touch._start_context.target;
-        this._touch_target = target;
-        target.style.display = "none";
+        var target = Touch._start_context.target; // Only preserve elements that would be destroyed by virtual re-rendering:
+        // only data items and their inner elements
 
-        this._body.appendChild(target);
+        if (this.locate(target)) {
+          this._touch_target = target;
+          target.style.display = "none";
+
+          this._body.appendChild(target);
+        }
       }
 
       Touch._set_matrix(this._body.childNodes[1].firstChild, x, y, t);
@@ -42295,7 +42401,8 @@
       this.data.each(function (obj) {
         var height;
         if (spanHeightMap && spanHeightMap[obj.id]) height = spanHeightMap[obj.id];else {
-          d.innerHTML = this._getValue(obj, config, 0);
+          var index$$1 = this.getIndexById(obj.id);
+          d.innerHTML = this._getValue(obj, config, index$$1);
           height = d.scrollHeight;
         }
         height = Math.max(height, this._settings.rowHeight, this._settings.minRowHeight || 0);
@@ -44582,19 +44689,27 @@
         //excel export with styles
         options.dataOnly = true;
         options.heights = isUndefined(options.heights) ? "all" : options.heights;
-        var data = mode == "pdf" ? toPDF(this, options) : toExcel(this, options);
-        if (options.styles) data[0].styles = this._getExportStyles(options);
-        delete options.dataOnly;
+        var freeze = mode == "excel" && options.freeze;
 
-        if (mode == "excel" && options.freeze) {
-          var columns = this._hidden_split[0] || this.config.leftSplit;
-          var rows = this.config.topSplit;
-          if (columns || rows) data[0].freeze = {
-            rows: rows - (data[0].viewOptions.yCorrection || 0),
-            columns: columns - (data[0].viewOptions.xCorrection || 0)
+        if (freeze) {
+          options.frozenRows = this.config.topSplit;
+          options.frozenCols = options.hidden ? this._hidden_split[0] || this.config.leftSplit : this.config.leftSplit;
+        }
+
+        var data = mode == "pdf" ? toPDF(this, options) : toExcel(this, options);
+
+        if (freeze) {
+          var viewOptions = data[0].viewOptions;
+          var rows = viewOptions.frozenRows;
+          var columns = viewOptions.frozenCols;
+          if (rows || columns) data[0].freeze = {
+            rows: rows ? rows - (viewOptions.yCorrection || 0) : 0,
+            columns: columns ? columns - (viewOptions.xCorrection || 0) : 0
           };
         }
 
+        if (options.styles) data[0].styles = this._getExportStyles(options);
+        delete options.dataOnly;
         return data;
       }
     },
@@ -44988,7 +45103,11 @@
       callEvent("onDataTable", [this, config]);
     },
     columns_setter: function (value) {
-      return copy(value, null, true);
+      var columns = copy(value, null, true);
+
+      this._clean_config_struct(columns);
+
+      return columns;
     },
     _render_initial: function () {
       this._scrollSizeX = this._scrollSizeY = env.scrollSize;
@@ -46285,7 +46404,8 @@
     },
     _repaint_single_row: function (id) {
       var item = this.getItem(id);
-      var rowindex = this.getIndexById(id);
+      var index$$1 = this.getIndexById(id);
+      var rowindex = index$$1;
 
       var state = this._get_y_range(this._settings.prerender === true);
 
@@ -46312,7 +46432,7 @@
           var node = column.node.childNodes[rowindex];
           if (!node) continue;
 
-          var value = this._getValue(item, this._columns[i], 0);
+          var value = this._getValue(item, this._columns[i], index$$1);
 
           node.innerHTML = value;
           node.className = this._getCss(this._columns[i], value, item, id) + freezeCss;
@@ -46544,7 +46664,10 @@
       }
     },
     getText: function (row_id, column_id) {
-      return this._getValue(this.getItem(row_id), this.getColumnConfig(column_id), 0);
+      var item = this.getItem(row_id);
+      var config = this.getColumnConfig(column_id);
+      var ind = this.getIndexById(row_id);
+      return this._getValue(item, config, ind);
     },
     getCss: function (row_id, column_id) {
       var item = this.getItem(row_id);

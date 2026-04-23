@@ -98,6 +98,7 @@ const UploadDriver = {
 				var item = items[i];
 				if (item.webkitGetAsEntry){
 					item = item.webkitGetAsEntry();
+					if (!item) continue;
 					if (item.isDirectory){
 						this._directoryDrop(item, this, "");
 						continue;

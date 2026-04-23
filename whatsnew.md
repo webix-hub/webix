@@ -1,5 +1,113 @@
 Check the full list of changes at https://docs.webix.com/desktop__whats_new.html
 
+Version 11.4 (April 2026)
+=============================
+
+### Major features
+
+- Slider now supports rendering titles on the axis values (`axisTitles`)
+- Datatable area selection: Ctrl+drag multi-area selection for end users
+- Kanban
+	- Markdown support for card contents
+- Spreadsheet
+	- Row/column grouping (outline)
+	- Multi-range selection support
+	- Multi-level range sorting 
+	- Special paste: "Paste transposed" option
+	- Selection statistics indicator in the bottom toolbar
+	- Ability to enable column resize on touch devices
+	- Reworked borders popup: values (position, color, line style) can be set in any order and applied together via a new Apply button
+	- Seven new border types
+	- API now includes a mode for Excel-like shared borders: `borderCollapse` option renders only bottom/right borders and collapses shared edges between adjacent cells
+	- API: `tableConfig` property for configuring the inner grid of Spreadheet
+	- API for running math formulas through code (`calculate`) and customizing results of calculations (`$mathTemplate`)
+	- API: cancellable `onBeforePaste` event for intercepting paste operations
+	- API: `getSpan`
+- Rich Text Editor
+	- API: `insertValue` method that inserts content at the caret position (or replaces selection)
+	- API for inline images: `upload` property is now optional; when omitted, images are embedded as base64 data URLs
+	- Drag-and-drop of images from external sources now inserts them into the editor content
+	- Paste now defaults to plain text (old behavior); markdown conversion on paste moved to an explicit "Paste from Markdown" action in the menubar and context menu
+
+### Fixes
+
+- Calendar: ISO week numbers are now computed correctly across time zones and DST transitions
+- Regression in Datatable: `setState` now restores column state on the first call even when column order differs
+- Datatable: columns reused from the grid's own config via `define`/`refreshColumns` now render properly
+- Datatable: multi-area selection borders no longer disappear on the split side when selection crosses a split boundary
+- Datatable on touch devices: swipe action on the empty area under data rows could throw an error
+- Datatable: unified colors of frozen column borders (headers and data)
+- Gantt
+	- Fixed incorrect scale length when `scaleStart` and `scaleEnd` fall within the same calendar day (day-based rounding is no longer applied for these cases)
+- Spreadsheet: 
+	- `onCellChange` (and style/format/validation change events) now fire on paste and special paste;
+	- Sheet rename now shows a validation warning for empty or invalid names instead of silently truncating characters
+	- Merged cells now inherit styles and borders of the first cell (Excel-like), internal borders are removed on merge, and perimeter borders are re-applied on unmerge
+	- Export to Excel: fixed "content recovery" error for exported spreadsheets that used placeholders
+	- Regression: resize dialog is now properly disabled when `resizeCell:false` is set
+	- Special paste from external sources now respects the selected option and allow pasting data (if present)
+	- Fixed number-format corruption when re-importing an Excel file exported under the German (de-DE) locale
+	- Showing previously hidden rows/columns is recorded as a "hide" operation, causing undo/redo to apply the wrong action
+- Rich Text Editor
+	- IME support: fixed input for Korean and other languages that use IME
+	- Resolved a conflict where the uploader's drop zone blocked native text drag-and-drop (uploader now only reacts to images/files)
+	- Images dragged from external web sources are no longer misinterpreted as file uploads (no empty-file errors in the console)  
+	- Fixed errors while handling external operations that modify the content's area directly (e.g. emoji from browser's context menu, iOS Format: Bold/Italic/Underline)
+	- Fixed frozen editor tab after Ctrl+X / Ctrl+V on a selection containing an `<hr>` element
+	- Fixed incorrect selection handling for `<hr>` elements
+	- `.getValue()` no longer returns `null` after voice-to-text dictation input  
+	- Editor now scrolls to the cursor when typing past the bottom edge (no more off-screen cursor during Enter holds or long input)
+	- Firefox: select all was not handled correctly
+	- Input on Android was not processed correctly
+	- Pasting/inserting single-line/block content added extra newline
+	- Improved pasting HTML content between Rich Text Editor instances
+	- Markdown: support for specific nested tags: bold/italic and vice versa
+	- Markdown: tags without a non-special char between them weren't recognized
+	- Markdown: `<hr>` element appeared instead of text in some cases
+
+[Full list of changes and fixes](https://docs.webix.com/desktop__whats_new_11_4.html)
+
+Version 11.3.3 (March 2026)
+=============================
+
+### Fixes
+
+- Rich Text Editor
+	- Package dependencies are fixed
+- Pivot
+	- Package dependencies are fixed
+
+
+Version 11.3.2 (March 2026)
+=============================
+
+### Fixes
+
+- Range Slider in `vertical` mode couldn't handle a custom minimum value
+- Uploader's drop zone reacted to non-file images dragged from external sources (e.g. another browser window)
+- Rich Text Editor
+	- In fullscreen mode, `getValue` method didn't return the current value
+- Spreadsheet
+	- Old formats were preserved in the sheet after loading new data
+	- Undo didn't handle array formulas
+	- Calling `showCell` after parsing new data updated the cell value with old data
+	- The right or bottom border disappeared after merging cells
+
+Version 11.3.1 (February 2026)
+=============================
+
+### Fixes
+
+- RangeSlider: incorrect value updates when dragging past the opposite handle
+- Datatable: row resizing fails when column resizer icons are enabled
+- Datatable: template renders with incorrect index after certain repaints
+- Datatable on touch devices: corrected redrawing of merged cells
+- Export to Excel: frozen columns were exported incorrectly when using the ignore option
+- Spreadsheet
+	- Regression of context menu: `undefined` values appeared in submenus
+	- Editing of merged cells: changes weren't displayed in the cell during editing
+	- Formula prompt didn't allow selecting the underlying cells in the grid
+
 Version 11.3 (December 2025)
 =============================
 
@@ -54,9 +162,9 @@ Version 11.2.3 (November 2025)
 
 ### Fixes
 
-- Label: `autowidth` didn’t handle custom styles.
+- Label: `autowidth` didn't handle custom styles.
 - Scheduler
-   - In forced `compact` mode, the rule editor for recurring events filled the entire screen instead of staying within the Scheduler’s container.
+   - In forced `compact` mode, the rule editor for recurring events filled the entire screen instead of staying within the Scheduler's container.
 - Spreadsheet
    - When no cells were selected, setting a row or column format through the UI resulted in an error.
 - Richtext

@@ -11,28 +11,31 @@ const Mixin = {
 	resizeRow_setter:function(value){
 		this._settings.scrollAlignY = false;
 		this._settings.fixedRowHeight = false;
-		this._applyResizeHandlers(value);
+		this._applyResizeHandlers(value, "row");
 		return value;
 	},
 	resizeColumn_setter:function(value){
-		this._applyResizeHandlers(value);
+		this._applyResizeHandlers(value, "column");
 		return value;
 	},
-	_applyResizeHandlers: function(value) {
-		if (!this._rs_init_flag) return;
-    
-		if (value) {
-			if (value.icon) {
-				_event(this._header, "pointerdown", e => this._handleResizerPointerDown(e, "header"));
-				_event(this._footer, "pointerdown", e => this._handleResizerPointerDown(e, "footer"));
+	_applyResizeHandlers: function(value, type) {
+		if (!value) return;
 
-				this._renderResizers = true;
-			} else {
-				// backward compatibility
-				_event(this._viewobj, "mousemove", e => this._rs_move(e));
-				_event(this._viewobj, "mousedown", e => this._rs_down(e));
-				_event(this._viewobj, "mouseup", () => this._rs_up());
-			}
+		if (value.icon) {
+			// resizer icons work for columns only
+			if (type !== "column") return;
+
+			_event(this._header, "pointerdown", e => this._handleResizerPointerDown(e, "header"));
+			_event(this._footer, "pointerdown", e => this._handleResizerPointerDown(e, "footer"));
+
+			this._renderResizers = true;
+		} else {
+			// backward compatibility, old resize logic (columns, rows)
+			if (!this._rs_init_flag) return;
+
+			_event(this._viewobj, "mousemove", e => this._rs_move(e));
+			_event(this._viewobj, "mousedown", e => this._rs_down(e));
+			_event(this._viewobj, "mouseup", () => this._rs_up());
 
 			this._rs_init_flag = false;
 		}
@@ -299,8 +302,8 @@ const Mixin = {
 		this._mark_resize(mode);
 	},
 	_is_column_rs:function(cell, pos, node, rColumn, in_body){
-		// if resize is only within the header
-		if (!rColumn || (in_body && rColumn.headerOnly)) return false;
+		// if resize is only within the header or icon-based resize is enabled
+		if (!rColumn || (in_body && rColumn.headerOnly) || rColumn.icon) return false;
 
 		const dx = node.offsetWidth;
 		rColumn = rColumn.size ? rColumn.size : 3;

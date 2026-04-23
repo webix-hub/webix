@@ -62,7 +62,7 @@ const api = {
 	},
 	$init:function(config){
 		if (config.labelPosition == "top" && isUndefined(config.height) && this.defaults.height) // textarea
-			config.height = this.defaults.height + (config.label?this._labelTopHeight:0);
+			config.height = this.defaults.height + (config.label ? this._labelTopHeight : 0) + (config.axisTitles ? this._labelTopHeight : 0);
 
 		// used in clear_setter
 		if (!isUndefined(config.icon))

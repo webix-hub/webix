@@ -45,8 +45,11 @@ const Mixin = {
 			this._bs_position = offset(this._body);
 			const pos = getPos(e);
 			this._bs_ready = [pos.x - this._bs_position.x, pos.y - this._bs_position.y];
+			this._bs_event_state = {ctrlKey: !!e.ctrlKey, metaKey: !!e.metaKey};
 
 			this._bs_handler_init(e.target, pointer);
+			if(env.isFF)
+				preventEvent(e);
 		}
 	},
 	_bs_handler_init:function(target, pointer){
@@ -68,13 +71,14 @@ const Mixin = {
 		this._bs_mu_handler = eventRemove(this._bs_mu_handler);
 
 		removeCss(document.body,"webix_noselect");
+		delete this._bs_event_state;
 		this._bs_ready = this._bs_progress = false;
 		if (this._auto_scroll_delay)
 			this._auto_scroll_delay = window.clearTimeout(this._auto_scroll_delay);
 	},
 	_update_block_selection: function(){
 		if (this._bs_progress)
-			delay(this._bs_select, this, [false, false]);
+			delay(this._bs_select, this, [false, false, this._bs_event_state]);
 	},
 	_bs_select:function(mode, theend, e){
 		if(!this._bs_ready[2])

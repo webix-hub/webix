@@ -154,9 +154,13 @@ const Mixin = {
 		if (Touch._start_context && !prerender && !this._touch_target) {
 			// Preserve target so touchmove continues firing
 			const {target} = Touch._start_context;
-			this._touch_target = target;
-			target.style.display = "none";
-			this._body.appendChild(target);
+			// Only preserve elements that would be destroyed by virtual re-rendering:
+			// only data items and their inner elements
+			if (this.locate(target)) {
+				this._touch_target = target;
+				target.style.display = "none";
+				this._body.appendChild(target);
+			}
 		}
 
 		Touch._set_matrix(this._body.childNodes[1].firstChild, x, y, t);

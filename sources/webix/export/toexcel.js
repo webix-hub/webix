@@ -61,8 +61,11 @@ export const toExcel = function(id, options){
 			const ranges =  views[i].ranges || [];
 			const styles = views[i].styles || [];
 			const freeze = views[i].freeze;
+			const rowGroups = views[i].rowGroups || [];
+			const columnGroups = views[i].columnGroups || [];
+
 			const sheetSettings = views[i].sheetSettings;
-			const data = getExcelData(result, scheme, spans, styles, freeze, sheetSettings, viewOptions);
+			const data = getExcelData(result, scheme, spans, styles, freeze, rowGroups, columnGroups, sheetSettings, viewOptions);
 			let sname = (viewOptions.name || "Data"+(i+1)).replace(/[*?:[\]\\/]/g,"").replace(/&/g, "&amp;").substring(0, 31);
 
 			//avoid name duplication
@@ -120,7 +123,7 @@ function str2array(s) {
 
 const types = { number:"n", date:"n", string:"s", boolean:"b"};
 const table = "_table";
-function getExcelData(data, scheme, spans, styles, freeze, sheetSettings, options) {
+function getExcelData(data, scheme, spans, styles, freeze, rowGroups, columnGroups, sheetSettings, options) {
 	const ws = {};
 	const range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
 	for(let R = 0; R != data.length; ++R) {
@@ -197,7 +200,18 @@ function getExcelData(data, scheme, spans, styles, freeze, sheetSettings, option
 	if(range.s.c < 10000000) ws["!ref"] = XLSX.utils.encode_range(range);
 
 	ws["!rows"] = getRowHeights(scheme);
+	rowGroups.forEach((level, index) => {
+		if(!ws["!rows"][index])
+			ws["!rows"][index] = {};
+		ws["!rows"][index].outlineLevel = level;
+	});
 	ws["!cols"] = getColumnsWidths(scheme);
+	columnGroups.forEach((level, index) => {
+		if(!ws["!cols"][index])
+			ws["!cols"][index] = {};
+		ws["!cols"][index].outlineLevel = level;
+	});
+
 	if(spans.length)
 		ws["!merges"] = spans;
 

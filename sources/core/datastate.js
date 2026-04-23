@@ -48,7 +48,6 @@ const DataState = {
 		return settings;
 	},
 	setState:function(obj){
-		const columns = this.config.columns;
 		if(!obj) return;
 
 		this.markSorting();
@@ -57,22 +56,46 @@ const DataState = {
 
 		this.blockEvent();
 
-		if (obj.order && obj.order.length){
-			this._hidden_column_order = _to_array([].concat(obj.order));
-			const rs = obj.order.length - this._settings.rightSplit;
-			this._hidden_split = [this._settings.leftSplit, rs, this._settings.rightSplit];
+		let reorder = false;
+		if (obj.ids) {
+			for (let i = 0; i < this._columns.length; i++) {
+				if (this._columns[i].id != obj.ids[i]) {
+					reorder = true;
+					break;
+				}
+			}
+
+			if (reorder) {
+				// reconstruct columns using the full order (refreshColumns resets hidden columns, so we have to provide the full order here)
+				const order =
+					obj.order && obj.order.length ? obj.order : obj.ids;
+				const newColumns = order
+					.map(id => this.getColumnConfig(id))
+					.filter(Boolean);
+				this.refreshColumns(newColumns);
+			}
 		}
 
-		if (obj.hidden){
+		if (!reorder && obj.order && obj.order.length) {
+			this._hidden_column_order = _to_array([].concat(obj.order));
+			const rs = obj.order.length - this._settings.rightSplit;
+			this._hidden_split = [
+				this._settings.leftSplit,
+				rs,
+				this._settings.rightSplit,
+			];
+		}
+
+		if (obj.hidden) {
 			const hihash = {};
-			for (let i=0; i<obj.hidden.length; i++){
+			for (let i = 0; i < obj.hidden.length; i++) {
 				hihash[obj.hidden[i]] = true;
-				if(!this._hidden_column_order.length)
+				if (!this._hidden_column_order.length)
 					this.hideColumn(obj.hidden[i]);
 			}
 
-			if(this._hidden_column_order.length){
-				for (let i=0; i<this._hidden_column_order.length; i++){
+			if (this._hidden_column_order.length) {
+				for (let i = 0; i < this._hidden_column_order.length; i++) {
 					const hikey = this._hidden_column_order[i];
 					if (!!hihash[hikey] == !this._hidden_column_hash[hikey])
 						this.hideColumn(hikey, {}, false, !!hihash[hikey]);
@@ -80,26 +103,14 @@ const DataState = {
 			}
 		}
 
-		if (obj.ids){
-			let reorder = false;
-			for (let i=0; i<columns.length; i++)
-				if (columns[i].id != obj.ids[i])
-					reorder = true;
-			if (reorder){
-				for (let i=0; i<obj.ids.length; i++)
-					columns[i] = this.getColumnConfig(obj.ids[i]) || columns[i];
-				this.refreshColumns();
-			}
-		}
-
-		if (obj.size){
-			const cols_n = Math.min(obj.size.length, columns.length);
-			for (let i = 0; i < cols_n; i++){
-				const col = columns[i];
-				if(col && obj.size[i] > 0 && col.width != obj.size[i]){
+		if (obj.size) {
+			const cols_n = Math.min(obj.size.length, this._columns.length);
+			for (let i = 0; i < cols_n; i++) {
+				const col = this._columns[i];
+				if (col && obj.size[i] > 0 && col.width != obj.size[i]) {
 					delete col.fillspace;
 					delete col.adjust;
-					this._setColumnWidth( i, obj.size[i], true);
+					this._setColumnWidth(i, obj.size[i], true);
 				}
 			}
 		}

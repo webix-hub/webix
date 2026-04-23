@@ -1,9 +1,9 @@
 import text from "../views/text";
-import {preventEvent, addCss, removeCss, pos as getPos, offset} from "../webix/html";
+import {preventEvent, addCss, removeCss, pos as getPos, offset, getTextSize} from "../webix/html";
 import {protoUI} from "../ui/core";
-import {$active} from "../webix/skin";
+import {$active, $name} from "../webix/skin";
 import env from "../webix/env";
-import {uid, bind, isArray, copy} from "../webix/helpers";
+import {uid, bind, isArray, copy, isUndefined} from "../webix/helpers";
 import {_event, event, eventRemove} from "../webix/htmlevents";
 import template from "../webix/template";
 
@@ -19,13 +19,32 @@ const api = {
 		template:function(obj, common){
 			const id = common._handle_id = "x" +uid();
 			let html = "";
-			const title = "<div class='webix_slider_title"+(obj.moveTitle?" webix_slider_move":"")+"'"+(!obj.moveTitle && obj.vertical?(" style='line-height:"+(obj.aheight-obj.inputPadding*2)+"px;'"):"")+">&nbsp;</div>";
+
+			const bothTitles = obj.axisTitles && obj.title;
+			let titleCss = "";
+			let titleStyle = "";
+			if (obj.vertical) {
+				titleStyle += `width:${typeof obj.titleWidth === "number" ? `${obj.titleWidth}px` : "auto"};`;
+				if (!obj.moveTitle)
+					titleStyle += `line-height:${obj.aheight - obj.inputPadding * 2}px;`;
+				if (bothTitles) {
+					titleCss = " webix_slider_title_left";
+				}
+			}
+			titleStyle = titleStyle ? ` style="${titleStyle}"` : "";
+			const title = `<div class="webix_slider_title${obj.moveTitle ? " webix_slider_move" : ""}${titleCss}"${titleStyle}>&nbsp;</div>`;
+		
 			const left = "<div class='webix_slider_left'>&nbsp;</div>";
 			const right = "<div class='webix_slider_right'></div>";
 			const handle = "<div class='webix_slider_handle' "+/*@attr*/"webix_disable_drag"+"='true' role='slider' aria-label='"+obj.label+(obj.title?(" "+obj.title(obj)):"")+"' aria-valuemax='"+obj.max+"' aria-valuemin='"+obj.min+"' aria-valuenow='"+obj.value+"' tabindex='0' id='"+id+"'>&nbsp;</div>";
 
-			if(obj.vertical) html = "<div class='webix_slider_box'>"+right+left+handle+"</div>"+title;
-			else html = title+"<div class='webix_slider_box'>"+left+right+handle+"</div>";
+			let axisTitles = obj.axisTitles ? common._set_axis_titles(obj) : "";
+			if (obj.vertical) {
+				html = `<div class="webix_slider_vertical_wrap"><div class='webix_slider_box'>${right}${left}${handle}</div>${axisTitles}</div>`;
+				html = bothTitles ? `${title}${html}` : `${html}${title}`;
+			} else {
+				html = title+"<div class='webix_slider_box'>"+left+right+handle+axisTitles+"</div>";
+			}
 			return common.$renderInput(obj, html, id);
 		}
 	},
@@ -37,6 +56,34 @@ const api = {
 			return template(value);
 		return value;
 	},
+	_set_axis_titles:function(obj){
+		let axisTitles = `<div class="webix_slider_axis webix_axis_${obj.vertical ? "vertical" : "horizontal"}">`;
+		const getTitle = typeof obj.axisTitles === "function" ? obj.axisTitles : v => v;
+
+		const length = obj.max - obj.min;
+		for (let i = obj.min, count = obj.vertical ? length : 0; i <= obj.max; i += obj.step, obj.vertical ? count -= obj.step : count += obj.step) {
+			const text = getTitle(i);
+			if (!text && text !== 0) continue;
+			
+			let style = "";
+			const tsize = getTextSize(text, "webix_view");
+			const percent = count / length;
+			const contHeight = this._get_content_height();
+			if (obj.vertical) {
+				const theight = tsize.height;
+				const centering = i === obj.min ? theight : count ? Math.round(theight / 2) : 0;
+				style = `top:${Math.round((contHeight - this._sliderPadding * 2) * percent - centering + (count ? (i === obj.min ? 10 : 5) : 0))}px;`;
+			} else {
+				const twidth = tsize.width;
+				const centering = i === obj.max ? twidth : count ? Math.round(twidth / 2) : 0;
+				const width = this._get_input_width(obj);
+				style = `left:${Math.round((width - this._sliderPadding * 2) * percent - centering + (count ? 2 : 0))}px;`;
+			}
+			axisTitles += `<div class="webix_slider_axis_item" style="${style}">${text}</div>`;
+		}
+		axisTitles += "</div>";
+		return axisTitles;
+	},
 	_get_slider_handle:function(){
 		return this.$view.querySelector(".webix_slider_handle");
 	},
@@ -45,7 +92,8 @@ const api = {
 		const config = this._settings;
 
 		if(handle){ //view is rendered for sure
-			const size = config.vertical?this._content_height:this._get_input_width(config); //width or height
+			const contHeight = this._get_content_height();
+			const size = config.vertical ? contHeight : this._get_input_width(config); //width or height
 			let value = config.value%config.step?(Math.round(config.value/config.step)*config.step):config.value;
 			const max = config.max - config.min;
 
@@ -79,7 +127,7 @@ const api = {
 	_set_title:function(handle, corner1, corner2, cornerStr){
 		const config = this._settings;
 		if (this._settings.title){
-			const title = handle.parentNode[config.vertical?"nextSibling":"previousSibling"];
+			const title = this.$view.querySelector(".webix_slider_title");
 			title.innerHTML = this._settings.title(this._settings, this);
 
 			if(this._settings.moveTitle){
@@ -99,8 +147,8 @@ const api = {
 		this._get_slider_handle().setAttribute("aria-valuenow", this._settings.value);
 	},
 	_safeValue: function(value, min, max){
-		min = min ? min : this._settings.min;
-		max = max ? max : this._settings.max;
+		min = isUndefined(min) ? this._settings.min : min;
+		max = isUndefined(max) ? this._settings.max : max;
 		
 		return Math.min(Math.max(value, min), max);
 	},
@@ -138,6 +186,13 @@ const api = {
 			config.height = config.height || $active.vSliderHeight;
 			this._viewobj.className += " webix_slider_vertical";
 			this._sliderPadding = $active.vSliderPadding;
+
+			this.defaults.titleWidth = config.axisTitles ? 24 : "auto";
+		} else if (config.axisTitles) {
+			this.defaults.height = $active.inputHeight + ($name === "mini" || $name === "compact" ? 18 : 28);
+			if (config.labelPosition == "top" && isUndefined(config.height) && this.defaults.height) {
+				config.height = this.defaults.height + (config.label?this._labelTopHeight:0);
+			}
 		}
 	},
 	$skin: function(){
@@ -255,6 +310,13 @@ const api = {
 			newvalue = max-newvalue;
 		newvalue = Math.round((newvalue + 1*config.min) / config.step) * config.step;
 		return this._safeValue(newvalue);
+	},
+	_get_content_height(){
+		const config = this._settings;
+		if (config.vertical &&  config.labelPosition == "top") {
+			return this._content_height - this._labelTopHeight;
+		}
+		return this._content_height;
 	},
 	_init_onchange:function(){} //need not ui.text logic
 };
